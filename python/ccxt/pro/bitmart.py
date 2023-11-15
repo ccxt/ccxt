@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
 
@@ -84,7 +84,7 @@ class bitmart(ccxt.async_support.bitmart):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -109,17 +109,16 @@ class bitmart(ccxt.async_support.bitmart):
         """
         return await self.subscribe('ticker', symbol, params)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+        self.check_required_symbol('watchOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -136,22 +135,22 @@ class bitmart(ccxt.async_support.bitmart):
         # {
         #     "data":[
         #         {
-        #             symbol: 'LTC_USDT',
-        #             notional: '',
-        #             side: 'buy',
-        #             last_fill_time: '0',
-        #             ms_t: '1646216634000',
-        #             type: 'limit',
-        #             filled_notional: '0.000000000000000000000000000000',
-        #             last_fill_price: '0',
-        #             size: '0.500000000000000000000000000000',
-        #             price: '50.000000000000000000000000000000',
-        #             last_fill_count: '0',
-        #             filled_size: '0.000000000000000000000000000000',
-        #             margin_trading: '0',
-        #             state: '8',
-        #             order_id: '24807076628',
-        #             order_type: '0'
+        #             "symbol": "LTC_USDT",
+        #             "notional": '',
+        #             "side": "buy",
+        #             "last_fill_time": "0",
+        #             "ms_t": "1646216634000",
+        #             "type": "limit",
+        #             "filled_notional": "0.000000000000000000000000000000",
+        #             "last_fill_price": "0",
+        #             "size": "0.500000000000000000000000000000",
+        #             "price": "50.000000000000000000000000000000",
+        #             "last_fill_count": "0",
+        #             "filled_size": "0.000000000000000000000000000000",
+        #             "margin_trading": "0",
+        #             "state": "8",
+        #             "order_id": "24807076628",
+        #             "order_type": "0"
         #           }
         #     ],
         #     "table":"spot/user/order"
@@ -179,22 +178,22 @@ class bitmart(ccxt.async_support.bitmart):
     def parse_ws_order(self, order, market=None):
         #
         # {
-        #     symbol: 'LTC_USDT',
-        #     notional: '',
-        #     side: 'buy',
-        #     last_fill_time: '0',
-        #     ms_t: '1646216634000',
-        #     type: 'limit',
-        #     filled_notional: '0.000000000000000000000000000000',
-        #     last_fill_price: '0',
-        #     size: '0.500000000000000000000000000000',
-        #     price: '50.000000000000000000000000000000',
-        #     last_fill_count: '0',
-        #     filled_size: '0.000000000000000000000000000000',
-        #     margin_trading: '0',
-        #     state: '8',
-        #     order_id: '24807076628',
-        #     order_type: '0'
+        #     "symbol": "LTC_USDT",
+        #     "notional": '',
+        #     "side": "buy",
+        #     "last_fill_time": "0",
+        #     "ms_t": "1646216634000",
+        #     "type": "limit",
+        #     "filled_notional": "0.000000000000000000000000000000",
+        #     "last_fill_price": "0",
+        #     "size": "0.500000000000000000000000000000",
+        #     "price": "50.000000000000000000000000000000",
+        #     "last_fill_count": "0",
+        #     "filled_size": "0.000000000000000000000000000000",
+        #     "margin_trading": "0",
+        #     "state": "8",
+        #     "order_id": "24807076628",
+        #     "order_type": "0"
         #   }
         #
         marketId = self.safe_string(order, 'symbol')
@@ -238,14 +237,14 @@ class bitmart(ccxt.async_support.bitmart):
     def handle_trade(self, client: Client, message):
         #
         #     {
-        #         table: 'spot/trade',
-        #         data: [
+        #         "table": "spot/trade",
+        #         "data": [
         #             {
-        #                 price: '52700.50',
-        #                 s_t: 1630982050,
-        #                 side: 'buy',
-        #                 size: '0.00112',
-        #                 symbol: 'BTC_USDT'
+        #                 "price": "52700.50",
+        #                 "s_t": 1630982050,
+        #                 "side": "buy",
+        #                 "size": "0.00112",
+        #                 "symbol": "BTC_USDT"
         #             },
         #         ]
         #     }
@@ -269,18 +268,18 @@ class bitmart(ccxt.async_support.bitmart):
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         data: [
+        #         "data": [
         #             {
-        #                 base_volume_24h: '78615593.81',
-        #                 high_24h: '52756.97',
-        #                 last_price: '52638.31',
-        #                 low_24h: '50991.35',
-        #                 open_24h: '51692.03',
-        #                 s_t: 1630981727,
-        #                 symbol: 'BTC_USDT'
+        #                 "base_volume_24h": "78615593.81",
+        #                 "high_24h": "52756.97",
+        #                 "last_price": "52638.31",
+        #                 "low_24h": "50991.35",
+        #                 "open_24h": "51692.03",
+        #                 "s_t": 1630981727,
+        #                 "symbol": "BTC_USDT"
         #             }
         #         ],
-        #         table: 'spot/ticker'
+        #         "table": "spot/ticker"
         #     }
         #
         table = self.safe_string(message, 'table')
@@ -294,7 +293,7 @@ class bitmart(ccxt.async_support.bitmart):
             client.resolve(ticker, messageHash)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -317,20 +316,20 @@ class bitmart(ccxt.async_support.bitmart):
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
-        #         data: [
+        #         "data": [
         #             {
-        #                 candle: [
+        #                 "candle": [
         #                     1631056350,
-        #                     '46532.83',
-        #                     '46555.71',
-        #                     '46511.41',
-        #                     '46555.71',
-        #                     '0.25'
+        #                     "46532.83",
+        #                     "46555.71",
+        #                     "46511.41",
+        #                     "46555.71",
+        #                     "0.25"
         #                 ],
-        #                 symbol: 'BTC_USDT'
+        #                 "symbol": "BTC_USDT"
         #             }
         #         ],
-        #         table: 'spot/kline1m'
+        #         "table": "spot/kline1m"
         #     }
         #
         table = self.safe_string(message, 'table')
@@ -360,7 +359,7 @@ class bitmart(ccxt.async_support.bitmart):
             messageHash = table + ':' + marketId
             client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -385,22 +384,22 @@ class bitmart(ccxt.async_support.bitmart):
     def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
-        #         asks: [
-        #             ['46828.38', '0.21847'],
-        #             ['46830.68', '0.08232'],
-        #             ['46832.08', '0.09285'],
-        #             ['46837.82', '0.02028'],
-        #             ['46839.43', '0.15068']
+        #         "asks": [
+        #             ['46828.38', "0.21847"],
+        #             ['46830.68', "0.08232"],
+        #             ['46832.08', "0.09285"],
+        #             ['46837.82', "0.02028"],
+        #             ['46839.43', "0.15068"]
         #         ],
-        #         bids: [
-        #             ['46820.78', '0.00444'],
-        #             ['46814.33', '0.00234'],
-        #             ['46813.50', '0.05021'],
-        #             ['46808.14', '0.00217'],
-        #             ['46808.04', '0.00013']
+        #         "bids": [
+        #             ['46820.78', "0.00444"],
+        #             ['46814.33', "0.00234"],
+        #             ['46813.50', "0.05021"],
+        #             ['46808.14', "0.00217"],
+        #             ['46808.04', "0.00013"]
         #         ],
-        #         ms_t: 1631044962431,
-        #         symbol: 'BTC_USDT'
+        #         "ms_t": 1631044962431,
+        #         "symbol": "BTC_USDT"
         #     }
         #
         asks = self.safe_value(message, 'asks', [])
@@ -418,27 +417,27 @@ class bitmart(ccxt.async_support.bitmart):
     def handle_order_book(self, client: Client, message):
         #
         #     {
-        #         data: [
+        #         "data": [
         #             {
-        #                 asks: [
-        #                     ['46828.38', '0.21847'],
-        #                     ['46830.68', '0.08232'],
-        #                     ['46832.08', '0.09285'],
-        #                     ['46837.82', '0.02028'],
-        #                     ['46839.43', '0.15068']
+        #                 "asks": [
+        #                     ['46828.38', "0.21847"],
+        #                     ['46830.68', "0.08232"],
+        #                     ['46832.08', "0.09285"],
+        #                     ['46837.82', "0.02028"],
+        #                     ['46839.43', "0.15068"]
         #                 ],
-        #                 bids: [
-        #                     ['46820.78', '0.00444'],
-        #                     ['46814.33', '0.00234'],
-        #                     ['46813.50', '0.05021'],
-        #                     ['46808.14', '0.00217'],
-        #                     ['46808.04', '0.00013']
+        #                 "bids": [
+        #                     ['46820.78', "0.00444"],
+        #                     ['46814.33', "0.00234"],
+        #                     ['46813.50', "0.05021"],
+        #                     ['46808.14', "0.00217"],
+        #                     ['46808.04', "0.00013"]
         #                 ],
-        #                 ms_t: 1631044962431,
-        #                 symbol: 'BTC_USDT'
+        #                 "ms_t": 1631044962431,
+        #                 "symbol": "BTC_USDT"
         #             }
         #         ],
-        #         table: 'spot/depth5'
+        #         "table": "spot/depth5"
         #     }
         #
         data = self.safe_value(message, 'data', [])
@@ -495,7 +494,7 @@ class bitmart(ccxt.async_support.bitmart):
 
     def handle_authenticate(self, client: Client, message):
         #
-        #     {event: 'login'}
+        #     {event: "login"}
         #
         messageHash = 'authenticated'
         future = self.safe_value(client.futures, messageHash)
@@ -503,7 +502,7 @@ class bitmart(ccxt.async_support.bitmart):
 
     def handle_error_message(self, client: Client, message):
         #
-        #     {event: 'error', message: 'Invalid sign', errorCode: 30013}
+        #     {event: "error", message: "Invalid sign", errorCode: 30013}
         #     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         #
         errorCode = self.safe_string(message, 'errorCode')
@@ -530,26 +529,26 @@ class bitmart(ccxt.async_support.bitmart):
         #     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         #     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         #     {
-        #         table: "spot/depth",
-        #         action: "partial",
-        #         data: [
+        #         "table": "spot/depth",
+        #         "action": "partial",
+        #         "data": [
         #             {
-        #                 instrument_id:   "BTC-USDT",
-        #                 asks: [
+        #                 "instrument_id":   "BTC-USDT",
+        #                 "asks": [
         #                     ["5301.8", "0.03763319", "1"],
         #                     ["5302.4", "0.00305", "2"],
         #                 ],
-        #                 bids: [
+        #                 "bids": [
         #                     ["5301.7", "0.58911427", "6"],
         #                     ["5301.6", "0.01222922", "4"],
         #                 ],
-        #                 timestamp: "2020-03-16T03:25:00.440Z",
-        #                 checksum: -2088736623
+        #                 "timestamp": "2020-03-16T03:25:00.440Z",
+        #                 "checksum": -2088736623
         #             }
         #         ]
         #     }
         #
-        #     {data: '', table: 'spot/user/order'}
+        #     {data: '', table: "spot/user/order"}
         #
         table = self.safe_string(message, 'table')
         if table is None:

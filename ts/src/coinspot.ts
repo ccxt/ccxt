@@ -5,7 +5,7 @@ import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -141,7 +141,7 @@ export default class coinspot extends Exchange {
         });
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const balances = this.safeValue2 (response, 'balance', 'balances');
         if (Array.isArray (balances)) {
@@ -170,7 +170,7 @@ export default class coinspot extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name coinspot#fetchBalance
@@ -200,7 +200,7 @@ export default class coinspot extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinspot#fetchOrderBook
@@ -219,7 +219,7 @@ export default class coinspot extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "btc":{
@@ -255,7 +255,7 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinspot#fetchTicker
@@ -286,7 +286,7 @@ export default class coinspot extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinspot#fetchTickers
@@ -330,7 +330,7 @@ export default class coinspot extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinspot#fetchTrades
@@ -359,7 +359,7 @@ export default class coinspot extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchMyTrades
@@ -381,28 +381,28 @@ export default class coinspot extends Exchange {
         }
         const response = await this.privatePostRoMyTransactions (this.extend (request, params));
         //  {
-        //   status: 'ok',
-        //   buyorders: [
+        //   "status": "ok",
+        //   "buyorders": [
         //     {
-        //       otc: false,
-        //       market: 'ALGO/AUD',
-        //       amount: 386.95197925,
-        //       created: '2022-10-20T09:56:44.502Z',
-        //       audfeeExGst: 1.80018002,
-        //       audGst: 0.180018,
-        //       audtotal: 200
+        //       "otc": false,
+        //       "market": "ALGO/AUD",
+        //       "amount": 386.95197925,
+        //       "created": "2022-10-20T09:56:44.502Z",
+        //       "audfeeExGst": 1.80018002,
+        //       "audGst": 0.180018,
+        //       "audtotal": 200
         //     },
         //   ],
-        //   sellorders: [
+        //   "sellorders": [
         //     {
-        //       otc: false,
-        //       market: 'SOLO/ALGO',
-        //       amount: 154.52345614,
-        //       total: 115.78858204658796,
-        //       created: '2022-04-16T09:36:43.698Z',
-        //       audfeeExGst: 1.08995731,
-        //       audGst: 0.10899573,
-        //       audtotal: 118.7
+        //       "otc": false,
+        //       "market": "SOLO/ALGO",
+        //       "amount": 154.52345614,
+        //       "total": 115.78858204658796,
+        //       "created": "2022-04-16T09:36:43.698Z",
+        //       "audfeeExGst": 1.08995731,
+        //       "audGst": 0.10899573,
+        //       "audtotal": 118.7
         //     },
         //   ]
         // }
@@ -418,7 +418,7 @@ export default class coinspot extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -433,16 +433,16 @@ export default class coinspot extends Exchange {
         //
         // private fetchMyTrades
         //     {
-        //       otc: false,
-        //       market: 'ALGO/AUD',
-        //       amount: 386.95197925,
-        //       created: '2022-10-20T09:56:44.502Z',
-        //       audfeeExGst: 1.80018002,
-        //       audGst: 0.180018,
-        //       audtotal: 200,
-        //       total: 200,
-        //       side: 'buy',
-        //       price: 0.5168600000125209
+        //       "otc": false,
+        //       "market": "ALGO/AUD",
+        //       "amount": 386.95197925,
+        //       "created": "2022-10-20T09:56:44.502Z",
+        //       "audfeeExGst": 1.80018002,
+        //       "audGst": 0.180018,
+        //       "audtotal": 200,
+        //       "total": 200,
+        //       "side": "buy",
+        //       "price": 0.5168600000125209
         //     }
         let timestamp = undefined;
         let priceString = undefined;
@@ -516,7 +516,7 @@ export default class coinspot extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#cancelOrder

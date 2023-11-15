@@ -214,136 +214,133 @@ class poloniexfutures extends poloniexfutures$1 {
         //  "code": "200000",
         //  "data": [
         //     {
-        //       symbol: 'APTUSDTPERP',
-        //       takerFixFee: '0E-10',
-        //       nextFundingRateTime: '20145603',
-        //       makerFixFee: '0E-10',
-        //       type: 'FFWCSX',
-        //       predictedFundingFeeRate: '0.000000',
-        //       turnoverOf24h: '386037.46704292',
-        //       initialMargin: '0.05',
-        //       isDeleverage: true,
-        //       createdAt: '1666681959000',
-        //       fundingBaseSymbol: '.APTINT8H',
-        //       lowPriceOf24h: '4.34499979019165',
-        //       lastTradePrice: '4.4090000000',
-        //       indexPriceTickSize: '0.001',
-        //       fairMethod: 'FundingRate',
-        //       takerFeeRate: '0.00040',
-        //       order: '102',
-        //       updatedAt: '1671076377000',
-        //       displaySettleCurrency: 'USDT',
-        //       indexPrice: '4.418',
-        //       multiplier: '1.0',
-        //       maxLeverage: '20',
-        //       fundingQuoteSymbol: '.USDTINT8H',
-        //       quoteCurrency: 'USDT',
-        //       maxOrderQty: '1000000',
-        //       maxPrice: '1000000.0000000000',
-        //       maintainMargin: '0.025',
-        //       status: 'Open',
-        //       displayNameMap: [Object],
-        //       openInterest: '2367',
-        //       highPriceOf24h: '4.763999938964844',
-        //       fundingFeeRate: '0.000000',
-        //       volumeOf24h: '83540.00000000',
-        //       riskStep: '500000',
-        //       isQuanto: true,
-        //       maxRiskLimit: '20000',
-        //       rootSymbol: 'USDT',
-        //       baseCurrency: 'APT',
-        //       firstOpenDate: '1666701000000',
-        //       tickSize: '0.001',
-        //       markMethod: 'FairPrice',
-        //       indexSymbol: '.PAPTUSDT',
-        //       markPrice: '4.418',
-        //       minRiskLimit: '1000000',
-        //       settlementFixFee: '0E-10',
-        //       settlementSymbol: '',
-        //       priceChgPctOf24h: '-0.0704',
-        //       fundingRateSymbol: '.APTUSDTPERPFPI8H',
-        //       makerFeeRate: '0.00010',
-        //       isInverse: false,
-        //       lotSize: '1',
-        //       settleCurrency: 'USDT',
-        //       settlementFeeRate: '0.0'
+        //       "symbol": "APTUSDTPERP",
+        //       "takerFixFee": "0E-10",
+        //       "nextFundingRateTime": "20145603",
+        //       "makerFixFee": "0E-10",
+        //       "type": "FFWCSX",
+        //       "predictedFundingFeeRate": "0.000000",
+        //       "turnoverOf24h": "386037.46704292",
+        //       "initialMargin": "0.05",
+        //       "isDeleverage": true,
+        //       "createdAt": "1666681959000",
+        //       "fundingBaseSymbol": ".APTINT8H",
+        //       "lowPriceOf24h": "4.34499979019165",
+        //       "lastTradePrice": "4.4090000000",
+        //       "indexPriceTickSize": "0.001",
+        //       "fairMethod": "FundingRate",
+        //       "takerFeeRate": "0.00040",
+        //       "order": "102",
+        //       "updatedAt": "1671076377000",
+        //       "displaySettleCurrency": "USDT",
+        //       "indexPrice": "4.418",
+        //       "multiplier": "1.0",
+        //       "maxLeverage": "20",
+        //       "fundingQuoteSymbol": ".USDTINT8H",
+        //       "quoteCurrency": "USDT",
+        //       "maxOrderQty": "1000000",
+        //       "maxPrice": "1000000.0000000000",
+        //       "maintainMargin": "0.025",
+        //       "status": "Open",
+        //       "displayNameMap": [Object],
+        //       "openInterest": "2367",
+        //       "highPriceOf24h": "4.763999938964844",
+        //       "fundingFeeRate": "0.000000",
+        //       "volumeOf24h": "83540.00000000",
+        //       "riskStep": "500000",
+        //       "isQuanto": true,
+        //       "maxRiskLimit": "20000",
+        //       "rootSymbol": "USDT",
+        //       "baseCurrency": "APT",
+        //       "firstOpenDate": "1666701000000",
+        //       "tickSize": "0.001",
+        //       "markMethod": "FairPrice",
+        //       "indexSymbol": ".PAPTUSDT",
+        //       "markPrice": "4.418",
+        //       "minRiskLimit": "1000000",
+        //       "settlementFixFee": "0E-10",
+        //       "settlementSymbol": '',
+        //       "priceChgPctOf24h": "-0.0704",
+        //       "fundingRateSymbol": ".APTUSDTPERPFPI8H",
+        //       "makerFeeRate": "0.00010",
+        //       "isInverse": false,
+        //       "lotSize": "1",
+        //       "settleCurrency": "USDT",
+        //       "settlementFeeRate": "0.0"
         //     },
         //   ]
         // }
         //
-        const result = [];
         const data = this.safeValue(response, 'data', []);
-        const dataLength = data.length;
-        for (let i = 0; i < dataLength; i++) {
-            const market = data[i];
-            const id = this.safeString(market, 'symbol');
-            const baseId = this.safeString(market, 'baseCurrency');
-            const quoteId = this.safeString(market, 'quoteCurrency');
-            const settleId = this.safeString(market, 'rootSymbol');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const settle = this.safeCurrencyCode(settleId);
-            const symbol = base + '/' + quote + ':' + settle;
-            const inverse = this.safeValue(market, 'isInverse');
-            const status = this.safeString(market, 'status');
-            const multiplier = this.safeString(market, 'multiplier');
-            const tickSize = this.safeNumber(market, 'indexPriceTickSize');
-            const lotSize = this.safeNumber(market, 'lotSize');
-            const limitAmountMax = this.safeNumber(market, 'maxOrderQty');
-            const limitPriceMax = this.safeNumber(market, 'maxPrice');
-            result.push({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'swap',
-                'spot': false,
-                'margin': false,
-                'swap': true,
-                'future': false,
-                'option': false,
-                'active': (status === 'Open'),
-                'contract': true,
-                'linear': !inverse,
-                'inverse': inverse,
-                'taker': this.safeNumber(market, 'takerFeeRate'),
-                'maker': this.safeNumber(market, 'makerFeeRate'),
-                'contractSize': this.parseNumber(Precise["default"].stringAbs(multiplier)),
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': lotSize,
-                    'price': tickSize,
+        return this.parseMarkets(data);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'symbol');
+        const baseId = this.safeString(market, 'baseCurrency');
+        const quoteId = this.safeString(market, 'quoteCurrency');
+        const settleId = this.safeString(market, 'rootSymbol');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const settle = this.safeCurrencyCode(settleId);
+        const symbol = base + '/' + quote + ':' + settle;
+        const inverse = this.safeValue(market, 'isInverse');
+        const status = this.safeString(market, 'status');
+        const multiplier = this.safeString(market, 'multiplier');
+        const tickSize = this.safeNumber(market, 'indexPriceTickSize');
+        const lotSize = this.safeNumber(market, 'lotSize');
+        const limitAmountMax = this.safeNumber(market, 'maxOrderQty');
+        const limitPriceMax = this.safeNumber(market, 'maxPrice');
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'active': (status === 'Open'),
+            'contract': true,
+            'linear': !inverse,
+            'inverse': inverse,
+            'taker': this.safeNumber(market, 'takerFeeRate'),
+            'maker': this.safeNumber(market, 'makerFeeRate'),
+            'contractSize': this.parseNumber(Precise["default"].stringAbs(multiplier)),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': lotSize,
+                'price': tickSize,
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.parseNumber('1'),
+                    'max': this.safeNumber(market, 'maxLeverage'),
                 },
-                'limits': {
-                    'leverage': {
-                        'min': this.parseNumber('1'),
-                        'max': this.safeNumber(market, 'maxLeverage'),
-                    },
-                    'amount': {
-                        'min': lotSize,
-                        'max': limitAmountMax,
-                    },
-                    'price': {
-                        'min': tickSize,
-                        'max': limitPriceMax,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': lotSize,
+                    'max': limitAmountMax,
                 },
-                'created': this.safeInteger(market, 'firstOpenDate'),
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': tickSize,
+                    'max': limitPriceMax,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.safeInteger(market, 'firstOpenDate'),
+            'info': market,
+        };
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -415,19 +412,19 @@ class poloniexfutures extends poloniexfutures$1 {
         const response = await this.publicGetTicker(this.extend(request, params));
         //
         // {
-        //     code: '200000',
-        //     data: {
-        //       sequence: '11574719',
-        //       symbol: 'BTCUSDTPERP',
-        //       side: 'sell',
-        //       size: '1',
-        //       price: '16990.1',
-        //       bestBidSize: '3',
-        //       bestBidPrice: '16990.1',
-        //       bestAskPrice: '16991.0',
-        //       tradeId: '639c8a529fd7cf0001af4157',
-        //       bestAskSize: '505',
-        //       ts: '1671203410721232337'
+        //     "code": "200000",
+        //     "data": {
+        //       "sequence": "11574719",
+        //       "symbol": "BTCUSDTPERP",
+        //       "side": "sell",
+        //       "size": "1",
+        //       "price": "16990.1",
+        //       "bestBidSize": "3",
+        //       "bestBidPrice": "16990.1",
+        //       "bestAskPrice": "16991.0",
+        //       "tradeId": "639c8a529fd7cf0001af4157",
+        //       "bestAskSize": "505",
+        //       "ts": "1671203410721232337"
         //     }
         // }
         //
@@ -787,16 +784,16 @@ class poloniexfutures extends poloniexfutures$1 {
         const response = await this.privateGetAccountOverview(this.extend(request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: {
-        //             accountEquity: 0.00005,
-        //             unrealisedPNL: 0,
-        //             marginBalance: 0.00005,
-        //             positionMargin: 0,
-        //             orderMargin: 0,
-        //             frozenFunds: 0,
-        //             availableBalance: 0.00005,
-        //             currency: 'XBT'
+        //         "code": "200000",
+        //         "data": {
+        //             "accountEquity": 0.00005,
+        //             "unrealisedPNL": 0,
+        //             "marginBalance": 0.00005,
+        //             "positionMargin": 0,
+        //             "orderMargin": 0,
+        //             "frozenFunds": 0,
+        //             "availableBalance": 0.00005,
+        //             "currency": "XBT"
         //         }
         //     }
         //
@@ -879,9 +876,9 @@ class poloniexfutures extends poloniexfutures$1 {
         const response = await this.privatePostOrders(this.extend(request, params));
         //
         //    {
-        //        code: "200000",
-        //        data: {
-        //            orderId: "619717484f1d010001510cde",
+        //        "code": "200000",
+        //        "data": {
+        //            "orderId": "619717484f1d010001510cde",
         //        },
         //    }
         //
@@ -928,15 +925,15 @@ class poloniexfutures extends poloniexfutures$1 {
         const response = await this.privateDeleteOrdersOrderId(this.extend(request, params));
         //
         //    {
-        //        code: "200000",
-        //        data: {
-        //            cancelledOrderIds: [
+        //        "code": "200000",
+        //        "data": {
+        //            "cancelledOrderIds": [
         //                "619714b8b6353000014c505a",
         //            ],
-        //            cancelFailedOrders: [
+        //            "cancelFailedOrders": [
         //                {
-        //                    orderId: "63a9c5c2b9e7d70007eb0cd5",
-        //                    orderState: "2"
+        //                    "orderId": "63a9c5c2b9e7d70007eb0cd5",
+        //                    "orderState": "2"
         //                }
         //            ],
         //        },
@@ -1116,9 +1113,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchFundingHistory', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1197,9 +1192,9 @@ class poloniexfutures extends poloniexfutures$1 {
         const response = await this[method](this.extend(request, params));
         //
         //   {
-        //       code: "200000",
-        //       data: {
-        //           cancelledOrderIds: [
+        //       "code": "200000",
+        //       "data": {
+        //           "cancelledOrderIds": [
         //                "619714b8b6353000014c505a",
         //           ],
         //       },
@@ -1459,9 +1454,9 @@ class poloniexfutures extends poloniexfutures$1 {
         // createOrder
         //
         //    {
-        //        code: "200000",
-        //        data: {
-        //            orderId: "619717484f1d010001510cde",
+        //        "code": "200000",
+        //        "data": {
+        //            "orderId": "619717484f1d010001510cde",
         //        },
         //    }
         //
@@ -1511,13 +1506,13 @@ class poloniexfutures extends poloniexfutures$1 {
         // cancelOrder
         //
         //    {
-        //        cancelledOrderIds: [
+        //        "cancelledOrderIds": [
         //            "619714b8b6353000014c505a",
         //        ],
-        //        cancelFailedOrders: [
+        //        "cancelFailedOrders": [
         //            {
-        //                orderId: "63a9c5c2b9e7d70007eb0cd5",
-        //                orderState: "2"
+        //                "orderId": "63a9c5c2b9e7d70007eb0cd5",
+        //                "orderState": "2"
         //            }
         //        ],
         //    },
@@ -1701,9 +1696,7 @@ class poloniexfutures extends poloniexfutures$1 {
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('setMarginMode', symbol);
         if ((marginMode !== 0) && (marginMode !== 1)) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() marginMode must be 0 (isolated) or 1 (cross)');
         }
@@ -1771,7 +1764,7 @@ class poloniexfutures extends poloniexfutures$1 {
         // bad
         //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
         // good
-        //     { code: '200000', data: { ... }}
+        //     { code: "200000", data: { ... }}
         //
         const errorCode = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg', '');

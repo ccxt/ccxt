@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
 import cexRest from '../cex.js';
-import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { ExchangeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -70,22 +70,22 @@ export default class cex extends cexRest {
     handleBalance (client: Client, message) {
         //
         //     {
-        //         e: 'get-balance',
-        //         data: {
-        //             balance: {
-        //                 BTC: '0.00000000',
-        //                 USD: '0.00',
+        //         "e": "get-balance",
+        //         "data": {
+        //             "balance": {
+        //                 "BTC": "0.00000000",
+        //                 "USD": "0.00",
         //                 ...
         //             },
-        //             obalance: {
-        //                 BTC: '0.00000000',
-        //                 USD: '0.00',
+        //             "obalance": {
+        //                 "BTC": "0.00000000",
+        //                 "USD": "0.00",
         //                 ...
         //             },
-        //             time: 1663761159605
+        //             "time": 1663761159605
         //         },
-        //         oid: 1,
-        //         ok: 'ok'
+        //         "oid": 1,
+        //         "ok": "ok"
         //     }
         //
         const data = this.safeValue (message, 'data', {});
@@ -155,10 +155,10 @@ export default class cex extends cexRest {
     handleTradesSnapshot (client: Client, message) {
         //
         //     {
-        //         e: 'history',
-        //         data: [
-        //             'sell:1665467367741:3888551:19058.8:14541219',
-        //             'buy:1665467367741:1059339:19071.5:14541218',
+        //         "e": "history",
+        //         "data": [
+        //             "sell:1665467367741:3888551:19058.8:14541219",
+        //             "buy:1665467367741:1059339:19071.5:14541218",
         //         ]
         //     }
         //
@@ -178,9 +178,9 @@ export default class cex extends cexRest {
     parseWsOldTrade (trade, market = undefined) {
         //
         //  snapshot trade
-        //    'sell:1665467367741:3888551:19058.8:14541219'
+        //    "sell:1665467367741:3888551:19058.8:14541219"
         //  update trade
-        //    ['buy', '1665467516704', '98070', '19057.7', '14541220']
+        //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
         if (!Array.isArray (trade)) {
             trade = trade.split (':');
@@ -210,9 +210,9 @@ export default class cex extends cexRest {
     handleTrade (client: Client, message) {
         //
         //     {
-        //         e: 'history-update',
-        //         data: [
-        //             ['buy', '1665467516704', '98070', '19057.7', '14541220']
+        //         "e": "history-update",
+        //         "data": [
+        //             ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //         ]
         //     }
         //
@@ -304,13 +304,13 @@ export default class cex extends cexRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         e: 'tick',
-        //         data: {
-        //             symbol1: 'LRC',
-        //             symbol2: 'USD',
-        //             price: '0.305',
-        //             open24: '0.301',
-        //             volume: '241421.641700'
+        //         "e": "tick",
+        //         "data": {
+        //             "symbol1": "LRC",
+        //             "symbol2": "USD",
+        //             "price": "0.305",
+        //             "open24": "0.301",
+        //             "volume": "241421.641700"
         //         }
         //     }
         //
@@ -327,25 +327,25 @@ export default class cex extends cexRest {
         //
         //  public
         //    {
-        //        symbol1: 'LRC',
-        //        symbol2: 'USD',
-        //        price: '0.305',
-        //        open24: '0.301',
-        //        volume: '241421.641700'
+        //        "symbol1": "LRC",
+        //        "symbol2": "USD",
+        //        "price": "0.305",
+        //        "open24": "0.301",
+        //        "volume": "241421.641700"
         //    }
         //  private
         //    {
-        //        timestamp: '1663764969',
-        //        low: '18756.3',
-        //        high: '19200',
-        //        last: '19200',
-        //        volume: '0.94735907',
-        //        volume30d: '64.61299999',
-        //        bid: 19217.2,
-        //        ask: 19247.5,
-        //        priceChange: '44.3',
-        //        priceChangePercentage: '0.23',
-        //        pair: ['BTC', 'USDT']
+        //        "timestamp": "1663764969",
+        //        "low": "18756.3",
+        //        "high": "19200",
+        //        "last": "19200",
+        //        "volume": "0.94735907",
+        //        "volume30d": "64.61299999",
+        //        "bid": 19217.2,
+        //        "ask": 19247.5,
+        //        "priceChange": "44.3",
+        //        "priceChangePercentage": "0.23",
+        //        "pair": ["BTC", "USDT"]
         //    }
         const pair = this.safeValue (ticker, 'pair', []);
         let baseId = this.safeString (ticker, 'symbol1');
@@ -387,7 +387,7 @@ export default class cex extends cexRest {
         }, market);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchOrders
@@ -399,9 +399,7 @@ export default class cex extends cexRest {
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('watchOrders', symbol);
         await this.loadMarkets ();
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
@@ -426,7 +424,7 @@ export default class cex extends cexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cex#watchMyTrades
@@ -438,9 +436,7 @@ export default class cex extends cexRest {
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('watchMyTrades', symbol);
         await this.loadMarkets ();
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
@@ -475,44 +471,44 @@ export default class cex extends cexRest {
     handleMyTrades (client: Client, message) {
         //
         //     {
-        //         e: 'tx',
-        //         data: {
-        //             d: 'order:59091012956:a:USD',
-        //             c: 'user:up105393824:a:USD',
-        //             a: '0.01',
-        //             ds: 0,
-        //             cs: '15.27',
-        //             user: 'up105393824',
-        //             symbol: 'USD',
-        //             order: 59091012956,
-        //             amount: '-18.49',
-        //             type: 'buy',
-        //             time: '2022-09-24T19:36:18.466Z',
-        //             balance: '15.27',
-        //             id: '59091012966'
+        //         "e": "tx",
+        //         "data": {
+        //             "d": "order:59091012956:a:USD",
+        //             "c": "user:up105393824:a:USD",
+        //             "a": "0.01",
+        //             "ds": 0,
+        //             "cs": "15.27",
+        //             "user": "up105393824",
+        //             "symbol": "USD",
+        //             "order": 59091012956,
+        //             "amount": "-18.49",
+        //             "type": "buy",
+        //             "time": "2022-09-24T19:36:18.466Z",
+        //             "balance": "15.27",
+        //             "id": "59091012966"
         //         }
         //     }
         //     {
-        //         e: 'tx',
-        //         data: {
-        //             d: 'order:59091012956:a:BTC',
-        //             c: 'user:up105393824:a:BTC',
-        //             a: '0.00096420',
-        //             ds: 0,
-        //             cs: '0.00096420',
-        //             user: 'up105393824',
-        //             symbol: 'BTC',
-        //             symbol2: 'USD',
-        //             amount: '0.00096420',
-        //             buy: 59091012956,
-        //             order: 59091012956,
-        //             sell: 59090796005,
-        //             price: 19135,
-        //             type: 'buy',
-        //             time: '2022-09-24T19:36:18.466Z',
-        //             balance: '0.00096420',
-        //             fee_amount: '0.05',
-        //             id: '59091012962'
+        //         "e": "tx",
+        //         "data": {
+        //             "d": "order:59091012956:a:BTC",
+        //             "c": "user:up105393824:a:BTC",
+        //             "a": "0.00096420",
+        //             "ds": 0,
+        //             "cs": "0.00096420",
+        //             "user": "up105393824",
+        //             "symbol": "BTC",
+        //             "symbol2": "USD",
+        //             "amount": "0.00096420",
+        //             "buy": 59091012956,
+        //             "order": 59091012956,
+        //             "sell": 59090796005,
+        //             "price": 19135,
+        //             "type": "buy",
+        //             "time": "2022-09-24T19:36:18.466Z",
+        //             "balance": "0.00096420",
+        //             "fee_amount": "0.05",
+        //             "id": "59091012962"
         //         }
         //     }
         const data = this.safeValue (message, 'data', {});
@@ -531,24 +527,24 @@ export default class cex extends cexRest {
     parseWsTrade (trade, market = undefined) {
         //
         //     {
-        //         d: 'order:59091012956:a:BTC',
-        //         c: 'user:up105393824:a:BTC',
-        //         a: '0.00096420',
-        //         ds: 0,
-        //         cs: '0.00096420',
-        //         user: 'up105393824',
-        //         symbol: 'BTC',
-        //         symbol2: 'USD',
-        //         amount: '0.00096420',
-        //         buy: 59091012956,
-        //         order: 59091012956,
-        //         sell: 59090796005,
-        //         price: 19135,
-        //         type: 'buy',
-        //         time: '2022-09-24T19:36:18.466Z',
-        //         balance: '0.00096420',
-        //         fee_amount: '0.05',
-        //         id: '59091012962'
+        //         "d": "order:59091012956:a:BTC",
+        //         "c": "user:up105393824:a:BTC",
+        //         "a": "0.00096420",
+        //         "ds": 0,
+        //         "cs": "0.00096420",
+        //         "user": "up105393824",
+        //         "symbol": "BTC",
+        //         "symbol2": "USD",
+        //         "amount": "0.00096420",
+        //         "buy": 59091012956,
+        //         "order": 59091012956,
+        //         "sell": 59090796005,
+        //         "price": 19135,
+        //         "type": "buy",
+        //         "time": "2022-09-24T19:36:18.466Z",
+        //         "balance": "0.00096420",
+        //         "fee_amount": "0.05",
+        //         "id": "59091012962"
         //     }
         // Note symbol and symbol2 are inverse on sell and ammount is in symbol currency.
         //
@@ -626,37 +622,37 @@ export default class cex extends cexRest {
         //     }
         //  fullfilledOrder
         //     {
-        //         e: 'order',
-        //         data: {
-        //             id: '59098421630',
-        //             remains: '0',
-        //             pair: {
-        //                 symbol1: 'BTC',
-        //                 symbol2: 'USD'
+        //         "e": "order",
+        //         "data": {
+        //             "id": "59098421630",
+        //             "remains": "0",
+        //             "pair": {
+        //                 "symbol1": "BTC",
+        //                 "symbol2": "USD"
         //             }
         //         }
         //     }
         //     {
-        //         e: 'tx',
-        //         data: {
-        //             d: 'order:59425993014:a:BTC',
-        //             c: 'user:up105393824:a:BTC',
-        //             a: '0.00098152',
-        //             ds: 0,
-        //             cs: '0.00098152',
-        //             user: 'up105393824',
-        //             symbol: 'BTC',
-        //             symbol2: 'USD',
-        //             amount: '0.00098152',
-        //             buy: 59425993014,
-        //             order: 59425993014,
-        //             sell: 59425986168,
-        //             price: 19306.6,
-        //             type: 'buy',
-        //             time: '2022-10-02T01:11:15.148Z',
-        //             balance: '0.00098152',
-        //             fee_amount: '0.05',
-        //             id: '59425993020'
+        //         "e": "tx",
+        //         "data": {
+        //             "d": "order:59425993014:a:BTC",
+        //             "c": "user:up105393824:a:BTC",
+        //             "a": "0.00098152",
+        //             "ds": 0,
+        //             "cs": "0.00098152",
+        //             "user": "up105393824",
+        //             "symbol": "BTC",
+        //             "symbol2": "USD",
+        //             "amount": "0.00098152",
+        //             "buy": 59425993014,
+        //             "order": 59425993014,
+        //             "sell": 59425986168,
+        //             "price": 19306.6,
+        //             "type": "buy",
+        //             "time": "2022-10-02T01:11:15.148Z",
+        //             "balance": "0.00098152",
+        //             "fee_amount": "0.05",
+        //             "id": "59425993020"
         //         }
         //     }
         //
@@ -728,24 +724,24 @@ export default class cex extends cexRest {
         //      }
         //  transaction
         //      {
-        //           d: 'order:59425993014:a:BTC',
-        //           c: 'user:up105393824:a:BTC',
-        //           a: '0.00098152',
-        //           ds: 0,
-        //           cs: '0.00098152',
-        //           user: 'up105393824',
-        //           symbol: 'BTC',
-        //           symbol2: 'USD',
-        //           amount: '0.00098152',
-        //           buy: 59425993014,
-        //           order: 59425993014,
-        //           sell: 59425986168,
-        //           price: 19306.6,
-        //           type: 'buy',
-        //           time: '2022-10-02T01:11:15.148Z',
-        //           balance: '0.00098152',
-        //           fee_amount: '0.05',
-        //           id: '59425993020'
+        //           "d": "order:59425993014:a:BTC",
+        //           "c": "user:up105393824:a:BTC",
+        //           "a": "0.00098152",
+        //           "ds": 0,
+        //           "cs": "0.00098152",
+        //           "user": "up105393824",
+        //           "symbol": "BTC",
+        //           "symbol2": "USD",
+        //           "amount": "0.00098152",
+        //           "buy": 59425993014,
+        //           "order": 59425993014,
+        //           "sell": 59425986168,
+        //           "price": 19306.6,
+        //           "type": "buy",
+        //           "time": "2022-10-02T01:11:15.148Z",
+        //           "balance": "0.00098152",
+        //           "fee_amount": "0.05",
+        //           "id": "59425993020"
         //       }
         //
         const isTransaction = this.safeValue (order, 'd') !== undefined;
@@ -833,17 +829,17 @@ export default class cex extends cexRest {
     handleOrdersSnapshot (client: Client, message) {
         //
         //     {
-        //         e: 'open-orders',
-        //         data: [{
-        //             id: '59098421630',
-        //             time: '1664062285425',
-        //             type: 'buy',
-        //             price: '18920',
-        //             amount: '0.00100000',
-        //             pending: '0.00100000'
+        //         "e": "open-orders",
+        //         "data": [{
+        //             "id": "59098421630",
+        //             "time": "1664062285425",
+        //             "type": "buy",
+        //             "price": "18920",
+        //             "amount": "0.00100000",
+        //             "pending": "0.00100000"
         //         }],
-        //         oid: 1,
-        //         ok: 'ok'
+        //         "oid": 1,
+        //         "ok": "ok"
         //     }
         //
         const symbol = this.safeString (message, 'oid'); // symbol is set as requestId in watchOrders
@@ -906,24 +902,24 @@ export default class cex extends cexRest {
     handleOrderBookSnapshot (client: Client, message) {
         //
         //     {
-        //         e: 'order-book-subscribe',
-        //         data: {
-        //             timestamp: 1663762032,
-        //             timestamp_ms: 1663762031680,
-        //             bids: [
+        //         "e": "order-book-subscribe",
+        //         "data": {
+        //             "timestamp": 1663762032,
+        //             "timestamp_ms": 1663762031680,
+        //             "bids": [
         //                 [ 241.947, 155.91626 ],
         //                 [ 241, 154 ],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [ 242.947, 155.91626 ],
         //                 [ 243, 154 ],    ],
-        //             pair: 'BTC:USDT',
-        //             id: 616267120,
-        //             sell_total: '13.59066946',
-        //             buy_total: '163553.625948'
+        //             "pair": "BTC:USDT",
+        //             "id": 616267120,
+        //             "sell_total": "13.59066946",
+        //             "buy_total": "163553.625948"
         //         },
-        //         oid: '1',
-        //         ok: 'ok'
+        //         "oid": "1",
+        //         "ok": "ok"
         //     }
         //
         const data = this.safeValue (message, 'data', {});
@@ -956,13 +952,13 @@ export default class cex extends cexRest {
     handleOrderBookUpdate (client: Client, message) {
         //
         //     {
-        //         e: 'md_update',
-        //         data: {
-        //             id: 616267121,
-        //             pair: 'BTC:USDT',
-        //             time: 1663762031719,
-        //             bids: [],
-        //             asks: [
+        //         "e": "md_update",
+        //         "data": {
+        //             "id": 616267121,
+        //             "pair": "BTC:USDT",
+        //             "time": 1663762031719,
+        //             "bids": [],
+        //             "asks": [
         //                 [122, 23]
         //             ]
         //         }
@@ -1035,19 +1031,19 @@ export default class cex extends cexRest {
     handleInitOHLCV (client: Client, message) {
         //
         //     {
-        //         e: 'init-ohlcv-data',
-        //         data: [
+        //         "e": "init-ohlcv-data",
+        //         "data": [
         //             [
         //                 1663660680,
-        //                 '19396.4',
-        //                 '19396.4',
-        //                 '19396.4',
-        //                 '19396.4',
-        //                 '1262861'
+        //                 "19396.4",
+        //                 "19396.4",
+        //                 "19396.4",
+        //                 "19396.4",
+        //                 "1262861"
         //             ],
         //             ...
         //         ],
-        //         pair: 'BTC:USDT'
+        //         "pair": "BTC:USDT"
         //     }
         //
         const pair = this.safeString (message, 'pair');
@@ -1073,9 +1069,9 @@ export default class cex extends cexRest {
     handleOHLCV24 (client: Client, message) {
         //
         //     {
-        //         e: 'ohlcv24',
-        //         data: [ '18793.2', '19630', '18793.2', '19104.1', '314157273' ],
-        //         pair: 'BTC:USDT'
+        //         "e": "ohlcv24",
+        //         "data": [ '18793.2', '19630', '18793.2', "19104.1", "314157273" ],
+        //         "pair": "BTC:USDT"
         //     }
         //
         return message;
@@ -1084,16 +1080,16 @@ export default class cex extends cexRest {
     handleOHLCV1m (client: Client, message) {
         //
         //     {
-        //         e: 'ohlcv1m',
-        //         data: {
-        //             pair: 'BTC:USD',
-        //             time: '1665436800',
-        //             o: '19279.6',
-        //             h: '19279.6',
-        //             l: '19266.7',
-        //             c: '19266.7',
-        //             v: 3343884,
-        //             d: 3343884
+        //         "e": "ohlcv1m",
+        //         "data": {
+        //             "pair": "BTC:USD",
+        //             "time": "1665436800",
+        //             "o": "19279.6",
+        //             "h": "19279.6",
+        //             "l": "19266.7",
+        //             "c": "19266.7",
+        //             "v": 3343884,
+        //             "d": 3343884
         //         }
         //     }
         //
@@ -1117,11 +1113,11 @@ export default class cex extends cexRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         e: 'ohlcv',
-        //         data: [
-        //             [1665461100, '19068.2', '19068.2', '19068.2', '19068.2', 268478]
+        //         "e": "ohlcv",
+        //         "data": [
+        //             [1665461100, '19068.2', '19068.2', '19068.2', "19068.2", 268478]
         //         ],
-        //         pair: 'BTC:USD'
+        //         "pair": "BTC:USD"
         //     }
         //
         const data = this.safeValue (message, 'data', []);
@@ -1158,10 +1154,10 @@ export default class cex extends cexRest {
     handleErrorMessage (client: Client, message) {
         //
         //     {
-        //         e: 'get-balance',
-        //         data: { error: 'Please Login' },
-        //         oid: 1,
-        //         ok: 'error'
+        //         "e": "get-balance",
+        //         "data": { error: "Please Login" },
+        //         "oid": 1,
+        //         "ok": "error"
         //     }
         //
         throw new ExchangeError (this.id + ' ' + this.json (message));

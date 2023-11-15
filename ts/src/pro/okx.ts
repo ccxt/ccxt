@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
-import { AuthenticationError, BadRequest, InvalidNonce, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -25,6 +25,7 @@ export default class okx extends okxRest {
                 'watchOHLCV': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
+                'watchPositions': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -224,15 +225,15 @@ export default class okx extends okxRest {
     handleTrades (client: Client, message) {
         //
         //     {
-        //         arg: { channel: 'trades', instId: 'BTC-USDT' },
-        //         data: [
+        //         "arg": { channel: "trades", instId: "BTC-USDT" },
+        //         "data": [
         //             {
-        //                 instId: 'BTC-USDT',
-        //                 tradeId: '216970876',
-        //                 px: '31684.5',
-        //                 sz: '0.00001186',
-        //                 side: 'buy',
-        //                 ts: '1626531038288'
+        //                 "instId": "BTC-USDT",
+        //                 "tradeId": "216970876",
+        //                 "px": "31684.5",
+        //                 "sz": "0.00001186",
+        //                 "side": "buy",
+        //                 "ts": "1626531038288"
         //             }
         //         ]
         //     }
@@ -302,25 +303,25 @@ export default class okx extends okxRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         arg: { channel: 'tickers', instId: 'BTC-USDT' },
-        //         data: [
+        //         "arg": { channel: "tickers", instId: "BTC-USDT" },
+        //         "data": [
         //             {
-        //                 instType: 'SPOT',
-        //                 instId: 'BTC-USDT',
-        //                 last: '31500.1',
-        //                 lastSz: '0.00001754',
-        //                 askPx: '31500.1',
-        //                 askSz: '0.00998144',
-        //                 bidPx: '31500',
-        //                 bidSz: '3.05652439',
-        //                 open24h: '31697',
-        //                 high24h: '32248',
-        //                 low24h: '31165.6',
-        //                 sodUtc0: '31385.5',
-        //                 sodUtc8: '32134.9',
-        //                 volCcy24h: '503403597.38138519',
-        //                 vol24h: '15937.10781721',
-        //                 ts: '1626526618762'
+        //                 "instType": "SPOT",
+        //                 "instId": "BTC-USDT",
+        //                 "last": "31500.1",
+        //                 "lastSz": "0.00001754",
+        //                 "askPx": "31500.1",
+        //                 "askSz": "0.00998144",
+        //                 "bidPx": "31500",
+        //                 "bidSz": "3.05652439",
+        //                 "open24h": "31697",
+        //                 "high24h": "32248",
+        //                 "low24h": "31165.6",
+        //                 "sodUtc0": "31385.5",
+        //                 "sodUtc8": "32134.9",
+        //                 "volCcy24h": "503403597.38138519",
+        //                 "vol24h": "15937.10781721",
+        //                 "ts": "1626526618762"
         //             }
         //         ]
         //     }
@@ -377,16 +378,16 @@ export default class okx extends okxRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         arg: { channel: 'candle1m', instId: 'BTC-USDT' },
-        //         data: [
+        //         "arg": { channel: "candle1m", instId: "BTC-USDT" },
+        //         "data": [
         //             [
-        //                 '1626690720000',
-        //                 '31334',
-        //                 '31334',
-        //                 '31334',
-        //                 '31334',
-        //                 '0.0077',
-        //                 '241.2718'
+        //                 "1626690720000",
+        //                 "31334",
+        //                 "31334",
+        //                 "31334",
+        //                 "31334",
+        //                 "0.0077",
+        //                 "241.2718"
         //             ]
         //         ]
         //     }
@@ -496,10 +497,10 @@ export default class okx extends okxRest {
     handleDelta (bookside, delta) {
         //
         //     [
-        //         '31685', // price
-        //         '0.78069158', // amount
-        //         '0', // liquidated orders
-        //         '17' // orders
+        //         "31685", // price
+        //         "0.78069158", // amount
+        //         "0", // liquidated orders
+        //         "17" // orders
         //     ]
         //
         const price = this.safeFloat (delta, 0);
@@ -516,18 +517,18 @@ export default class okx extends okxRest {
     handleOrderBookMessage (client: Client, message, orderbook, messageHash) {
         //
         //     {
-        //         asks: [
-        //             [ '31738.3', '0.05973179', '0', '3' ],
-        //             [ '31738.5', '0.11035404', '0', '2' ],
-        //             [ '31739.6', '0.01', '0', '1' ],
+        //         "asks": [
+        //             [ '31738.3', '0.05973179', "0", "3" ],
+        //             [ '31738.5', '0.11035404', "0", "2" ],
+        //             [ '31739.6', '0.01', "0", "1" ],
         //         ],
-        //         bids: [
-        //             [ '31738.2', '0.67557666', '0', '9' ],
-        //             [ '31738', '0.02466947', '0', '2' ],
-        //             [ '31736.3', '0.01705046', '0', '2' ],
+        //         "bids": [
+        //             [ '31738.2', '0.67557666', "0", "9" ],
+        //             [ '31738', '0.02466947', "0", "2" ],
+        //             [ '31736.3', '0.01705046', "0", "2" ],
         //         ],
-        //         instId: 'BTC-USDT',
-        //         ts: '1626537446491'
+        //         "instId": "BTC-USDT",
+        //         "ts": "1626537446491"
         //     }
         //
         const asks = this.safeValue (message, 'asks', []);
@@ -570,22 +571,22 @@ export default class okx extends okxRest {
         // snapshot
         //
         //     {
-        //         arg: { channel: 'books-l2-tbt', instId: 'BTC-USDT' },
-        //         action: 'snapshot',
-        //         data: [
+        //         "arg": { channel: 'books-l2-tbt', instId: "BTC-USDT" },
+        //         "action": "snapshot",
+        //         "data": [
         //             {
-        //                 asks: [
-        //                     [ '31685', '0.78069158', '0', '17' ],
-        //                     [ '31685.1', '0.0001', '0', '1' ],
-        //                     [ '31685.6', '0.04543165', '0', '1' ],
+        //                 "asks": [
+        //                     [ '31685', '0.78069158', "0", "17" ],
+        //                     [ '31685.1', '0.0001', "0", "1" ],
+        //                     [ '31685.6', '0.04543165', "0", "1" ],
         //                 ],
-        //                 bids: [
-        //                     [ '31684.9', '0.01', '0', '1' ],
-        //                     [ '31682.9', '0.0001', '0', '1' ],
-        //                     [ '31680.7', '0.01', '0', '1' ],
+        //                 "bids": [
+        //                     [ '31684.9', '0.01', "0", "1" ],
+        //                     [ '31682.9', '0.0001', "0", "1" ],
+        //                     [ '31680.7', '0.01', "0", "1" ],
         //                 ],
-        //                 ts: '1626532416403',
-        //                 checksum: -1023440116
+        //                 "ts": "1626532416403",
+        //                 "checksum": -1023440116
         //             }
         //         ]
         //     }
@@ -593,22 +594,22 @@ export default class okx extends okxRest {
         // update
         //
         //     {
-        //         arg: { channel: 'books-l2-tbt', instId: 'BTC-USDT' },
-        //         action: 'update',
-        //         data: [
+        //         "arg": { channel: 'books-l2-tbt', instId: "BTC-USDT" },
+        //         "action": "update",
+        //         "data": [
         //             {
-        //                 asks: [
-        //                     [ '31657.7', '0', '0', '0' ],
-        //                     [ '31659.7', '0.01', '0', '1' ],
-        //                     [ '31987.3', '0.01', '0', '1' ]
+        //                 "asks": [
+        //                     [ '31657.7', '0', "0", "0" ],
+        //                     [ '31659.7', '0.01', "0", "1" ],
+        //                     [ '31987.3', '0.01', "0", "1" ]
         //                 ],
-        //                 bids: [
-        //                     [ '31642.9', '0.50296385', '0', '4' ],
-        //                     [ '31639.9', '0', '0', '0' ],
-        //                     [ '31638.7', '0.01', '0', '1' ],
+        //                 "bids": [
+        //                     [ '31642.9', '0.50296385', "0", "4" ],
+        //                     [ '31639.9', '0', "0", "0" ],
+        //                     [ '31638.7', '0.01', "0", "1" ],
         //                 ],
-        //                 ts: '1626535709008',
-        //                 checksum: 830931827
+        //                 "ts": "1626535709008",
+        //                 "checksum": 830931827
         //             }
         //         ]
         //     }
@@ -616,21 +617,21 @@ export default class okx extends okxRest {
         // books5
         //
         //     {
-        //         arg: { channel: 'books5', instId: 'BTC-USDT' },
-        //         data: [
+        //         "arg": { channel: "books5", instId: "BTC-USDT" },
+        //         "data": [
         //             {
-        //                 asks: [
-        //                     [ '31738.3', '0.05973179', '0', '3' ],
-        //                     [ '31738.5', '0.11035404', '0', '2' ],
-        //                     [ '31739.6', '0.01', '0', '1' ],
+        //                 "asks": [
+        //                     [ '31738.3', '0.05973179', "0", "3" ],
+        //                     [ '31738.5', '0.11035404', "0", "2" ],
+        //                     [ '31739.6', '0.01', "0", "1" ],
         //                 ],
-        //                 bids: [
-        //                     [ '31738.2', '0.67557666', '0', '9' ],
-        //                     [ '31738', '0.02466947', '0', '2' ],
-        //                     [ '31736.3', '0.01705046', '0', '2' ],
+        //                 "bids": [
+        //                     [ '31738.2', '0.67557666', "0", "9" ],
+        //                     [ '31738', '0.02466947', "0", "2" ],
+        //                     [ '31736.3', '0.01705046', "0", "2" ],
         //                 ],
-        //                 instId: 'BTC-USDT',
-        //                 ts: '1626537446491'
+        //                 "instId": "BTC-USDT",
+        //                 "ts": "1626537446491"
         //             }
         //         ]
         //     }
@@ -754,43 +755,43 @@ export default class okx extends okxRest {
     handleBalance (client: Client, message) {
         //
         //     {
-        //         arg: { channel: 'account' },
-        //         data: [
+        //         "arg": { channel: "account" },
+        //         "data": [
         //             {
-        //                 adjEq: '',
-        //                 details: [
+        //                 "adjEq": '',
+        //                 "details": [
         //                     {
-        //                         availBal: '',
-        //                         availEq: '8.21009913',
-        //                         cashBal: '8.21009913',
-        //                         ccy: 'USDT',
-        //                         coinUsdPrice: '0.99994',
-        //                         crossLiab: '',
-        //                         disEq: '8.2096065240522',
-        //                         eq: '8.21009913',
-        //                         eqUsd: '8.2096065240522',
-        //                         frozenBal: '0',
-        //                         interest: '',
-        //                         isoEq: '0',
-        //                         isoLiab: '',
-        //                         liab: '',
-        //                         maxLoan: '',
-        //                         mgnRatio: '',
-        //                         notionalLever: '0',
-        //                         ordFrozen: '0',
-        //                         twap: '0',
-        //                         uTime: '1621927314996',
-        //                         upl: '0'
+        //                         "availBal": '',
+        //                         "availEq": "8.21009913",
+        //                         "cashBal": "8.21009913",
+        //                         "ccy": "USDT",
+        //                         "coinUsdPrice": "0.99994",
+        //                         "crossLiab": '',
+        //                         "disEq": "8.2096065240522",
+        //                         "eq": "8.21009913",
+        //                         "eqUsd": "8.2096065240522",
+        //                         "frozenBal": "0",
+        //                         "interest": '',
+        //                         "isoEq": "0",
+        //                         "isoLiab": '',
+        //                         "liab": '',
+        //                         "maxLoan": '',
+        //                         "mgnRatio": '',
+        //                         "notionalLever": "0",
+        //                         "ordFrozen": "0",
+        //                         "twap": "0",
+        //                         "uTime": "1621927314996",
+        //                         "upl": "0"
         //                     },
         //                 ],
-        //                 imr: '',
-        //                 isoEq: '0',
-        //                 mgnRatio: '',
-        //                 mmr: '',
-        //                 notionalUsd: '',
-        //                 ordFroz: '',
-        //                 totalEq: '22.1930992296832',
-        //                 uTime: '1626692120916'
+        //                 "imr": '',
+        //                 "isoEq": "0",
+        //                 "mgnRatio": '',
+        //                 "mmr": '',
+        //                 "notionalUsd": '',
+        //                 "ordFroz": '',
+        //                 "totalEq": "22.1930992296832",
+        //                 "uTime": "1626692120916"
         //             }
         //         ]
         //     }
@@ -830,7 +831,7 @@ export default class okx extends okxRest {
         }, market);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchMyTrades
@@ -873,7 +874,128 @@ export default class okx extends okxRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchPositions
+         * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        if (this.isEmpty (symbols)) {
+            throw new ArgumentsRequired (this.id + ' watchPositions requires a list of symbols');
+        }
+        await this.loadMarkets ();
+        await this.authenticate (params);
+        symbols = this.marketSymbols (symbols);
+        const request = {
+            'instType': 'ANY',
+        };
+        const channel = 'positions';
+        const newPositions = await this.subscribeMultiple ('private', channel, symbols, this.extend (request, params));
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client, message) {
+        //
+        //    {
+        //        arg: {
+        //            channel: 'positions',
+        //            instType: 'ANY',
+        //            instId: 'XRP-USDT-SWAP',
+        //            uid: '464737184507959869'
+        //        },
+        //        data: [{
+        //            adl: '1',
+        //            availPos: '',
+        //            avgPx: '0.52668',
+        //            baseBal: '',
+        //            baseBorrowed: '',
+        //            baseInterest: '',
+        //            bizRefId: '',
+        //            bizRefType: '',
+        //            cTime: '1693151444408',
+        //            ccy: 'USDT',
+        //            closeOrderAlgo: [],
+        //            deltaBS: '',
+        //            deltaPA: '',
+        //            gammaBS: '',
+        //            gammaPA: '',
+        //            idxPx: '0.52683',
+        //            imr: '17.564000000000004',
+        //            instId: 'XRP-USDT-SWAP',
+        //            instType: 'SWAP',
+        //            interest: '',
+        //            last: '0.52691',
+        //            lever: '3',
+        //            liab: '',
+        //            liabCcy: '',
+        //            liqPx: '0.3287514731020614',
+        //            margin: '',
+        //            markPx: '0.52692',
+        //            mgnMode: 'cross',
+        //            mgnRatio: '69.00363001456147',
+        //            mmr: '0.26346',
+        //            notionalUsd: '52.68620388000001',
+        //            optVal: '',
+        //            pTime: '1693151906023',
+        //            pendingCloseOrdLiabVal: '',
+        //            pos: '1',
+        //            posCcy: '',
+        //            posId: '616057041198907393',
+        //            posSide: 'net',
+        //            quoteBal: '',
+        //            quoteBorrowed: '',
+        //            quoteInterest: '',
+        //            spotInUseAmt: '',
+        //            spotInUseCcy: '',
+        //            thetaBS: '',
+        //            thetaPA: '',
+        //            tradeId: '138745402',
+        //            uTime: '1693151444408',
+        //            upl: '0.0240000000000018',
+        //            uplLastPx: '0.0229999999999952',
+        //            uplRatio: '0.0013670539986328',
+        //            uplRatioLastPx: '0.001310093415356',
+        //            usdPx: '',
+        //            vegaBS: '',
+        //            vegaPA: ''
+        //        }]
+        //    }
+        //
+        const arg = this.safeValue (message, 'arg', {});
+        const channel = this.safeString (arg, 'channel', '');
+        const data = this.safeValue (message, 'data', []);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const rawPosition = data[i];
+            const position = this.parsePosition (rawPosition);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, channel + '::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+    }
+
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOrders
@@ -1133,16 +1255,16 @@ export default class okx extends okxRest {
         //
         //  batch-orders/order/cancel-order
         //    {
-        //        id: '1689281055',
-        //        op: 'batch-orders',
-        //        code: '0',
-        //        msg: '',
-        //        data: [{
-        //            tag: 'e847386590ce4dBC',
-        //            ordId: '599823446566084608',
-        //            clOrdId: 'e847386590ce4dBCb939511604f394b0',
-        //            sCode: '0',
-        //            sMsg: 'Order successfully placed.'
+        //        "id": "1689281055",
+        //        "op": "batch-orders",
+        //        "code": "0",
+        //        "msg": '',
+        //        "data": [{
+        //            "tag": "e847386590ce4dBC",
+        //            "ordId": "599823446566084608",
+        //            "clOrdId": "e847386590ce4dBCb939511604f394b0",
+        //            "sCode": "0",
+        //            "sMsg": "Order successfully placed."
         //        },
         //        ...
         //        ]
@@ -1193,7 +1315,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelOrderWs
@@ -1230,7 +1352,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelOrdersWs
@@ -1268,7 +1390,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelAllOrdersWs
@@ -1321,16 +1443,16 @@ export default class okx extends okxRest {
 
     handleSubscriptionStatus (client: Client, message) {
         //
-        //     { event: 'subscribe', arg: { channel: 'tickers', instId: 'BTC-USDT' } }
+        //     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
         //
-        // const channel = this.safeString (message, 'channel');
+        // const channel = this.safeString (message, "channel");
         // client.subscriptions[channel] = message;
         return message;
     }
 
     handleAuthenticate (client: Client, message) {
         //
-        //     { event: 'login', success: true }
+        //     { event: "login", success: true }
         //
         const future = this.safeValue (client.futures, 'authenticated');
         future.resolve (true);
@@ -1349,8 +1471,8 @@ export default class okx extends okxRest {
 
     handleErrorMessage (client: Client, message) {
         //
-        //     { event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012' }
-        //     { event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018' }
+        //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
+        //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
         //
         const errorCode = this.safeInteger (message, 'code');
         try {
@@ -1382,40 +1504,40 @@ export default class okx extends okxRest {
             return;
         }
         //
-        //     { event: 'subscribe', arg: { channel: 'tickers', instId: 'BTC-USDT' } }
-        //     { event: 'login', msg: '', code: '0' }
+        //     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
+        //     { event: 'login", msg: '", code: "0" }
         //
         //     {
-        //         arg: { channel: 'tickers', instId: 'BTC-USDT' },
-        //         data: [
+        //         "arg": { channel: "tickers", instId: "BTC-USDT" },
+        //         "data": [
         //             {
-        //                 instType: 'SPOT',
-        //                 instId: 'BTC-USDT',
-        //                 last: '31500.1',
-        //                 lastSz: '0.00001754',
-        //                 askPx: '31500.1',
-        //                 askSz: '0.00998144',
-        //                 bidPx: '31500',
-        //                 bidSz: '3.05652439',
-        //                 open24h: '31697',
-        //                 high24h: '32248',
-        //                 low24h: '31165.6',
-        //                 sodUtc0: '31385.5',
-        //                 sodUtc8: '32134.9',
-        //                 volCcy24h: '503403597.38138519',
-        //                 vol24h: '15937.10781721',
-        //                 ts: '1626526618762'
+        //                 "instType": "SPOT",
+        //                 "instId": "BTC-USDT",
+        //                 "last": "31500.1",
+        //                 "lastSz": "0.00001754",
+        //                 "askPx": "31500.1",
+        //                 "askSz": "0.00998144",
+        //                 "bidPx": "31500",
+        //                 "bidSz": "3.05652439",
+        //                 "open24h": "31697",
+        //                 "high24h": "32248",
+        //                 "low24h": "31165.6",
+        //                 "sodUtc0": "31385.5",
+        //                 "sodUtc8": "32134.9",
+        //                 "volCcy24h": "503403597.38138519",
+        //                 "vol24h": "15937.10781721",
+        //                 "ts": "1626526618762"
         //             }
         //         ]
         //     }
         //
-        //     { event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012' }
-        //     { event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018' }
-        //     { event: 'error', msg: 'Invalid OK_ACCESS_KEY', code: '60005' }
+        //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
+        //     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
+        //     { event: 'error', msg: "Invalid OK_ACCESS_KEY", code: "60005" }
         //     {
-        //         event: 'error',
-        //         msg: 'Illegal request: {"op":"login","args":["de89b035-b233-44b2-9a13-0ccdd00bda0e","7KUcc8YzQhnxBE3K","1626691289","H57N99mBt5NvW8U19FITrPdOxycAERFMaapQWRqLaSE="]}',
-        //         code: '60012'
+        //         "event": "error",
+        //         "msg": "Illegal request: {"op":"login","args":["de89b035-b233-44b2-9a13-0ccdd00bda0e","7KUcc8YzQhnxBE3K","1626691289","H57N99mBt5NvW8U19FITrPdOxycAERFMaapQWRqLaSE="]}",
+        //         "code": "60012"
         //     }
         //
         //
@@ -1455,6 +1577,7 @@ export default class okx extends okxRest {
                 'books50-l2-tbt': this.handleOrderBook, // only users who're VIP4 and above can subscribe, identity verification required before subscription
                 'books-l2-tbt': this.handleOrderBook, // only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': this.handleTicker,
+                'positions': this.handlePositions,
                 'index-tickers': this.handleTicker,
                 'sprd-tickers': this.handleTicker,
                 'block-tickers': this.handleTicker,

@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import IndexType
+from ccxt.base.types import Int, IndexType, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
@@ -79,11 +78,11 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribed
         #     {
-        #         seqnum: 1,
-        #         event: 'subscribed',
-        #         channel: 'balances',
-        #         local_currency: 'USD',
-        #         batching: False
+        #         "seqnum": 1,
+        #         "event": "subscribed",
+        #         "channel": "balances",
+        #         "local_currency": "USD",
+        #         "batching": False
         #     }
         #  snapshot
         #     {
@@ -122,7 +121,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.balance = result
         client.resolve(self.balance, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market.
         :see: https://exchange.blockchain.com/api/#prices
@@ -155,20 +154,20 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribed
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'prices',
-        #         symbol: 'BTC-USDT',
-        #         granularity: 60
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "prices",
+        #         "symbol": "BTC-USDT",
+        #         "granularity": 60
         #     }
         #
         #  updated
         #     {
-        #         seqnum: 1,
-        #         event: 'updated',
-        #         channel: 'prices',
-        #         symbol: 'BTC-USD',
-        #         price: [1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0]
+        #         "seqnum": 1,
+        #         "event": "updated",
+        #         "channel": "prices",
+        #         "symbol": "BTC-USD",
+        #         "price": [1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0]
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -220,29 +219,29 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribed
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'ticker',
-        #         symbol: 'BTC-USD'
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "ticker",
+        #         "symbol": "BTC-USD"
         #     }
         #  snapshot
         #     {
-        #         seqnum: 1,
-        #         event: 'snapshot',
-        #         channel: 'ticker',
-        #         symbol: 'BTC-USD',
-        #         price_24h: 23071.4,
-        #         volume_24h: 236.28398636,
-        #         last_trade_price: 23936.4,
-        #         mark_price: 23935.335240262
+        #         "seqnum": 1,
+        #         "event": "snapshot",
+        #         "channel": "ticker",
+        #         "symbol": "BTC-USD",
+        #         "price_24h": 23071.4,
+        #         "volume_24h": 236.28398636,
+        #         "last_trade_price": 23936.4,
+        #         "mark_price": 23935.335240262
         #     }
         # update
         #     {
-        #         seqnum: 2,
-        #         event: 'updated',
-        #         channel: 'ticker',
-        #         symbol: 'BTC-USD',
-        #         mark_price: 23935.242443617
+        #         "seqnum": 2,
+        #         "event": "updated",
+        #         "channel": "ticker",
+        #         "symbol": "BTC-USD",
+        #         "mark_price": 23935.242443617
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -264,11 +263,11 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     def parse_ws_updated_ticker(self, ticker, lastTicker=None, market=None):
         #
         #     {
-        #         seqnum: 2,
-        #         event: 'updated',
-        #         channel: 'ticker',
-        #         symbol: 'BTC-USD',
-        #         mark_price: 23935.242443617
+        #         "seqnum": 2,
+        #         "event": "updated",
+        #         "channel": "ticker",
+        #         "symbol": "BTC-USD",
+        #         "mark_price": 23935.242443617
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
@@ -297,7 +296,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'info': self.extend(self.safe_value(lastTicker, 'info', {}), ticker),
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://exchange.blockchain.com/api/#trades
@@ -325,22 +324,22 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribed
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'trades',
-        #         symbol: 'BTC-USDT'
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "trades",
+        #         "symbol": "BTC-USDT"
         #     }
         #  updates
         #     {
-        #         seqnum: 1,
-        #         event: 'updated',
-        #         channel: 'trades',
-        #         symbol: 'BTC-USDT',
-        #         timestamp: '2022-08-08T17:23:48.163096Z',
-        #         side: 'sell',
-        #         qty: 0.083523,
-        #         price: 23940.67,
-        #         trade_id: '563078810223444'
+        #         "seqnum": 1,
+        #         "event": "updated",
+        #         "channel": "trades",
+        #         "symbol": "BTC-USDT",
+        #         "timestamp": "2022-08-08T17:23:48.163096Z",
+        #         "side": "sell",
+        #         "qty": 0.083523,
+        #         "price": 23940.67,
+        #         "trade_id": "563078810223444"
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -363,15 +362,15 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     def parse_ws_trade(self, trade, market=None):
         #
         #     {
-        #         seqnum: 1,
-        #         event: 'updated',
-        #         channel: 'trades',
-        #         symbol: 'BTC-USDT',
-        #         timestamp: '2022-08-08T17:23:48.163096Z',
-        #         side: 'sell',
-        #         qty: 0.083523,
-        #         price: 23940.67,
-        #         trade_id: '563078810223444'
+        #         "seqnum": 1,
+        #         "event": "updated",
+        #         "channel": "trades",
+        #         "symbol": "BTC-USDT",
+        #         "timestamp": "2022-08-08T17:23:48.163096Z",
+        #         "side": "sell",
+        #         "qty": 0.083523,
+        #         "price": 23940.67,
+        #         "trade_id": "563078810223444"
         #     }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -392,7 +391,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             'info': trade,
         }, market)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
@@ -422,75 +421,75 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     def handle_orders(self, client: Client, message):
         #
         #     {
-        #         seqnum: 1,
-        #         event: 'rejected',
-        #         channel: 'trading',
-        #         text: 'Not subscribed to channel'
+        #         "seqnum": 1,
+        #         "event": "rejected",
+        #         "channel": "trading",
+        #         "text": "Not subscribed to channel"
         #     }
         #  snapshot
         #     {
-        #         seqnum: 2,
-        #         event: 'snapshot',
-        #         channel: 'trading',
-        #         orders: [
+        #         "seqnum": 2,
+        #         "event": "snapshot",
+        #         "channel": "trading",
+        #         "orders": [
         #           {
-        #             orderID: '562965341621940',
-        #             gwOrderId: 181011136260,
-        #             clOrdID: '016caf67f7a94508webd',
-        #             symbol: 'BTC-USD',
-        #             side: 'sell',
-        #             ordType: 'limit',
-        #             orderQty: 0.000675,
-        #             leavesQty: 0.000675,
-        #             cumQty: 0,
-        #             avgPx: 0,
-        #             ordStatus: 'open',
-        #             timeInForce: 'GTC',
-        #             text: 'New order',
-        #             execType: '0',
-        #             execID: '21415965325',
-        #             transactTime: '2022-08-08T23:31:00.550795Z',
-        #             msgType: 8,
-        #             lastPx: 0,
-        #             lastShares: 0,
-        #             tradeId: '0',
-        #             fee: 0,
-        #             price: 30000,
-        #             marginOrder: False,
-        #             closePositionOrder: False
+        #             "orderID": "562965341621940",
+        #             "gwOrderId": 181011136260,
+        #             "clOrdID": "016caf67f7a94508webd",
+        #             "symbol": "BTC-USD",
+        #             "side": "sell",
+        #             "ordType": "limit",
+        #             "orderQty": 0.000675,
+        #             "leavesQty": 0.000675,
+        #             "cumQty": 0,
+        #             "avgPx": 0,
+        #             "ordStatus": "open",
+        #             "timeInForce": "GTC",
+        #             "text": "New order",
+        #             "execType": "0",
+        #             "execID": "21415965325",
+        #             "transactTime": "2022-08-08T23:31:00.550795Z",
+        #             "msgType": 8,
+        #             "lastPx": 0,
+        #             "lastShares": 0,
+        #             "tradeId": "0",
+        #             "fee": 0,
+        #             "price": 30000,
+        #             "marginOrder": False,
+        #             "closePositionOrder": False
         #           }
         #         ],
-        #         positions: []
+        #         "positions": []
         #     }
         #  update
         #     {
-        #         seqnum: 3,
-        #         event: 'updated',
-        #         channel: 'trading',
-        #         orderID: '562965341621940',
-        #         gwOrderId: 181011136260,
-        #         clOrdID: '016caf67f7a94508webd',
-        #         symbol: 'BTC-USD',
-        #         side: 'sell',
-        #         ordType: 'limit',
-        #         orderQty: 0.000675,
-        #         leavesQty: 0.000675,
-        #         cumQty: 0,
-        #         avgPx: 0,
-        #         ordStatus: 'cancelled',
-        #         timeInForce: 'GTC',
-        #         text: 'Canceled by User',
-        #         execType: '4',
-        #         execID: '21416034921',
-        #         transactTime: '2022-08-08T23:33:25.727785Z',
-        #         msgType: 8,
-        #         lastPx: 0,
-        #         lastShares: 0,
-        #         tradeId: '0',
-        #         fee: 0,
-        #         price: 30000,
-        #         marginOrder: False,
-        #         closePositionOrder: False
+        #         "seqnum": 3,
+        #         "event": "updated",
+        #         "channel": "trading",
+        #         "orderID": "562965341621940",
+        #         "gwOrderId": 181011136260,
+        #         "clOrdID": "016caf67f7a94508webd",
+        #         "symbol": "BTC-USD",
+        #         "side": "sell",
+        #         "ordType": "limit",
+        #         "orderQty": 0.000675,
+        #         "leavesQty": 0.000675,
+        #         "cumQty": 0,
+        #         "avgPx": 0,
+        #         "ordStatus": "cancelled",
+        #         "timeInForce": "GTC",
+        #         "text": "Canceled by User",
+        #         "execType": "4",
+        #         "execID": "21416034921",
+        #         "transactTime": "2022-08-08T23:33:25.727785Z",
+        #         "msgType": 8,
+        #         "lastPx": 0,
+        #         "lastShares": 0,
+        #         "tradeId": "0",
+        #         "fee": 0,
+        #         "price": 30000,
+        #         "marginOrder": False,
+        #         "closePositionOrder": False
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -518,33 +517,33 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     def parse_ws_order(self, order, market=None):
         #
         #     {
-        #         seqnum: 3,
-        #         event: 'updated',
-        #         channel: 'trading',
-        #         orderID: '562965341621940',
-        #         gwOrderId: 181011136260,
-        #         clOrdID: '016caf67f7a94508webd',
-        #         symbol: 'BTC-USD',
-        #         side: 'sell',
-        #         ordType: 'limit',
-        #         orderQty: 0.000675,
-        #         leavesQty: 0.000675,
-        #         cumQty: 0,
-        #         avgPx: 0,
-        #         ordStatus: 'cancelled',
-        #         timeInForce: 'GTC',
-        #         text: 'Canceled by User',
-        #         execType: '4',
-        #         execID: '21416034921',
-        #         transactTime: '2022-08-08T23:33:25.727785Z',
-        #         msgType: 8,
-        #         lastPx: 0,
-        #         lastShares: 0,
-        #         tradeId: '0',
-        #         fee: 0,
-        #         price: 30000,
-        #         marginOrder: False,
-        #         closePositionOrder: False
+        #         "seqnum": 3,
+        #         "event": "updated",
+        #         "channel": "trading",
+        #         "orderID": "562965341621940",
+        #         "gwOrderId": 181011136260,
+        #         "clOrdID": "016caf67f7a94508webd",
+        #         "symbol": "BTC-USD",
+        #         "side": "sell",
+        #         "ordType": "limit",
+        #         "orderQty": 0.000675,
+        #         "leavesQty": 0.000675,
+        #         "cumQty": 0,
+        #         "avgPx": 0,
+        #         "ordStatus": "cancelled",
+        #         "timeInForce": "GTC",
+        #         "text": "Canceled by User",
+        #         "execType": "4",
+        #         "execID": "21416034921",
+        #         "transactTime": "2022-08-08T23:33:25.727785Z",
+        #         "msgType": 8,
+        #         "lastPx": 0,
+        #         "lastShares": 0,
+        #         "tradeId": "0",
+        #         "fee": 0,
+        #         "price": 30000,
+        #         "marginOrder": False,
+        #         "closePositionOrder": False
         #     }
         #
         datetime = self.safe_string(order, 'transactTime')
@@ -595,7 +594,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         }
         return self.safe_string(statuses, status, status)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://exchange.blockchain.com/api/#l2-order-book
@@ -624,35 +623,35 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribe
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'l2',
-        #         symbol: 'BTC-USDT',
-        #         batching: False
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "l2",
+        #         "symbol": "BTC-USDT",
+        #         "batching": False
         #     }
         #  snapshot
         #     {
-        #         seqnum: 1,
-        #         event: 'snapshot',
-        #         channel: 'l2',
-        #         symbol: 'BTC-USDT',
-        #         bids: [
+        #         "seqnum": 1,
+        #         "event": "snapshot",
+        #         "channel": "l2",
+        #         "symbol": "BTC-USDT",
+        #         "bids": [
         #           {num: 1, px: 0.01, qty: 22},
         #         ],
-        #         asks: [
+        #         "asks": [
         #           {num: 1, px: 23840.26, qty: 0.25},
         #         ],
-        #         timestamp: '2022-08-08T22:03:19.071870Z'
+        #         "timestamp": "2022-08-08T22:03:19.071870Z"
         #     }
         #  update
         #     {
-        #         seqnum: 2,
-        #         event: 'updated',
-        #         channel: 'l2',
-        #         symbol: 'BTC-USDT',
-        #         bids: [],
-        #         asks: [{num: 1, px: 23855.06, qty: 1.04786347}],
-        #         timestamp: '2022-08-08T22:03:19.014680Z'
+        #         "seqnum": 2,
+        #         "event": "updated",
+        #         "channel": "l2",
+        #         "symbol": "BTC-USDT",
+        #         "bids": [],
+        #         "asks": [{num: 1, px: 23855.06, qty: 1.04786347}],
+        #         "timestamp": "2022-08-08T22:03:19.014680Z"
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -695,7 +694,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             result.append(self.parse_counted_bid_ask(bidasks[i], priceKey, amountKey, countKey))
         return result
 
-    def parse_counted_order_book(self, orderbook, symbol: str, timestamp: Optional[int] = None, bidsKey: IndexType = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
+    def parse_counted_order_book(self, orderbook, symbol: str, timestamp: Int = None, bidsKey: IndexType = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2):
         bids = self.parse_counted_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countKey)
         asks = self.parse_counted_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countKey)
         return {
@@ -748,10 +747,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     def handle_authentication_message(self, client: Client, message):
         #
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'auth',
-        #         readOnly: False
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "auth",
+        #         "readOnly": False
         #     }
         #
         event = self.safe_string(message, 'event')

@@ -612,58 +612,58 @@ class bitfinex2 extends Exchange {
         //         // sym
         //         // maps symbols to their API symbols, BAB > BCH
         //         array(
-        //             array( 'BAB', 'BCH' ),
-        //             array( 'CNHT', 'CNHt' ),
-        //             array( 'DSH', 'DASH' ),
-        //             array( 'IOT', 'IOTA' ),
-        //             array( 'LES', 'LEO-EOS' ),
-        //             array( 'LET', 'LEO-ERC20' ),
-        //             array( 'STJ', 'STORJ' ),
-        //             array( 'TSD', 'TUSD' ),
-        //             array( 'UDC', 'USDC' ),
-        //             array( 'USK', 'USDK' ),
-        //             array( 'UST', 'USDt' ),
-        //             array( 'USTF0', 'USDt0' ),
-        //             array( 'XCH', 'XCHF' ),
-        //             array( 'YYW', 'YOYOW' ),
+        //             array( "BAB", "BCH" ),
+        //             array( "CNHT", "CNHt" ),
+        //             array( "DSH", "DASH" ),
+        //             array( "IOT", "IOTA" ),
+        //             array( "LES", "LEO-EOS" ),
+        //             array( "LET", "LEO-ERC20" ),
+        //             array( "STJ", "STORJ" ),
+        //             array( "TSD", "TUSD" ),
+        //             array( "UDC", "USDC" ),
+        //             array( "USK", "USDK" ),
+        //             array( "UST", "USDt" ),
+        //             array( "USTF0", "USDt0" ),
+        //             array( "XCH", "XCHF" ),
+        //             array( "YYW", "YOYOW" ),
         //             // ...
         //         ),
         //         // $label
         //         // verbose friendly names, BNT > Bancor
         //         array(
-        //             array( 'BAB', 'Bitcoin Cash' ),
-        //             array( 'BCH', 'Bitcoin Cash' ),
-        //             array( 'LEO', 'Unus Sed LEO' ),
-        //             array( 'LES', 'Unus Sed LEO (EOS)' ),
-        //             array( 'LET', 'Unus Sed LEO (ERC20)' ),
+        //             array( "BAB", "Bitcoin Cash" ),
+        //             array( "BCH", "Bitcoin Cash" ),
+        //             array( "LEO", "Unus Sed LEO" ),
+        //             array( "LES", "Unus Sed LEO (EOS)" ),
+        //             array( "LET", "Unus Sed LEO (ERC20)" ),
         //             // ...
         //         ),
         //         // unit
         //         // maps symbols to unit of measure where applicable
         //         array(
-        //             array( 'IOT', 'Mi|MegaIOTA' ),
+        //             array( "IOT", "Mi|MegaIOTA" ),
         //         ),
         //         // $undl
         //         // maps derivatives symbols to their underlying currency
         //         array(
-        //             array( 'USTF0', 'UST' ),
-        //             array( 'BTCF0', 'BTC' ),
-        //             array( 'ETHF0', 'ETH' ),
+        //             array( "USTF0", "UST" ),
+        //             array( "BTCF0", "BTC" ),
+        //             array( "ETHF0", "ETH" ),
         //         ),
         //         // $pool
         //         // maps symbols to underlying network/protocol they operate on
         //         array(
-        //             array( 'SAN', 'ETH' ), array( 'OMG', 'ETH' ), array( 'AVT', 'ETH' ), array( 'EDO', 'ETH' ),
-        //             array( 'ESS', 'ETH' ), array( 'ATD', 'EOS' ), array( 'ADD', 'EOS' ), array( 'MTO', 'EOS' ),
-        //             array( 'PNK', 'ETH' ), array( 'BAB', 'BCH' ), array( 'WLO', 'XLM' ), array( 'VLD', 'ETH' ),
-        //             array( 'BTT', 'TRX' ), array( 'IMP', 'ETH' ), array( 'SCR', 'ETH' ), array( 'GNO', 'ETH' ),
+        //             array( 'SAN', 'ETH' ), array( 'OMG', 'ETH' ), array( 'AVT', 'ETH' ), array( "EDO", "ETH" ),
+        //             array( 'ESS', 'ETH' ), array( 'ATD', 'EOS' ), array( 'ADD', 'EOS' ), array( "MTO", "EOS" ),
+        //             array( 'PNK', 'ETH' ), array( 'BAB', 'BCH' ), array( 'WLO', 'XLM' ), array( "VLD", "ETH" ),
+        //             array( 'BTT', 'TRX' ), array( 'IMP', 'ETH' ), array( 'SCR', 'ETH' ), array( "GNO", "ETH" ),
         //             // ...
         //         ),
         //         // explorer
         //         // maps symbols to their recognised block explorer URLs
         //         array(
         //             array(
-        //                 'AIO',
+        //                 "AIO",
         //                 array(
         //                     "https://mainnet.aion.network",
         //                     "https://mainnet.aion.network/#/account/VAL",
@@ -791,7 +791,7 @@ class bitfinex2 extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.bitfinex.com/reference/rest-auth-wallets
@@ -955,9 +955,9 @@ class bitfinex2 extends Exchange {
     public function convert_derivatives_id($currency, $type) {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
-        //   id => 'fUSTF0',
-        //   code => 'USTF0',
-        //   $info => array( 'USTF0', array(), array(), array(), array( 'USTF0', 'UST' ) ),
+        //   "id" => "fUSTF0",
+        //   "code" => "USTF0",
+        //   "info" => array( 'USTF0', array(), array(), array(), array( "USTF0", "UST" ) ),
         $info = $this->safe_value($currency, 'info');
         $transferId = $this->safe_string($info, 0);
         $underlying = $this->safe_value($info, 4, array());
@@ -977,7 +977,7 @@ class bitfinex2 extends Exchange {
         return $currencyId;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.bitfinex.com/reference/rest-public-book
@@ -1021,7 +1021,7 @@ class bitfinex2 extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1090,7 +1090,7 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://docs.bitfinex.com/reference/rest-public-$tickers
@@ -1158,7 +1158,7 @@ class bitfinex2 extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://docs.bitfinex.com/reference/rest-public-$ticker
@@ -1175,7 +1175,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1258,7 +1258,7 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://docs.bitfinex.com/reference/rest-public-$trades
@@ -1305,7 +1305,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_trades($trades, $market, null, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 100, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @see https://docs.bitfinex.com/reference/rest-public-candles
@@ -1347,7 +1347,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1457539800000,
@@ -1413,7 +1413,7 @@ class bitfinex2 extends Exchange {
         return $this->safe_string($orderTypes, $orderType, 'GTC');
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $id = $this->safe_string($order, 0);
         $marketId = $this->safe_string($order, 3);
         $symbol = $this->safe_symbol($marketId);
@@ -1587,7 +1587,7 @@ class bitfinex2 extends Exchange {
         //
         //      array(
         //          1653325121,   // Timestamp in milliseconds
-        //          "on-req",     // Purpose of notification ('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
+        //          "on-req",     // Purpose of notification ('on-req', 'oc-req', "uca", 'fon-req', "foc-req")
         //          null,         // unique ID of the message
         //          null,
         //              array(
@@ -1731,7 +1731,7 @@ class bitfinex2 extends Exchange {
         return $order;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -1794,7 +1794,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -1883,9 +1883,7 @@ class bitfinex2 extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrderTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $orderId = intval($id);
@@ -1975,20 +1973,20 @@ class bitfinex2 extends Exchange {
         //
         //     array(
         //         1582269616687, // MTS Millisecond Time Stamp of the update
-        //         'acc_dep', // TYPE Purpose of notification 'acc_dep' for account deposit
+        //         "acc_dep", // TYPE Purpose of notification "acc_dep" for account deposit
         //         null, // MESSAGE_ID unique ID of the message
         //         null, // not documented
         //         array(
         //             null, // PLACEHOLDER
-        //             'BITCOIN', // METHOD Method of deposit
-        //             'BTC', // CURRENCY_CODE Currency $code of new $address
+        //             "BITCOIN", // METHOD Method of deposit
+        //             "BTC", // CURRENCY_CODE Currency $code of new $address
         //             null, // PLACEHOLDER
-        //             '1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG', // ADDRESS
+        //             "1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG", // ADDRESS
         //             null, // POOL_ADDRESS
         //         ),
         //         null, // CODE null or integer work in progress
-        //         'SUCCESS', // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
-        //         'success', // TEXT Text of the notification
+        //         "SUCCESS", // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
+        //         "success", // TEXT Text of the notification
         //     )
         //
         $result = $this->safe_value($response, 4, array());
@@ -2022,13 +2020,13 @@ class bitfinex2 extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //
         //     array(
         //         1582271520931, // MTS Millisecond Time Stamp of the update
-        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal request
         //         null, // MESSAGE_ID unique ID of the message
         //         null, // not documented
         //         array(
@@ -2051,26 +2049,26 @@ class bitfinex2 extends Exchange {
         //
         //     array(
         //         13293039, // ID
-        //         'ETH', // CURRENCY
-        //         'ETHEREUM', // CURRENCY_NAME
+        //         "ETH", // CURRENCY
+        //         "ETHEREUM", // CURRENCY_NAME
         //         null,
         //         null,
         //         1574175052000, // MTS_STARTED
         //         1574181326000, // MTS_UPDATED
         //         null,
         //         null,
-        //         'CANCELED', // STATUS
+        //         "CANCELED", // STATUS
         //         null,
         //         null,
         //         -0.24, // AMOUNT, negative for withdrawals
         //         -0.00135, // FEES
         //         null,
         //         null,
-        //         '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
+        //         "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
         //         null,
         //         null,
         //         null,
-        //         '0x523ec8945500.....................................', // TRANSACTION_ID
+        //         "0x523ec8945500.....................................", // TRANSACTION_ID
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be => null
         //     )
         //
@@ -2152,6 +2150,7 @@ class bitfinex2 extends Exchange {
             'tagTo' => $tag,
             'updated' => $updated,
             'comment' => $comment,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),
@@ -2218,13 +2217,13 @@ class bitfinex2 extends Exchange {
         //         array(
         //          array(
         //              {
-        //              curr => 'Total (USD)',
-        //              vol => '0',
-        //              vol_safe => '0',
-        //              vol_maker => '0',
-        //              vol_BFX => '0',
-        //              vol_BFX_safe => '0',
-        //              vol_BFX_maker => '0'
+        //              "curr" => "Total (USD)",
+        //              "vol" => "0",
+        //              "vol_safe" => "0",
+        //              "vol_maker" => "0",
+        //              "vol_BFX" => "0",
+        //              "vol_BFX_safe" => "0",
+        //              "vol_BFX_maker" => "0"
         //              }
         //          ),
         //          array(),
@@ -2233,7 +2232,7 @@ class bitfinex2 extends Exchange {
         //         array( null, array(), 0 ),
         //         null,
         //         null,
-        //         array( leo_lev => '0', leo_amount_avg => '0' )
+        //         array( leo_lev => "0", leo_amount_avg => "0" )
         //     )
         //
         $result = array();
@@ -2271,7 +2270,7 @@ class bitfinex2 extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
          * @see https://docs.bitfinex.com/reference/movement-info
@@ -2303,26 +2302,26 @@ class bitfinex2 extends Exchange {
         //     array(
         //         array(
         //             13293039, // ID
-        //             'ETH', // CURRENCY
-        //             'ETHEREUM', // CURRENCY_NAME
+        //             "ETH", // CURRENCY
+        //             "ETHEREUM", // CURRENCY_NAME
         //             null,
         //             null,
         //             1574175052000, // MTS_STARTED
         //             1574181326000, // MTS_UPDATED
         //             null,
         //             null,
-        //             'CANCELED', // STATUS
+        //             "CANCELED", // STATUS
         //             null,
         //             null,
         //             -0.24, // AMOUNT, negative for withdrawals
         //             -0.00135, // FEES
         //             null,
         //             null,
-        //             '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
+        //             "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
         //             null,
         //             null,
         //             null,
-        //             '0x523ec8945500.....................................', // TRANSACTION_ID
+        //             "0x523ec8945500.....................................", // TRANSACTION_ID
         //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be => null
         //         )
         //     )
@@ -2373,7 +2372,7 @@ class bitfinex2 extends Exchange {
         //
         //     array(
         //         1582271520931, // MTS Millisecond Time Stamp of the update
-        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal $request
+        //         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal $request
         //         null, // MESSAGE_ID unique ID of the $message
         //         null, // not documented
         //         array(
@@ -2572,7 +2571,7 @@ class bitfinex2 extends Exchange {
     }
 
     public function handle_errors($statusCode, $statusText, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
-        // ['error', 11010, 'ratelimit => error']
+        // ["error", 11010, "ratelimit => error"]
         if ($response !== null) {
             if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
                 $message = $this->safe_string_2($response, 'message', 'error');

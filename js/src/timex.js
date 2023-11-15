@@ -294,11 +294,7 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            result.push(this.parseMarket(response[i]));
-        }
-        return result;
+        return this.parseMarkets(response);
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -455,6 +451,8 @@ export default class timex extends Exchange {
             'currency': this.safeCurrencyCode(undefined, currency),
             'status': 'ok',
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': undefined,
         };
     }
@@ -1188,7 +1186,7 @@ export default class timex extends Exchange {
         const minBase = this.safeString(market, 'baseMinSize');
         const minAmount = Precise.stringMax(amountIncrement, minBase);
         const priceIncrement = this.safeString(market, 'tickSize');
-        const minCost = this.safeString(market, 'quoteMinSize');
+        const minCost = this.safeNumber(market, 'quoteMinSize');
         return {
             'id': id,
             'symbol': base + '/' + quote,

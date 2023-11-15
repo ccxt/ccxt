@@ -4,10 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -30,6 +30,7 @@ class gate(ccxt.async_support.gate):
                 'watchOHLCV': True,
                 'watchBalance': True,
                 'watchOrders': True,
+                'watchPositions': True,
             },
             'urls': {
                 'api': {
@@ -81,6 +82,10 @@ class gate(ccxt.async_support.gate):
                     'settle': 'usdt',  # or btc
                     'spot': 'spot.balances',  # spot.margin_balances, spot.funding_balances or spot.cross_balances
                 },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': True,  # or False
+                    'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
+                },
             },
             'exceptions': {
                 'ws': {
@@ -94,7 +99,7 @@ class gate(ccxt.async_support.gate):
             },
         })
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -134,25 +139,25 @@ class gate(ccxt.async_support.gate):
         # spot
         #
         #     {
-        #         time: 1650189272,
-        #         channel: 'spot.order_book_update',
-        #         event: 'update',
-        #         result: {
-        #             t: 1650189272515,
-        #             e: 'depthUpdate',
-        #             E: 1650189272,
-        #             s: 'GMT_USDT',
-        #             U: 140595902,
-        #             u: 140595902,
-        #             b: [
-        #                 ['2.51518', '228.119'],
-        #                 ['2.50587', '1510.11'],
-        #                 ['2.49944', '67.6'],
+        #         "time": 1650189272,
+        #         "channel": "spot.order_book_update",
+        #         "event": "update",
+        #         "result": {
+        #             "t": 1650189272515,
+        #             "e": "depthUpdate",
+        #             "E": 1650189272,
+        #             "s": "GMT_USDT",
+        #             "U": 140595902,
+        #             "u": 140595902,
+        #             "b": [
+        #                 ['2.51518', "228.119"],
+        #                 ['2.50587', "1510.11"],
+        #                 ['2.49944', "67.6"],
         #             ],
-        #             a: [
-        #                 ['2.5182', '4.199'],
-        #                 ['2.51926', '1874'],
-        #                 ['2.53528', '96.529'],
+        #             "a": [
+        #                 ['2.5182', "4.199"],
+        #                 ["2.51926", "1874"],
+        #                 ['2.53528', "96.529"],
         #             ]
         #         }
         #     }
@@ -160,25 +165,25 @@ class gate(ccxt.async_support.gate):
         # swap
         #
         #     {
-        #         id: null,
-        #         time: 1650188898,
-        #         channel: 'futures.order_book_update',
-        #         event: 'update',
-        #         error: null,
-        #         result: {
-        #             t: 1650188898938,
-        #             s: 'GMT_USDT',
-        #             U: 1577718307,
-        #             u: 1577719254,
-        #             b: [
-        #                 {p: '2.5178', s: 0},
-        #                 {p: '2.5179', s: 0},
-        #                 {p: '2.518', s: 0},
+        #         "id": null,
+        #         "time": 1650188898,
+        #         "channel": "futures.order_book_update",
+        #         "event": "update",
+        #         "error": null,
+        #         "result": {
+        #             "t": 1650188898938,
+        #             "s": "GMT_USDT",
+        #             "U": 1577718307,
+        #             "u": 1577719254,
+        #             "b": [
+        #                 {p: "2.5178", s: 0},
+        #                 {p: "2.5179", s: 0},
+        #                 {p: "2.518", s: 0},
         #             ],
-        #             a: [
-        #                 {p: '2.52', s: 0},
-        #                 {p: '2.5201', s: 0},
-        #                 {p: '2.5203', s: 0},
+        #             "a": [
+        #                 {p: "2.52", s: 0},
+        #                 {p: "2.5201", s: 0},
+        #                 {p: "2.5203", s: 0},
         #             ]
         #         }
         #     }
@@ -275,7 +280,7 @@ class gate(ccxt.async_support.gate):
         payload = [marketId]
         return await self.subscribe_public(url, messageHash, payload, channel, query)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: List[str] = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -304,34 +309,34 @@ class gate(ccxt.async_support.gate):
     def handle_ticker(self, client: Client, message):
         #
         #    {
-        #        time: 1649326221,
-        #        channel: 'spot.tickers',
-        #        event: 'update',
-        #        result: {
-        #          currency_pair: 'BTC_USDT',
-        #          last: '43444.82',
-        #          lowest_ask: '43444.82',
-        #          highest_bid: '43444.81',
-        #          change_percentage: '-4.0036',
-        #          base_volume: '5182.5412425462',
-        #          quote_volume: '227267634.93123952',
-        #          high_24h: '47698',
-        #          low_24h: '42721.03'
+        #        "time": 1649326221,
+        #        "channel": "spot.tickers",
+        #        "event": "update",
+        #        "result": {
+        #          "currency_pair": "BTC_USDT",
+        #          "last": "43444.82",
+        #          "lowest_ask": "43444.82",
+        #          "highest_bid": "43444.81",
+        #          "change_percentage": "-4.0036",
+        #          "base_volume": "5182.5412425462",
+        #          "quote_volume": "227267634.93123952",
+        #          "high_24h": "47698",
+        #          "low_24h": "42721.03"
         #        }
         #    }
         #    {
-        #        time: 1671363004,
-        #        time_ms: 1671363004235,
-        #        channel: 'spot.book_ticker',
-        #        event: 'update',
-        #        result: {
-        #          t: 1671363004228,
-        #          u: 9793320464,
-        #          s: 'BTC_USDT',
-        #          b: '16716.8',
-        #          B: '0.0134',
-        #          a: '16716.9',
-        #          A: '0.0353'
+        #        "time": 1671363004,
+        #        "time_ms": 1671363004235,
+        #        "channel": "spot.book_ticker",
+        #        "event": "update",
+        #        "result": {
+        #          "t": 1671363004228,
+        #          "u": 9793320464,
+        #          "s": "BTC_USDT",
+        #          "b": "16716.8",
+        #          "B": "0.0134",
+        #          "a": "16716.9",
+        #          "A": "0.0353"
         #        }
         #    }
         #
@@ -353,7 +358,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(parsed, messageHash)
             client.resolve(parsed, 'tickers')
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -376,7 +381,7 @@ class gate(ccxt.async_support.gate):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -403,17 +408,17 @@ class gate(ccxt.async_support.gate):
     def handle_trades(self, client: Client, message):
         #
         # {
-        #     time: 1648725035,
-        #     channel: 'spot.trades',
-        #     event: 'update',
-        #     result: [{
-        #       id: 3130257995,
-        #       create_time: 1648725035,
-        #       create_time_ms: '1648725035923.0',
-        #       side: 'sell',
-        #       currency_pair: 'LTC_USDT',
-        #       amount: '0.0116',
-        #       price: '130.11'
+        #     "time": 1648725035,
+        #     "channel": "spot.trades",
+        #     "event": "update",
+        #     "result": [{
+        #       "id": 3130257995,
+        #       "create_time": 1648725035,
+        #       "create_time_ms": "1648725035923.0",
+        #       "side": "sell",
+        #       "currency_pair": "LTC_USDT",
+        #       "amount": "0.0116",
+        #       "price": "130.11"
         #     }]
         # }
         #
@@ -434,7 +439,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(cachedTrades, hash)
             self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, cachedTrades)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -511,7 +516,7 @@ class gate(ccxt.async_support.gate):
             stored = self.safe_value(self.ohlcvs[symbol], interval)
             client.resolve(stored, hash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -624,18 +629,18 @@ class gate(ccxt.async_support.gate):
         #
         # spot order fill
         #   {
-        #       time: 1653664351,
-        #       channel: 'spot.balances',
-        #       event: 'update',
-        #       result: [
+        #       "time": 1653664351,
+        #       "channel": "spot.balances",
+        #       "event": "update",
+        #       "result": [
         #         {
-        #           timestamp: '1653664351',
-        #           timestamp_ms: '1653664351017',
-        #           user: '10406147',
-        #           currency: 'LTC',
-        #           change: '-0.0002000000000000',
-        #           total: '0.09986000000000000000',
-        #           available: '0.09986000000000000000'
+        #           "timestamp": "1653664351",
+        #           "timestamp_ms": "1653664351017",
+        #           "user": "10406147",
+        #           "currency": "LTC",
+        #           "change": "-0.0002000000000000",
+        #           "total": "0.09986000000000000000",
+        #           "available": "0.09986000000000000000"
         #         }
         #       ]
         #   }
@@ -643,40 +648,40 @@ class gate(ccxt.async_support.gate):
         # account transfer
         #
         #    {
-        #        id: null,
-        #        time: 1653665088,
-        #        channel: 'futures.balances',
-        #        event: 'update',
-        #        error: null,
-        #        result: [
+        #        "id": null,
+        #        "time": 1653665088,
+        #        "channel": "futures.balances",
+        #        "event": "update",
+        #        "error": null,
+        #        "result": [
         #          {
-        #            balance: 25.035008537,
-        #            change: 25,
-        #            text: '-',
-        #            time: 1653665088,
-        #            time_ms: 1653665088286,
-        #            type: 'dnw',
-        #            user: '10406147'
+        #            "balance": 25.035008537,
+        #            "change": 25,
+        #            "text": "-",
+        #            "time": 1653665088,
+        #            "time_ms": 1653665088286,
+        #            "type": "dnw",
+        #            "user": "10406147"
         #          }
         #        ]
         #   }
         #
         # swap order fill
         #   {
-        #       id: null,
-        #       time: 1653665311,
-        #       channel: 'futures.balances',
-        #       event: 'update',
-        #       error: null,
-        #       result: [
+        #       "id": null,
+        #       "time": 1653665311,
+        #       "channel": "futures.balances",
+        #       "event": "update",
+        #       "error": null,
+        #       "result": [
         #         {
-        #           balance: 20.031873037,
-        #           change: -0.0031355,
-        #           text: 'LTC_USDT:165551103273',
-        #           time: 1653665311,
-        #           time_ms: 1653665311437,
-        #           type: 'fee',
-        #           user: '10406147'
+        #           "balance": 20.031873037,
+        #           "change": -0.0031355,
+        #           "text": "LTC_USDT:165551103273",
+        #           "time": 1653665311,
+        #           "time_ms": 1653665311437,
+        #           "type": "fee",
+        #           "user": "10406147"
         #         }
         #       ]
         #   }
@@ -706,7 +711,130 @@ class gate(ccxt.async_support.gate):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_positions(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#positions-subscription
+        :see: https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
+        :see: https://www.gate.io/docs/developers/options/ws/en/#positions-channel
+        watch all open positions
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        market = None
+        symbols = self.market_symbols(symbols)
+        payload = ['!' + 'all']
+        if not self.is_empty(symbols):
+            market = self.get_market_from_symbols(symbols)
+        type = None
+        query = None
+        type, query = self.handle_market_type_and_params('watchPositions', market, params)
+        if type == 'spot':
+            type = 'swap'
+        typeId = self.get_supported_mapping(type, {
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        })
+        messageHash = type + ':positions'
+        if not self.is_empty(symbols):
+            messageHash += '::' + ','.join(symbols)
+        channel = typeId + '.positions'
+        subType = None
+        subType, query = self.handle_sub_type_and_params('watchPositions', market, query)
+        isInverse = (subType == 'inverse')
+        url = self.get_url_by_market_type(type, isInverse)
+        client = self.client(url)
+        self.set_positions_cache(client, type, symbols)
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        cache = self.safe_value(self.positions, type)
+        if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
+            return await client.future(type + ':fetchPositionsSnapshot')
+        positions = await self.subscribe_private(url, messageHash, payload, channel, query, True)
+        if self.newUpdates:
+            return positions
+        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+
+    def set_positions_cache(self, client: Client, type, symbols: List[str] = None):
+        if self.positions is None:
+            self.positions = {}
+        if type in self.positions:
+            return
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
+        if fetchPositionsSnapshot:
+            messageHash = type + ':fetchPositionsSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_positions_snapshot, client, messageHash, type)
+        else:
+            self.positions[type] = ArrayCacheBySymbolBySide()
+
+    async def load_positions_snapshot(self, client, messageHash, type):
+        positions = await self.fetch_positions(None, {'type': type})
+        self.positions[type] = ArrayCacheBySymbolBySide()
+        cache = self.positions[type]
+        for i in range(0, len(positions)):
+            position = positions[i]
+            cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(cache, type + ':position')
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        time: 1693158497,
+        #        time_ms: 1693158497204,
+        #        channel: 'futures.positions',
+        #        event: 'update',
+        #        result: [{
+        #            contract: 'XRP_USDT',
+        #            cross_leverage_limit: 0,
+        #            entry_price: 0.5253,
+        #            history_pnl: 0,
+        #            history_point: 0,
+        #            last_close_pnl: 0,
+        #            leverage: 0,
+        #            leverage_max: 50,
+        #            liq_price: 0.0361,
+        #            maintenance_rate: 0.01,
+        #            margin: 4.89609962852,
+        #            mode: 'single',
+        #            realised_pnl: -0.0026265,
+        #            realised_point: 0,
+        #            risk_limit: 500000,
+        #            size: 1,
+        #            time: 1693158497,
+        #            time_ms: 1693158497195,
+        #            update_id: 1,
+        #            user: '10444586'
+        #        }]
+        #    }
+        #
+        type = self.get_market_type_by_url(client.url)
+        data = self.safe_value(message, 'result', [])
+        cache = self.positions[type]
+        newPositions = []
+        for i in range(0, len(data)):
+            rawPosition = data[i]
+            position = self.parse_position(rawPosition)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, type + ':positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, type + ':positions')
+
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -816,20 +944,20 @@ class gate(ccxt.async_support.gate):
 
     def handle_error_message(self, client: Client, message):
         # {
-        #     time: 1647274664,
-        #     channel: 'futures.orders',
-        #     event: 'subscribe',
-        #     error: {code: 2, message: 'unknown contract BTC_USDT_20220318'},
+        #     "time": 1647274664,
+        #     "channel": "futures.orders",
+        #     "event": "subscribe",
+        #     "error": {code: 2, message: "unknown contract BTC_USDT_20220318"},
         # }
         # {
-        #     time: 1647276473,
-        #     channel: 'futures.orders',
-        #     event: 'subscribe',
-        #     error: {
-        #       code: 4,
-        #       message: '{"label":"INVALID_KEY","message":"Invalid key provided"}\n'
+        #     "time": 1647276473,
+        #     "channel": "futures.orders",
+        #     "event": "subscribe",
+        #     "error": {
+        #       "code": 4,
+        #       "message": "{"label":"INVALID_KEY","message":"Invalid key provided"}\n"
         #     },
-        #     result: null
+        #     "result": null
         #   }
         error = self.safe_value(message, 'error')
         code = self.safe_integer(error, 'code')
@@ -872,27 +1000,27 @@ class gate(ccxt.async_support.gate):
         #
         # subscribe
         #    {
-        #        time: 1649062304,
-        #        id: 1649062303,
-        #        channel: 'spot.candlesticks',
-        #        event: 'subscribe',
-        #        result: {status: 'success'}
+        #        "time": 1649062304,
+        #        "id": 1649062303,
+        #        "channel": "spot.candlesticks",
+        #        "event": "subscribe",
+        #        "result": {status: "success"}
         #    }
         #
         # candlestick
         #    {
-        #        time: 1649063328,
-        #        channel: 'spot.candlesticks',
-        #        event: 'update',
-        #        result: {
-        #          t: '1649063280',
-        #          v: '58932.23174896',
-        #          c: '45966.47',
-        #          h: '45997.24',
-        #          l: '45966.47',
-        #          o: '45975.18',
-        #          n: '1m_BTC_USDT',
-        #          a: '1.281699'
+        #        "time": 1649063328,
+        #        "channel": "spot.candlesticks",
+        #        "event": "update",
+        #        "result": {
+        #          "t": "1649063280",
+        #          "v": "58932.23174896",
+        #          "c": "45966.47",
+        #          "h": "45997.24",
+        #          "l": "45966.47",
+        #          "o": "45975.18",
+        #          "n": "1m_BTC_USDT",
+        #          "a": "1.281699"
         #        }
         #     }
         #
@@ -910,17 +1038,17 @@ class gate(ccxt.async_support.gate):
         #   }
         # orderbook
         #   {
-        #       time: 1649770525,
-        #       channel: 'spot.order_book_update',
-        #       event: 'update',
-        #       result: {
-        #         t: 1649770525653,
-        #         e: 'depthUpdate',
-        #         E: 1649770525,
-        #         s: 'LTC_USDT',
-        #         U: 2622525645,
-        #         u: 2622525665,
-        #         b: [
+        #       "time": 1649770525,
+        #       "channel": "spot.order_book_update",
+        #       "event": "update",
+        #       "result": {
+        #         "t": 1649770525653,
+        #         "e": "depthUpdate",
+        #         "E": 1649770525,
+        #         "s": "LTC_USDT",
+        #         "U": 2622525645,
+        #         "u": 2622525665,
+        #         "b": [
         #           [Array], [Array],
         #           [Array], [Array],
         #           [Array], [Array],
@@ -928,7 +1056,7 @@ class gate(ccxt.async_support.gate):
         #           [Array], [Array],
         #           [Array]
         #         ],
-        #         a: [
+        #         "a": [
         #           [Array], [Array],
         #           [Array], [Array],
         #           [Array], [Array],
@@ -942,18 +1070,18 @@ class gate(ccxt.async_support.gate):
         # balance update
         #
         #    {
-        #        time: 1653664351,
-        #        channel: 'spot.balances',
-        #        event: 'update',
-        #        result: [
+        #        "time": 1653664351,
+        #        "channel": "spot.balances",
+        #        "event": "update",
+        #        "result": [
         #          {
-        #            timestamp: '1653664351',
-        #            timestamp_ms: '1653664351017',
-        #            user: '10406147',
-        #            currency: 'LTC',
-        #            change: '-0.0002000000000000',
-        #            total: '0.09986000000000000000',
-        #            available: '0.09986000000000000000'
+        #            "timestamp": "1653664351",
+        #            "timestamp_ms": "1653664351017",
+        #            "user": "10406147",
+        #            "currency": "LTC",
+        #            "change": "-0.0002000000000000",
+        #            "total": "0.09986000000000000000",
+        #            "available": "0.09986000000000000000"
         #          }
         #        ]
         #    }
@@ -971,6 +1099,7 @@ class gate(ccxt.async_support.gate):
             'usertrades': self.handle_my_trades,
             'candlesticks': self.handle_ohlcv,
             'orders': self.handle_order,
+            'positions': self.handle_positions,
             'tickers': self.handle_ticker,
             'book_ticker': self.handle_ticker,
             'trades': self.handle_trades,
@@ -1003,6 +1132,20 @@ class gate(ccxt.async_support.gate):
             return url['btc'] if isInverse else url['usdt']
         else:
             return url
+
+    def get_market_type_by_url(self, url: str):
+        findBy = {
+            'op-': 'option',
+            'delivery': 'future',
+            'fx': 'swap',
+        }
+        keys = list(findBy.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = findBy[key]
+            if url.find(key) >= 0:
+                return value
+        return 'spot'
 
     def request_id(self):
         # their support said that reqid must be an int32, not documented

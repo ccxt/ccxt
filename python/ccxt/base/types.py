@@ -1,12 +1,14 @@
 import sys
 import types
-from typing import Union
+from typing import Union, List, Optional, Any
+from decimal import Decimal
 
 if sys.version_info.minor > 7:
-    from typing import TypedDict, Literal
+    from typing import TypedDict, Literal, Dict
 else:
-    TypedDict = dict
+    from typing import Dict
     from typing_extensions import Literal
+    TypedDict = Dict
 
 
 OrderSide = Literal['buy', 'sell']
@@ -37,40 +39,45 @@ class Entry:
         self.name = name
 
 
-class Balance(TypedDict):
-    free: Union[None, str, float]
-    used: Union[None, str, float]
-    total: Union[None, str, float]
-
-
 IndexType = Union[str, int]
-Numeric = Union[None, str, float, int]
+Numeric = Union[None, str, float, int, Decimal]
+String = Optional[str]
+Int = Optional[int]
+Bool = Optional[bool]
+Fee = Optional[Dict[str, Any]]
+
+
+class Balance(TypedDict):
+    free: Numeric
+    used: Numeric
+    total: Numeric
 
 
 class Trade(TypedDict):
-    amount: Union[None, str, float]
-    datetime: str
-    id: str
-    info: None
-    order: str
-    price: Union[None, str, float]
-    timestamp: int
-    type: str
-    side: str
-    symbol: str
-    takerOrMaker: str
-    cost: Union[None, str, float]
-    fee: TypedDict
+    info: Dict[str, Any]
+    amount: Numeric
+    datetime: String
+    id: String
+    order: String
+    price: Numeric
+    timestamp: Int
+    type: String
+    side: String
+    symbol: String
+    takerOrMaker: String
+    cost: Numeric
+    fee: Fee
 
 
 class Position(TypedDict):
-    symbol: str
-    id: str
-    timestamp: int
-    datetime: str
+    info: Dict[str, Any]
+    symbol: String
+    id: String
+    timestamp: Int
+    datetime: String
     contracts: Numeric
     contractSize: Numeric
-    side: str
+    side: String
     notional: Numeric
     leverage: Numeric
     unrealizedPnl: Numeric
@@ -83,20 +90,180 @@ class Position(TypedDict):
     maintenanceMargin: Numeric
     initialMargin: Numeric
     initialMarginPercentage: Numeric
-    marginMode: str
+    marginMode: String
     marginRatio: Numeric
-    lastUpdateTimestamp: int
+    lastUpdateTimestamp: Int
     lastPrice: Numeric
     percentage: Numeric
     stopLossPrice: Numeric
     takeProfitPrice: Numeric
-    info: TypedDict
 
 
 class OrderRequest(TypedDict):
-    symbol: str
-    type: str
-    side: str
+    symbol: String
+    type: String
+    side: String
     amount: Union[None, float]
     price: Union[None, float]
-    params: TypedDict
+    params: Dict[str, Any]
+
+
+class Order(TypedDict):
+    info: Dict[str, Any]
+    id: String
+    clientOrderId: String
+    datetime: String
+    timestamp: Int
+    lastTradeTimestamp: Int
+    lastUpdateTimestamp: Int
+    status: String
+    symbol: String
+    type: String
+    timeInForce: String
+    side: OrderSide
+    price: Numeric
+    average: Numeric
+    amount: Numeric
+    filled: Numeric
+    remaining: Numeric
+    stopPrice: Numeric
+    takeProfitPrice: Numeric
+    stopLossPrice: Numeric
+    cost: Numeric
+    trades: List[Trade]
+    fee: Fee
+
+
+class FundingHistory(TypedDict):
+    info: Dict[str, Any]
+    symbol: String
+    code: String
+    timestamp: Int
+    datetime: String
+    id: String
+    amount: Numeric
+
+
+class Balances(Dict[str, Balance]):
+    datetime: String
+    timestamp: Int
+
+
+class OrderBook(TypedDict):
+    asks: List[Numeric]
+    bids: List[Numeric]
+    datetime: String
+    timestamp: Int
+    nonce: Int
+
+
+class Transaction(TypedDict):
+    info: Dict[str, any]
+    id: String
+    txid: String
+    timestamp: Int
+    datetime: String
+    address: String
+    addressFrom: String
+    addressTo: String
+    tag: String
+    tagFrom: String
+    tagTo: String
+    type: String
+    amount: Numeric
+    currency: String
+    status: String
+    updated: Int
+    fee: Fee
+    network: String
+    comment: String
+    internal: Bool
+
+
+class Ticker(TypedDict):
+    info: Dict[str, Any]
+    symbol: String
+    timestamp: Int
+    datetime: String
+    high: Numeric
+    low: Numeric
+    bid: Numeric
+    bidVolume: Numeric
+    ask: Numeric
+    askVolume: Numeric
+    vwap: Numeric
+    open: Numeric
+    close: Numeric
+    last: Numeric
+    previousClose: Numeric
+    change: Numeric
+    percentage: Numeric
+    average: Numeric
+    quoteVolume: Numeric
+    baseVolume: Numeric
+
+
+Tickers = Dict[str, Ticker]
+
+
+class MarginMode(TypedDict):
+    info: Dict[str, Any]
+    symbol: String
+    marginMode: String
+
+
+class Greeks(TypedDict):
+    symbol: String
+    timestamp: Int
+    datetime: String
+    delta: Numeric
+    gamma: Numeric
+    theta: Numeric
+    vega: Numeric
+    rho: Numeric
+    bidSize: Numeric
+    askSize: Numeric
+    bidImpliedVolatility: Numeric
+    askImpliedVolatility: Numeric
+    markImpliedVolatility: Numeric
+    bidPrice: Numeric
+    askPrice: Numeric
+    markPrice: Numeric
+    lastPrice: Numeric
+    underlyingPrice: Numeric
+    info: Dict[str, Any]
+
+
+class Market(TypedDict):
+    info: Dict[str, Any]
+    id: String
+    symbol: String
+    base: String
+    quote: String
+    baseId: String
+    quoteId: String
+    active: Bool
+    type: String
+    spot: bool
+    margin: bool
+    swap: bool
+    future: bool
+    option: bool
+    contract: bool
+    settle: String
+    settleId: String
+    contractSize: Numeric
+    linear: bool
+    inverse: bool
+    expiry: Numeric
+    expiryDatetime: String
+    strike: Numeric
+    optionType: String
+    taker: Numeric
+    maker: Numeric
+    percentage: bool
+    tierBased: bool
+    feeSide: String
+    precision: Any
+    limits: Any
+    created: Int

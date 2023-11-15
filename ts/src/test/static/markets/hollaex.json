@@ -1,0 +1,350 @@
+{
+    "BTC/USDT": {
+        "id": "btc-usdt",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "btc",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": 1000
+            },
+            "price": {
+                "min": 10000,
+                "max": 200000
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "2",
+            "name": "btc-usdt",
+            "pair_base": "btc",
+            "pair_2": "usdt",
+            "min_size": "0.00001",
+            "max_size": "1000",
+            "min_price": "10000",
+            "max_price": "200000",
+            "increment_size": "0.00001",
+            "increment_price": "0.01",
+            "active": true,
+            "verified": true,
+            "code": "btc-usdt",
+            "is_public": true,
+            "estimated_price": "21000",
+            "circuit_breaker": true,
+            "created_at": "2021-01-21T08:11:02.736Z",
+            "updated_at": "2022-06-16T10:59:02.940Z",
+            "created_by": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "created": 1611216662736
+    },
+    "LTC/USDT": {
+        "id": "ltc-usdt",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "ltc",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 1000
+            },
+            "price": {
+                "min": 10,
+                "max": 10000
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "396",
+            "name": "ltc-usdt",
+            "pair_base": "ltc",
+            "pair_2": "usdt",
+            "min_size": "0.0001",
+            "max_size": "1000",
+            "min_price": "10",
+            "max_price": "10000",
+            "increment_size": "0.0001",
+            "increment_price": "0.01",
+            "active": true,
+            "verified": true,
+            "code": "ltc-usdt",
+            "is_public": true,
+            "estimated_price": "75",
+            "circuit_breaker": true,
+            "created_at": "2021-04-09T03:07:04.642Z",
+            "updated_at": "2022-06-30T02:29:58.491Z",
+            "created_by": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "created": 1617937624642
+    },
+    "ADA/USDT": {
+        "id": "ada-usdt",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ada",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.1,
+                "max": 10
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "221",
+            "name": "ada-usdt",
+            "pair_base": "ada",
+            "pair_2": "usdt",
+            "min_size": "0.1",
+            "max_size": "1000000",
+            "min_price": "0.1",
+            "max_price": "10",
+            "increment_size": "0.1",
+            "increment_price": "0.00001",
+            "active": true,
+            "verified": true,
+            "code": "ada-usdt",
+            "is_public": true,
+            "estimated_price": null,
+            "circuit_breaker": true,
+            "created_at": "2021-03-17T16:56:18.464Z",
+            "updated_at": "2021-03-18T06:26:52.399Z",
+            "created_by": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "created": 1616000178464
+    },
+    "XRP/USDT": {
+        "id": "xrp-usdt",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "xrp",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.1,
+                "max": 10
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "4",
+            "name": "xrp-usdt",
+            "pair_base": "xrp",
+            "pair_2": "usdt",
+            "min_size": "1",
+            "max_size": "1000000",
+            "min_price": "0.1",
+            "max_price": "10",
+            "increment_size": "0.1",
+            "increment_price": "0.00001",
+            "active": true,
+            "verified": true,
+            "code": "xrp-usdt",
+            "is_public": true,
+            "estimated_price": "0.8",
+            "circuit_breaker": true,
+            "created_at": "2021-01-21T08:46:15.429Z",
+            "updated_at": "2021-01-22T05:40:39.196Z",
+            "created_by": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "created": 1611218775429
+    },
+    "SOL/USDT": {
+        "id": "sol-usdt",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "sol",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 1000000
+            },
+            "price": {
+                "min": 1,
+                "max": 1000
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "855",
+            "name": "sol-usdt",
+            "pair_base": "sol",
+            "pair_2": "usdt",
+            "min_size": "0.001",
+            "max_size": "1000000",
+            "min_price": "1",
+            "max_price": "1000",
+            "increment_size": "0.001",
+            "increment_price": "0.001",
+            "active": true,
+            "verified": true,
+            "code": "sol-usdt",
+            "is_public": true,
+            "estimated_price": "100",
+            "circuit_breaker": true,
+            "created_at": "2021-09-03T08:20:58.862Z",
+            "updated_at": "2022-11-15T14:06:05.922Z",
+            "created_by": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "created": 1630657258862
+    },
+    "TRX/USDT": {
+        "id": "trx-usdt",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "trx",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "id": "220",
+            "name": "trx-usdt",
+            "pair_base": "trx",
+            "pair_2": "usdt",
+            "min_size": "0.1",
+            "max_size": "1000000",
+            "min_price": "0.01",
+            "max_price": "1",
+            "increment_size": "0.1",
+            "increment_price": "0.00001",
+            "active": true,
+            "verified": true,
+            "code": "trx-usdt",
+            "is_public": true,
+            "estimated_price": null,
+            "circuit_breaker": true,
+            "created_at": "2021-03-17T16:51:58.053Z",
+            "updated_at": "2021-03-18T06:25:18.794Z",
+            "created_by": "1"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "created": 1615999918053
+    }
+}

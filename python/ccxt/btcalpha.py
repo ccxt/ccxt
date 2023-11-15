@@ -6,9 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.btcalpha import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
@@ -175,69 +173,68 @@ class btcalpha(Exchange, ImplicitAPI):
         #        },
         #    ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            id = self.safe_string(market, 'name')
-            baseId = self.safe_string(market, 'currency1')
-            quoteId = self.safe_string(market, 'currency2')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            pricePrecision = self.safe_string(market, 'price_precision')
-            priceLimit = self.parse_precision(pricePrecision)
-            amountLimit = self.safe_string(market, 'minimum_order_size')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': True,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
-                    'price': self.parse_number(self.parse_precision((pricePrecision))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.parse_number(amountLimit),
-                        'max': self.safe_number(market, 'maximum_order_size'),
-                    },
-                    'price': {
-                        'min': self.parse_number(priceLimit),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.parse_number(Precise.string_mul(priceLimit, amountLimit)),
-                        'max': None,
-                    },
-                },
-                'created': None,
-                'info': market,
-            })
-        return result
+        return self.parse_markets(response)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'name')
+        baseId = self.safe_string(market, 'currency1')
+        quoteId = self.safe_string(market, 'currency2')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        pricePrecision = self.safe_string(market, 'price_precision')
+        priceLimit = self.parse_precision(pricePrecision)
+        amountLimit = self.safe_string(market, 'minimum_order_size')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': True,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
+                'price': self.parse_number(self.parse_precision((pricePrecision))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.parse_number(amountLimit),
+                    'max': self.safe_number(market, 'maximum_order_size'),
+                },
+                'price': {
+                    'min': self.parse_number(priceLimit),
+                    'max': None,
+                },
+                'cost': {
+                    'min': self.parse_number(Precise.string_mul(priceLimit, amountLimit)),
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
+
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         :see: https://btc-alpha.github.io/api-docs/#tickers
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -250,22 +247,22 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            timestamp: '1674658.445272',
-        #            pair: 'BTC_USDT',
-        #            last: '22476.85',
-        #            diff: '458.96',
-        #            vol: '6660.847784',
-        #            high: '23106.08',
-        #            low: '22348.29',
-        #            buy: '22508.46',
-        #            sell: '22521.11'
+        #            "timestamp": "1674658.445272",
+        #            "pair": "BTC_USDT",
+        #            "last": "22476.85",
+        #            "diff": "458.96",
+        #            "vol": "6660.847784",
+        #            "high": "23106.08",
+        #            "low": "22348.29",
+        #            "buy": "22508.46",
+        #            "sell": "22521.11"
         #        },
         #        ...
         #    ]
         #
         return self.parse_tickers(response, symbols)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://btc-alpha.github.io/api-docs/#tickers
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -281,31 +278,31 @@ class btcalpha(Exchange, ImplicitAPI):
         response = self.publicGetTicker(self.extend(request, params))
         #
         #    {
-        #        timestamp: '1674658.445272',
-        #        pair: 'BTC_USDT',
-        #        last: '22476.85',
-        #        diff: '458.96',
-        #        vol: '6660.847784',
-        #        high: '23106.08',
-        #        low: '22348.29',
-        #        buy: '22508.46',
-        #        sell: '22521.11'
+        #        "timestamp": "1674658.445272",
+        #        "pair": "BTC_USDT",
+        #        "last": "22476.85",
+        #        "diff": "458.96",
+        #        "vol": "6660.847784",
+        #        "high": "23106.08",
+        #        "low": "22348.29",
+        #        "buy": "22508.46",
+        #        "sell": "22521.11"
         #    }
         #
         return self.parse_ticker(response, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #    {
-        #        timestamp: '1674658.445272',
-        #        pair: 'BTC_USDT',
-        #        last: '22476.85',
-        #        diff: '458.96',
-        #        vol: '6660.847784',
-        #        high: '23106.08',
-        #        low: '22348.29',
-        #        buy: '22508.46',
-        #        sell: '22521.11'
+        #        "timestamp": "1674658.445272",
+        #        "pair": "BTC_USDT",
+        #        "last": "22476.85",
+        #        "diff": "458.96",
+        #        "vol": "6660.847784",
+        #        "high": "23106.08",
+        #        "low": "22348.29",
+        #        "buy": "22508.46",
+        #        "sell": "22521.11"
         #    }
         #
         timestampStr = self.safe_string(ticker, 'timestamp')
@@ -336,7 +333,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'vol'),
         }, market)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://btc-alpha.github.io/api-docs/#get-orderbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -364,7 +361,7 @@ class btcalpha(Exchange, ImplicitAPI):
                 result.append(self.parse_bid_ask(bidask, priceKey, amountKey))
         return result
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -413,7 +410,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -433,7 +430,7 @@ class btcalpha(Exchange, ImplicitAPI):
         trades = self.publicGetExchanges(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -459,7 +456,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -488,7 +485,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #  deposit
         #      {
@@ -528,6 +525,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'type': None,
             'status': self.parse_transaction_status(statusId),
             'comment': None,
+            'internal': None,
             'fee': None,
             'updated': None,
         }
@@ -542,7 +540,7 @@ class btcalpha(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "time":1591296000,
@@ -562,7 +560,7 @@ class btcalpha(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='5m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='5m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -592,7 +590,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -604,7 +602,7 @@ class btcalpha(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the btcalpha api endpoint
@@ -622,7 +620,7 @@ class btcalpha(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchClosedOrders / fetchOrder
         #     {
@@ -724,7 +722,7 @@ class btcalpha(Exchange, ImplicitAPI):
         order['amount'] = self.parse_number(amount)
         return order
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         :see: https://btc-alpha.github.io/api-docs/#cancel-order
         cancels an open order
@@ -739,7 +737,7 @@ class btcalpha(Exchange, ImplicitAPI):
         response = self.privatePostOrderCancel(self.extend(request, params))
         return response
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         :see: https://btc-alpha.github.io/api-docs/#retrieve-single-order
         fetches information on an order made by the user
@@ -754,7 +752,7 @@ class btcalpha(Exchange, ImplicitAPI):
         order = self.privateGetOrderId(self.extend(request, params))
         return self.parse_order(order)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://btc-alpha.github.io/api-docs/#list-own-orders
         fetches information on multiple orders made by the user
@@ -775,7 +773,7 @@ class btcalpha(Exchange, ImplicitAPI):
         orders = self.privateGetOrdersOwn(self.extend(request, params))
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -789,7 +787,7 @@ class btcalpha(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -803,7 +801,7 @@ class btcalpha(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol

@@ -16,6 +16,7 @@ use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
+use React\Promise\PromiseInterface;
 
 class bitget extends Exchange {
 
@@ -828,6 +829,7 @@ class bitget extends Exchange {
                     '40017' => '\\ccxt\\ExchangeError', // Parameter verification failed
                     '40018' => '\\ccxt\\PermissionDenied', // Invalid IP
                     '40019' => '\\ccxt\\BadRequest', // array("code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null)
+                    '40031' => '\\ccxt\\AccountSuspended', // The account has been cancelled and cannot be used again
                     '40037' => '\\ccxt\\AuthenticationError', // Apikey does not exist
                     '40102' => '\\ccxt\\BadRequest', // Contract configuration does not exist, please check the parameters
                     '40103' => '\\ccxt\\BadRequest', // Request method cannot be empty
@@ -1085,10 +1087,10 @@ class bitget extends Exchange {
             $response = Async\await($this->publicSpotGetPublicTime ($params));
             //
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => 1645837773501,
-            //       data => '1645837773501'
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => 1645837773501,
+            //       "data" => "1645837773501"
             //     }
             //
             return $this->safe_integer($response, 'data');
@@ -1138,53 +1140,45 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_markets($markets) {
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parse_market($markets[$i]);
-        }
-        return $result;
-    }
-
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         // $spot
         //
         //    {
-        //        $symbol => 'ALPHAUSDT_SPBL',
-        //        symbolName => 'ALPHAUSDT',
-        //        baseCoin => 'ALPHA',
-        //        quoteCoin => 'USDT',
-        //        minTradeAmount => '2',
-        //        maxTradeAmount => '0',
-        //        minTradeUSDT" => '5',
-        //        takerFeeRate => '0.001',
-        //        makerFeeRate => '0.001',
-        //        priceScale => '4',
-        //        quantityScale => '4',
-        //        $status => 'online'
+        //        "symbol" => "ALPHAUSDT_SPBL",
+        //        "symbolName" => "ALPHAUSDT",
+        //        "baseCoin" => "ALPHA",
+        //        "quoteCoin" => "USDT",
+        //        "minTradeAmount" => "2",
+        //        "maxTradeAmount" => "0",
+        //        minTradeUSDT" => "5",
+        //        "takerFeeRate" => "0.001",
+        //        "makerFeeRate" => "0.001",
+        //        "priceScale" => "4",
+        //        "quantityScale" => "4",
+        //        "status" => "online"
         //    }
         //
         // $swap
         //
         //    {
-        //        $symbol => 'BTCUSDT_UMCBL',
-        //        makerFeeRate => '0.0002',
-        //        takerFeeRate => '0.0006',
-        //        feeRateUpRatio => '0.005',
-        //        openCostUpRatio => '0.01',
-        //        quoteCoin => 'USDT',
-        //        baseCoin => 'BTC',
-        //        buyLimitPriceRatio => '0.01',
-        //        sellLimitPriceRatio => '0.01',
-        //        $supportMarginCoins => array( 'USDT' ),
-        //        minTradeNum => '0.001',
-        //        priceEndStep => '5',
-        //        volumePlace => '3',
-        //        pricePlace => '1',
-        //        symbolStatus => "normal",
-        //        offTime => "-1",
-        //        limitOpenTime => "-1"
+        //        "symbol" => "BTCUSDT_UMCBL",
+        //        "makerFeeRate" => "0.0002",
+        //        "takerFeeRate" => "0.0006",
+        //        "feeRateUpRatio" => "0.005",
+        //        "openCostUpRatio" => "0.01",
+        //        "quoteCoin" => "USDT",
+        //        "baseCoin" => "BTC",
+        //        "buyLimitPriceRatio" => "0.01",
+        //        "sellLimitPriceRatio" => "0.01",
+        //        "supportMarginCoins" => array( "USDT" ),
+        //        "minTradeNum" => "0.001",
+        //        "priceEndStep" => "5",
+        //        "volumePlace" => "3",
+        //        "pricePlace" => "1",
+        //        "symbolStatus" => "normal",
+        //        "offTime" => "-1",
+        //        "limitOpenTime" => "-1"
         //    }
         //
         $marketId = $this->safe_string($market, 'symbol');
@@ -1325,22 +1319,22 @@ class bitget extends Exchange {
             // spot
             //
             //    {
-            //        code => '00000',
-            //        msg => 'success',
-            //        requestTime => 1645840064031,
-            //        $data => array(
+            //        "code" => "00000",
+            //        "msg" => "success",
+            //        "requestTime" => 1645840064031,
+            //        "data" => array(
             //            {
-            //                symbol => 'ALPHAUSDT_SPBL',
-            //                symbolName => 'ALPHAUSDT',
-            //                baseCoin => 'ALPHA',
-            //                quoteCoin => 'USDT',
-            //                minTradeAmount => '2',
-            //                maxTradeAmount => '0',
-            //                takerFeeRate => '0.001',
-            //                makerFeeRate => '0.001',
-            //                priceScale => '4',
-            //                quantityScale => '4',
-            //                status => 'online'
+            //                "symbol" => "ALPHAUSDT_SPBL",
+            //                "symbolName" => "ALPHAUSDT",
+            //                "baseCoin" => "ALPHA",
+            //                "quoteCoin" => "USDT",
+            //                "minTradeAmount" => "2",
+            //                "maxTradeAmount" => "0",
+            //                "takerFeeRate" => "0.001",
+            //                "makerFeeRate" => "0.001",
+            //                "priceScale" => "4",
+            //                "quantityScale" => "4",
+            //                "status" => "online"
             //            }
             //        )
             //    }
@@ -1348,25 +1342,25 @@ class bitget extends Exchange {
             // swap
             //
             //    {
-            //        code => '00000',
-            //        msg => 'success',
-            //        requestTime => 1645840821493,
-            //        $data => [
+            //        "code" => "00000",
+            //        "msg" => "success",
+            //        "requestTime" => 1645840821493,
+            //        "data" => [
             //            {
-            //                symbol => 'BTCUSDT_UMCBL',
-            //                makerFeeRate => '0.0002',
-            //                takerFeeRate => '0.0006',
-            //                feeRateUpRatio => '0.005',
-            //                openCostUpRatio => '0.01',
-            //                quoteCoin => 'USDT',
-            //                baseCoin => 'BTC',
-            //                buyLimitPriceRatio => '0.01',
-            //                sellLimitPriceRatio => '0.01',
-            //                supportMarginCoins => [Array],
-            //                minTradeNum => '0.001',
-            //                priceEndStep => '5',
-            //                volumePlace => '3',
-            //                pricePlace => '1'
+            //                "symbol" => "BTCUSDT_UMCBL",
+            //                "makerFeeRate" => "0.0002",
+            //                "takerFeeRate" => "0.0006",
+            //                "feeRateUpRatio" => "0.005",
+            //                "openCostUpRatio" => "0.01",
+            //                "quoteCoin" => "USDT",
+            //                "baseCoin" => "BTC",
+            //                "buyLimitPriceRatio" => "0.01",
+            //                "sellLimitPriceRatio" => "0.01",
+            //                "supportMarginCoins" => [Array],
+            //                "minTradeNum" => "0.001",
+            //                "priceEndStep" => "5",
+            //                "volumePlace" => "3",
+            //                "pricePlace" => "1"
             //            }
             //        ]
             //    }
@@ -1387,26 +1381,26 @@ class bitget extends Exchange {
             $response = Async\await($this->publicSpotGetPublicCurrencies ($params));
             //
             //     {
-            //       $code => '00000',
-            //       msg => 'success',
-            //       requestTime => 1645935668288,
-            //       $data => array(
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => 1645935668288,
+            //       "data" => array(
             //         {
-            //           coinId => '230',
-            //           coinName => 'KIN',
-            //           transfer => 'false',
-            //           $chains => array(
+            //           "coinId" => "230",
+            //           "coinName" => "KIN",
+            //           "transfer" => "false",
+            //           "chains" => array(
             //             {
-            //               $chain => 'SOL',
-            //               needTag => 'false',
-            //               withdrawable => 'true',
-            //               rechargeable => 'true',
-            //               withdrawFee => '187500',
-            //               depositConfirm => '100',
-            //               withdrawConfirm => '100',
-            //               minDepositAmount => '12500',
-            //               minWithdrawAmount => '250000',
-            //               browserUrl => 'https://explorer.solana.com/tx/'
+            //               "chain" => "SOL",
+            //               "needTag" => "false",
+            //               "withdrawable" => "true",
+            //               "rechargeable" => "true",
+            //               "withdrawFee" => "187500",
+            //               "depositConfirm" => "100",
+            //               "withdrawConfirm" => "100",
+            //               "minDepositAmount" => "12500",
+            //               "minWithdrawAmount" => "250000",
+            //               "browserUrl" => "https://explorer.solana.com/tx/"
             //             }
             //           )
             //         }
@@ -1671,7 +1665,7 @@ class bitget extends Exchange {
         return $tiers;
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1828,7 +1822,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1892,7 +1886,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "id" => "925607360021839872",
@@ -1943,6 +1937,7 @@ class bitget extends Exchange {
             'tag' => $tag,
             'tagTo' => $tag,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
     }
@@ -2018,7 +2013,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -2045,13 +2040,13 @@ class bitget extends Exchange {
             }
             //
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => 1645854610294,
-            //       $data => {
-            //         asks => array( array( '39102', '11.026' ) ),
-            //         bids => array( array( '39100.5', '1.773' ) ),
-            //         $timestamp => '1645854610294'
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => 1645854610294,
+            //       "data" => {
+            //         "asks" => array( array( "39102", "11.026" ) ),
+            //         "bids" => array( array( '39100.5', "1.773" ) ),
+            //         "timestamp" => "1645854610294"
             //       }
             //     }
             //
@@ -2061,37 +2056,37 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // spot
         //
         //     {
-        //         $symbol => 'BTCUSDT',
-        //         high24h => '40252.43',
-        //         low24h => '38548.54',
-        //         $close => '39102.16',
-        //         quoteVol => '67295596.1458',
-        //         baseVol => '1723.4152',
-        //         usdtVol => '67295596.14578',
-        //         ts => '1645856170030',
-        //         buyOne => '39096.16',
-        //         sellOne => '39103.99'
+        //         "symbol" => "BTCUSDT",
+        //         "high24h" => "40252.43",
+        //         "low24h" => "38548.54",
+        //         "close" => "39102.16",
+        //         "quoteVol" => "67295596.1458",
+        //         "baseVol" => "1723.4152",
+        //         "usdtVol" => "67295596.14578",
+        //         "ts" => "1645856170030",
+        //         "buyOne" => "39096.16",
+        //         "sellOne" => "39103.99"
         //     }
         //
         // swap
         //
         //     {
-        //         $symbol => 'BTCUSDT_UMCBL',
-        //         last => '39086',
-        //         bestAsk => '39087',
-        //         bestBid => '39086',
-        //         high24h => '40312',
-        //         low24h => '38524.5',
-        //         $timestamp => '1645856591864',
-        //         priceChangePercent => '-0.00861',
-        //         $baseVolume => '142251.757',
-        //         $quoteVolume => '5552388715.9215',
-        //         usdtVolume => '5552388715.9215'
+        //         "symbol" => "BTCUSDT_UMCBL",
+        //         "last" => "39086",
+        //         "bestAsk" => "39087",
+        //         "bestBid" => "39086",
+        //         "high24h" => "40312",
+        //         "low24h" => "38524.5",
+        //         "timestamp" => "1645856591864",
+        //         "priceChangePercent" => "-0.00861",
+        //         "baseVolume" => "142251.757",
+        //         "quoteVolume" => "5552388715.9215",
+        //         "usdtVolume" => "5552388715.9215"
         //     }
         // spot tickers
         //    {
@@ -2179,7 +2174,7 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -2203,20 +2198,20 @@ class bitget extends Exchange {
             }
             //
             //     {
-            //         code => '00000',
-            //         msg => 'success',
-            //         requestTime => '1645856138576',
-            //         $data => {
-            //             $symbol => 'BTCUSDT',
-            //             high24h => '40252.43',
-            //             low24h => '38548.54',
-            //             close => '39104.65',
-            //             quoteVol => '67221762.2184',
-            //             baseVol => '1721.527',
-            //             usdtVol => '67221762.218361',
-            //             ts => '1645856138031',
-            //             buyOne => '39102.55',
-            //             sellOne => '39110.56'
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => "1645856138576",
+            //         "data" => {
+            //             "symbol" => "BTCUSDT",
+            //             "high24h" => "40252.43",
+            //             "low24h" => "38548.54",
+            //             "close" => "39104.65",
+            //             "quoteVol" => "67221762.2184",
+            //             "baseVol" => "1721.527",
+            //             "usdtVol" => "67221762.218361",
+            //             "ts" => "1645856138031",
+            //             "buyOne" => "39102.55",
+            //             "sellOne" => "39110.56"
             //         }
             //     }
             //
@@ -2225,7 +2220,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -2312,7 +2307,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // spot
         //
@@ -2418,7 +2413,7 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -2551,21 +2546,21 @@ class bitget extends Exchange {
             $response = Async\await($this->publicSpotGetPublicProduct (array_merge($request, $params)));
             //
             //     {
-            //         code => '00000',
-            //         msg => 'success',
-            //         requestTime => '1646255374000',
-            //         $data => {
-            //           $symbol => 'ethusdt_SPBL',
-            //           symbolName => null,
-            //           baseCoin => 'ETH',
-            //           quoteCoin => 'USDT',
-            //           minTradeAmount => '0',
-            //           maxTradeAmount => '0',
-            //           takerFeeRate => '0.002',
-            //           makerFeeRate => '0.002',
-            //           priceScale => '2',
-            //           quantityScale => '4',
-            //           status => 'online'
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => "1646255374000",
+            //         "data" => {
+            //           "symbol" => "ethusdt_SPBL",
+            //           "symbolName" => null,
+            //           "baseCoin" => "ETH",
+            //           "quoteCoin" => "USDT",
+            //           "minTradeAmount" => "0",
+            //           "maxTradeAmount" => "0",
+            //           "takerFeeRate" => "0.002",
+            //           "makerFeeRate" => "0.002",
+            //           "priceScale" => "2",
+            //           "quantityScale" => "4",
+            //           "status" => "online"
             //         }
             //     }
             //
@@ -2586,22 +2581,22 @@ class bitget extends Exchange {
             $response = Async\await($this->publicSpotGetPublicProducts ($params));
             //
             //     {
-            //         code => '00000',
-            //         msg => 'success',
-            //         requestTime => '1646255662391',
-            //         $data => array(
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => "1646255662391",
+            //         "data" => array(
             //           array(
-            //             $symbol => 'ALPHAUSDT_SPBL',
-            //             symbolName => 'ALPHAUSDT',
-            //             baseCoin => 'ALPHA',
-            //             quoteCoin => 'USDT',
-            //             minTradeAmount => '2',
-            //             maxTradeAmount => '0',
-            //             takerFeeRate => '0.001',
-            //             makerFeeRate => '0.001',
-            //             priceScale => '4',
-            //             quantityScale => '4',
-            //             status => 'online'
+            //             "symbol" => "ALPHAUSDT_SPBL",
+            //             "symbolName" => "ALPHAUSDT",
+            //             "baseCoin" => "ALPHA",
+            //             "quoteCoin" => "USDT",
+            //             "minTradeAmount" => "2",
+            //             "maxTradeAmount" => "0",
+            //             "takerFeeRate" => "0.001",
+            //             "makerFeeRate" => "0.001",
+            //             "priceScale" => "4",
+            //             "quantityScale" => "4",
+            //             "status" => "online"
             //           ),
             //           ...
             //         )
@@ -2629,19 +2624,19 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         // spot
         //
         //     {
-        //         open => '57882.31',
-        //         high => '58967.24',
-        //         low => '57509.56',
-        //         close => '57598.96',
-        //         quoteVol => '439160536.605821',
-        //         baseVol => '7531.2927',
-        //         usdtVol => '439160536.605821',
-        //         ts => '1637337600000'
+        //         "open" => "57882.31",
+        //         "high" => "58967.24",
+        //         "low" => "57509.56",
+        //         "close" => "57598.96",
+        //         "quoteVol" => "439160536.605821",
+        //         "baseVol" => "7531.2927",
+        //         "usdtVol" => "439160536.605821",
+        //         "ts" => "1637337600000"
         //     }
         //
         // swap
@@ -2666,7 +2661,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -2776,7 +2771,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2903,7 +2898,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_balance($balance) {
+    public function parse_balance($balance): array {
         $result = array( 'info' => $balance );
         //
         // spot
@@ -3005,7 +3000,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot
         //     {
@@ -3029,24 +3024,24 @@ class bitget extends Exchange {
         //
         // swap
         //     {
-        //       symbol => 'BTCUSDT_UMCBL',
-        //       size => 0.001,
-        //       orderId => '881640729145409536',
-        //       clientOid => '881640729204129792',
-        //       filledQty => 0.001,
-        //       $fee => 0,
-        //       price => null,
-        //       priceAvg => 38429.5,
-        //       state => 'filled',
-        //       $side => 'open_long',
-        //       timeInForce => 'normal',
-        //       totalProfits => 0,
-        //       posSide => 'long',
-        //       marginCoin => 'USDT',
-        //       filledAmount => 38.4295,
-        //       orderType => 'market',
-        //       cTime => '1645925450611',
-        //       uTime => '1645925450746'
+        //       "symbol" => "BTCUSDT_UMCBL",
+        //       "size" => 0.001,
+        //       "orderId" => "881640729145409536",
+        //       "clientOid" => "881640729204129792",
+        //       "filledQty" => 0.001,
+        //       "fee" => 0,
+        //       "price" => null,
+        //       "priceAvg" => 38429.5,
+        //       "state" => "filled",
+        //       "side" => "open_long",
+        //       "timeInForce" => "normal",
+        //       "totalProfits" => 0,
+        //       "posSide" => "long",
+        //       "marginCoin" => "USDT",
+        //       "filledAmount" => 38.4295,
+        //       "orderType" => "market",
+        //       "cTime" => "1645925450611",
+        //       "uTime" => "1645925450746"
         //     }
         //
         // stop
@@ -3452,7 +3447,7 @@ class bitget extends Exchange {
                 $amount = $this->safe_value($rawOrder, 'amount');
                 $price = $this->safe_value($rawOrder, 'price');
                 $orderParams = $this->safe_value($rawOrder, 'params', array());
-                $marginResult = $this->handle_margin_mode_and_params('createOrders', $params);
+                $marginResult = $this->handle_margin_mode_and_params('createOrders', $orderParams);
                 $currentMarginMode = $marginResult[0];
                 if ($currentMarginMode !== null) {
                     if ($marginMode === null) {
@@ -3939,52 +3934,52 @@ class bitget extends Exchange {
             }
             // spot
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => '1645926849436',
-            //       $data => array(
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => "1645926849436",
+            //       "data" => array(
             //         {
-            //           accountId => '6394957606',
-            //           $symbol => 'BTCUSDT_SPBL',
-            //           orderId => '881626139738935296',
-            //           clientOrderId => '525890c8-767e-4cd6-8585-38160ed7bb5e',
-            //           price => '38000.000000000000',
-            //           quantity => '0.000700000000',
-            //           orderType => 'limit',
-            //           side => 'buy',
-            //           status => 'new',
-            //           fillPrice => '0.000000000000',
-            //           fillQuantity => '0.000000000000',
-            //           fillTotalAmount => '0.000000000000',
-            //           cTime => '1645921972212'
+            //           "accountId" => "6394957606",
+            //           "symbol" => "BTCUSDT_SPBL",
+            //           "orderId" => "881626139738935296",
+            //           "clientOrderId" => "525890c8-767e-4cd6-8585-38160ed7bb5e",
+            //           "price" => "38000.000000000000",
+            //           "quantity" => "0.000700000000",
+            //           "orderType" => "limit",
+            //           "side" => "buy",
+            //           "status" => "new",
+            //           "fillPrice" => "0.000000000000",
+            //           "fillQuantity" => "0.000000000000",
+            //           "fillTotalAmount" => "0.000000000000",
+            //           "cTime" => "1645921972212"
             //         }
             //       )
             //     }
             //
             // swap
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => '1645926587877',
-            //       $data => {
-            //         $symbol => 'BTCUSDT_UMCBL',
-            //         size => '0.001',
-            //         orderId => '881640729145409536',
-            //         clientOid => '881640729204129792',
-            //         filledQty => '0.001',
-            //         fee => '0E-8',
-            //         price => null,
-            //         priceAvg => '38429.50',
-            //         state => 'filled',
-            //         side => 'open_long',
-            //         timeInForce => 'normal',
-            //         totalProfits => '0E-8',
-            //         posSide => 'long',
-            //         marginCoin => 'USDT',
-            //         filledAmount => '38.4295',
-            //         orderType => 'market',
-            //         cTime => '1645925450611',
-            //         uTime => '1645925450746'
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => "1645926587877",
+            //       "data" => {
+            //         "symbol" => "BTCUSDT_UMCBL",
+            //         "size" => "0.001",
+            //         "orderId" => "881640729145409536",
+            //         "clientOid" => "881640729204129792",
+            //         "filledQty" => "0.001",
+            //         "fee" => "0E-8",
+            //         "price" => null,
+            //         "priceAvg" => "38429.50",
+            //         "state" => "filled",
+            //         "side" => "open_long",
+            //         "timeInForce" => "normal",
+            //         "totalProfits" => "0E-8",
+            //         "posSide" => "long",
+            //         "marginCoin" => "USDT",
+            //         "filledAmount" => "38.4295",
+            //         "orderType" => "market",
+            //         "cTime" => "1645925450611",
+            //         "uTime" => "1645925450746"
             //       }
             //     }
             //
@@ -3998,7 +3993,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -4086,52 +4081,52 @@ class bitget extends Exchange {
             //
             //  spot
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => 1645921640193,
-            //       $data => array(
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => 1645921640193,
+            //       "data" => array(
             //         {
-            //           accountId => '6394957606',
-            //           $symbol => 'BTCUSDT_SPBL',
-            //           orderId => '881623995442958336',
-            //           $clientOrderId => '135335e9-b054-4e43-b00a-499f11d3a5cc',
-            //           price => '39000.000000000000',
-            //           quantity => '0.000700000000',
-            //           orderType => 'limit',
-            //           side => 'buy',
-            //           status => 'new',
-            //           fillPrice => '0.000000000000',
-            //           fillQuantity => '0.000000000000',
-            //           fillTotalAmount => '0.000000000000',
-            //           cTime => '1645921460972'
+            //           "accountId" => "6394957606",
+            //           "symbol" => "BTCUSDT_SPBL",
+            //           "orderId" => "881623995442958336",
+            //           "clientOrderId" => "135335e9-b054-4e43-b00a-499f11d3a5cc",
+            //           "price" => "39000.000000000000",
+            //           "quantity" => "0.000700000000",
+            //           "orderType" => "limit",
+            //           "side" => "buy",
+            //           "status" => "new",
+            //           "fillPrice" => "0.000000000000",
+            //           "fillQuantity" => "0.000000000000",
+            //           "fillTotalAmount" => "0.000000000000",
+            //           "cTime" => "1645921460972"
             //         }
             //       )
             //     }
             //
             // swap
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => 1645922324630,
-            //       $data => array(
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => 1645922324630,
+            //       "data" => array(
             //         {
-            //           $symbol => 'BTCUSDT_UMCBL',
-            //           size => 0.001,
-            //           orderId => '881627074081226752',
-            //           clientOid => '881627074160918528',
-            //           filledQty => 0,
-            //           fee => 0,
-            //           price => 38000,
-            //           state => 'new',
-            //           side => 'open_long',
-            //           timeInForce => 'normal',
-            //           totalProfits => 0,
-            //           posSide => 'long',
-            //           marginCoin => 'USDT',
-            //           filledAmount => 0,
-            //           orderType => 'limit',
-            //           cTime => '1645922194995',
-            //           uTime => '1645922194995'
+            //           "symbol" => "BTCUSDT_UMCBL",
+            //           "size" => 0.001,
+            //           "orderId" => "881627074081226752",
+            //           "clientOid" => "881627074160918528",
+            //           "filledQty" => 0,
+            //           "fee" => 0,
+            //           "price" => 38000,
+            //           "state" => "new",
+            //           "side" => "open_long",
+            //           "timeInForce" => "normal",
+            //           "totalProfits" => 0,
+            //           "posSide" => "long",
+            //           "marginCoin" => "USDT",
+            //           "filledAmount" => 0,
+            //           "orderType" => "limit",
+            //           "cTime" => "1645922194995",
+            //           "uTime" => "1645922194995"
             //         }
             //       )
             //     }
@@ -4233,7 +4228,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -4604,20 +4599,20 @@ class bitget extends Exchange {
             $response = Async\await($this->privateSpotPostAccountBills (array_merge($request, $params)));
             //
             //     {
-            //       $code => '00000',
-            //       msg => 'success',
-            //       requestTime => '1645929886887',
-            //       $data => array(
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => "1645929886887",
+            //       "data" => array(
             //         {
-            //           billId => '881626974170554368',
-            //           coinId => '2',
-            //           coinName => 'USDT',
-            //           groupType => 'transfer',
-            //           bizType => 'transfer-out',
-            //           quantity => '-10.00000000',
-            //           balance => '73.36005300',
-            //           fees => '0.00000000',
-            //           cTime => '1645922171146'
+            //           "billId" => "881626974170554368",
+            //           "coinId" => "2",
+            //           "coinName" => "USDT",
+            //           "groupType" => "transfer",
+            //           "bizType" => "transfer-out",
+            //           "quantity" => "-10.00000000",
+            //           "balance" => "73.36005300",
+            //           "fees" => "0.00000000",
+            //           "cTime" => "1645922171146"
             //         }
             //       )
             //     }
@@ -4630,15 +4625,15 @@ class bitget extends Exchange {
     public function parse_ledger_entry($item, $currency = null) {
         //
         //     {
-        //       billId => '881626974170554368',
-        //       coinId => '2',
-        //       coinName => 'USDT',
-        //       groupType => 'transfer',
-        //       $bizType => 'transfer-out',
-        //       quantity => '-10.00000000',
-        //       balance => '73.36005300',
-        //       fees => '0.00000000',
-        //       cTime => '1645922171146'
+        //       "billId" => "881626974170554368",
+        //       "coinId" => "2",
+        //       "coinName" => "USDT",
+        //       "groupType" => "transfer",
+        //       "bizType" => "transfer-out",
+        //       "quantity" => "-10.00000000",
+        //       "balance" => "73.36005300",
+        //       "fees" => "0.00000000",
+        //       "cTime" => "1645922171146"
         //     }
         //
         $id = $this->safe_string($item, 'billId');
@@ -4869,21 +4864,21 @@ class bitget extends Exchange {
             //
             // swap
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => 1645927862710,
-            //       $data => array(
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => 1645927862710,
+            //       "data" => array(
             //         {
-            //           tradeId => '881640729552281602',
-            //           $symbol => 'BTCUSDT_UMCBL',
-            //           orderId => '881640729145409536',
-            //           price => '38429.50',
-            //           sizeQty => '0.001',
-            //           fee => '0',
-            //           side => 'open_long',
-            //           fillAmount => '38.4295',
-            //           profit => '0',
-            //           cTime => '1645925450694'
+            //           "tradeId" => "881640729552281602",
+            //           "symbol" => "BTCUSDT_UMCBL",
+            //           "orderId" => "881640729145409536",
+            //           "price" => "38429.50",
+            //           "sizeQty" => "0.001",
+            //           "fee" => "0",
+            //           "side" => "open_long",
+            //           "fillAmount" => "38.4295",
+            //           "profit" => "0",
+            //           "cTime" => "1645925450694"
             //         }
             //       )
             //     }
@@ -4911,28 +4906,28 @@ class bitget extends Exchange {
             $response = Async\await($this->privateMixGetPositionSinglePositionV2 (array_merge($request, $params)));
             //
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => '1645933957584',
-            //       $data => array(
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => "1645933957584",
+            //       "data" => array(
             //         {
-            //           marginCoin => 'USDT',
-            //           $symbol => 'BTCUSDT_UMCBL',
-            //           holdSide => 'long',
-            //           openDelegateCount => '0',
-            //           margin => '1.921475',
-            //           available => '0.001',
-            //           locked => '0',
-            //           total => '0.001',
-            //           leverage => '20',
-            //           achievedProfits => '0',
-            //           averageOpenPrice => '38429.5',
-            //           marginMode => 'fixed',
-            //           holdMode => 'double_hold',
-            //           unrealizedPL => '0.1634',
-            //           liquidationPrice => '0',
-            //           keepMarginRate => '0.004',
-            //           cTime => '1645922194988'
+            //           "marginCoin" => "USDT",
+            //           "symbol" => "BTCUSDT_UMCBL",
+            //           "holdSide" => "long",
+            //           "openDelegateCount" => "0",
+            //           "margin" => "1.921475",
+            //           "available" => "0.001",
+            //           "locked" => "0",
+            //           "total" => "0.001",
+            //           "leverage" => "20",
+            //           "achievedProfits" => "0",
+            //           "averageOpenPrice" => "38429.5",
+            //           "marginMode" => "fixed",
+            //           "holdMode" => "double_hold",
+            //           "unrealizedPL" => "0.1634",
+            //           "liquidationPrice" => "0",
+            //           "keepMarginRate" => "0.004",
+            //           "cTime" => "1645922194988"
             //         }
             //       )
             //     }
@@ -4995,28 +4990,28 @@ class bitget extends Exchange {
             }
             //
             //     {
-            //       code => '00000',
-            //       msg => 'success',
-            //       requestTime => '1645933905060',
-            //       $data => array(
+            //       "code" => "00000",
+            //       "msg" => "success",
+            //       "requestTime" => "1645933905060",
+            //       "data" => array(
             //         {
-            //           marginCoin => 'USDT',
-            //           symbol => 'BTCUSDT_UMCBL',
-            //           holdSide => 'long',
-            //           openDelegateCount => '0',
-            //           margin => '1.921475',
-            //           available => '0.001',
-            //           locked => '0',
-            //           total => '0.001',
-            //           leverage => '20',
-            //           achievedProfits => '0',
-            //           averageOpenPrice => '38429.5',
-            //           marginMode => 'fixed',
-            //           holdMode => 'double_hold',
-            //           unrealizedPL => '0.14869',
-            //           liquidationPrice => '0',
-            //           keepMarginRate => '0.004',
-            //           cTime => '1645922194988'
+            //           "marginCoin" => "USDT",
+            //           "symbol" => "BTCUSDT_UMCBL",
+            //           "holdSide" => "long",
+            //           "openDelegateCount" => "0",
+            //           "margin" => "1.921475",
+            //           "available" => "0.001",
+            //           "locked" => "0",
+            //           "total" => "0.001",
+            //           "leverage" => "20",
+            //           "achievedProfits" => "0",
+            //           "averageOpenPrice" => "38429.5",
+            //           "marginMode" => "fixed",
+            //           "holdMode" => "double_hold",
+            //           "unrealizedPL" => "0.14869",
+            //           "liquidationPrice" => "0",
+            //           "keepMarginRate" => "0.004",
+            //           "cTime" => "1645922194988"
             //         }
             //       )
             //     }
@@ -5067,23 +5062,23 @@ class bitget extends Exchange {
     public function parse_position($position, $market = null) {
         //
         //     {
-        //         marginCoin => 'USDT',
-        //         $symbol => 'BTCUSDT_UMCBL',
-        //         holdSide => 'long',
-        //         openDelegateCount => '0',
-        //         margin => '1.921475',
-        //         available => '0.001',
-        //         locked => '0',
-        //         total => '0.001',
-        //         $leverage => '20',
-        //         achievedProfits => '0',
-        //         averageOpenPrice => '38429.5',
-        //         $marginMode => 'fixed',
-        //         $holdMode => 'double_hold',
-        //         unrealizedPL => '0.14869',
-        //         $liquidationPrice => '0',
-        //         keepMarginRate => '0.004',
-        //         cTime => '1645922194988'
+        //         "marginCoin" => "USDT",
+        //         "symbol" => "BTCUSDT_UMCBL",
+        //         "holdSide" => "long",
+        //         "openDelegateCount" => "0",
+        //         "margin" => "1.921475",
+        //         "available" => "0.001",
+        //         "locked" => "0",
+        //         "total" => "0.001",
+        //         "leverage" => "20",
+        //         "achievedProfits" => "0",
+        //         "averageOpenPrice" => "38429.5",
+        //         "marginMode" => "fixed",
+        //         "holdMode" => "double_hold",
+        //         "unrealizedPL" => "0.14869",
+        //         "liquidationPrice" => "0",
+        //         "keepMarginRate" => "0.004",
+        //         "cTime" => "1645922194988"
         //     }
         //
         // history
@@ -5422,7 +5417,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -5669,7 +5664,7 @@ class bitget extends Exchange {
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -6292,7 +6287,7 @@ class bitget extends Exchange {
         $liquidationFee = $this->safe_string($liquidation, 'LiqFee');
         $totalDebt = $this->safe_string($liquidation, 'totalDebt');
         $quoteValueString = Precise::string_add($liquidationFee, $totalDebt);
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => null,
@@ -6302,7 +6297,7 @@ class bitget extends Exchange {
             'quoteValue' => $this->parse_number($quoteValueString),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function fetch_borrow_rate(string $code, $params = array ()) {

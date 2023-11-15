@@ -124,6 +124,8 @@
         }
     },
     "bit2c": {
+        "skip": "temporary certificate issues",
+        "until": "2023-11-25",
         "skipMethods": {
             "loadMarkets": {
                 "precision": "not provided",
@@ -410,6 +412,7 @@
         }
     },
     "bitvavo": {
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -417,7 +420,9 @@
                 "networks": "missing"
             },
             "loadMarkets": {
-                "currencyIdAndCode": "broken currencies"
+                "currencyIdAndCode": "broken currencies",
+                "taker": "is undefined",
+                "maker": "is undefined"
             },
             "fetchTickers": {
                 "bid":"broken bid-ask",
@@ -509,7 +514,7 @@
         }
     },
     "btcalpha": {
-	"skip": true, 
+	"skip": true,
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
@@ -644,6 +649,8 @@
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)",
             "fetchTickers": {
+                "ask": "broken bid-ask",
+                "bid": "broken bid-ask",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }
@@ -941,13 +948,11 @@
     "hollaex": {
         "skipWs": true
     },
-    "huobi": {
+    "htx": {
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "limits":"messed",
-                "taker": "messed",
-                "maker": "messed",
                 "currencyIdAndCode": "messed codes"
             },
             "fetchCurrencies": {
@@ -1016,9 +1021,7 @@
     "probit": {
 		"skipWs": true,
         "skipMethods": {
-            "loadMarkets":{
-                "currencyIdAndCode": "messed codes"
-            },
+            "loadMarkets": "needs fixing",
             "fetchCurrencies": {
                 "limits": "messed"
             },
@@ -1074,7 +1077,17 @@
     },
     "kuna": {
         "httpsProxy": "http://51.83.140.52:11230",
-        "skipPhpAsync": true
+        "skipPhpAsync": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            },
+            "fetchCurrencies": {
+                "deposit":"is undefined",
+                "withdraw":"is undefined",
+                "active":"is undefined"
+            }
+        }
     },
     "kucoin": {
         "skipWs": true,
@@ -1124,21 +1137,6 @@
         }
     },
     "lbank": {
-        "skipMethods": {
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTicker":{
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTrades":{
-                "fees": "mising"
-            }
-        }
-    },
-    "lbank2": {
         "skipMethods": {
             "loadMarkets": "settle must be defined when contract is true",
             "fetchTickers": {
@@ -1363,6 +1361,7 @@
         }
     },
     "tidex": {
+        "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
         "skipWs": true,
@@ -1560,6 +1559,17 @@
                 "lastPrice": "undefined",
                 "percentage": "undefined",
                 "liquidationPrice": "undefined"
+            }
+        }
+    },
+    "coinlist": {
+        "skipMethods": {
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing",
+                "ask": "invalid"
             }
         }
     }

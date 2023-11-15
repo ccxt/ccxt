@@ -4,10 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
+import asyncio
 import hashlib
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -31,8 +32,8 @@ class bybit(ccxt.async_support.bybit):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchPositions': True,
                 'watchTradesForSymbols': True,
-                'watchPosition': None,
             },
             'urls': {
                 'api': {
@@ -75,6 +76,10 @@ class bybit(ccxt.async_support.bybit):
             'options': {
                 'watchTicker': {
                     'name': 'tickers',  # 'tickers' for 24hr statistical ticker or 'tickers_lt' for leverage token ticker
+                },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': True,  # or False
+                    'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
                 'spot': {
                     'timeframes': {
@@ -122,7 +127,7 @@ class bybit(ccxt.async_support.bybit):
         self.options['requestId'] = requestId
         return requestId
 
-    def get_url_by_market_type(self, symbol: Optional[str] = None, isPrivate=False, method=None, params={}):
+    def get_url_by_market_type(self, symbol: String = None, isPrivate=False, method=None, params={}):
         accessibility = 'private' if isPrivate else 'public'
         isUsdcSettled = None
         isSpot = None
@@ -179,9 +184,9 @@ class bybit(ccxt.async_support.bybit):
             raise BadRequest(self.id + ' watchTicker() only supports name tickers for contract markets')
         topic += '.' + market['id']
         topics = [topic]
-        return await self.watch_topics(url, messageHash, topics, params)
+        return await self.watch_topics(url, messageHash, topics, messageHash, params)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: List[str] = None, params={}):
         """
         n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
@@ -345,7 +350,7 @@ class bybit(ccxt.async_support.bybit):
             if self.in_array(parsed['symbol'], symbols):
                 client.resolve(parsed, messageHashTicker)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/kline
@@ -366,12 +371,12 @@ class bybit(ccxt.async_support.bybit):
         timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
         topics = ['kline.' + timeframeId + '.' + market['id']]
         messageHash = 'kline' + ':' + timeframeId + ':' + symbol
-        ohlcv = await self.watch_topics(url, messageHash, topics, params)
+        ohlcv = await self.watch_topics(url, messageHash, topics, messageHash, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/kline
@@ -455,7 +460,7 @@ class bybit(ccxt.async_support.bybit):
         client.resolve(stored, messageHash)
         self.resolve_multiple_ohlcv(client, 'multipleOHLCV::', symbol, timeframe, stored)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "start": 1670363160000,
@@ -480,7 +485,7 @@ class bybit(ccxt.async_support.bybit):
             self.safe_number_2(ohlcv, 'volume', 'turnover'),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
@@ -506,10 +511,10 @@ class bybit(ccxt.async_support.bybit):
                 if (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
                     raise BadRequest(self.id + ' watchOrderBook() can only use limit 1, 50, 200 and 500.')
         topics = ['orderbook.' + str(limit) + '.' + market['id']]
-        orderbook = await self.watch_topics(url, messageHash, topics, params)
+        orderbook = await self.watch_topics(url, messageHash, topics, messageHash, params)
         return orderbook.limit()
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
@@ -613,7 +618,7 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made in a market
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
@@ -630,12 +635,12 @@ class bybit(ccxt.async_support.bybit):
         params = self.clean_params(params)
         messageHash = 'trade:' + symbol
         topic = 'publicTrade.' + market['id']
-        trades = await self.watch_topics(url, messageHash, [topic], params)
+        trades = await self.watch_topics(url, messageHash, [topic], messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a list of symbols
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
@@ -784,7 +789,7 @@ class bybit(ccxt.async_support.bybit):
         else:
             return 'usdc'
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/execution
@@ -809,7 +814,7 @@ class bybit(ccxt.async_support.bybit):
             'usdc': 'user.openapi.perp.trade',
         }
         topic = self.safe_value(topicByMarket, self.get_private_type(url))
-        trades = await self.watch_topics(url, messageHash, [topic], params)
+        trades = await self.watch_topics(url, messageHash, [topic], messageHash, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
@@ -902,7 +907,131 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_positions(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/private/position
+        watch all open positions
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        method = 'watchPositions'
+        messageHash = ''
+        if not self.is_empty(symbols):
+            symbols = self.market_symbols(symbols)
+            messageHash = '::' + ','.join(symbols)
+        firstSymbol = self.safe_string(symbols, 0)
+        url = self.get_url_by_market_type(firstSymbol, True, method, params)
+        messageHash = 'positions' + messageHash
+        client = self.client(url)
+        await self.authenticate(url)
+        self.set_positions_cache(client, symbols)
+        cache = self.positions
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
+            snapshot = await client.future('fetchPositionsSnapshot')
+            return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
+        topics = ['position']
+        newPositions = await self.watch_topics(url, messageHash, topics, 'position', params)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
+
+    def set_positions_cache(self, client: Client, symbols: List[str] = None):
+        if self.positions is not None:
+            return self.positions
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
+        if fetchPositionsSnapshot:
+            messageHash = 'fetchPositionsSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_positions_snapshot, client, messageHash)
+        else:
+            self.positions = ArrayCacheBySymbolBySide()
+
+    async def load_positions_snapshot(self, client, messageHash):
+        # one ws channel gives positions for all types, for snapshot must load all positions
+        fetchFunctions = [
+            self.fetch_positions(None, {'type': 'swap', 'subType': 'linear'}),
+            self.fetch_positions(None, {'type': 'swap', 'subType': 'inverse'}),
+        ]
+        promises = await asyncio.gather(*fetchFunctions)
+        self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        for i in range(0, len(promises)):
+            positions = promises[i]
+            for ii in range(0, len(positions)):
+                position = positions[ii]
+                cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(cache, 'position')
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        topic: 'position',
+        #        id: '504b2671629b08e3c4f6960382a59363:3bc4028023786545:0:01',
+        #        creationTime: 1694566055295,
+        #        data: [{
+        #            bustPrice: '15.00',
+        #            category: 'inverse',
+        #            createdTime: '1670083436351',
+        #            cumRealisedPnl: '0.00011988',
+        #            entryPrice: '19358.58553268',
+        #            leverage: '10',
+        #            liqPrice: '15.00',
+        #            markPrice: '25924.00',
+        #            positionBalance: '0.0000156',
+        #            positionIdx: 0,
+        #            positionMM: '0.001',
+        #            positionIM: '0.0000015497',
+        #            positionStatus: 'Normal',
+        #            positionValue: '0.00015497',
+        #            riskId: 1,
+        #            riskLimitValue: '150',
+        #            side: 'Buy',
+        #            size: '3',
+        #            stopLoss: '0.00',
+        #            symbol: 'BTCUSD',
+        #            takeProfit: '0.00',
+        #            tpslMode: 'Full',
+        #            tradeMode: 0,
+        #            autoAddMargin: 1,
+        #            trailingStop: '0.00',
+        #            unrealisedPnl: '0.00003925',
+        #            updatedTime: '1694566055293',
+        #            adlRankIndicator: 3
+        #        }]
+        #    }
+        #
+        # each account is connected to a different endpoint
+        # and has exactly one subscriptionhash which is the account type
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        newPositions = []
+        rawPositions = self.safe_value(message, 'data', [])
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_position(rawPosition)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, 'positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, 'positions')
+
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/order
@@ -926,7 +1055,7 @@ class bybit(ccxt.async_support.bybit):
             'usdc': ['user.openapi.perp.order'],
         }
         topics = self.safe_value(topicsByMarket, self.get_private_type(url))
-        orders = await self.watch_topics(url, messageHash, topics, params)
+        orders = await self.watch_topics(url, messageHash, topics, messageHash, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -1045,32 +1174,32 @@ class bybit(ccxt.async_support.bybit):
     def parse_ws_spot_order(self, order, market=None):
         #
         #    {
-        #        e: 'executionReport',
-        #        E: '1653297251061',  # timestamp
-        #        s: 'LTCUSDT',  # symbol
-        #        c: '1653297250740',  # user id
-        #        S: 'SELL',  # side
-        #        o: 'MARKET_OF_BASE',  # order type
-        #        f: 'GTC',  # time in force
-        #        q: '0.16233',  # quantity
-        #        p: '0',  # price
-        #        X: 'NEW',  # status
-        #        i: '1162336018974750208',  # order id
-        #        M: '0',
-        #        l: '0',  # last filled
-        #        z: '0',  # total filled
-        #        L: '0',  # last traded price
-        #        n: '0',  # trading fee
-        #        N: '',  # fee asset
-        #        u: True,
-        #        w: True,
-        #        m: False,  # is limit_maker
-        #        O: '1653297251042',  # order creation
-        #        Z: '0',  # total filled
-        #        A: '0',  # account id
-        #        C: False,  # is close
-        #        v: '0',  # leverage
-        #        d: 'NO_LIQ'
+        #        "e": "executionReport",
+        #        "E": "1653297251061",  # timestamp
+        #        "s": "LTCUSDT",  # symbol
+        #        "c": "1653297250740",  # user id
+        #        "S": "SELL",  # side
+        #        "o": "MARKET_OF_BASE",  # order type
+        #        "f": "GTC",  # time in force
+        #        "q": "0.16233",  # quantity
+        #        "p": "0",  # price
+        #        "X": "NEW",  # status
+        #        "i": "1162336018974750208",  # order id
+        #        "M": "0",
+        #        "l": "0",  # last filled
+        #        "z": "0",  # total filled
+        #        "L": "0",  # last traded price
+        #        "n": "0",  # trading fee
+        #        "N": '',  # fee asset
+        #        "u": True,
+        #        "w": True,
+        #        "m": False,  # is limit_maker
+        #        "O": "1653297251042",  # order creation
+        #        "Z": "0",  # total filled
+        #        "A": "0",  # account id
+        #        "C": False,  # is close
+        #        "v": "0",  # leverage
+        #        "d": "NO_LIQ"
         #    }
         # v5
         #    {
@@ -1218,7 +1347,7 @@ class bybit(ccxt.async_support.bybit):
                 else:
                     messageHash += ':contract'
         topics = [self.safe_value(topicByMarket, self.get_private_type(url))]
-        return await self.watch_topics(url, messageHash, topics, params)
+        return await self.watch_topics(url, messageHash, topics, messageHash, params)
 
     def handle_balance(self, client: Client, message):
         #
@@ -1444,14 +1573,14 @@ class bybit(ccxt.async_support.bybit):
         else:
             self.balance[code] = account
 
-    async def watch_topics(self, url, messageHash, topics=[], params={}):
+    async def watch_topics(self, url, messageHash, topics, subscriptionHash, params={}):
         request = {
             'op': 'subscribe',
             'req_id': self.request_id(),
             'args': topics,
         }
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch(url, messageHash, message, subscriptionHash)
 
     async def authenticate(self, url, params={}):
         self.check_required_credentials()
@@ -1478,28 +1607,28 @@ class bybit(ccxt.async_support.bybit):
     def handle_error_message(self, client: Client, message):
         #
         #   {
-        #       success: False,
-        #       ret_msg: 'error:invalid op',
-        #       conn_id: '5e079fdd-9c7f-404d-9dbf-969d650838b5',
-        #       request: {op: '', args: null}
+        #       "success": False,
+        #       "ret_msg": "error:invalid op",
+        #       "conn_id": "5e079fdd-9c7f-404d-9dbf-969d650838b5",
+        #       "request": {op: '', args: null}
         #   }
         #
         # auth error
         #
         #   {
-        #       success: False,
-        #       ret_msg: 'error:USVC1111',
-        #       conn_id: 'e73770fb-a0dc-45bd-8028-140e20958090',
-        #       request: {
-        #         op: 'auth',
-        #         args: [
-        #           '9rFT6uR4uz9Imkw4Wx',
-        #           '1653405853543',
-        #           '542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889'
+        #       "success": False,
+        #       "ret_msg": "error:USVC1111",
+        #       "conn_id": "e73770fb-a0dc-45bd-8028-140e20958090",
+        #       "request": {
+        #         "op": "auth",
+        #         "args": [
+        #           "9rFT6uR4uz9Imkw4Wx",
+        #           "1653405853543",
+        #           "542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889"
         #         ]
         #   }
         #
-        #   {code: '-10009', desc: 'Invalid period!'}
+        #   {code: '-10009', desc: "Invalid period!"}
         #
         code = self.safe_string_2(message, 'code', 'ret_code')
         try:
@@ -1563,6 +1692,7 @@ class bybit(ccxt.async_support.bybit):
             'execution': self.handle_my_trades,
             'ticketInfo': self.handle_my_trades,
             'user.openapi.perp.trade': self.handle_my_trades,
+            'position': self.handle_positions,
         }
         exacMethod = self.safe_value(methods, topic)
         if exacMethod is not None:
@@ -1589,10 +1719,10 @@ class bybit(ccxt.async_support.bybit):
     def handle_pong(self, client: Client, message):
         #
         #   {
-        #       success: True,
-        #       ret_msg: 'pong',
-        #       conn_id: 'db3158a0-8960-44b9-a9de-ac350ee13158',
-        #       request: {op: 'ping', args: null}
+        #       "success": True,
+        #       "ret_msg": "pong",
+        #       "conn_id": "db3158a0-8960-44b9-a9de-ac350ee13158",
+        #       "request": {op: "ping", args: null}
         #   }
         #
         #   {pong: 1653296711335}
@@ -1603,10 +1733,10 @@ class bybit(ccxt.async_support.bybit):
     def handle_authenticate(self, client: Client, message):
         #
         #    {
-        #        success: True,
-        #        ret_msg: '',
-        #        op: 'auth',
-        #        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        #        "success": True,
+        #        "ret_msg": '',
+        #        "op": "auth",
+        #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         #    }
         #
         success = self.safe_value(message, 'success')
@@ -1624,16 +1754,16 @@ class bybit(ccxt.async_support.bybit):
     def handle_subscription_status(self, client: Client, message):
         #
         #    {
-        #        topic: 'kline',
-        #        event: 'sub',
-        #        params: {
-        #          symbol: 'LTCUSDT',
-        #          binary: 'false',
-        #          klineType: '1m',
-        #          symbolName: 'LTCUSDT'
+        #        "topic": "kline",
+        #        "event": "sub",
+        #        "params": {
+        #          "symbol": "LTCUSDT",
+        #          "binary": "false",
+        #          "klineType": "1m",
+        #          "symbolName": "LTCUSDT"
         #        },
-        #        code: '0',
-        #        msg: 'Success'
+        #        "code": "0",
+        #        "msg": "Success"
         #    }
         #
         return message

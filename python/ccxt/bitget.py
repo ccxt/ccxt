@@ -7,10 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -846,6 +843,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40017': ExchangeError,  # Parameter verification failed
                     '40018': PermissionDenied,  # Invalid IP
                     '40019': BadRequest,  # {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
+                    '40031': AccountSuspended,  # The account has been cancelled and cannot be used again
                     '40037': AuthenticationError,  # Apikey does not exist
                     '40102': BadRequest,  # Contract configuration does not exist, please check the parameters
                     '40103': BadRequest,  # Request method cannot be empty
@@ -1100,10 +1098,10 @@ class bitget(Exchange, ImplicitAPI):
         response = self.publicSpotGetPublicTime(params)
         #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645837773501,
-        #       data: '1645837773501'
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": 1645837773501,
+        #       "data": "1645837773501"
         #     }
         #
         return self.safe_integer(response, 'data')
@@ -1142,51 +1140,45 @@ class bitget(Exchange, ImplicitAPI):
             result = self.array_concat(result, promises[i])
         return result
 
-    def parse_markets(self, markets):
-        result = []
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
-
-    def parse_market(self, market):
+    def parse_market(self, market) -> Market:
         #
         # spot
         #
         #    {
-        #        symbol: 'ALPHAUSDT_SPBL',
-        #        symbolName: 'ALPHAUSDT',
-        #        baseCoin: 'ALPHA',
-        #        quoteCoin: 'USDT',
-        #        minTradeAmount: '2',
-        #        maxTradeAmount: '0',
-        #        minTradeUSDT": '5',
-        #        takerFeeRate: '0.001',
-        #        makerFeeRate: '0.001',
-        #        priceScale: '4',
-        #        quantityScale: '4',
-        #        status: 'online'
+        #        "symbol": "ALPHAUSDT_SPBL",
+        #        "symbolName": "ALPHAUSDT",
+        #        "baseCoin": "ALPHA",
+        #        "quoteCoin": "USDT",
+        #        "minTradeAmount": "2",
+        #        "maxTradeAmount": "0",
+        #        minTradeUSDT": "5",
+        #        "takerFeeRate": "0.001",
+        #        "makerFeeRate": "0.001",
+        #        "priceScale": "4",
+        #        "quantityScale": "4",
+        #        "status": "online"
         #    }
         #
         # swap
         #
         #    {
-        #        symbol: 'BTCUSDT_UMCBL',
-        #        makerFeeRate: '0.0002',
-        #        takerFeeRate: '0.0006',
-        #        feeRateUpRatio: '0.005',
-        #        openCostUpRatio: '0.01',
-        #        quoteCoin: 'USDT',
-        #        baseCoin: 'BTC',
-        #        buyLimitPriceRatio: '0.01',
-        #        sellLimitPriceRatio: '0.01',
-        #        supportMarginCoins: ['USDT'],
-        #        minTradeNum: '0.001',
-        #        priceEndStep: '5',
-        #        volumePlace: '3',
-        #        pricePlace: '1',
-        #        symbolStatus: "normal",
-        #        offTime: "-1",
-        #        limitOpenTime: "-1"
+        #        "symbol": "BTCUSDT_UMCBL",
+        #        "makerFeeRate": "0.0002",
+        #        "takerFeeRate": "0.0006",
+        #        "feeRateUpRatio": "0.005",
+        #        "openCostUpRatio": "0.01",
+        #        "quoteCoin": "USDT",
+        #        "baseCoin": "BTC",
+        #        "buyLimitPriceRatio": "0.01",
+        #        "sellLimitPriceRatio": "0.01",
+        #        "supportMarginCoins": ["USDT"],
+        #        "minTradeNum": "0.001",
+        #        "priceEndStep": "5",
+        #        "volumePlace": "3",
+        #        "pricePlace": "1",
+        #        "symbolStatus": "normal",
+        #        "offTime": "-1",
+        #        "limitOpenTime": "-1"
         #    }
         #
         marketId = self.safe_string(market, 'symbol')
@@ -1320,22 +1312,22 @@ class bitget(Exchange, ImplicitAPI):
         # spot
         #
         #    {
-        #        code: '00000',
-        #        msg: 'success',
-        #        requestTime: 1645840064031,
-        #        data: [
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1645840064031,
+        #        "data": [
         #            {
-        #                symbol: 'ALPHAUSDT_SPBL',
-        #                symbolName: 'ALPHAUSDT',
-        #                baseCoin: 'ALPHA',
-        #                quoteCoin: 'USDT',
-        #                minTradeAmount: '2',
-        #                maxTradeAmount: '0',
-        #                takerFeeRate: '0.001',
-        #                makerFeeRate: '0.001',
-        #                priceScale: '4',
-        #                quantityScale: '4',
-        #                status: 'online'
+        #                "symbol": "ALPHAUSDT_SPBL",
+        #                "symbolName": "ALPHAUSDT",
+        #                "baseCoin": "ALPHA",
+        #                "quoteCoin": "USDT",
+        #                "minTradeAmount": "2",
+        #                "maxTradeAmount": "0",
+        #                "takerFeeRate": "0.001",
+        #                "makerFeeRate": "0.001",
+        #                "priceScale": "4",
+        #                "quantityScale": "4",
+        #                "status": "online"
         #            }
         #        ]
         #    }
@@ -1343,25 +1335,25 @@ class bitget(Exchange, ImplicitAPI):
         # swap
         #
         #    {
-        #        code: '00000',
-        #        msg: 'success',
-        #        requestTime: 1645840821493,
-        #        data: [
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1645840821493,
+        #        "data": [
         #            {
-        #                symbol: 'BTCUSDT_UMCBL',
-        #                makerFeeRate: '0.0002',
-        #                takerFeeRate: '0.0006',
-        #                feeRateUpRatio: '0.005',
-        #                openCostUpRatio: '0.01',
-        #                quoteCoin: 'USDT',
-        #                baseCoin: 'BTC',
-        #                buyLimitPriceRatio: '0.01',
-        #                sellLimitPriceRatio: '0.01',
-        #                supportMarginCoins: [Array],
-        #                minTradeNum: '0.001',
-        #                priceEndStep: '5',
-        #                volumePlace: '3',
-        #                pricePlace: '1'
+        #                "symbol": "BTCUSDT_UMCBL",
+        #                "makerFeeRate": "0.0002",
+        #                "takerFeeRate": "0.0006",
+        #                "feeRateUpRatio": "0.005",
+        #                "openCostUpRatio": "0.01",
+        #                "quoteCoin": "USDT",
+        #                "baseCoin": "BTC",
+        #                "buyLimitPriceRatio": "0.01",
+        #                "sellLimitPriceRatio": "0.01",
+        #                "supportMarginCoins": [Array],
+        #                "minTradeNum": "0.001",
+        #                "priceEndStep": "5",
+        #                "volumePlace": "3",
+        #                "pricePlace": "1"
         #            }
         #        ]
         #    }
@@ -1379,26 +1371,26 @@ class bitget(Exchange, ImplicitAPI):
         response = self.publicSpotGetPublicCurrencies(params)
         #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645935668288,
-        #       data: [
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": 1645935668288,
+        #       "data": [
         #         {
-        #           coinId: '230',
-        #           coinName: 'KIN',
-        #           transfer: 'false',
-        #           chains: [
+        #           "coinId": "230",
+        #           "coinName": "KIN",
+        #           "transfer": "false",
+        #           "chains": [
         #             {
-        #               chain: 'SOL',
-        #               needTag: 'false',
-        #               withdrawable: 'true',
-        #               rechargeable: 'true',
-        #               withdrawFee: '187500',
-        #               depositConfirm: '100',
-        #               withdrawConfirm: '100',
-        #               minDepositAmount: '12500',
-        #               minWithdrawAmount: '250000',
-        #               browserUrl: 'https://explorer.solana.com/tx/'
+        #               "chain": "SOL",
+        #               "needTag": "false",
+        #               "withdrawable": "true",
+        #               "rechargeable": "true",
+        #               "withdrawFee": "187500",
+        #               "depositConfirm": "100",
+        #               "withdrawConfirm": "100",
+        #               "minDepositAmount": "12500",
+        #               "minWithdrawAmount": "250000",
+        #               "browserUrl": "https://explorer.solana.com/tx/"
         #             }
         #           ]
         #         }
@@ -1649,7 +1641,7 @@ class bitget(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
@@ -1792,7 +1784,7 @@ class bitget(Exchange, ImplicitAPI):
             result['network'] = chain
         return result
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
@@ -1849,7 +1841,7 @@ class bitget(Exchange, ImplicitAPI):
         rawTransactions = self.safe_value(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #     {
         #         "id": "925607360021839872",
@@ -1899,6 +1891,7 @@ class bitget(Exchange, ImplicitAPI):
             'tag': tag,
             'tagTo': tag,
             'comment': None,
+            'internal': None,
             'fee': fee,
         }
 
@@ -1967,7 +1960,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-depth
@@ -1991,13 +1984,13 @@ class bitget(Exchange, ImplicitAPI):
             response = self.publicMixGetMarketDepth(self.extend(request, params))
         #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645854610294,
-        #       data: {
-        #         asks: [['39102', '11.026']],
-        #         bids: [['39100.5', '1.773']],
-        #         timestamp: '1645854610294'
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": 1645854610294,
+        #       "data": {
+        #         "asks": [["39102", "11.026"]],
+        #         "bids": [['39100.5', "1.773"]],
+        #         "timestamp": "1645854610294"
         #       }
         #     }
         #
@@ -2005,37 +1998,37 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # spot
         #
         #     {
-        #         symbol: 'BTCUSDT',
-        #         high24h: '40252.43',
-        #         low24h: '38548.54',
-        #         close: '39102.16',
-        #         quoteVol: '67295596.1458',
-        #         baseVol: '1723.4152',
-        #         usdtVol: '67295596.14578',
-        #         ts: '1645856170030',
-        #         buyOne: '39096.16',
-        #         sellOne: '39103.99'
+        #         "symbol": "BTCUSDT",
+        #         "high24h": "40252.43",
+        #         "low24h": "38548.54",
+        #         "close": "39102.16",
+        #         "quoteVol": "67295596.1458",
+        #         "baseVol": "1723.4152",
+        #         "usdtVol": "67295596.14578",
+        #         "ts": "1645856170030",
+        #         "buyOne": "39096.16",
+        #         "sellOne": "39103.99"
         #     }
         #
         # swap
         #
         #     {
-        #         symbol: 'BTCUSDT_UMCBL',
-        #         last: '39086',
-        #         bestAsk: '39087',
-        #         bestBid: '39086',
-        #         high24h: '40312',
-        #         low24h: '38524.5',
-        #         timestamp: '1645856591864',
-        #         priceChangePercent: '-0.00861',
-        #         baseVolume: '142251.757',
-        #         quoteVolume: '5552388715.9215',
-        #         usdtVolume: '5552388715.9215'
+        #         "symbol": "BTCUSDT_UMCBL",
+        #         "last": "39086",
+        #         "bestAsk": "39087",
+        #         "bestBid": "39086",
+        #         "high24h": "40312",
+        #         "low24h": "38524.5",
+        #         "timestamp": "1645856591864",
+        #         "priceChangePercent": "-0.00861",
+        #         "baseVolume": "142251.757",
+        #         "quoteVolume": "5552388715.9215",
+        #         "usdtVolume": "5552388715.9215"
         #     }
         # spot tickers
         #    {
@@ -2121,7 +2114,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-single-ticker
@@ -2143,27 +2136,27 @@ class bitget(Exchange, ImplicitAPI):
             response = self.publicMixGetMarketTicker(extended)
         #
         #     {
-        #         code: '00000',
-        #         msg: 'success',
-        #         requestTime: '1645856138576',
-        #         data: {
-        #             symbol: 'BTCUSDT',
-        #             high24h: '40252.43',
-        #             low24h: '38548.54',
-        #             close: '39104.65',
-        #             quoteVol: '67221762.2184',
-        #             baseVol: '1721.527',
-        #             usdtVol: '67221762.218361',
-        #             ts: '1645856138031',
-        #             buyOne: '39102.55',
-        #             sellOne: '39110.56'
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": "1645856138576",
+        #         "data": {
+        #             "symbol": "BTCUSDT",
+        #             "high24h": "40252.43",
+        #             "low24h": "38548.54",
+        #             "close": "39104.65",
+        #             "quoteVol": "67221762.2184",
+        #             "baseVol": "1721.527",
+        #             "usdtVol": "67221762.218361",
+        #             "ts": "1645856138031",
+        #             "buyOne": "39102.55",
+        #             "sellOne": "39110.56"
         #         }
         #     }
         #
         data = self.safe_value(response, 'data')
         return self.parse_ticker(data, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
@@ -2243,7 +2236,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_tickers(data, symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # spot
         #
@@ -2347,7 +2340,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-market-trades
@@ -2468,21 +2461,21 @@ class bitget(Exchange, ImplicitAPI):
         response = self.publicSpotGetPublicProduct(self.extend(request, params))
         #
         #     {
-        #         code: '00000',
-        #         msg: 'success',
-        #         requestTime: '1646255374000',
-        #         data: {
-        #           symbol: 'ethusdt_SPBL',
-        #           symbolName: null,
-        #           baseCoin: 'ETH',
-        #           quoteCoin: 'USDT',
-        #           minTradeAmount: '0',
-        #           maxTradeAmount: '0',
-        #           takerFeeRate: '0.002',
-        #           makerFeeRate: '0.002',
-        #           priceScale: '2',
-        #           quantityScale: '4',
-        #           status: 'online'
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": "1646255374000",
+        #         "data": {
+        #           "symbol": "ethusdt_SPBL",
+        #           "symbolName": null,
+        #           "baseCoin": "ETH",
+        #           "quoteCoin": "USDT",
+        #           "minTradeAmount": "0",
+        #           "maxTradeAmount": "0",
+        #           "takerFeeRate": "0.002",
+        #           "makerFeeRate": "0.002",
+        #           "priceScale": "2",
+        #           "quantityScale": "4",
+        #           "status": "online"
         #         }
         #     }
         #
@@ -2500,22 +2493,22 @@ class bitget(Exchange, ImplicitAPI):
         response = self.publicSpotGetPublicProducts(params)
         #
         #     {
-        #         code: '00000',
-        #         msg: 'success',
-        #         requestTime: '1646255662391',
-        #         data: [
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": "1646255662391",
+        #         "data": [
         #           {
-        #             symbol: 'ALPHAUSDT_SPBL',
-        #             symbolName: 'ALPHAUSDT',
-        #             baseCoin: 'ALPHA',
-        #             quoteCoin: 'USDT',
-        #             minTradeAmount: '2',
-        #             maxTradeAmount: '0',
-        #             takerFeeRate: '0.001',
-        #             makerFeeRate: '0.001',
-        #             priceScale: '4',
-        #             quantityScale: '4',
-        #             status: 'online'
+        #             "symbol": "ALPHAUSDT_SPBL",
+        #             "symbolName": "ALPHAUSDT",
+        #             "baseCoin": "ALPHA",
+        #             "quoteCoin": "USDT",
+        #             "minTradeAmount": "2",
+        #             "maxTradeAmount": "0",
+        #             "takerFeeRate": "0.001",
+        #             "makerFeeRate": "0.001",
+        #             "priceScale": "4",
+        #             "quantityScale": "4",
+        #             "status": "online"
         #           },
         #           ...
         #         ]
@@ -2539,19 +2532,19 @@ class bitget(Exchange, ImplicitAPI):
             'taker': self.safe_number(data, 'takerFeeRate'),
         }
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         # spot
         #
         #     {
-        #         open: '57882.31',
-        #         high: '58967.24',
-        #         low: '57509.56',
-        #         close: '57598.96',
-        #         quoteVol: '439160536.605821',
-        #         baseVol: '7531.2927',
-        #         usdtVol: '439160536.605821',
-        #         ts: '1637337600000'
+        #         "open": "57882.31",
+        #         "high": "58967.24",
+        #         "low": "57509.56",
+        #         "close": "57598.96",
+        #         "quoteVol": "439160536.605821",
+        #         "baseVol": "7531.2927",
+        #         "usdtVol": "439160536.605821",
+        #         "ts": "1637337600000"
         #     }
         #
         # swap
@@ -2575,7 +2568,7 @@ class bitget(Exchange, ImplicitAPI):
             self.safe_number_2(ohlcv, 5, 'baseVol'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
@@ -2668,7 +2661,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
@@ -2790,7 +2783,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_balance(data)
 
-    def parse_balance(self, balance):
+    def parse_balance(self, balance) -> Balances:
         result = {'info': balance}
         #
         # spot
@@ -2888,7 +2881,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot
         #     {
@@ -2912,24 +2905,24 @@ class bitget(Exchange, ImplicitAPI):
         #
         # swap
         #     {
-        #       symbol: 'BTCUSDT_UMCBL',
-        #       size: 0.001,
-        #       orderId: '881640729145409536',
-        #       clientOid: '881640729204129792',
-        #       filledQty: 0.001,
-        #       fee: 0,
-        #       price: null,
-        #       priceAvg: 38429.5,
-        #       state: 'filled',
-        #       side: 'open_long',
-        #       timeInForce: 'normal',
-        #       totalProfits: 0,
-        #       posSide: 'long',
-        #       marginCoin: 'USDT',
-        #       filledAmount: 38.4295,
-        #       orderType: 'market',
-        #       cTime: '1645925450611',
-        #       uTime: '1645925450746'
+        #       "symbol": "BTCUSDT_UMCBL",
+        #       "size": 0.001,
+        #       "orderId": "881640729145409536",
+        #       "clientOid": "881640729204129792",
+        #       "filledQty": 0.001,
+        #       "fee": 0,
+        #       "price": null,
+        #       "priceAvg": 38429.5,
+        #       "state": "filled",
+        #       "side": "open_long",
+        #       "timeInForce": "normal",
+        #       "totalProfits": 0,
+        #       "posSide": "long",
+        #       "marginCoin": "USDT",
+        #       "filledAmount": 38.4295,
+        #       "orderType": "market",
+        #       "cTime": "1645925450611",
+        #       "uTime": "1645925450746"
         #     }
         #
         # stop
@@ -3292,7 +3285,7 @@ class bitget(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_value(rawOrder, 'params', {})
-            marginResult = self.handle_margin_mode_and_params('createOrders', params)
+            marginResult = self.handle_margin_mode_and_params('createOrders', orderParams)
             currentMarginMode = marginResult[0]
             if currentMarginMode is not None:
                 if marginMode is None:
@@ -3439,7 +3432,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order
@@ -3557,7 +3550,7 @@ class bitget(Exchange, ImplicitAPI):
             order = resultList[0]
         return self.parse_order(order, market)
 
-    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
+    def cancel_orders(self, ids, symbol: String = None, params={}):
         """
         cancel multiple orders
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order-in-batch-v2-single-instruments
@@ -3632,7 +3625,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: String = None, params={}):
         """
         cancel all open orders
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
@@ -3703,7 +3696,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-details
@@ -3729,52 +3722,52 @@ class bitget(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrder() does not support ' + marketType + ' market')
         # spot
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: '1645926849436',
-        #       data: [
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": "1645926849436",
+        #       "data": [
         #         {
-        #           accountId: '6394957606',
-        #           symbol: 'BTCUSDT_SPBL',
-        #           orderId: '881626139738935296',
-        #           clientOrderId: '525890c8-767e-4cd6-8585-38160ed7bb5e',
-        #           price: '38000.000000000000',
-        #           quantity: '0.000700000000',
-        #           orderType: 'limit',
-        #           side: 'buy',
-        #           status: 'new',
-        #           fillPrice: '0.000000000000',
-        #           fillQuantity: '0.000000000000',
-        #           fillTotalAmount: '0.000000000000',
-        #           cTime: '1645921972212'
+        #           "accountId": "6394957606",
+        #           "symbol": "BTCUSDT_SPBL",
+        #           "orderId": "881626139738935296",
+        #           "clientOrderId": "525890c8-767e-4cd6-8585-38160ed7bb5e",
+        #           "price": "38000.000000000000",
+        #           "quantity": "0.000700000000",
+        #           "orderType": "limit",
+        #           "side": "buy",
+        #           "status": "new",
+        #           "fillPrice": "0.000000000000",
+        #           "fillQuantity": "0.000000000000",
+        #           "fillTotalAmount": "0.000000000000",
+        #           "cTime": "1645921972212"
         #         }
         #       ]
         #     }
         #
         # swap
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: '1645926587877',
-        #       data: {
-        #         symbol: 'BTCUSDT_UMCBL',
-        #         size: '0.001',
-        #         orderId: '881640729145409536',
-        #         clientOid: '881640729204129792',
-        #         filledQty: '0.001',
-        #         fee: '0E-8',
-        #         price: null,
-        #         priceAvg: '38429.50',
-        #         state: 'filled',
-        #         side: 'open_long',
-        #         timeInForce: 'normal',
-        #         totalProfits: '0E-8',
-        #         posSide: 'long',
-        #         marginCoin: 'USDT',
-        #         filledAmount: '38.4295',
-        #         orderType: 'market',
-        #         cTime: '1645925450611',
-        #         uTime: '1645925450746'
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": "1645926587877",
+        #       "data": {
+        #         "symbol": "BTCUSDT_UMCBL",
+        #         "size": "0.001",
+        #         "orderId": "881640729145409536",
+        #         "clientOid": "881640729204129792",
+        #         "filledQty": "0.001",
+        #         "fee": "0E-8",
+        #         "price": null,
+        #         "priceAvg": "38429.50",
+        #         "state": "filled",
+        #         "side": "open_long",
+        #         "timeInForce": "normal",
+        #         "totalProfits": "0E-8",
+        #         "posSide": "long",
+        #         "marginCoin": "USDT",
+        #         "filledAmount": "38.4295",
+        #         "orderType": "market",
+        #         "cTime": "1645925450611",
+        #         "uTime": "1645925450746"
         #       }
         #     }
         #
@@ -3785,7 +3778,7 @@ class bitget(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, data)
         return self.parse_order(first, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
@@ -3859,52 +3852,52 @@ class bitget(Exchange, ImplicitAPI):
         #
         #  spot
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645921640193,
-        #       data: [
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": 1645921640193,
+        #       "data": [
         #         {
-        #           accountId: '6394957606',
-        #           symbol: 'BTCUSDT_SPBL',
-        #           orderId: '881623995442958336',
-        #           clientOrderId: '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        #           price: '39000.000000000000',
-        #           quantity: '0.000700000000',
-        #           orderType: 'limit',
-        #           side: 'buy',
-        #           status: 'new',
-        #           fillPrice: '0.000000000000',
-        #           fillQuantity: '0.000000000000',
-        #           fillTotalAmount: '0.000000000000',
-        #           cTime: '1645921460972'
+        #           "accountId": "6394957606",
+        #           "symbol": "BTCUSDT_SPBL",
+        #           "orderId": "881623995442958336",
+        #           "clientOrderId": "135335e9-b054-4e43-b00a-499f11d3a5cc",
+        #           "price": "39000.000000000000",
+        #           "quantity": "0.000700000000",
+        #           "orderType": "limit",
+        #           "side": "buy",
+        #           "status": "new",
+        #           "fillPrice": "0.000000000000",
+        #           "fillQuantity": "0.000000000000",
+        #           "fillTotalAmount": "0.000000000000",
+        #           "cTime": "1645921460972"
         #         }
         #       ]
         #     }
         #
         # swap
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645922324630,
-        #       data: [
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": 1645922324630,
+        #       "data": [
         #         {
-        #           symbol: 'BTCUSDT_UMCBL',
-        #           size: 0.001,
-        #           orderId: '881627074081226752',
-        #           clientOid: '881627074160918528',
-        #           filledQty: 0,
-        #           fee: 0,
-        #           price: 38000,
-        #           state: 'new',
-        #           side: 'open_long',
-        #           timeInForce: 'normal',
-        #           totalProfits: 0,
-        #           posSide: 'long',
-        #           marginCoin: 'USDT',
-        #           filledAmount: 0,
-        #           orderType: 'limit',
-        #           cTime: '1645922194995',
-        #           uTime: '1645922194995'
+        #           "symbol": "BTCUSDT_UMCBL",
+        #           "size": 0.001,
+        #           "orderId": "881627074081226752",
+        #           "clientOid": "881627074160918528",
+        #           "filledQty": 0,
+        #           "fee": 0,
+        #           "price": 38000,
+        #           "state": "new",
+        #           "side": "open_long",
+        #           "timeInForce": "normal",
+        #           "totalProfits": 0,
+        #           "posSide": "long",
+        #           "marginCoin": "USDT",
+        #           "filledAmount": 0,
+        #           "orderType": "limit",
+        #           "cTime": "1645922194995",
+        #           "uTime": "1645922194995"
         #         }
         #       ]
         #     }
@@ -4001,7 +3994,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.add_pagination_cursor_to_result(data, result)
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
@@ -4036,7 +4029,7 @@ class bitget(Exchange, ImplicitAPI):
                 result.append(entry)
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_canceled_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
@@ -4071,7 +4064,7 @@ class bitget(Exchange, ImplicitAPI):
                 result.append(entry)
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_canceled_and_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_canceled_and_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         marketType = None
@@ -4303,7 +4296,7 @@ class bitget(Exchange, ImplicitAPI):
                 data[dataLength - 1] = last
         return data
 
-    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-bills
         fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -4331,20 +4324,20 @@ class bitget(Exchange, ImplicitAPI):
         response = self.privateSpotPostAccountBills(self.extend(request, params))
         #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: '1645929886887',
-        #       data: [
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": "1645929886887",
+        #       "data": [
         #         {
-        #           billId: '881626974170554368',
-        #           coinId: '2',
-        #           coinName: 'USDT',
-        #           groupType: 'transfer',
-        #           bizType: 'transfer-out',
-        #           quantity: '-10.00000000',
-        #           balance: '73.36005300',
-        #           fees: '0.00000000',
-        #           cTime: '1645922171146'
+        #           "billId": "881626974170554368",
+        #           "coinId": "2",
+        #           "coinName": "USDT",
+        #           "groupType": "transfer",
+        #           "bizType": "transfer-out",
+        #           "quantity": "-10.00000000",
+        #           "balance": "73.36005300",
+        #           "fees": "0.00000000",
+        #           "cTime": "1645922171146"
         #         }
         #       ]
         #     }
@@ -4355,15 +4348,15 @@ class bitget(Exchange, ImplicitAPI):
     def parse_ledger_entry(self, item, currency=None):
         #
         #     {
-        #       billId: '881626974170554368',
-        #       coinId: '2',
-        #       coinName: 'USDT',
-        #       groupType: 'transfer',
-        #       bizType: 'transfer-out',
-        #       quantity: '-10.00000000',
-        #       balance: '73.36005300',
-        #       fees: '0.00000000',
-        #       cTime: '1645922171146'
+        #       "billId": "881626974170554368",
+        #       "coinId": "2",
+        #       "coinName": "USDT",
+        #       "groupType": "transfer",
+        #       "bizType": "transfer-out",
+        #       "quantity": "-10.00000000",
+        #       "balance": "73.36005300",
+        #       "fees": "0.00000000",
+        #       "cTime": "1645922171146"
         #     }
         #
         id = self.safe_string(item, 'billId')
@@ -4397,7 +4390,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
@@ -4544,7 +4537,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.parse_trades(fills, market, since, limit)
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
@@ -4575,21 +4568,21 @@ class bitget(Exchange, ImplicitAPI):
         #
         # swap
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645927862710,
-        #       data: [
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": 1645927862710,
+        #       "data": [
         #         {
-        #           tradeId: '881640729552281602',
-        #           symbol: 'BTCUSDT_UMCBL',
-        #           orderId: '881640729145409536',
-        #           price: '38429.50',
-        #           sizeQty: '0.001',
-        #           fee: '0',
-        #           side: 'open_long',
-        #           fillAmount: '38.4295',
-        #           profit: '0',
-        #           cTime: '1645925450694'
+        #           "tradeId": "881640729552281602",
+        #           "symbol": "BTCUSDT_UMCBL",
+        #           "orderId": "881640729145409536",
+        #           "price": "38429.50",
+        #           "sizeQty": "0.001",
+        #           "fee": "0",
+        #           "side": "open_long",
+        #           "fillAmount": "38.4295",
+        #           "profit": "0",
+        #           "cTime": "1645925450694"
         #         }
         #       ]
         #     }
@@ -4614,28 +4607,28 @@ class bitget(Exchange, ImplicitAPI):
         response = self.privateMixGetPositionSinglePositionV2(self.extend(request, params))
         #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: '1645933957584',
-        #       data: [
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": "1645933957584",
+        #       "data": [
         #         {
-        #           marginCoin: 'USDT',
-        #           symbol: 'BTCUSDT_UMCBL',
-        #           holdSide: 'long',
-        #           openDelegateCount: '0',
-        #           margin: '1.921475',
-        #           available: '0.001',
-        #           locked: '0',
-        #           total: '0.001',
-        #           leverage: '20',
-        #           achievedProfits: '0',
-        #           averageOpenPrice: '38429.5',
-        #           marginMode: 'fixed',
-        #           holdMode: 'double_hold',
-        #           unrealizedPL: '0.1634',
-        #           liquidationPrice: '0',
-        #           keepMarginRate: '0.004',
-        #           cTime: '1645922194988'
+        #           "marginCoin": "USDT",
+        #           "symbol": "BTCUSDT_UMCBL",
+        #           "holdSide": "long",
+        #           "openDelegateCount": "0",
+        #           "margin": "1.921475",
+        #           "available": "0.001",
+        #           "locked": "0",
+        #           "total": "0.001",
+        #           "leverage": "20",
+        #           "achievedProfits": "0",
+        #           "averageOpenPrice": "38429.5",
+        #           "marginMode": "fixed",
+        #           "holdMode": "double_hold",
+        #           "unrealizedPL": "0.1634",
+        #           "liquidationPrice": "0",
+        #           "keepMarginRate": "0.004",
+        #           "cTime": "1645922194988"
         #         }
         #       ]
         #     }
@@ -4645,7 +4638,7 @@ class bitget(Exchange, ImplicitAPI):
         position = self.parse_position(first, market)
         return position
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: List[str] = None, params={}):
         """
         fetch all open positions
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-all-position-v2
@@ -4689,28 +4682,28 @@ class bitget(Exchange, ImplicitAPI):
             response = self.privateMixGetPositionHistoryPosition(self.extend(request, params))
         #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: '1645933905060',
-        #       data: [
+        #       "code": "00000",
+        #       "msg": "success",
+        #       "requestTime": "1645933905060",
+        #       "data": [
         #         {
-        #           marginCoin: 'USDT',
-        #           symbol: 'BTCUSDT_UMCBL',
-        #           holdSide: 'long',
-        #           openDelegateCount: '0',
-        #           margin: '1.921475',
-        #           available: '0.001',
-        #           locked: '0',
-        #           total: '0.001',
-        #           leverage: '20',
-        #           achievedProfits: '0',
-        #           averageOpenPrice: '38429.5',
-        #           marginMode: 'fixed',
-        #           holdMode: 'double_hold',
-        #           unrealizedPL: '0.14869',
-        #           liquidationPrice: '0',
-        #           keepMarginRate: '0.004',
-        #           cTime: '1645922194988'
+        #           "marginCoin": "USDT",
+        #           "symbol": "BTCUSDT_UMCBL",
+        #           "holdSide": "long",
+        #           "openDelegateCount": "0",
+        #           "margin": "1.921475",
+        #           "available": "0.001",
+        #           "locked": "0",
+        #           "total": "0.001",
+        #           "leverage": "20",
+        #           "achievedProfits": "0",
+        #           "averageOpenPrice": "38429.5",
+        #           "marginMode": "fixed",
+        #           "holdMode": "double_hold",
+        #           "unrealizedPL": "0.14869",
+        #           "liquidationPrice": "0",
+        #           "keepMarginRate": "0.004",
+        #           "cTime": "1645922194988"
         #         }
         #       ]
         #     }
@@ -4757,23 +4750,23 @@ class bitget(Exchange, ImplicitAPI):
     def parse_position(self, position, market=None):
         #
         #     {
-        #         marginCoin: 'USDT',
-        #         symbol: 'BTCUSDT_UMCBL',
-        #         holdSide: 'long',
-        #         openDelegateCount: '0',
-        #         margin: '1.921475',
-        #         available: '0.001',
-        #         locked: '0',
-        #         total: '0.001',
-        #         leverage: '20',
-        #         achievedProfits: '0',
-        #         averageOpenPrice: '38429.5',
-        #         marginMode: 'fixed',
-        #         holdMode: 'double_hold',
-        #         unrealizedPL: '0.14869',
-        #         liquidationPrice: '0',
-        #         keepMarginRate: '0.004',
-        #         cTime: '1645922194988'
+        #         "marginCoin": "USDT",
+        #         "symbol": "BTCUSDT_UMCBL",
+        #         "holdSide": "long",
+        #         "openDelegateCount": "0",
+        #         "margin": "1.921475",
+        #         "available": "0.001",
+        #         "locked": "0",
+        #         "total": "0.001",
+        #         "leverage": "20",
+        #         "achievedProfits": "0",
+        #         "averageOpenPrice": "38429.5",
+        #         "marginMode": "fixed",
+        #         "holdMode": "double_hold",
+        #         "unrealizedPL": "0.14869",
+        #         "liquidationPrice": "0",
+        #         "keepMarginRate": "0.004",
+        #         "cTime": "1645922194988"
         #     }
         #
         # history
@@ -4884,7 +4877,7 @@ class bitget(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
         fetches historical funding rate prices
@@ -5002,7 +4995,7 @@ class bitget(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the funding history
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
@@ -5086,7 +5079,7 @@ class bitget(Exchange, ImplicitAPI):
             'id': id,
         }
 
-    def parse_funding_histories(self, contracts, market=None, since: Optional[int] = None, limit: Optional[int] = None):
+    def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
@@ -5211,7 +5204,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    def set_leverage(self, leverage, symbol: String = None, params={}):
         """
         set the level of leverage for a market
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#change-leverage
@@ -5231,7 +5224,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.privateMixPostAccountSetLeverage(self.extend(request, params))
 
-    def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+    def set_margin_mode(self, marginMode, symbol: String = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#change-margin-mode
@@ -5257,7 +5250,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.privateMixPostAccountSetMarginMode(self.extend(request, params))
 
-    def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
+    def set_position_mode(self, hedged, symbol: String = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#change-hold-mode
@@ -5299,7 +5292,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -5324,7 +5317,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
 
-    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
@@ -5533,7 +5526,7 @@ class bitget(Exchange, ImplicitAPI):
                 result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
@@ -5574,7 +5567,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: String = None, params={}):
         """
         create a loan to borrow margin
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
@@ -5636,7 +5629,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: String = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
@@ -5753,7 +5746,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_liquidations(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the users liquidated positions
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-liquidation-records
@@ -5879,7 +5872,7 @@ class bitget(Exchange, ImplicitAPI):
         liquidationFee = self.safe_string(liquidation, 'LiqFee')
         totalDebt = self.safe_string(liquidation, 'totalDebt')
         quoteValueString = Precise.string_add(liquidationFee, totalDebt)
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': None,
@@ -5889,7 +5882,7 @@ class bitget(Exchange, ImplicitAPI):
             'quoteValue': self.parse_number(quoteValueString),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     def fetch_borrow_rate(self, code: str, params={}):
         """
@@ -6077,7 +6070,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_interest(self, code: String = None, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-interest-records

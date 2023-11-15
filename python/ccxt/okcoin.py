@@ -6,9 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -600,26 +598,19 @@ class okcoin(Exchange, ImplicitAPI):
         }
         response = self.publicGetPublicInstruments(self.extend(request, params))
         markets = self.safe_value(response, 'data', [])
-        result = self.parse_markets(markets)
-        return result
+        return self.parse_markets(markets)
 
-    def parse_markets(self, markets):
-        result = []
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
-
-    def parse_market(self, market):
+    def parse_market(self, market) -> Market:
         #
         # spot markets
         #
         #     {
-        #         base_currency: "EOS",
-        #         instrument_id: "EOS-OKB",
-        #         min_size: "0.01",
-        #         quote_currency: "OKB",
-        #         size_increment: "0.000001",
-        #         tick_size: "0.0001"
+        #         "base_currency": "EOS",
+        #         "instrument_id": "EOS-OKB",
+        #         "min_size": "0.01",
+        #         "quote_currency": "OKB",
+        #         "size_increment": "0.000001",
+        #         "tick_size": "0.0001"
         #     }
         #
         id = self.safe_string(market, 'instId')
@@ -781,7 +772,7 @@ class okcoin(Exchange, ImplicitAPI):
                 }
             return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -825,7 +816,7 @@ class okcoin(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(first, 'ts')
         return self.parse_order_book(first, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "instType": "SPOT",
@@ -880,7 +871,7 @@ class okcoin(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -924,7 +915,7 @@ class okcoin(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(first, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -940,7 +931,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols, params)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1013,7 +1004,7 @@ class okcoin(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
@@ -1041,7 +1032,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         "1678928760000",  # timestamp
@@ -1064,7 +1055,7 @@ class okcoin(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
@@ -1105,16 +1096,16 @@ class okcoin(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             balance:  0,
-        #             available:  0,
-        #             currency: "BTC",
-        #             hold:  0
+        #             "balance":  0,
+        #             "available":  0,
+        #             "currency": "BTC",
+        #             "hold":  0
         #         },
         #         {
-        #             balance:  0,
-        #             available:  0,
-        #             currency: "ETH",
-        #             hold:  0
+        #             "balance":  0,
+        #             "available":  0,
+        #             "currency": "ETH",
+        #             "hold":  0
         #         }
         #     ]
         #
@@ -1122,22 +1113,22 @@ class okcoin(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             frozen: "0",
-        #             hold: "0",
-        #             id: "2149632",
-        #             currency: "BTC",
-        #             balance: "0.0000000497717339",
-        #             available: "0.0000000497717339",
-        #             holds: "0"
+        #             "frozen": "0",
+        #             "hold": "0",
+        #             "id": "2149632",
+        #             "currency": "BTC",
+        #             "balance": "0.0000000497717339",
+        #             "available": "0.0000000497717339",
+        #             "holds": "0"
         #         },
         #         {
-        #             frozen: "0",
-        #             hold: "0",
-        #             id: "2149632",
-        #             currency: "ICN",
-        #             balance: "0.00000000925",
-        #             available: "0.00000000925",
-        #             holds: "0"
+        #             "frozen": "0",
+        #             "hold": "0",
+        #             "id": "2149632",
+        #             "currency": "ICN",
+        #             "balance": "0.00000000925",
+        #             "available": "0.00000000925",
+        #             "holds": "0"
         #         }
         #     ]
         #
@@ -1157,7 +1148,7 @@ class okcoin(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the okcoin api endpoint
@@ -1469,7 +1460,7 @@ class okcoin(Exchange, ImplicitAPI):
             params = self.omit(params, ['clOrdId', 'clientOrderId'])
         return self.extend(request, params)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
@@ -1518,7 +1509,7 @@ class okcoin(Exchange, ImplicitAPI):
         else:
             return ids
 
-    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
+    def cancel_orders(self, ids, symbol: String = None, params={}):
         """
         cancel multiple orders
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
@@ -1599,7 +1590,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1790,7 +1781,7 @@ class okcoin(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
         }, market)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
@@ -1829,7 +1820,7 @@ class okcoin(Exchange, ImplicitAPI):
         order = self.safe_value(data, 0)
         return self.parse_order(order)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
@@ -1870,7 +1861,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
@@ -2005,29 +1996,29 @@ class okcoin(Exchange, ImplicitAPI):
         #      }
         # network information from currency['networks'] field:
         # Polygon: {
-        #        info: {
-        #            canDep: False,
-        #            canInternal: False,
-        #            canWd: False,
-        #            ccy: 'USDT',
-        #            chain: 'USDT-Polygon-Bridge',
-        #            mainNet: False,
-        #            maxFee: '26.879528',
-        #            minFee: '13.439764',
-        #            minWd: '0.001',
-        #            name: ''
+        #        "info": {
+        #            "canDep": False,
+        #            "canInternal": False,
+        #            "canWd": False,
+        #            "ccy": "USDT",
+        #            "chain": "USDT-Polygon-Bridge",
+        #            "mainNet": False,
+        #            "maxFee": "26.879528",
+        #            "minFee": "13.439764",
+        #            "minWd": "0.001",
+        #            "name": ''
         #        },
-        #        id: 'USDT-Polygon-Bridge',
-        #        network: 'Polygon',
-        #        active: False,
-        #        deposit: False,
-        #        withdraw: False,
-        #        fee: 13.439764,
-        #        precision: None,
-        #        limits: {
-        #            withdraw: {
-        #                min: 0.001,
-        #                max: None
+        #        "id": "USDT-Polygon-Bridge",
+        #        "network": "Polygon",
+        #        "active": False,
+        #        "deposit": False,
+        #        "withdraw": False,
+        #        "fee": 13.439764,
+        #        "precision": None,
+        #        "limits": {
+        #            "withdraw": {
+        #                "min": 0.001,
+        #                "max": None
         #            }
         #        }
         #     },
@@ -2293,7 +2284,7 @@ class okcoin(Exchange, ImplicitAPI):
         transaction = self.safe_value(data, 0)
         return self.parse_transaction(transaction, currency)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
         fetch all deposits made to an account
@@ -2362,7 +2353,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
         fetch all withdrawals made from an account
@@ -2428,23 +2419,23 @@ class okcoin(Exchange, ImplicitAPI):
         # deposit statuses
         #
         #     {
-        #         '0': 'waiting for confirmation',
-        #         '1': 'confirmation account',
-        #         '2': 'recharge success'
+        #         "0": "waiting for confirmation",
+        #         "1": "confirmation account",
+        #         "2": "recharge success"
         #     }
         #
         # withdrawal statues
         #
         #     {
-        #        '-3': 'pending cancel',
-        #        '-2': 'cancelled',
-        #        '-1': 'failed',
-        #         '0': 'pending',
-        #         '1': 'sending',
-        #         '2': 'sent',
-        #         '3': 'email confirmation',
-        #         '4': 'manual confirmation',
-        #         '5': 'awaiting identity confirmation'
+        #        '-3': "pending cancel",
+        #        "-2": "cancelled",
+        #        "-1": "failed",
+        #         "0": "pending",
+        #         "1": "sending",
+        #         "2": "sent",
+        #         "3": "email confirmation",
+        #         "4": "manual confirmation",
+        #         "5": "awaiting identity confirmation"
         #     }
         #
         statuses = {
@@ -2460,7 +2451,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
@@ -2480,9 +2471,9 @@ class okcoin(Exchange, ImplicitAPI):
         #         "ccy": "ETH",
         #         "from": "13426335357",
         #         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        #         'tag',
-        #         'pmtId',
-        #         'memo',
+        #         "tag",
+        #         "pmtId",
+        #         "memo",
         #         "ts": "1597026383085",
         #         "state": "2"
         #     }
@@ -2545,13 +2536,15 @@ class okcoin(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'comment': None,
+            'internal': None,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
             },
         }
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
@@ -2582,7 +2575,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -2601,7 +2594,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days

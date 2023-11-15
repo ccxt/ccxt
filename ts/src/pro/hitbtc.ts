@@ -3,9 +3,9 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Trade } from '../base/types';
+import { Str, Trade } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError } from '../base/errors.js';
 
@@ -92,18 +92,18 @@ export default class hitbtc extends hitbtcRest {
             this.watch (url, messageHash, request, messageHash);
             //
             //    {
-            //        jsonrpc: '2.0',
-            //        result: true
+            //        "jsonrpc": "2.0",
+            //        "result": true
             //    }
             //
             //    # Failure to return results
             //
             //    {
-            //        jsonrpc: '2.0',
-            //        error: {
-            //            code: 1002,
-            //            message: 'Authorization is required or has been failed',
-            //            description: 'invalid signature format'
+            //        "jsonrpc": "2.0",
+            //        "error": {
+            //            "code": 1002,
+            //            "message": "Authorization is required or has been failed",
+            //            "description": "invalid signature format"
             //        }
             //    }
             //
@@ -134,7 +134,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async subscribePrivate (name: string, symbol: string = undefined, params = {}) {
+    async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -552,7 +552,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    parseWsTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseWsTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
@@ -684,7 +684,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
         //        "t": 1626860340000,             // Message timestamp
@@ -706,7 +706,7 @@ export default class hitbtc extends hitbtcRest {
         ];
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOrders
@@ -997,7 +997,7 @@ export default class hitbtc extends hitbtcRest {
 
     handleNotification (client: Client, message) {
         //
-        //     { jsonrpc: '2.0', result: true, id: null }
+        //     { jsonrpc: "2.0", result: true, id: null }
         //
         return message;
     }
@@ -1036,8 +1036,8 @@ export default class hitbtc extends hitbtcRest {
     handleAuthenticate (client: Client, message) {
         //
         //    {
-        //        jsonrpc: '2.0',
-        //        result: true
+        //        "jsonrpc": "2.0",
+        //        "result": true
         //    }
         //
         const success = this.safeValue (message, 'result');

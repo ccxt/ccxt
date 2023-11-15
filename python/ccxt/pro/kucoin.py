@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -66,18 +66,18 @@ class kucoin(ccxt.async_support.kucoin):
             response = await self.privatePostBulletPrivate(params)
             #
             #     {
-            #         code: "200000",
-            #         data: {
-            #             instanceServers: [
+            #         "code": "200000",
+            #         "data": {
+            #             "instanceServers": [
             #                 {
-            #                     pingInterval:  50000,
-            #                     endpoint: "wss://push-private.kucoin.com/endpoint",
-            #                     protocol: "websocket",
-            #                     encrypt: True,
-            #                     pingTimeout: 10000
+            #                     "pingInterval":  50000,
+            #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+            #                     "protocol": "websocket",
+            #                     "encrypt": True,
+            #                     "pingTimeout": 10000
             #                 }
             #             ],
-            #             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+            #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
             #         }
             #     }
             #
@@ -133,7 +133,7 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'ticker:' + symbol
         return await self.subscribe(url, messageHash, topic, query)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: List[str] = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -192,18 +192,18 @@ class kucoin(ccxt.async_support.kucoin):
         # market/ticker
         #
         #     {
-        #         type: 'message',
-        #         topic: '/market/ticker:BTC-USDT',
-        #         subject: 'trade.ticker',
-        #         data: {
-        #             bestAsk: '62163',
-        #             bestAskSize: '0.99011388',
-        #             bestBid: '62162.9',
-        #             bestBidSize: '0.04794181',
-        #             price: '62162.9',
-        #             sequence: '1621383371852',
-        #             size: '0.00832274',
-        #             time: 1634641987564
+        #         "type": "message",
+        #         "topic": "/market/ticker:BTC-USDT",
+        #         "subject": "trade.ticker",
+        #         "data": {
+        #             "bestAsk": "62163",
+        #             "bestAskSize": "0.99011388",
+        #             "bestBid": "62162.9",
+        #             "bestBidSize": "0.04794181",
+        #             "price": "62162.9",
+        #             "sequence": "1621383371852",
+        #             "size": "0.00832274",
+        #             "time": 1634641987564
         #         }
         #     }
         #
@@ -239,7 +239,7 @@ class kucoin(ccxt.async_support.kucoin):
             if numTickers > 0:
                 client.resolve(tickers, currentMessageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -264,22 +264,22 @@ class kucoin(ccxt.async_support.kucoin):
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
-        #         data: {
-        #             symbol: 'BTC-USDT',
-        #             candles: [
-        #                 '1624881240',
-        #                 '34138.8',
-        #                 '34121.6',
-        #                 '34138.8',
-        #                 '34097.9',
-        #                 '3.06097133',
-        #                 '104430.955068564'
+        #         "data": {
+        #             "symbol": "BTC-USDT",
+        #             "candles": [
+        #                 "1624881240",
+        #                 "34138.8",
+        #                 "34121.6",
+        #                 "34138.8",
+        #                 "34097.9",
+        #                 "3.06097133",
+        #                 "104430.955068564"
         #             ],
-        #             time: 1624881284466023700
+        #             "time": 1624881284466023700
         #         },
-        #         subject: 'trade.candles.update',
-        #         topic: '/market/candles:BTC-USDT_1min',
-        #         type: 'message'
+        #         "subject": "trade.candles.update",
+        #         "topic": "/market/candles:BTC-USDT_1min",
+        #         "type": "message"
         #     }
         #
         data = self.safe_value(message, 'data', {})
@@ -303,7 +303,7 @@ class kucoin(ccxt.async_support.kucoin):
         stored.append(ohlcv)
         client.resolve(stored, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -323,7 +323,7 @@ class kucoin(ccxt.async_support.kucoin):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -352,21 +352,21 @@ class kucoin(ccxt.async_support.kucoin):
     def handle_trade(self, client: Client, message):
         #
         #     {
-        #         data: {
-        #             sequence: '1568787654360',
-        #             symbol: 'BTC-USDT',
-        #             side: 'buy',
-        #             size: '0.00536577',
-        #             price: '9345',
-        #             takerOrderId: '5e356c4a9f1a790008f8d921',
-        #             time: '1580559434436443257',
-        #             type: 'match',
-        #             makerOrderId: '5e356bffedf0010008fa5d7f',
-        #             tradeId: '5e356c4aeefabd62c62a1ece'
+        #         "data": {
+        #             "sequence": "1568787654360",
+        #             "symbol": "BTC-USDT",
+        #             "side": "buy",
+        #             "size": "0.00536577",
+        #             "price": "9345",
+        #             "takerOrderId": "5e356c4a9f1a790008f8d921",
+        #             "time": "1580559434436443257",
+        #             "type": "match",
+        #             "makerOrderId": "5e356bffedf0010008fa5d7f",
+        #             "tradeId": "5e356c4aeefabd62c62a1ece"
         #         },
-        #         subject: 'trade.l3match',
-        #         topic: '/market/match:BTC-USDT',
-        #         type: 'message'
+        #         "subject": "trade.l3match",
+        #         "topic": "/market/match:BTC-USDT",
+        #         "type": "message"
         #     }
         #
         data = self.safe_value(message, 'data', {})
@@ -383,7 +383,7 @@ class kucoin(ccxt.async_support.kucoin):
         # watchMultipleTrades
         self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, trades)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -423,7 +423,7 @@ class kucoin(ccxt.async_support.kucoin):
         orderbook = await self.subscribe(url, messageHash, topic, params, subscription)
         return orderbook.limit()
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
@@ -554,8 +554,8 @@ class kucoin(ccxt.async_support.kucoin):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         id: '1578090438322',
-        #         type: 'ack'
+        #         "id": "1578090438322",
+        #         "type": "ack"
         #     }
         #
         id = self.safe_string(message, 'id')
@@ -573,13 +573,13 @@ class kucoin(ccxt.async_support.kucoin):
         # involves system status and maintenance updates
         #
         #     {
-        #         id: '1578090234088',  # connectId
-        #         type: 'welcome',
+        #         "id": "1578090234088",  # connectId
+        #         "type": "welcome",
         #     }
         #
         return message
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -624,19 +624,19 @@ class kucoin(ccxt.async_support.kucoin):
         # /spotMarket/tradeOrders
         #
         #    {
-        #        'symbol': 'XCAD-USDT',
-        #        'orderType': 'limit',
-        #        'side': 'buy',
-        #        'orderId': '6249167327218b000135e749',
-        #        'type': 'canceled',
-        #        'orderTime': 1648957043065280224,
-        #        'size': '100.452',
-        #        'filledSize': '0',
-        #        'price': '2.9635',
-        #        'clientOid': 'buy-XCAD-USDT-1648957043010159',
-        #        'remainSize': '0',
-        #        'status': 'done',
-        #        'ts': 1648957054031001037
+        #        "symbol": "XCAD-USDT",
+        #        "orderType": "limit",
+        #        "side": "buy",
+        #        "orderId": "6249167327218b000135e749",
+        #        "type": "canceled",
+        #        "orderTime": 1648957043065280224,
+        #        "size": "100.452",
+        #        "filledSize": "0",
+        #        "price": "2.9635",
+        #        "clientOid": "buy-XCAD-USDT-1648957043010159",
+        #        "remainSize": "0",
+        #        "status": "done",
+        #        "ts": 1648957054031001037
         #    }
         #
         # /spotMarket/advancedOrders
@@ -697,20 +697,20 @@ class kucoin(ccxt.async_support.kucoin):
         # Trigger Orders
         #
         #    {
-        #        createdAt: 1692745706437,
-        #        error: 'Balance insufficient!',       # not always there
-        #        orderId: 'vs86kp757vlda6ni003qs70v',
-        #        orderPrice: '0.26',
-        #        orderType: 'stop',
-        #        side: 'sell',
-        #        size: '5',
-        #        stop: 'loss',
-        #        stopPrice: '0.26',
-        #        symbol: 'ADA-USDT',
-        #        tradeType: 'TRADE',
-        #        triggerSuccess: False,                # not always there
-        #        ts: '1692745706442929298',
-        #        type: 'open'
+        #        "createdAt": 1692745706437,
+        #        "error": "Balance insufficient!",       # not always there
+        #        "orderId": "vs86kp757vlda6ni003qs70v",
+        #        "orderPrice": "0.26",
+        #        "orderType": "stop",
+        #        "side": "sell",
+        #        "size": "5",
+        #        "stop": "loss",
+        #        "stopPrice": "0.26",
+        #        "symbol": "ADA-USDT",
+        #        "tradeType": "TRADE",
+        #        "triggerSuccess": False,                # not always there
+        #        "ts": "1692745706442929298",
+        #        "type": "open"
         #    }
         #
         messageHash = 'orders'
@@ -736,7 +736,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -777,17 +777,17 @@ class kucoin(ccxt.async_support.kucoin):
     def parse_ws_trade(self, trade, market=None):
         #
         # {
-        #     fee: 0.00262148,
-        #     feeCurrency: 'USDT',
-        #     feeRate: 0.001,
-        #     orderId: '62417436b29df8000183df2f',
-        #     orderType: 'market',
-        #     price: 131.074,
-        #     side: 'sell',
-        #     size: 0.02,
-        #     symbol: 'LTC-USDT',
-        #     time: '1648456758734571745',
-        #     tradeId: '624174362e113d2f467b3043'
+        #     "fee": 0.00262148,
+        #     "feeCurrency": "USDT",
+        #     "feeRate": 0.001,
+        #     "orderId": "62417436b29df8000183df2f",
+        #     "orderType": "market",
+        #     "price": 131.074,
+        #     "side": "sell",
+        #     "size": 0.02,
+        #     "symbol": "LTC-USDT",
+        #     "time": "1648456758734571745",
+        #     "tradeId": "624174362e113d2f467b3043"
         #   }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -945,10 +945,10 @@ class kucoin(ccxt.async_support.kucoin):
     def handle_error_message(self, client: Client, message):
         #
         #    {
-        #        id: '1',
-        #        type: 'error',
-        #        code: 415,
-        #        data: 'type is not supported'
+        #        "id": "1",
+        #        "type": "error",
+        #        "code": 415,
+        #        "data": "type is not supported"
         #    }
         #
         data = self.safe_string(message, 'data', '')

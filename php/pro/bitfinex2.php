@@ -313,7 +313,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //
         //    array(
         //        360141,
-        //        'te',
+        //        "te",
         //        array(
         //            1128060969, // id
         //            1654702500098, // mts
@@ -659,7 +659,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
 
     public function handle_checksum(Client $client, $message, $subscription) {
         //
-        // array( 173904, 'cs', -890884919 )
+        // array( 173904, "cs", -890884919 )
         //
         $marketId = $this->safe_string($subscription, 'symbol');
         $symbol = $this->safe_symbol($marketId);
@@ -719,24 +719,24 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // snapshot (exchange . margin together)
         //   array(
         //       0,
-        //       'ws',
+        //       "ws",
         //       array(
         //           array(
-        //               'exchange',
-        //               'LTC',
+        //               "exchange",
+        //               "LTC",
         //               0.05479727,
         //               0,
         //               null,
-        //               'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //               "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //               null,
         //           )
         //           array(
-        //               'margin',
-        //               'USTF0',
+        //               "margin",
+        //               "USTF0",
         //               11.960650700086292,
         //               0,
         //               null,
-        //               'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //               "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //               null,
         //           ),
         //       ),
@@ -745,22 +745,22 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // spot
         //   array(
         //       0,
-        //       'wu',
+        //       "wu",
         //       array(
-        //         'exchange',
-        //         'LTC', // currency
+        //         "exchange",
+        //         "LTC", // currency
         //         0.06729727, // wallet $balance
         //         0, // unsettled $balance
         //         0.06729727, // available $balance might be null
-        //         'Exchange 0.4 LTC for UST @ 65.075',
+        //         "Exchange 0.4 LTC for UST @ 65.075",
         //         {
-        //           reason => 'TRADE',
-        //           order_id => 96596397973,
-        //           order_id_oppo => 96596632735,
-        //           trade_price => '65.075',
-        //           trade_amount => '-0.4',
-        //           order_cid => 1654636218766,
-        //           order_gid => null
+        //           "reason" => "TRADE",
+        //           "order_id" => 96596397973,
+        //           "order_id_oppo" => 96596632735,
+        //           "trade_price" => "65.075",
+        //           "trade_amount" => "-0.4",
+        //           "order_cid" => 1654636218766,
+        //           "order_gid" => null
         //         }
         //       )
         //   )
@@ -768,12 +768,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // margin
         //
         //   array(
-        //       'margin',
-        //       'USTF0',
+        //       "margin",
+        //       "USTF0",
         //       11.960650700086292, // total
         //       0,
         //       6.776250700086292, // available
-        //       'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //       "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //       null
         //   )
         //
@@ -808,12 +808,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function parse_ws_balance($balance) {
         //
         //     array(
-        //         'exchange',
-        //         'LTC',
+        //         "exchange",
+        //         "LTC",
         //         0.05479727, // $balance
         //         0,
         //         null, // available null if not calculated yet
-        //         'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //         "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //         null,
         //     )
         //
@@ -830,10 +830,10 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function handle_system_status(Client $client, $message) {
         //
         //     {
-        //         event => 'info',
-        //         version => 2,
-        //         serverId => 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        //         platform => array( status => 1 ), // 1 for operative, 0 for maintenance
+        //         "event" => "info",
+        //         "version" => 2,
+        //         "serverId" => "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        //         "platform" => array( status => 1 ), // 1 for operative, 0 for maintenance
         //     }
         //
         return $message;
@@ -842,14 +842,14 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
-        //         event => 'subscribed',
-        //         channel => 'book',
-        //         chanId => 67473,
-        //         symbol => 'tBTCUSD',
-        //         prec => 'P0',
-        //         freq => 'F0',
-        //         len => '25',
-        //         pair => 'BTCUSD'
+        //         "event" => "subscribed",
+        //         "channel" => "book",
+        //         "chanId" => 67473,
+        //         "symbol" => "tBTCUSD",
+        //         "prec" => "P0",
+        //         "freq" => "F0",
+        //         "len" => "25",
+        //         "pair" => "BTCUSD"
         //     }
         //
         $channelId = $this->safe_string($message, 'chanId');
@@ -1016,17 +1016,17 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //       97084883506, // $order $id
         //       null,
         //       1655110144596, // $clientOrderId
-        //       'tLTCUST', // $symbol
+        //       "tLTCUST", // $symbol
         //       1655110144596, // created $timestamp
         //       1655110144598, // updated $timestamp
         //       0, // $amount
         //       0.1, // amount_orig negative if sell $order
-        //       'EXCHANGE MARKET', // $type
+        //       "EXCHANGE MARKET", // $type
         //       null,
         //       null,
         //       null,
         //       0,
-        //       'EXECUTED @ 42.821(0.1)', // $status
+        //       "EXECUTED @ 42.821(0.1)", // $status
         //       null,
         //       null,
         //       42.799, // $price
@@ -1041,7 +1041,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //       null,
         //       null,
         //       null,
-        //       'BFX',
+        //       "BFX",
         //       null,
         //       null,
         //       array()
@@ -1102,25 +1102,25 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //
         //     array(
         //         1231,
-        //         'hb',
+        //         "hb",
         //     )
         //
         // auth $message
         //    {
-        //        $event => 'auth',
-        //        status => 'OK',
-        //        chanId => 0,
-        //        userId => 3159883,
-        //        auth_id => 'ac7108e7-2f26-424d-9982-c24700dc02ca',
-        //        caps => {
-        //          orders => array( read => 1, write => 1 ),
-        //          account => array( read => 1, write => 1 ),
-        //          funding => array( read => 1, write => 1 ),
-        //          history => array( read => 1, write => 0 ),
-        //          wallets => array( read => 1, write => 1 ),
-        //          withdraw => array( read => 0, write => 1 ),
-        //          positions => array( read => 1, write => 1 ),
-        //          ui_withdraw => array( read => 0, write => 0 )
+        //        "event" => "auth",
+        //        "status" => "OK",
+        //        "chanId" => 0,
+        //        "userId" => 3159883,
+        //        "auth_id" => "ac7108e7-2f26-424d-9982-c24700dc02ca",
+        //        "caps" => {
+        //          "orders" => array( read => 1, write => 1 ),
+        //          "account" => array( read => 1, write => 1 ),
+        //          "funding" => array( read => 1, write => 1 ),
+        //          "history" => array( read => 1, write => 0 ),
+        //          "wallets" => array( read => 1, write => 1 ),
+        //          "withdraw" => array( read => 0, write => 1 ),
+        //          "positions" => array( read => 1, write => 1 ),
+        //          "ui_withdraw" => array( read => 0, write => 0 )
         //        }
         //    }
         //

@@ -1,12 +1,7 @@
 
-//  ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
-import Exchange from './abstract/huobi.js';
-import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
-import { Precise } from './base/Precise.js';
-import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances } from './base/types.js';
+import htx from './htx.js';
 
 /* eslint-disable */
 type MappedNetwork = {
@@ -17,11 +12,7 @@ type MappedNetwork = {
 
 //  ---------------------------------------------------------------------------
 
-/**
- * @class huobi
- * @extends Exchange
- */
-export default class huobi extends Exchange {
+export default class huobi extends htx {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'huobi',

@@ -345,7 +345,7 @@ class ImplicitAPI:
     contract_private_post_api_v3_contract_financial_record_exact = contractPrivatePostApiV3ContractFinancialRecordExact = Entry('api/v3/contract_financial_record_exact', ['contract', 'private'], 'POST', {'cost': 1})
     contract_private_post_api_v1_contract_cancel_after = contractPrivatePostApiV1ContractCancelAfter = Entry('api/v1/contract-cancel-after', ['contract', 'private'], 'POST', {'cost': 1})
     contract_private_post_api_v1_contract_order = contractPrivatePostApiV1ContractOrder = Entry('api/v1/contract_order', ['contract', 'private'], 'POST', {'cost': 1})
-    contract_private_post_v1_contract_batchorder = contractPrivatePostV1ContractBatchorder = Entry('v1/contract_batchorder', ['contract', 'private'], 'POST', {'cost': 1})
+    contract_private_post_api_v1_contract_batchorder = contractPrivatePostApiV1ContractBatchorder = Entry('api/v1/contract_batchorder', ['contract', 'private'], 'POST', {'cost': 1})
     contract_private_post_api_v1_contract_cancel = contractPrivatePostApiV1ContractCancel = Entry('api/v1/contract_cancel', ['contract', 'private'], 'POST', {'cost': 1})
     contract_private_post_api_v1_contract_cancelall = contractPrivatePostApiV1ContractCancelall = Entry('api/v1/contract_cancelall', ['contract', 'private'], 'POST', {'cost': 1})
     contract_private_post_api_v1_contract_switch_lever_rate = contractPrivatePostApiV1ContractSwitchLeverRate = Entry('api/v1/contract_switch_lever_rate', ['contract', 'private'], 'POST', {'cost': 1})

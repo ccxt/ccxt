@@ -6,9 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -318,98 +316,96 @@ class zonda(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         response = self.v1_01PublicGetTradingTicker(params)
-        fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         #
         #     {
-        #         status: 'Ok',
-        #         items: {
-        #             'BSV-USD': {
-        #                 market: {
-        #                     code: 'BSV-USD',
-        #                     first: {currency: 'BSV', minOffer: '0.00035', scale: 8},
-        #                     second: {currency: 'USD', minOffer: '5', scale: 2}
+        #         "status": "Ok",
+        #         "items": {
+        #             "BSV-USD": {
+        #                 "market": {
+        #                     "code": "BSV-USD",
+        #                     "first": {currency: "BSV", minOffer: "0.00035", scale: 8},
+        #                     "second": {currency: "USD", minOffer: "5", scale: 2}
         #                 },
-        #                 time: '1557569762154',
-        #                 highestBid: '52.31',
-        #                 lowestAsk: '62.99',
-        #                 rate: '63',
-        #                 previousRate: '51.21',
+        #                 "time": "1557569762154",
+        #                 "highestBid": "52.31",
+        #                 "lowestAsk": "62.99",
+        #                 "rate": "63",
+        #                 "previousRate": "51.21",
         #             },
         #         },
         #     }
         #
-        result = []
         items = self.safe_value(response, 'items', {})
-        keys = list(items.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            item = items[id]
-            market = self.safe_value(item, 'market', {})
-            first = self.safe_value(market, 'first', {})
-            second = self.safe_value(market, 'second', {})
-            baseId = self.safe_string(first, 'currency')
-            quoteId = self.safe_string(second, 'currency')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            fees = self.safe_value(self.fees, 'trading', {})
-            if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
-                fees = self.safe_value(self.fees, 'fiat', {})
-            # todo: check that the limits have ben interpreted correctly
-            # todo: parse the fees page
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': None,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'taker': self.safe_number(fees, 'taker'),
-                'maker': self.safe_number(fees, 'maker'),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'optionType': None,
-                'strike': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(first, 'scale'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(second, 'scale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(first, 'minOffer'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(second, 'minOffer'),
-                        'max': None,
-                    },
-                },
-                'created': None,
-                'info': item,
-            })
-        return result
+        markets = list(items.values())
+        return self.parse_markets(markets)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_market(self, item) -> Market:
+        market = self.safe_value(item, 'market', {})
+        id = self.safe_string(market, 'code')
+        first = self.safe_value(market, 'first', {})
+        second = self.safe_value(market, 'second', {})
+        baseId = self.safe_string(first, 'currency')
+        quoteId = self.safe_string(second, 'currency')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        fees = self.safe_value(self.fees, 'trading', {})
+        fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
+        if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
+            fees = self.safe_value(self.fees, 'fiat', {})
+        # todo: check that the limits have ben interpreted correctly
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': None,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.safe_number(fees, 'taker'),
+            'maker': self.safe_number(fees, 'maker'),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'optionType': None,
+            'strike': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(first, 'scale'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(second, 'scale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.safe_number(first, 'minOffer'),
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': item,
+        }
+
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.zondacrypto.exchange/reference/active-orders
         fetch all unfilled currently open orders
@@ -425,23 +421,23 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items', [])
         return self.parse_orders(items, None, since, limit, {'status': 'open'})
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
-        #         market: 'ETH-EUR',
-        #         offerType: 'Sell',
-        #         id: '93d3657b-d616-11e9-9248-0242ac110005',
-        #         currentAmount: '0.04',
-        #         lockedAmount: '0.04',
-        #         rate: '280',
-        #         startAmount: '0.04',
-        #         time: '1568372806924',
-        #         postOnly: False,
-        #         hidden: False,
-        #         mode: 'limit',
-        #         receivedAmount: '0.0',
-        #         firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
-        #         secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af'
+        #         "market": "ETH-EUR",
+        #         "offerType": "Sell",
+        #         "id": "93d3657b-d616-11e9-9248-0242ac110005",
+        #         "currentAmount": "0.04",
+        #         "lockedAmount": "0.04",
+        #         "rate": "280",
+        #         "startAmount": "0.04",
+        #         "time": "1568372806924",
+        #         "postOnly": False,
+        #         "hidden": False,
+        #         "mode": "limit",
+        #         "receivedAmount": "0.0",
+        #         "firstBalanceId": "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
+        #         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         #     }
         #
         marketId = self.safe_string(order, 'market')
@@ -475,7 +471,7 @@ class zonda(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.zondacrypto.exchange/reference/transactions-history
         fetch all trades made by the user
@@ -495,20 +491,20 @@ class zonda(Exchange, ImplicitAPI):
         response = self.v1_01PrivateGetTradingHistoryTransactions(query)
         #
         #     {
-        #         status: 'Ok',
-        #         totalRows: '67',
-        #         items: [
+        #         "status": "Ok",
+        #         "totalRows": "67",
+        #         "items": [
         #             {
-        #                 id: 'b54659a0-51b5-42a0-80eb-2ac5357ccee2',
-        #                 market: 'BTC-EUR',
-        #                 time: '1541697096247',
-        #                 amount: '0.00003',
-        #                 rate: '4341.44',
-        #                 initializedBy: 'Sell',
-        #                 wasTaker: False,
-        #                 userAction: 'Buy',
-        #                 offerId: 'bd19804a-6f89-4a69-adb8-eb078900d006',
-        #                 commissionValue: null
+        #                 "id": "b54659a0-51b5-42a0-80eb-2ac5357ccee2",
+        #                 "market": "BTC-EUR",
+        #                 "time": "1541697096247",
+        #                 "amount": "0.00003",
+        #                 "rate": "4341.44",
+        #                 "initializedBy": "Sell",
+        #                 "wasTaker": False,
+        #                 "userAction": "Buy",
+        #                 "offerId": "bd19804a-6f89-4a69-adb8-eb078900d006",
+        #                 "commissionValue": null
         #             },
         #         ]
         #     }
@@ -519,7 +515,7 @@ class zonda(Exchange, ImplicitAPI):
             return result
         return self.filter_by_symbol(result, symbol)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
@@ -534,7 +530,7 @@ class zonda(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         :see: https://docs.zondacrypto.exchange/reference/list-of-wallets
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -545,7 +541,7 @@ class zonda(Exchange, ImplicitAPI):
         response = self.v1_01PrivateGetBalancesBITBAYBalance(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://docs.zondacrypto.exchange/reference/orderbook-2
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -589,42 +585,42 @@ class zonda(Exchange, ImplicitAPI):
             'nonce': self.safe_integer(response, 'seqNo'),
         }
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # version 1
         #
         #    {
-        #        m: 'ETH-PLN',
-        #        h: '13485.13',
-        #        l: '13100.01',
-        #        v: '126.10710939',
-        #        r24h: '13332.72'
+        #        "m": "ETH-PLN",
+        #        "h": "13485.13",
+        #        "l": "13100.01",
+        #        "v": "126.10710939",
+        #        "r24h": "13332.72"
         #    }
         #
         # version 2
         #
         #    {
-        #        market: {
-        #            code: 'ADA-USDT',
-        #            first: {
-        #                currency: 'ADA',
-        #                minOffer: '0.2',
-        #                scale: '6'
+        #        "market": {
+        #            "code": "ADA-USDT",
+        #            "first": {
+        #                "currency": "ADA",
+        #                "minOffer": "0.2",
+        #                "scale": "6"
         #            },
-        #            second: {
-        #                currency: 'USDT',
-        #                minOffer: '0.099',
-        #                scale: '6'
+        #            "second": {
+        #                "currency": "USDT",
+        #                "minOffer": "0.099",
+        #                "scale": "6"
         #            },
-        #            amountPrecision: '6',
-        #            pricePrecision: '6',
-        #            ratePrecision: '6'
+        #            "amountPrecision": "6",
+        #            "pricePrecision": "6",
+        #            "ratePrecision": "6"
         #        },
-        #        time: '1655812661202',
-        #        highestBid: '0.492',
-        #        lowestAsk: '0.499389',
-        #        rate: '0.50588',
-        #        previousRate: '0.504981'
+        #        "time": "1655812661202",
+        #        "highestBid": "0.492",
+        #        "lowestAsk": "0.499389",
+        #        "rate": "0.50588",
+        #        "previousRate": "0.504981"
         #    }
         #
         tickerMarket = self.safe_value(ticker, 'market')
@@ -722,7 +718,7 @@ class zonda(Exchange, ImplicitAPI):
         stats = self.safe_value_2(response, 'ticker', 'stats')
         return self.parse_ticker(stats, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
          * @ignore
         v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
@@ -774,14 +770,14 @@ class zonda(Exchange, ImplicitAPI):
             response = self.v1_01PublicGetTradingStats(params)
             #
             #     {
-            #         status: 'Ok',
-            #         items: {
-            #             'DAI-PLN': {
-            #                 m: 'DAI-PLN',
-            #                 h: '4.41',
-            #                 l: '4.37',
-            #                 v: '8.71068087',
-            #                 r24h: '4.36'
+            #         "status": "Ok",
+            #         "items": {
+            #             "DAI-PLN": {
+            #                 "m": "DAI-PLN",
+            #                 "h": "4.41",
+            #                 "l": "4.37",
+            #                 "v": "8.71068087",
+            #                 "r24h": "4.36"
             #             },
             #             ...
             #         }
@@ -792,7 +788,7 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items')
         return self.parse_tickers(items, symbols)
 
-    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.zondacrypto.exchange/reference/operations-history
         fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -1136,17 +1132,17 @@ class zonda(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
-        #         '1582399800000',
+        #         "1582399800000",
         #         {
-        #             o: '0.0001428',
-        #             c: '0.0001428',
-        #             h: '0.0001428',
-        #             l: '0.0001428',
-        #             v: '4',
-        #             co: '1'
+        #             "o": "0.0001428",
+        #             "c": "0.0001428",
+        #             "h": "0.0001428",
+        #             "l": "0.0001428",
+        #             "v": "4",
+        #             "co": "1"
         #         }
         #     ]
         #
@@ -1160,7 +1156,7 @@ class zonda(Exchange, ImplicitAPI):
             self.safe_number(first, 'v'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://docs.zondacrypto.exchange/reference/candles-chart
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1204,7 +1200,7 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items', [])
         return self.parse_ohlcvs(items, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # createOrder trades
         #
@@ -1216,26 +1212,26 @@ class zonda(Exchange, ImplicitAPI):
         # fetchMyTrades(private)
         #
         #     {
-        #         amount: "0.29285199",
-        #         commissionValue: "0.00125927",
-        #         id: "11c8203a-a267-11e9-b698-0242ac110007",
-        #         initializedBy: "Buy",
-        #         market: "ETH-EUR",
-        #         offerId: "11c82038-a267-11e9-b698-0242ac110007",
-        #         rate: "277",
-        #         time: "1562689917517",
-        #         userAction: "Buy",
-        #         wasTaker: True,
+        #         "amount": "0.29285199",
+        #         "commissionValue": "0.00125927",
+        #         "id": "11c8203a-a267-11e9-b698-0242ac110007",
+        #         "initializedBy": "Buy",
+        #         "market": "ETH-EUR",
+        #         "offerId": "11c82038-a267-11e9-b698-0242ac110007",
+        #         "rate": "277",
+        #         "time": "1562689917517",
+        #         "userAction": "Buy",
+        #         "wasTaker": True,
         #     }
         #
         # fetchTrades(public)
         #
         #     {
-        #          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
-        #          t: '1570108958831',
-        #          a: '0.04776653',
-        #          r: '0.02145854',
-        #          ty: 'Sell'
+        #          "id": "df00b0da-e5e0-11e9-8c19-0242ac11000a",
+        #          "t": "1570108958831",
+        #          "a": "0.04776653",
+        #          "r": "0.02145854",
+        #          "ty": "Sell"
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'time', 't')
@@ -1278,7 +1274,7 @@ class zonda(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://docs.zondacrypto.exchange/reference/last-transactions
         get the list of most recent trades for a particular symbol
@@ -1349,10 +1345,10 @@ class zonda(Exchange, ImplicitAPI):
         # unfilled(open order)
         #
         #     {
-        #         status: 'Ok',
-        #         completed: False,  # can deduce status from here
-        #         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
-        #         transactions: [],  # can deduce order info from here
+        #         "status": "Ok",
+        #         "completed": False,  # can deduce status from here
+        #         "offerId": "ce9cc72e-d61c-11e9-9248-0242ac110005",
+        #         "transactions": [],  # can deduce order info from here
         #     }
         #
         # filled(closed order)
@@ -1424,7 +1420,7 @@ class zonda(Exchange, ImplicitAPI):
             'clientOrderId': None,
         })
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         :see: https://docs.zondacrypto.exchange/reference/cancel-order
         cancels an open order
@@ -1448,8 +1444,8 @@ class zonda(Exchange, ImplicitAPI):
             'side': side,
             'price': price,
         }
-        # {status: 'Fail', errors: ['NOT_RECOGNIZED_OFFER_TYPE']}  -- if required params are missing
-        # {status: 'Ok', errors: []}
+        # {status: "Fail", errors: ["NOT_RECOGNIZED_OFFER_TYPE"]}  -- if required params are missing
+        # {status: "Ok", errors: []}
         return self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
 
     def is_fiat(self, currency):
@@ -1688,7 +1684,7 @@ class zonda(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
@@ -1715,6 +1711,7 @@ class zonda(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': None,
+            'internal': None,
             'fee': None,
             'info': transaction,
         }
@@ -1769,12 +1766,12 @@ class zonda(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         if 'code' in response:
             #
-            # bitbay returns the integer 'success': 1 key from their private API
-            # or an integer 'code' value from 0 to 510 and an error message
+            # bitbay returns the integer "success": 1 key from their private API
+            # or an integer "code" value from 0 to 510 and an error message
             #
-            #      {'success': 1, ...}
-            #      {'code': 502, 'message': 'Invalid sign'}
-            #      {'code': 0, 'message': 'offer funds not exceeding minimums'}
+            #      {"success": 1, ...}
+            #      {'code': 502, "message": "Invalid sign"}
+            #      {'code': 0, "message": "offer funds not exceeding minimums"}
             #
             #      400 At least one parameter wasn't set
             #      401 Invalid order type

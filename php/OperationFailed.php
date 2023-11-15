@@ -2,6 +2,6 @@
 
 namespace ccxt;
 
-require_once PATH_TO_CCXT . 'ExchangeError.php';
+require_once PATH_TO_CCXT . 'NetworkError.php';
 
-class OperationFailed extends ExchangeError {};
+class OperationFailed extends NetworkError {};
