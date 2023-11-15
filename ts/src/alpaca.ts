@@ -26,16 +26,14 @@ export default class alpaca extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www': 'https://alpaca.markets',
                 'api': {
-                    'public': 'https://api.{hostname}/{version}',
-                    'private': 'https://api.{hostname}/{version}',
-                    'cryptoPublic': 'https://data.{hostname}/{version}',
-                    'markets': 'https://api.{hostname}/{version}',
+                    'broker': 'https://broker-api.{hostname}',
+                    'trader': 'https://api.{hostname}',
+                    'market': 'https://data.{hostname}',
                 },
                 'test': {
-                    'public': 'https://paper-api.{hostname}/{version}',
-                    'private': 'https://paper-api.{hostname}/{version}',
-                    'cryptoPublic': 'https://data.{hostname}/{version}',
-                    'markets': 'https://api.{hostname}/{version}',
+                    'broker': 'https://broker-api.sandbox.{hostname}',
+                    'trader': 'https://paper-api.{hostname}',
+                    'market': 'https://data.sandbox.{hostname}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
                 'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
@@ -89,37 +87,97 @@ export default class alpaca extends Exchange {
                 'withdraw': false,
             },
             'api': {
-                'markets': {
-                    'get': [
-                        'assets/public/beta',
-                    ],
+                'broker': {
                 },
-                'private': {
-                    'get': [
-                        'account',
-                        'orders',
-                        'orders/{order_id}',
-                        'positions',
-                        'positions/{symbol}',
-                        'account/activities/{activity_type}',
-                    ],
-                    'post': [
-                        'orders',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/{order_id}',
-                    ],
+                'trader': {
+                    'private': {
+                        'get': [
+                            'v2/account',
+                            'v2/orders',
+                            'v2/orders/{order_id}',
+                            'v2/positions',
+                            'v2/positions/{symbol_or_asset_id}',
+                            'v2/account/portfolio/history',
+                            'v2/watchlists',
+                            'v2/watchlists/{watchlist_id}',
+                            'v2/watchlists:by_name',
+                            'v2/account/configurations',
+                            'v2/account/activities',
+                            'v2/account/activities/{activity_type}',
+                            'v2/calendar',
+                            'v2/clock',
+                            'v2/assets',
+                            'v2/assets/{symbol_or_asset_id}',
+                            'v2/corporate_actions/announcements/{id}',
+                            'v2/corporate_actions/announcements',
+                        ],
+                        'post': [
+                            'v2/orders',
+                            'v2/watchlists',
+                            'v2/watchlists/{watchlist_id}',
+                            'v2/watchlists:by_name',
+                        ],
+                        'put': [
+                            'v2/watchlists/{watchlist_id}',
+                            'v2/watchlists:by_name',
+                        ],
+                        'patch': [
+                            'v2/orders/{order_id}',
+                            'v2/account/configurations',
+                        ],
+                        'delete': [
+                            'v2/orders',
+                            'v2/orders/{order_id}',
+                            'v2/positions',
+                            'v2/positions/{symbol_or_asset_id}',
+                            'v2/watchlists/{watchlist_id}',
+                            'v2/watchlists:by_name',
+                            'v2/watchlists/{watchlist_id}/{symbol}',
+                        ],
+                    },
                 },
-                'cryptoPublic': {
-                    'get': [
-                        'crypto/latest/orderbooks',
-                        'crypto/trades',
-                        'crypto/quotes',
-                        'crypto/latest/quotes',
-                        'crypto/bars',
-                        'crypto/snapshots',
-                    ],
+                'market': {
+                    'public': {
+                        'get': [
+                            'v1beta3/crypto/{loc}/bars',
+                            'v1beta3/crypto/{loc}/latest/bars',
+                            'v1beta3/crypto/{loc}/latest/orderbooks',
+                            'v1beta3/crypto/{loc}/latest/quotes',
+                            'v1beta3/crypto/{loc}/latest/trades',
+                            'v1beta3/crypto/{loc}/quotes',
+                            'v1beta3/crypto/{loc}/snapshots',
+                            'v1beta3/crypto/{loc}/trades',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'v1beta1/corporate-actions',
+                            'v1beta1/forex/latest/rates',
+                            'v1beta1/forex/rates',
+                            'v1beta1/logos/{symbol}',
+                            'v1beta1/news',
+                            'v1beta1/screener/stocks/most-actives',
+                            'v1beta1/screener/{market_type}/movers',
+                            'v2/stocks/auctions',
+                            'v2/stocks/bars',
+                            'v2/stocks/bars/latest',
+                            'v2/stocks/meta/conditions/{ticktype}',
+                            'v2/stocks/meta/exchanges',
+                            'v2/stocks/quotes',
+                            'v2/stocks/quotes/latest',
+                            'v2/stocks/snapshots',
+                            'v2/stocks/trades',
+                            'v2/stocks/trades/latest',
+                            'v2/stocks/{symbol}/auctions',
+                            'v2/stocks/{symbol}/bars',
+                            'v2/stocks/{symbol}/bars/latest',
+                            'v2/stocks/{symbol}/quotes',
+                            'v2/stocks/{symbol}/quotes/latest',
+                            'v2/stocks/{symbol}/snapshot',
+                            'v2/stocks/{symbol}/trades',
+                            'v2/stocks/{symbol}/trades/latest',
+                        ],
+                    },
                 },
             },
             'timeframes': {
@@ -180,12 +238,6 @@ export default class alpaca extends Exchange {
             'options': {
                 'fetchTradesMethod': 'cryptoPublicGetCryptoTrades', // or cryptoPublicGetCryptoLatestTrades
                 'fetchOHLCVMethod': 'cryptoPublicGetCryptoBars', // or cryptoPublicGetCryptoLatestBars
-                'versions': {
-                    'public': 'v2',
-                    'private': 'v2',
-                    'cryptoPublic': 'v1beta2', // crypto beta
-                    'markets': 'v2', // crypto beta
-                },
                 'defaultExchange': 'CBSE',
                 'exchanges': [
                     'CBSE', // Coinbase
@@ -225,7 +277,7 @@ export default class alpaca extends Exchange {
             'asset_class': 'crypto',
             'tradeable': true,
         };
-        const assets = await this.marketsGetAssetsPublicBeta (this.extend (request, params));
+        const assets = await this.traderPrivateGetV2Assets (this.extend (request, params));
         //
         //    [
         //        {
@@ -374,8 +426,9 @@ export default class alpaca extends Exchange {
         const id = market['id'];
         const request = {
             'symbols': id,
+            'loc': 'us',
         };
-        const response = await this.cryptoPublicGetCryptoLatestOrderbooks (this.extend (request, params));
+        const response = await this.marketPublicGetV1beta3CryptoLocLatestOrderbooks (this.extend (request, params));
         //
         //   {
         //       "orderbooks":{
@@ -552,7 +605,7 @@ export default class alpaca extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
         request['client_order_id'] = clientOrderId;
         params = this.omit (params, [ 'clientOrderId' ]);
-        const order = await this.privatePostOrders (this.extend (request, params));
+        const order = await this.traderPrivatePostV2Orders (this.extend (request, params));
         //
         //   {
         //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -605,7 +658,7 @@ export default class alpaca extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await this.traderPrivateDeleteV2OrdersOrderId (this.extend (request, params));
         //
         //   {
         //       "code": 40410000,
@@ -628,7 +681,7 @@ export default class alpaca extends Exchange {
         const request = {
             'order_id': id,
         };
-        const order = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const order = await this.traderPrivateGetV2OrdersOrderId (this.extend (request, params));
         const marketId = this.safeString (order, 'symbol');
         const market = this.safeMarket (marketId);
         return this.parseOrder (order, market);
@@ -650,7 +703,7 @@ export default class alpaca extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const orders = await this.privateGetOrders (params);
+        const orders = await this.traderPrivateGetV2Orders (params);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -800,13 +853,10 @@ export default class alpaca extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const versions = this.safeValue (this.options, 'versions');
-        const version = this.safeString (versions, api);
         let endpoint = '/' + this.implodeParams (path, params);
-        let url = this.implodeParams (this.urls['api'][api], { 'version': version });
-        url = this.implodeHostname (url);
+        let url = this.implodeHostname (this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
-        if (api === 'private') {
+        if (api[1] === 'private') {
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }
