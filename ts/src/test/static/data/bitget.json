@@ -123,20 +123,20 @@
                 "output": "{\"symbol\":\"LTCUSDT_UMCBL\",\"orderType\":\"limit\",\"price\":\"100\",\"timeInForceValue\":\"post_only\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"side\":\"close_long\"}"
             },
             {
-                "description": "Spot-margin order with cross margin mode",
+                "description": "Spot-margin limit buy with cross margin",
                 "method": "createOrder",
                 "url": "https://api.bitget.com/api/margin/v1/cross/order/placeOrder",
                 "input": [
-                  "ARB/USDT",
+                  "LTC/USDT",
                   "limit",
                   "buy",
-                  10,
-                  0.5,
+                  0.1,
+                  55,
                   {
                     "marginMode": "cross"
                   }
                 ],
-                "output": "{\"symbol\":\"ARBUSDT\",\"orderType\":\"limit\",\"price\":\"0.5\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"loanType\":\"normal\",\"baseQuantity\":\"10\"}"
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"limit\",\"price\":\"55\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"loanType\":\"normal\",\"baseQuantity\":\"0.1\"}"
             }
         ],
         "createOrders": [
@@ -378,6 +378,21 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"LTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"marginMode\":\"fixed\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel cross margin spot order",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/margin/v1/cross/order/cancelOrder",
+                "input": [
+                  "1108649821344501761",
+                  "LTC/USDT",
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderId\":\"1108649821344501761\"}"
             }
         ]
     }
