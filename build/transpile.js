@@ -1572,7 +1572,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /^(?:Market|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
