@@ -151,8 +151,8 @@ class Balances(Dict[str, Balance]):
 
 
 class OrderBook(TypedDict):
-    asks: List[Numeric]
-    bids: List[Numeric]
+    asks: List[Num]
+    bids: List[Num]
     datetime: Str
     timestamp: Int
     nonce: Int
