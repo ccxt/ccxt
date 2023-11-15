@@ -30,7 +30,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade, OrderRequest, Numeric
+from ccxt.base.types import Balance, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Numeric
 
 # -----------------------------------------------------------------------------
 
@@ -2019,7 +2019,7 @@ class Exchange(object):
             },
         }
 
-    def safe_ledger_entry(self, entry: object, currency: object = None):
+    def safe_ledger_entry(self, entry: object, currency: Currency | None = None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
         before = self.safe_string(entry, 'before')
@@ -2171,7 +2171,7 @@ class Exchange(object):
                 (self.markets_by_id[value['id']]).append(value)
             else:
                 self.markets_by_id[value['id']] = [value]
-            market = self.deep_extend(self.safe_market(), {
+            market = self.deep_extend(self.safeMarketStructure(), {
                 'precision': self.precision,
                 'limits': self.limits,
             }, self.fees['trading'], value)
@@ -3314,7 +3314,7 @@ class Exchange(object):
         amount = self.safe_number(bidask, amountKey)
         return [price, amount]
 
-    def safe_currency(self, currencyId: str, currency: Any = None):
+    def safe_currency(self, currencyId: String, currency: Currency | None = None):
         if (currencyId is None) and (currency is not None):
             return currency
         if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
@@ -3327,7 +3327,7 @@ class Exchange(object):
             'code': code,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: String, market: Market | None = None, delimiter: String = None, marketType: String = None):
         result = {
             'id': marketId,
             'symbol': marketId,
@@ -3379,12 +3379,14 @@ class Exchange(object):
                 if numMarkets == 1:
                     return markets[0]
                 else:
-                    if (marketType is None) and (market is None):
-                        raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
-                    inferredMarketType = market['type'] if (marketType is None) else marketType
+                    if marketType is None:
+                        if market is None:
+                            raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
+                        else:
+                            marketType = market['type']
                     for i in range(0, len(markets)):
                         currentMarket = markets[i]
-                        if currentMarket[inferredMarketType]:
+                        if currentMarket[marketType]:
                             return currentMarket
             elif delimiter is not None:
                 parts = marketId.split(delimiter)
