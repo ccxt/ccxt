@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Bool, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -413,8 +413,8 @@ export default class bigone extends Exchange {
             const networks = {};
             const chains = this.safeValue (currency, 'binding_gateways', []);
             let currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
-            let currencyDepositEnabled = undefined;
-            let currencyWithdrawEnabled = undefined;
+            let currencyDepositEnabled: Bool = undefined;
+            let currencyWithdrawEnabled: Bool = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'gateway_name');
@@ -818,7 +818,7 @@ export default class bigone extends Exchange {
         market = this.safeMarket (marketId, market, '-');
         let side = this.safeString (trade, 'side');
         const takerSide = this.safeString (trade, 'taker_side');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if ((takerSide !== undefined) && (side !== undefined) && (side !== 'SELF_TRADING')) {
             takerOrMaker = (takerSide === side) ? 'taker' : 'maker';
         }
@@ -835,13 +835,9 @@ export default class bigone extends Exchange {
         }
         const makerOrderId = this.safeString (trade, 'maker_order_id');
         const takerOrderId = this.safeString (trade, 'taker_order_id');
-        let orderId = undefined;
+        let orderId: Str = undefined;
         if (makerOrderId !== undefined) {
-            if (takerOrderId !== undefined) {
-                orderId = [ makerOrderId, takerOrderId ];
-            } else {
-                orderId = makerOrderId;
-            }
+            orderId = makerOrderId;
         } else if (takerOrderId !== undefined) {
             orderId = takerOrderId;
         }

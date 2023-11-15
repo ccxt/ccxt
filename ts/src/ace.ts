@@ -807,8 +807,8 @@ export default class ace extends Exchange {
         if (quoteId !== undefined && baseId !== undefined) {
             symbol = baseId + '/' + quoteId;
         }
-        let side = undefined;
-        const tradeSide = this.safeNumber (trade, 'buyOrSell');
+        let side: string;
+        const tradeSide = this.safeInteger (trade, 'buyOrSell');
         if (tradeSide !== undefined) {
             side = (tradeSide === 1) ? 'buy' : 'sell';
         }
