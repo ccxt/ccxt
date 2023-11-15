@@ -236,8 +236,6 @@ export default class alpaca extends Exchange {
                 'APCA-PARTNER-ID': 'ccxt',
             },
             'options': {
-                'fetchTradesMethod': 'cryptoPublicGetCryptoTrades', // or cryptoPublicGetCryptoLatestTrades
-                'fetchOHLCVMethod': 'cryptoPublicGetCryptoBars', // or cryptoPublicGetCryptoLatestBars
                 'defaultExchange': 'CBSE',
                 'exchanges': [
                     'CBSE', // Coinbase
@@ -381,6 +379,7 @@ export default class alpaca extends Exchange {
         const id = market['id'];
         const request = {
             'symbols': id,
+            'loc': 'us',
         };
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
@@ -388,8 +387,7 @@ export default class alpaca extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.marketPublicGetV1beta3CryptoLocTrades (this.extend (request, params));
         //
         // {
         //     "next_page_token":null,
@@ -489,6 +487,7 @@ export default class alpaca extends Exchange {
         const request = {
             'symbols': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
+            'loc': 'us',
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -496,8 +495,7 @@ export default class alpaca extends Exchange {
         if (since !== undefined) {
             request['start'] = this.yyyymmdd (since);
         }
-        const method = this.safeString (this.options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
         //
         //    {
         //        "bars":{
