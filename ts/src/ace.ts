@@ -524,17 +524,17 @@ export default class ace extends Exchange {
         //             "type": 1
         //         }
         //
-        let id = undefined;
-        let timestamp = undefined;
-        let symbol = undefined;
-        let price = undefined;
-        let amount = undefined;
-        let side = undefined;
-        let type = undefined;
-        let status = undefined;
-        let filled = undefined;
-        let remaining = undefined;
-        let average = undefined;
+        let id: Str;
+        let timestamp: Int = undefined;
+        let symbol: Str = undefined;
+        let price: Str = undefined;
+        let amount: Str = undefined;
+        let side: Str = undefined;
+        let type: Str = undefined;
+        let status: Str = undefined;
+        let filled: Str = undefined;
+        let remaining: Str = undefined;
+        let average: Str = undefined;
         if (typeof order === 'string') {
             id = order;
         } else {

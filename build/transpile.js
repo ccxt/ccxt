@@ -538,6 +538,9 @@ class Transpiler {
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
+            // we want to remove type hinting variable lines
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|string|number);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|string|number)(\s+=\s+\w+)/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -926,7 +929,7 @@ class Transpiler {
             'OrderType': /: OrderType/,
             'IndexType': /: IndexType/,
             'FundingHistory': /\[FundingHistory/,
-            'String': /: String =/,
+            'Str': /: Str =/,
             'Strings': /: Strings =/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
@@ -1623,7 +1626,6 @@ class Transpiler {
             // remove excessive spacing from argument defaults in Python method signature
             const pythonTypes = {
                 'string': 'str',
-                'Str': 'String',
                 'number': 'float',
                 'any': 'Any',
                 'boolean': 'bool',
