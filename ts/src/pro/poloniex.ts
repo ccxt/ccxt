@@ -1136,7 +1136,7 @@ export default class poloniex extends poloniexRest {
             const item = this.safeValue (data, 0);
             const orderId = this.safeString (item, 'orderId');
             if (orderId === '0') {
-                this.handleAuthenticate (client, item);
+                this.handleErrorMessage (client, item);
             } else {
                 return this.handleCreateOrder (client, message);
             }
