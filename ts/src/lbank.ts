@@ -2026,7 +2026,7 @@ export default class lbank extends Exchange {
         return {
             'info': result,
             'id': this.safeString (result, 'withdrawId'),
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status, type) {
