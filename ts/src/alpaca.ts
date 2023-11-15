@@ -368,26 +368,40 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.alpaca.markets/reference/cryptotrades
+         * @see https://docs.alpaca.markets/reference/cryptolatesttrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {string} [params.loc] crypto location, default: us
+         * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const id = market['id'];
+        const marketId = market['id'];
+        const loc = this.safeString (params, 'loc', 'us');
+        const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocTrades');
         const request = {
-            'symbols': id,
-            'loc': 'us',
+            'symbols': marketId,
+            'loc': loc,
         };
-        if (since !== undefined) {
-            request['start'] = this.iso8601 (since);
+        params = this.omit (params, [ 'loc', 'method' ]);
+        let response = undefined;
+        if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
+            if (since !== undefined) {
+                request['start'] = this.iso8601 (since);
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.marketPublicGetV1beta3CryptoLocTrades (this.extend (request, params));
+        } else if (method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
+            response = await this.marketPublicGetV1beta3CryptoLocLatestTrades (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.marketPublicGetV1beta3CryptoLocTrades (this.extend (request, params));
         //
         // {
         //     "next_page_token":null,
@@ -404,8 +418,23 @@ export default class alpaca extends Exchange {
         //     }
         // }
         //
+        // {
+        //     "trades":{
+        //        "BTC/USD":{
+        //           "i":36440704,
+        //           "p":22625,
+        //           "s":0.0001,
+        //           "t":"2022-07-21T11:47:31.073391Z",
+        //           "tks":"B"
+        //        }
+        //     }
+        // }
+        //
         const trades = this.safeValue (response, 'trades', {});
-        const symbolTrades = this.safeValue (trades, market['id'], {});
+        let symbolTrades = this.safeValue (trades, marketId, {});
+        if (!Array.isArray (symbolTrades)) {
+            symbolTrades = [ symbolTrades ];
+        }
         return this.parseTrades (symbolTrades, market, since, limit);
     }
 
@@ -414,18 +443,22 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {string} [params.loc] crypto location, default: us
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
+        const loc = this.safeString (params, 'loc', 'us');
         const request = {
             'symbols': id,
-            'loc': 'us',
+            'loc': loc,
         };
+        params = this.omit (params, 'loc');
         const response = await this.marketPublicGetV1beta3CryptoLocLatestOrderbooks (this.extend (request, params));
         //
         //   {
@@ -475,27 +508,42 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.alpaca.markets/reference/cryptobars
+         * @see https://docs.alpaca.markets/reference/cryptolatestbars
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the alpha api endpoint
+         * @param {string} [params.loc] crypto location, default: us
+         * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketId = market['id'];
+        const loc = this.safeString (params, 'loc', 'us');
+        const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         const request = {
-            'symbols': market['id'],
-            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
-            'loc': 'us',
+            'symbols': marketId,
+            'loc': loc,
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        params = this.omit (params, [ 'loc', 'method' ]);
+        let response = undefined;
+        if (method === 'marketPublicGetV1beta3CryptoLocBars') {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (since !== undefined) {
+                request['start'] = this.yyyymmdd (since);
+            }
+            request['timeframe'] = this.safeString (this.timeframes, timeframe, timeframe);
+            response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
+        } else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
+            response = await this.marketPublicGetV1beta3CryptoLocLatestBars (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
         }
-        if (since !== undefined) {
-            request['start'] = this.yyyymmdd (since);
-        }
-        const response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
         //
         //    {
         //        "bars":{
@@ -525,8 +573,26 @@ export default class alpaca extends Exchange {
         //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
         //     }
         //
+        //    {
+        //        "bars":{
+        //           "BTC/USD":{
+        //              "c":22887,
+        //              "h":22888,
+        //              "l":22873,
+        //              "n":11,
+        //              "o":22883,
+        //              "t":"2022-07-21T05:00:00Z",
+        //              "v":1.1138,
+        //              "vw":22883.0155324116
+        //           }
+        //        }
+        //     }
+        //
         const bars = this.safeValue (response, 'bars', {});
-        const ohlcvs = this.safeValue (bars, market['id'], {});
+        let ohlcvs = this.safeValue (bars, marketId, {});
+        if (!Array.isArray (ohlcvs)) {
+            ohlcvs = [ ohlcvs ];
+        }
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
