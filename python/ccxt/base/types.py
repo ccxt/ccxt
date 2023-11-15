@@ -270,6 +270,6 @@ class Market(TypedDict):
     created: Int
 
 class Currency(TypedDict):
-    id: String
-    code: String
-    precision: Numeric
+    id: Str
+    code: Str
+    precision: Num
