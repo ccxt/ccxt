@@ -199,6 +199,8 @@ export default class coinbase extends Exchange {
                         'post': [
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
+                            'brokerage/orders/edit',
+                            'brokerage/orders/edit_preview',
                         ],
                     },
                 },
