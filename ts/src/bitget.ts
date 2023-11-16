@@ -1518,7 +1518,7 @@ export default class bitget extends Exchange {
                 swap = true;
                 symbol = symbol + ':' + settle;
             } else if (symbolType === 'delivery') {
-                expiry = this.safeString (market, 'deliveryTime');
+                expiry = this.safeInteger (market, 'deliveryTime');
                 expiryDatetime = this.iso8601 (expiry);
                 const expiryParts = expiryDatetime.split ('-');
                 const yearPart = this.safeString (expiryParts, 0);
@@ -1607,7 +1607,7 @@ export default class bitget extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': undefined,
+            'created': this.safeInteger (market, 'launchTime'),
             'info': market,
         };
     }
