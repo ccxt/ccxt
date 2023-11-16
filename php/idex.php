@@ -375,7 +375,7 @@ class idex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         // {
         //   "market" => "DIL-ETH",
         //   "time" => 1598367493008,
@@ -463,7 +463,7 @@ class idex extends Exchange {
         }
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // {
         //   "start" => 1598345580000,
         //   "open" => "0.09771286",
@@ -517,7 +517,7 @@ class idex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public trades
         //  {
@@ -1013,7 +1013,7 @@ class idex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "market" => "DIL-ETH",
@@ -1462,7 +1462,7 @@ class idex extends Exchange {
             'depositId' => $id,
         );
         $response = $this->privateGetDeposits (array_merge($request, $params));
-        return $this->parse_transaction($response, $code);
+        return $this->parse_transaction($response);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1509,7 +1509,7 @@ class idex extends Exchange {
             'withdrawalId' => $id,
         );
         $response = $this->privateGetWithdrawals (array_merge($request, $params));
-        return $this->parse_transaction($response, $code);
+        return $this->parse_transaction($response);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1568,7 +1568,7 @@ class idex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //

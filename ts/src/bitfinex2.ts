@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -913,7 +913,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
@@ -1036,7 +1036,7 @@ export default class bitfinex2 extends Exchange {
         return result as OrderBook;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1105,7 +1105,7 @@ export default class bitfinex2 extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitfinex2#fetchTickers
@@ -1194,7 +1194,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1370,7 +1370,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1457539800000,
@@ -1436,7 +1436,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (orderTypes, orderType, 'GTC');
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         const id = this.safeString (order, 0);
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
@@ -2065,7 +2065,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -2469,7 +2469,7 @@ export default class bitfinex2 extends Exchange {
         });
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchPositions
@@ -2519,7 +2519,7 @@ export default class bitfinex2 extends Exchange {
         return this.parsePositions (response, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //    [
         //        "tBTCUSD",                    // SYMBOL
@@ -2672,7 +2672,7 @@ export default class bitfinex2 extends Exchange {
         }
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     [
         //         [
@@ -2789,7 +2789,7 @@ export default class bitfinex2 extends Exchange {
         return this.fetchFundingRates ([ symbol ], params);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitfine#fetchFundingRate
@@ -2908,7 +2908,7 @@ export default class bitfinex2 extends Exchange {
         return this.filterBySymbolSinceLimit (rates, symbol, since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -2961,7 +2961,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    parseFundingRateHistory (contract, market = undefined) {
+    parseFundingRateHistory (contract, market: Market = undefined) {
         //
         // [
         //     1691165494000,

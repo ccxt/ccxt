@@ -536,7 +536,7 @@ class bitpanda extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers($feeTiers, $market = null) {
+    public function parse_fee_tiers($feeTiers, ?array $market = null) {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -555,7 +555,7 @@ class bitpanda extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -763,7 +763,7 @@ class bitpanda extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -851,7 +851,7 @@ class bitpanda extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1015,7 +1015,7 @@ class bitpanda extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         $code = null;
         if ($currency !== null) {
             $code = $currency['code'];
@@ -1267,7 +1267,7 @@ class bitpanda extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits, fetchWithdrawals
         //
@@ -1361,7 +1361,7 @@ class bitpanda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //

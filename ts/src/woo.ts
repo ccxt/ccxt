@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, FundingRateHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, Transaction } from './base/types.js';
+import { Balances, Bool, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -346,11 +346,11 @@ export default class woo extends Exchange {
         const quoteId = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        let settleId = undefined;
-        let settle = undefined;
+        let settleId: Str = undefined;
+        let settle: Str = undefined;
         let symbol = base + '/' + quote;
-        let contractSize = undefined;
-        let linear = undefined;
+        let contractSize: Num = undefined;
+        let linear: Bool = undefined;
         let margin = true;
         const contract = isSwap;
         if (contract) {
@@ -466,7 +466,7 @@ export default class woo extends Exchange {
         return this.parseTrades (resultResponse, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public/market_trades
         //
@@ -506,7 +506,7 @@ export default class woo extends Exchange {
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (isFromFetchOrder) {
             const isMaker = this.safeString (trade, 'is_maker') === '1';
             takerOrMaker = isMaker ? 'maker' : 'taker';
@@ -676,7 +676,7 @@ export default class woo extends Exchange {
             const currencyId = currencyIds[i];
             const networks = networksByCurrencyId[currencyId];
             const code = this.safeCurrencyCode (currencyId);
-            let name = undefined;
+            let name: Str = undefined;
             let minPrecision = undefined;
             const resultingNetworks = {};
             for (let j = 0; j < networks.length; j++) {
@@ -999,7 +999,7 @@ export default class woo extends Exchange {
             this.checkRequiredSymbol ('cancelOrder', symbol);
         }
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1154,7 +1154,7 @@ export default class woo extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         const stop = this.safeValue (params, 'stop');
         params = this.omit (params, 'stop');
         if (symbol !== undefined) {
@@ -1222,7 +1222,7 @@ export default class woo extends Exchange {
         return this.safeString (timeInForces, timeInForce, undefined);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // Possible input functions:
         // * createOrder
@@ -1286,8 +1286,8 @@ export default class woo extends Exchange {
         const feeCurrency = this.safeString2 (order, 'fee_asset', 'feeAsset');
         const transactions = this.safeValue (order, 'Transactions');
         const stopPrice = this.safeNumber (order, 'triggerPrice');
-        let takeProfitPrice = undefined;
-        let stopLossPrice = undefined;
+        let takeProfitPrice: Num = undefined;
+        let stopLossPrice: Num = undefined;
         const childOrders = this.safeValue (order, 'childOrders');
         if (childOrders !== undefined) {
             const first = this.safeValue (childOrders, 0);
@@ -1449,7 +1449,7 @@ export default class woo extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         // example response in fetchOHLCV
         return [
             this.safeInteger (ohlcv, 'start_timestamp'),
@@ -1474,7 +1474,7 @@ export default class woo extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1517,7 +1517,7 @@ export default class woo extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1694,7 +1694,7 @@ export default class woo extends Exchange {
     async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = { };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['balance_token'] = currency['id'];
@@ -1763,7 +1763,7 @@ export default class woo extends Exchange {
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         const networkizedCode = this.safeString (item, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
         const code = currencyDefined['code'];
@@ -1878,7 +1878,7 @@ export default class woo extends Exchange {
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         // example in fetchLedger
         const networkizedCode = this.safeString (transaction, 'token');
         const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
@@ -1982,7 +1982,7 @@ export default class woo extends Exchange {
         return this.parseTransfers (rows, currency, since, limit, params);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //    getAssetHistoryRows
         //        {
@@ -2017,8 +2017,8 @@ export default class woo extends Exchange {
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        let fromAccount = undefined;
-        let toAccount = undefined;
+        let fromAccount: Str = undefined;
+        let toAccount: Str = undefined;
         if (movementDirection === 'withdraw') {
             fromAccount = undefined;
             toAccount = 'spot';
@@ -2028,7 +2028,7 @@ export default class woo extends Exchange {
         }
         const timestamp = this.safeTimestamp (transfer, 'created_time');
         const success = this.safeValue (transfer, 'success');
-        let status = undefined;
+        let status: Str = undefined;
         if (success !== undefined) {
             status = success ? 'ok' : 'failed';
         }
@@ -2112,7 +2112,7 @@ export default class woo extends Exchange {
          * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -2135,7 +2135,7 @@ export default class woo extends Exchange {
         });
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         //     {
         //         "success": true,
@@ -2237,7 +2237,7 @@ export default class woo extends Exchange {
         return undefined;
     }
 
-    parseIncome (income, market = undefined) {
+    parseIncome (income, market: Market = undefined) {
         //
         //     {
         //         "id":666666,
@@ -2273,7 +2273,7 @@ export default class woo extends Exchange {
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2309,7 +2309,7 @@ export default class woo extends Exchange {
         return this.parseIncomes (result, market, since, limit);
     }
 
-    parseFundingRate (fundingRate, market = undefined) {
+    parseFundingRate (fundingRate, market: Market = undefined) {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -2369,7 +2369,7 @@ export default class woo extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.v1PublicGetFundingRates (params);
@@ -2537,7 +2537,7 @@ export default class woo extends Exchange {
         return this.parsePosition (response, market);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.v3PrivateGetPositions (params);
         //
@@ -2568,7 +2568,7 @@ export default class woo extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "symbol": "0_symbol",
@@ -2587,7 +2587,7 @@ export default class woo extends Exchange {
         const contract = this.safeString (position, 'symbol');
         market = this.safeMarket (contract, market);
         let size = this.safeString (position, 'holding');
-        let side = undefined;
+        let side: Str = undefined;
         if (Precise.stringGt (size, '0')) {
             side = 'long';
         } else {

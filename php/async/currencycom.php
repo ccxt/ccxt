@@ -800,7 +800,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -949,7 +949,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1590971040000,
@@ -1005,7 +1005,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1121,7 +1121,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1617,7 +1617,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //    {
         //        "id" => "616769213",
@@ -1739,7 +1739,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         $id = $this->safe_string($item, 'id');
         $amountString = $this->safe_string($item, 'amount');
         $amount = Precise::string_abs($amountString);
@@ -1835,7 +1835,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         $currency = $this->safe_currency(null, $currency);
@@ -1928,7 +1928,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //    {
         //        "accountId" => "109698017416453793",

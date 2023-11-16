@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -665,7 +665,7 @@ class bitstamp(Exchange, ImplicitAPI):
         orderbook['nonce'] = microtimestamp
         return orderbook
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # {
         #     "timestamp": "1686068944",
@@ -742,7 +742,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://www.bitstamp.net/api/#all-tickers
@@ -827,7 +827,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 return self.safe_market(marketId)
         return None
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -981,7 +981,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "high": "9064.77",
@@ -1111,7 +1111,7 @@ class bitstamp(Exchange, ImplicitAPI):
         response = self.privatePostBalancePair(self.extend(request, params))
         return self.parse_trading_fee(response, market)
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         market = self.safe_market(None, market)
         feeString = self.safe_string(fee, market['id'] + '_fee')
         dividedFeeString = Precise.string_div(feeString, '100')
@@ -1198,7 +1198,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 result[code]['withdraw'] = self.safe_number(response, id)
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://www.bitstamp.net/api/#balance
@@ -1297,7 +1297,7 @@ class bitstamp(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1311,7 +1311,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.privatePostCancelOrder(self.extend(request, params))
 
-    def cancel_all_orders(self, symbol: String = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1337,7 +1337,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_order_status(self, id: str, symbol: String = None, params={}):
+    def fetch_order_status(self, id: str, symbol: Str = None, params={}):
         self.load_markets()
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         request = {}
@@ -1349,7 +1349,7 @@ class bitstamp(Exchange, ImplicitAPI):
         response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1388,7 +1388,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1411,7 +1411,7 @@ class bitstamp(Exchange, ImplicitAPI):
         result = self.filter_by(response, 'type', '2')
         return self.parse_trades(result, market, since, limit)
 
-    def fetch_deposits_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
@@ -1457,7 +1457,7 @@ class bitstamp(Exchange, ImplicitAPI):
         transactions = self.filter_by_array(response, 'type', ['0', '1'], False)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1499,7 +1499,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, None, since, limit)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDepositsWithdrawals
         #
@@ -1627,7 +1627,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #   from fetch order:
         #     {status: "Finished",
@@ -1714,7 +1714,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #     [
         #         {
@@ -1801,7 +1801,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'fee': parsedTransaction['fee'],
             }
 
-    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -1820,7 +1820,7 @@ class bitstamp(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_ledger(response, currency, since, limit)
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol

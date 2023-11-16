@@ -3,7 +3,7 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, Trade } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -111,7 +111,7 @@ export default class hitbtc extends hitbtcRest {
         return future;
     }
 
-    async subscribePublic (name: string, symbols: string[] = undefined, params = {}) {
+    async subscribePublic (name: string, symbols: Strings = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -909,7 +909,7 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const timestamp = this.safeString (order, 'created_at');
-        const marketId = this.safeSymbol (order, 'symbol');
+        const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'trade_id');
         let trades = undefined;

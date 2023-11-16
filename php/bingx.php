@@ -58,7 +58,7 @@ class bingx extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
-                'setMagin' => true,
+                'setMargin' => true,
                 'setMarginMode' => true,
                 'transfer' => true,
             ),
@@ -698,7 +698,7 @@ class bingx extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    {
         //        "open" => "19394.4",
@@ -804,7 +804,7 @@ class bingx extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // spot
         // fetchTrades
@@ -1033,7 +1033,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rate($data, $market);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1163,7 +1163,7 @@ class bingx extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //    {
         //        "openInterest" => "3289641547.10",
@@ -1299,7 +1299,7 @@ class bingx extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot
         //    {
@@ -1549,7 +1549,7 @@ class bingx extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1895,7 +1895,7 @@ class bingx extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot
         // createOrder, createOrders, cancelOrder
@@ -2586,7 +2586,7 @@ class bingx extends Exchange {
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         $tranId = $this->safe_string($transfer, 'tranId');
         $timestamp = $this->safe_integer($transfer, 'timestamp');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -2653,7 +2653,7 @@ class bingx extends Exchange {
         return $this->index_by($parsed, 'network');
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "coinId" => "799",
@@ -2771,7 +2771,7 @@ class bingx extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -3047,7 +3047,7 @@ class bingx extends Exchange {
         return $this->parse_trades($fillOrders, $market, $since, $limit, $query);
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "coin" => "BTC",
@@ -3252,7 +3252,7 @@ class bingx extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         //
         //     {
         //         "time" => "int64",

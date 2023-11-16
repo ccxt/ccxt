@@ -761,7 +761,7 @@ class alpaca extends alpaca$1 {
         const datetime = this.safeString(trade, 't');
         const timestamp = this.parse8601(datetime);
         const alpacaSide = this.safeString(trade, 'tks');
-        let side = undefined;
+        let side;
         if (alpacaSide === 'B') {
             side = 'buy';
         }

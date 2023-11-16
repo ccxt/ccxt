@@ -830,12 +830,7 @@ export default class bigone extends Exchange {
         const takerOrderId = this.safeString(trade, 'taker_order_id');
         let orderId = undefined;
         if (makerOrderId !== undefined) {
-            if (takerOrderId !== undefined) {
-                orderId = [makerOrderId, takerOrderId];
-            }
-            else {
-                orderId = makerOrderId;
-            }
+            orderId = makerOrderId;
         }
         else if (takerOrderId !== undefined) {
             orderId = takerOrderId;

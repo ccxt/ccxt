@@ -1,11 +1,11 @@
 
 // ---------------------------------------------------------------------------
 
-import { Precise } from '../ccxt.js';
+import { Market, Precise } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Ticker, Tickers } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType, Strings, Ticker, Tickers } from './base/types.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
@@ -338,7 +338,7 @@ export default class p2b extends Exchange {
         return result;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name p2b#fetchTickers
@@ -423,7 +423,7 @@ export default class p2b extends Exchange {
         );
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined) {
         //
         // parseTickers
         //
@@ -588,7 +588,7 @@ export default class p2b extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined) {
         //
         // fetchTrades
         //
@@ -707,7 +707,7 @@ export default class p2b extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) : OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
         //
         //    [
         //        1699253400,       // Kline open time
@@ -1159,7 +1159,7 @@ export default class p2b extends Exchange {
         return orders;
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //

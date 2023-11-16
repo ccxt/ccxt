@@ -414,7 +414,7 @@ class timex extends Exchange {
         return null;
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -1095,7 +1095,7 @@ class timex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "fee" => 0.0075,
@@ -1304,7 +1304,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "ask" => 0.017,
@@ -1349,7 +1349,7 @@ class timex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1418,7 +1418,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "timestamp":"2019-12-04T23:00:00",
@@ -1440,7 +1440,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1471,7 +1471,6 @@ class timex extends Exchange {
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'filledQuantity');
         $canceledQuantity = $this->omit_zero($this->safe_string($order, 'cancelledQuantity'));
-        $status = null;
         if (Precise::string_equals($filled, $amount)) {
             $status = 'closed';
         } elseif ($canceledQuantity !== null) {

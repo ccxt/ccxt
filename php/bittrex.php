@@ -507,7 +507,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // $ticker
         //
@@ -673,7 +673,7 @@ class bittrex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -842,7 +842,7 @@ class bittrex extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         $marketId = $this->safe_string($fee, 'marketSymbol');
         $maker = $this->safe_number($fee, 'makerRate');
         $taker = $this->safe_number($fee, 'takerRate');
@@ -866,7 +866,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "startsAt":"2020-06-12T02:35:00Z",
@@ -1515,7 +1515,7 @@ class bittrex extends Exchange {
         return $this->fetch_withdrawals($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1648,7 +1648,7 @@ class bittrex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         //
@@ -1838,10 +1838,10 @@ class bittrex extends Exchange {
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * fetch all $trades made by the user
+         * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch $trades for
-         * @param {int} [$limit] the maximum number of $trades structures to retrieve
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the bittrex api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
@@ -1856,12 +1856,10 @@ class bittrex extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
             $request['marketSymbol'] = $market['id'];
         }
         $response = $this->privateGetExecutions (array_merge($request, $params));
-        $trades = $this->parse_trades($response, $market, $since, $limit);
-        return $trades;
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -2018,7 +2016,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //     {
         //         "symbol" => "APXP",

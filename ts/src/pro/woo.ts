@@ -5,7 +5,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str } from '../base/types.js';
+import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -206,7 +206,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'tickers';
         const topic = name;

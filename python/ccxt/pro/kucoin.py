@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -133,7 +133,7 @@ class kucoin(ccxt.async_support.kucoin):
         messageHash = 'ticker:' + symbol
         return await self.subscribe(url, messageHash, topic, query)
 
-    async def watch_tickers(self, symbols: List[str] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -579,7 +579,7 @@ class kucoin(ccxt.async_support.kucoin):
         #
         return message
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -736,7 +736,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in

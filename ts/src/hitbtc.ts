@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -1060,7 +1060,7 @@ export default class hitbtc extends Exchange {
         return this.parseTicker (response, market) as Ticker;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name hitbtc#fetchTickers
@@ -1106,7 +1106,7 @@ export default class hitbtc extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //       "ask": "62756.01",
@@ -1235,7 +1235,7 @@ export default class hitbtc extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // createOrder (market)
         //
@@ -1400,7 +1400,7 @@ export default class hitbtc extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // transaction
         //
@@ -1527,7 +1527,7 @@ export default class hitbtc extends Exchange {
         return await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchOrderBooks
@@ -1584,7 +1584,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask') as OrderBook;
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -1743,7 +1743,7 @@ export default class hitbtc extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         // Spot and Swap
         //
@@ -2252,7 +2252,7 @@ export default class hitbtc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // limit
         //     {
@@ -2489,7 +2489,7 @@ export default class hitbtc extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
@@ -2587,7 +2587,7 @@ export default class hitbtc extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchFundingRates
@@ -2724,7 +2724,7 @@ export default class hitbtc extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchPositions
@@ -2849,7 +2849,7 @@ export default class hitbtc extends Exchange {
         return this.parsePosition (response, market);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     [
         //         {
@@ -2936,7 +2936,7 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    parseOpenInterest (interest, market = undefined) {
+    parseOpenInterest (interest, market: Market = undefined) {
         //
         //     {
         //         "contract_type": "perpetual",
@@ -3038,7 +3038,7 @@ export default class hitbtc extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //     {
         //         "contract_type": "perpetual",
@@ -3131,7 +3131,7 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market: Market = undefined) {
         const currencies = this.safeValue (data, 'currencies', []);
         const currencyInfo = this.safeValue (currencies, 0);
         return {
@@ -3269,7 +3269,7 @@ export default class hitbtc extends Exchange {
         return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchDepositWithdrawFees
@@ -3309,7 +3309,7 @@ export default class hitbtc extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //         "full_name": "ConnectWealth",

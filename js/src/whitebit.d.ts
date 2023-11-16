@@ -1,12 +1,12 @@
 import Exchange from './abstract/whitebit.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class whitebit
  * @extends Exchange
  */
 export default class whitebit extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<{
@@ -14,18 +14,18 @@ export default class whitebit extends Exchange {
         deposit: {};
         info: any;
     }>;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    parseTicker(ticker: any, market?: Market): Ticker;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseTrade(trade: any, market?: Market): Trade;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchStatus(params?: {}): Promise<{
         status: string;
         updated: any;
@@ -41,7 +41,7 @@ export default class whitebit extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderType(type: any): string;
-    parseOrder(order: any, market?: any): Order;
+    parseOrder(order: any, market?: Market): Order;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
@@ -56,31 +56,31 @@ export default class whitebit extends Exchange {
         id: any;
         timestamp: any;
         datetime: any;
-        currency: any;
+        currency: string;
         amount: any;
         fromAccount: any;
         toAccount: any;
         status: any;
     }>;
-    parseTransfer(transfer: any, currency?: any): {
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: any;
         timestamp: any;
         datetime: any;
-        currency: any;
+        currency: string;
         amount: any;
         fromAccount: any;
         toAccount: any;
         status: any;
     };
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
-    parseTransaction(transaction: any, currency?: any): Transaction;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: any, market?: any): {
-        symbol: any;
+    parseBorrowInterest(info: any, market?: Market): {
+        symbol: string;
         marginMode: string;
         currency: string;
         interest: number;
@@ -91,10 +91,10 @@ export default class whitebit extends Exchange {
         info: any;
     };
     fetchFundingRate(symbol: string, params?: {}): Promise<any>;
-    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
-    parseFundingRate(contract: any, market?: any): {
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
+    parseFundingRate(contract: any, market?: Market): {
         info: any;
-        symbol: any;
+        symbol: string;
         markPrice: number;
         indexPrice: number;
         interestRate: number;

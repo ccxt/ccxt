@@ -1464,7 +1464,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
         let currency = undefined;
-        if (currency !== undefined) {
+        if (code !== undefined) {
             currency = this.currency(code);
         }
         const request = {};
@@ -1658,7 +1658,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
         let currency = undefined;
-        if (currency !== undefined) {
+        if (code !== undefined) {
             currency = this.currency(code);
         }
         const request = {};

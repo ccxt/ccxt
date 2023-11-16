@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -413,8 +413,8 @@ export default class bigone extends Exchange {
             const networks = {};
             const chains = this.safeValue (currency, 'binding_gateways', []);
             let currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
-            let currencyDepositEnabled = undefined;
-            let currencyWithdrawEnabled = undefined;
+            let currencyDepositEnabled: Bool = undefined;
+            let currencyWithdrawEnabled: Bool = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'gateway_name');
@@ -576,7 +576,7 @@ export default class bigone extends Exchange {
         };
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "asset_pair_name":"ETH-BTC",
@@ -655,7 +655,7 @@ export default class bigone extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bigone#fetchTickers
@@ -769,7 +769,7 @@ export default class bigone extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -818,7 +818,7 @@ export default class bigone extends Exchange {
         market = this.safeMarket (marketId, market, '-');
         let side = this.safeString (trade, 'side');
         const takerSide = this.safeString (trade, 'taker_side');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if ((takerSide !== undefined) && (side !== undefined) && (side !== 'SELF_TRADING')) {
             takerOrMaker = (takerSide === side) ? 'taker' : 'maker';
         }
@@ -835,13 +835,9 @@ export default class bigone extends Exchange {
         }
         const makerOrderId = this.safeString (trade, 'maker_order_id');
         const takerOrderId = this.safeString (trade, 'taker_order_id');
-        let orderId = undefined;
+        let orderId: Str = undefined;
         if (makerOrderId !== undefined) {
-            if (takerOrderId !== undefined) {
-                orderId = [ makerOrderId, takerOrderId ];
-            } else {
-                orderId = makerOrderId;
-            }
+            orderId = makerOrderId;
         } else if (takerOrderId !== undefined) {
             orderId = takerOrderId;
         }
@@ -950,7 +946,7 @@ export default class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "close": "0.021562",
@@ -1086,7 +1082,7 @@ export default class bigone extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //    {
         //        "id": "42154072251",
@@ -1586,7 +1582,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1825,7 +1821,7 @@ export default class bigone extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //     {
         //         "code": 0,

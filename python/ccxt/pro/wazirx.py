@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -184,7 +183,7 @@ class wazirx(ccxt.async_support.wazirx):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, subscribeHash)
 
-    async def watch_tickers(self, symbols: List[str] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :see: https://docs.wazirx.com/#all-market-tickers-stream
@@ -340,7 +339,7 @@ class wazirx(ccxt.async_support.wazirx):
             trades.append(parsedTrade)
         client.resolve(trades, messageHash)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watch trades by user
         :see: https://docs.wazirx.com/#trade-update
@@ -521,7 +520,7 @@ class wazirx(ccxt.async_support.wazirx):
             self.orderbooks[symbol] = currentOrderBook
         client.resolve(self.orderbooks[symbol], messageHash)
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)

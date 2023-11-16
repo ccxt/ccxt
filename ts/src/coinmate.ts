@@ -6,7 +6,7 @@ import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, Insuffic
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -435,7 +435,7 @@ export default class coinmate extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // deposits
         //
@@ -591,7 +591,7 @@ export default class coinmate extends Exchange {
         return this.parseTrades (data, undefined, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchMyTrades (private)
         //
@@ -789,7 +789,7 @@ export default class coinmate extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // limit sell
         //

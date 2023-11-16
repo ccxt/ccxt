@@ -167,7 +167,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // {
         //     "high":"33740.82",
@@ -253,7 +253,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
         $market = $this->safe_market(null, $market);
@@ -373,7 +373,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -506,7 +506,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //     {
         //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",

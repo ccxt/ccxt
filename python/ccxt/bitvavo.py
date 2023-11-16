@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -544,7 +544,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #
@@ -593,7 +593,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -667,7 +667,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -831,7 +831,7 @@ class bitvavo(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'nonce')
         return orderbook
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         1590383700000,
@@ -1100,7 +1100,7 @@ class bitvavo(Exchange, ImplicitAPI):
         else:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, or a price argument, or non-empty params')
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1123,7 +1123,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_all_orders(self, symbol: String = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1146,7 +1146,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1197,7 +1197,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
         fetches information on multiple orders made by the user
@@ -1268,7 +1268,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1342,7 +1342,7 @@ class bitvavo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # cancelOrder, cancelAllOrders
         #
@@ -1444,7 +1444,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
         fetch all trades made by the user
@@ -1529,7 +1529,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1570,7 +1570,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1623,7 +1623,7 @@ class bitvavo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -1701,7 +1701,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #   {
         #       "symbol": "1INCH",
@@ -1743,7 +1743,7 @@ class bitvavo(Exchange, ImplicitAPI):
         }
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get

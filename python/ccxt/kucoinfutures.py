@@ -5,7 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -586,7 +586,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    [
         #        "1545904980000",          # Start time of the candle cycle
@@ -727,7 +727,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.parse_ticker(response['data'], market)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "code": "200000",
@@ -773,7 +773,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_funding_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :param str symbol: unified market symbol
@@ -898,7 +898,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_position(data, market)
 
-    def fetch_positions(self, symbols: List[str] = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :see: https://docs.kucoin.com/futures/#get-position-list
@@ -957,7 +957,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_positions(data, symbols)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #    {
         #        "code": "200000",
@@ -1179,7 +1179,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'info': response,
         }, market)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1204,7 +1204,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.safe_value(response, 'data')
 
-    def cancel_all_orders(self, symbol: String = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1303,7 +1303,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'direction': 'in',
         })
 
-    def parse_margin_modification(self, info, market=None):
+    def parse_margin_modification(self, info, market: Market = None):
         #
         #    {
         #        "id": "62311d26064e8f00013f2c6d",
@@ -1365,7 +1365,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'status': None,
         }
 
-    def fetch_orders_by_status(self, status, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches a list of orders placed on the exchange
         :see: https://docs.kucoin.com/futures/#get-order-list
@@ -1464,7 +1464,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         orders = self.safe_value(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://docs.kucoin.com/futures/#get-order-list
@@ -1485,7 +1485,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         return self.fetch_orders_by_status('done', symbol, since, limit, params)
 
-    def fetch_order(self, id=None, symbol: String = None, params={}):
+    def fetch_order(self, id=None, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.kucoin.com/futures/#get-details-of-a-single-order
@@ -1553,7 +1553,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOrder, fetchOrdersByStatus
         #
@@ -1795,7 +1795,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'toAccount': 'spot',
         })
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # transfer
         #
@@ -1822,7 +1822,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.kucoin.com/futures/#get-fills
         fetch all trades made by the user
@@ -1927,7 +1927,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -2055,7 +2055,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -2105,7 +2105,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'deposit'})
 
-    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2190,7 +2190,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         """
          * @ignore
         :param dict info: Exchange market response for 1 market
@@ -2221,7 +2221,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             })
         return tiers
 
-    def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
@@ -2268,7 +2268,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         dataList = self.safe_value(data, 'dataList')
         return self.parse_funding_rate_histories(dataList, market, since, limit)
 
-    def parse_funding_rate_history(self, info, market=None):
+    def parse_funding_rate_history(self, info, market: Market = None):
         timestamp = self.safe_integer(info, 'timePoint')
         marketId = self.safe_string(info, 'symbol')
         return {

@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvaila
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -341,7 +341,7 @@ export default class huobijp extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchTradingLimits (symbols: string[] = undefined, params = {}) {
+    async fetchTradingLimits (symbols: Strings = undefined, params = {}) {
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
@@ -528,7 +528,7 @@ export default class huobijp extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -707,7 +707,7 @@ export default class huobijp extends Exchange {
         return ticker;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name huobijp#fetchTickers
@@ -734,7 +734,7 @@ export default class huobijp extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -923,7 +923,7 @@ export default class huobijp extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "amount":1.2082,
@@ -1300,7 +1300,7 @@ export default class huobijp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {                  id:  13997833014,
         //                    "symbol": "ethbtc",
@@ -1594,7 +1594,7 @@ export default class huobijp extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "usdt",
@@ -1691,7 +1691,7 @@ export default class huobijp extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //

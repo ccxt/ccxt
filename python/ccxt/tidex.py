@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.tidex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -423,7 +423,7 @@ class tidex(Exchange, ImplicitAPI):
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook, symbol)
 
-    def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
@@ -456,7 +456,7 @@ class tidex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[id], symbol)
         return result
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "high": 0.03497582,
@@ -496,7 +496,7 @@ class tidex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -539,7 +539,7 @@ class tidex(Exchange, ImplicitAPI):
         tickers = self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'timestamp')
         side = self.safe_string(trade, 'type')
         if side == 'ask':
@@ -556,7 +556,7 @@ class tidex(Exchange, ImplicitAPI):
         amount = self.parse_number(amountString)
         cost = self.parse_number(Precise.string_mul(priceString, amountString))
         type = 'limit'  # all trades are still limit trades
-        takerOrMaker = None
+        takerOrMaker: Str = None
         fee = None
         feeCost = self.safe_number(trade, 'commission')
         if feeCost is not None:
@@ -636,7 +636,7 @@ class tidex(Exchange, ImplicitAPI):
             'rate': self.price_to_precision(symbol, price),
         }
         response = self.privatePostTrade(self.extend(request, params))
-        id = None
+        id: Str = None
         status = 'open'
         filledString = '0.0'
         remainingString = amountString
@@ -671,7 +671,7 @@ class tidex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -694,14 +694,14 @@ class tidex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_timestamp(order, 'timestamp_created')
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        remaining = None
-        amount = None
+        remaining: str
+        amount: Str
         price = self.safe_string(order, 'rate')
         if 'start_amount' in order:
             amount = self.safe_string(order, 'start_amount')
@@ -734,7 +734,7 @@ class tidex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: not used by tidex fetchOrder
@@ -751,7 +751,7 @@ class tidex(Exchange, ImplicitAPI):
         order = self.safe_value(result, id)
         return self.parse_order(self.extend({'id': id}, order))
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -762,7 +762,7 @@ class tidex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -792,7 +792,7 @@ class tidex(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'return', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -802,7 +802,7 @@ class tidex(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
-        market = None
+        market: Market = None
         # some derived classes use camelcase notation for request fields
         request = {
             # 'from': 123456789,  # trade ID, from which the display starts numerical 0(test result: liqui ignores self field)
@@ -875,7 +875,7 @@ class tidex(Exchange, ImplicitAPI):
         withdrawInfo = self.safe_value(result, 'withdraw_info', {})
         return self.parse_transaction(withdrawInfo, currency)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "id":1111,

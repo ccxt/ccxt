@@ -1,5 +1,5 @@
 import coinexRest from '../coinex.js';
-import { Int, Str } from '../base/types.js';
+import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinex extends coinexRest {
     describe(): any;
@@ -12,7 +12,7 @@ export default class coinex extends coinexRest {
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
