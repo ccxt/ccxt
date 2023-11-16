@@ -2405,6 +2405,7 @@ export default class coinbase extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -2418,7 +2419,14 @@ export default class coinbase extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.v3PrivatePostBrokerageOrdersEdit (this.extend (request, params));
+        const preview = this.safeValue2 (params, 'preview', 'test', false);
+        let response = undefined;
+        if (preview) {
+            params = this.omit (params, [ 'preview', 'test' ]);
+            response = await this.v3PrivatePostBrokerageOrdersEditPreview (this.extend (request, params));
+        } else {
+            response = await this.v3PrivatePostBrokerageOrdersEdit (this.extend (request, params));
+        }
         //
         //     {
         //         "success": true,
