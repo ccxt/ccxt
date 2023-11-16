@@ -79,16 +79,8 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         // wrap this in as a promise so it executes asynchronously
-        $fetch_result = $this->fetch_result;
-        return React\Async\async(function () use ($url, $method, $headers, $body, $fetch_result) {
+        return React\Async\async(function () use ($url, $method, $headers, $body) {
 
-            if ($fetch_result !== null) {
-                // used in tests
-                // it's not the prettiest solution but
-                // couldn't find a better way to do it
-                // feel free to suggest a better alternative
-                return $fetch_result;
-            }
             $this->last_request_headers = $headers;
 
             // ##### PROXY & HEADERS #####

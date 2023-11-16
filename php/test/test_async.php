@@ -40,7 +40,7 @@ class baseMainTestClass {
     public $lang = 'PHP';
     public $test_files = [];
     public $skipped_methods = [];
-    public $check_public_tests = [];
+    public $checked_public_tests = [];
     public $public_tests = [];
     public $info = false;
     public $verbose = false;
@@ -119,7 +119,7 @@ function call_method($testFiles, $methodName, $exchange, $skippedProperties, $ar
 function call_overriden_method($exchange, $methodName, $args) {
     // $overridenMethod = $exchange->{$methodName};
     // return $overridenMethod(... $args);
-    return $exchange->call_method('fetch_ticker', ... $args);
+    return $exchange->call_method($methodName, ... $args);
 }
 
 function call_exchange_method_dynamically($exchange, $methodName, $args) {
@@ -163,9 +163,50 @@ function set_exchange_prop ($exchange, $prop, $value) {
     $exchange->{$prop} = $value;
 }
 
+function create_dynamic_class ($exchangeId, $originalClass, $args) {
+    $async_suffix = is_synchronous ? '_async' : '_sync';
+    $filePath = sys_get_temp_dir() . '/temp_dynamic_class_' . $exchangeId . $async_suffix . '.php';
+    $newClassName = $exchangeId . '_mock' . $async_suffix ;
+    if (is_synchronous) {
+        $content = '<?php if (!class_exists("'.$newClassName.'"))  {
+            class '. $newClassName . ' extends ' . $originalClass . ' {
+                public $fetch_result = null;
+                public function fetch($url, $method = "GET", $headers = null, $body = null) {
+                    if ($this->fetch_result) {
+                        return $this->fetch_result;
+                    }
+                    return parent::fetch($url, $method, $headers, $body);
+                }
+            }
+        }';
+    } else {
+        $content = '<?php 
+        use React\Async;
+        if (!class_exists("'.$newClassName.'"))  {
+            class '. $newClassName . ' extends ' . $originalClass . ' {
+                public $fetch_result = null;
+                public function fetch($url, $method = "GET", $headers = null, $body = null) {
+                    return Async\async (function() use ($url, $method, $headers, $body){
+                        if ($this->fetch_result) {
+                            return $this->fetch_result;
+                        }
+                        return  Async\await(parent::fetch($url, $method, $headers, $body));
+                    })();
+                }
+            }
+        }';
+    }
+    file_put_contents ($filePath, $content);
+    include_once $filePath;
+    $initedClass = new $newClassName($args);
+    // unlink ($filePath);
+    return $initedClass;
+}
+
 function init_exchange ($exchangeId, $args) {
     $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
-    return new $exchangeClassString($args);
+    $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
+    return $newClass;
 }
 
 function set_test_files ($holderClass, $properties) {
