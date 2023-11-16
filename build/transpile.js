@@ -919,10 +919,11 @@ class Transpiler {
         }
         const matchObject = {
             'Balances': /-> Balances:/,
+            'Currency': /(-> Currency:|: Currency)/,
             'Greeks': /-> Greeks:/,
             'Int': /: Int =/,
             'MarginMode': /-> MarginMode:/,
-            'Market': /-> Market:/,
+            'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
@@ -930,6 +931,7 @@ class Transpiler {
             'OrderType': /: OrderType/,
             'IndexType': /: IndexType/,
             'FundingHistory': /\[FundingHistory/,
+            'Num': /: Num =/,
             'Str': /: Str =/,
             'Strings': /: Strings =/,
             'Ticker': /-> Ticker:/,
