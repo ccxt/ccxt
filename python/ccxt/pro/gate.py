@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, String, Strings
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -516,7 +516,7 @@ class gate(ccxt.async_support.gate):
             stored = self.safe_value(self.ohlcvs[symbol], interval)
             client.resolve(stored, hash)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -834,7 +834,7 @@ class gate(ccxt.async_support.gate):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, type + ':positions')
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in

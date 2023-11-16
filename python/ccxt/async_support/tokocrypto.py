@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -843,7 +843,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'lastUpdateId')
         return orderbook
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # aggregate trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -945,10 +945,10 @@ class tokocrypto(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market)
         id = self.safe_string_2(trade, 't', 'a')
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
-        side = None
+        side: Str = None
         orderId = self.safe_string(trade, 'orderId')
         buyerMaker = self.safe_value_2(trade, 'm', 'isBuyerMaker')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
             takerOrMaker = 'taker'
@@ -1059,7 +1059,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "ETHBTC",
@@ -1192,7 +1192,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         response = await self.binanceGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
@@ -1369,7 +1369,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # spot
         #
@@ -1680,7 +1680,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_value(response, 'data', {})
         return self.parse_order(rawOrder, market)
 
-    async def fetch_order(self, id: str, symbol: String = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on an order made by the user
@@ -1727,7 +1727,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_value(list, 0, {})
         return self.parse_order(rawOrder)
 
-    async def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on multiple orders made by the user
@@ -1792,7 +1792,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetch all unfilled currently open orders
@@ -1805,7 +1805,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         request = {'type': 1}  # -1 = all, 1 = open, 2 = closed
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on multiple closed orders made by the user
@@ -1818,7 +1818,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         request = {'type': 2}  # -1 = all, 1 = open, 2 = closed
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#cancel-order-signed
         cancels an open order
@@ -1861,7 +1861,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_value(response, 'data', {})
         return self.parse_order(rawOrder)
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         fetch all trades made by the user
@@ -1967,7 +1967,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://www.tokocrypto.com/apidocs/#deposit-history-signed
         fetch all deposits made to an account
@@ -2022,7 +2022,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         deposits = self.safe_value(data, 'list', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://www.tokocrypto.com/apidocs/#withdraw-signed
         fetch all withdrawals made from an account
@@ -2093,7 +2093,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #

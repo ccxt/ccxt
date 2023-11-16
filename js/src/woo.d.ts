@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import { Balances, FundingRateHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, FundingRateHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction } from './base/types.js';
 /**
  * @class woo
  * @extends Exchange
@@ -9,7 +9,7 @@ export default class woo extends Exchange {
     fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseTrade(trade: any, market?: Market): Trade;
     parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchCurrencies(params?: {}): Promise<{}>;
@@ -20,11 +20,11 @@ export default class woo extends Exchange {
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseTimeInForce(timeInForce: any): string;
-    parseOrder(order: any, market?: any): Order;
+    parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchAccounts(params?: {}): Promise<any[]>;
@@ -46,7 +46,7 @@ export default class woo extends Exchange {
     }>;
     getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntry(item: any, currency?: any): {
+    parseLedgerEntry(item: any, currency?: Currency): {
         id: string;
         currency: any;
         account: string;
@@ -68,7 +68,7 @@ export default class woo extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransaction(transaction: any, currency?: any): Transaction;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
@@ -76,29 +76,29 @@ export default class woo extends Exchange {
         datetime: string;
         currency: any;
         amount: number;
-        fromAccount: any;
-        toAccount: any;
+        fromAccount: string;
+        toAccount: string;
         status: string;
         info: any;
     }>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTransfer(transfer: any, currency?: any): {
+    parseTransfer(transfer: any, currency?: Currency): {
         id: string;
         timestamp: number;
         datetime: string;
         currency: any;
         amount: number;
-        fromAccount: any;
-        toAccount: any;
+        fromAccount: string;
+        toAccount: string;
         status: string;
         info: any;
     };
     parseTransferStatus(status: any): string;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    parseMarginLoan(info: any, currency?: any): {
+    parseMarginLoan(info: any, currency?: Currency): {
         id: any;
-        currency: any;
+        currency: string;
         amount: any;
         symbol: any;
         timestamp: any;
@@ -113,10 +113,10 @@ export default class woo extends Exchange {
         headers: any;
     };
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    parseIncome(income: any, market?: any): {
+    parseIncome(income: any, market?: Market): {
         info: any;
-        symbol: any;
-        code: any;
+        symbol: string;
+        code: string;
         timestamp: number;
         datetime: string;
         id: string;
@@ -124,9 +124,9 @@ export default class woo extends Exchange {
         rate: number;
     };
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
-    parseFundingRate(fundingRate: any, market?: any): {
+    parseFundingRate(fundingRate: any, market?: Market): {
         info: any;
-        symbol: any;
+        symbol: string;
         markPrice: any;
         indexPrice: any;
         interestRate: number;
@@ -145,7 +145,7 @@ export default class woo extends Exchange {
     };
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
-        symbol: any;
+        symbol: string;
         markPrice: any;
         indexPrice: any;
         interestRate: number;
@@ -171,7 +171,7 @@ export default class woo extends Exchange {
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     fetchPosition(symbol?: Str, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     defaultNetworkCodeForCurrency(code: any): any;
     setSandboxMode(enable: any): void;
 }

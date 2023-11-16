@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -186,7 +186,7 @@ class bitso(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -235,7 +235,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #     {
         #         "eid": "2510b3e2bc1c87f584500a18084f35ed",
@@ -541,7 +541,7 @@ class bitso(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(orderbook, 'updated_at'))
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "high":"37446.85",
@@ -666,7 +666,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_value(response, 'payload', [])
         return self.parse_ohlcvs(payload, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "bucket_start_time":1648219140000,
@@ -690,7 +690,7 @@ class bitso(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -874,7 +874,7 @@ class bitso(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit=25, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit=25, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -935,7 +935,7 @@ class bitso(Exchange, ImplicitAPI):
             'id': id,
         }, market)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -949,7 +949,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         return self.privateDeleteOrdersOid(self.extend(request, params))
 
-    def cancel_orders(self, ids, symbol: String = None, params={}):
+    def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -980,7 +980,7 @@ class bitso(Exchange, ImplicitAPI):
             orders.append(self.parse_order(id, market))
         return orders
 
-    def cancel_all_orders(self, symbol: String = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param None symbol: bitso does not support canceling orders for only a specific market
@@ -1012,7 +1012,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #
         # canceledOrder
@@ -1058,7 +1058,7 @@ class bitso(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit=25, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit=25, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1092,7 +1092,7 @@ class bitso(Exchange, ImplicitAPI):
         orders = self.parse_orders(response['payload'], market, since, limit)
         return orders
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: not used by bitso fetchOrder
@@ -1110,7 +1110,7 @@ class bitso(Exchange, ImplicitAPI):
                 return self.parse_order(payload[0])
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
-    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1128,7 +1128,7 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetOrderTradesOid(self.extend(request, params))
         return self.parse_trades(response['payload'], market)
 
-    def fetch_deposit(self, id: str, code: String = None, params={}):
+    def fetch_deposit(self, id: str, code: Str = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1168,7 +1168,7 @@ class bitso(Exchange, ImplicitAPI):
         first = self.safe_value(transactions, 0, {})
         return self.parse_transaction(first)
 
-    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1520,7 +1520,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         return self.safe_string(networksById, networkId, networkId)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # deposit
         #     {

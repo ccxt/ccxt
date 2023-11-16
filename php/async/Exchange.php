@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.54';
+$version = '4.1.55';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.54';
+    const VERSION = '4.1.55';
 
     public $browser;
     public $marketsLoading = null;
@@ -581,23 +581,23 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function parse_ticker(array $ticker, $market = null) {
+    public function parse_ticker(array $ticker, ?array $market = null) {
         throw new NotSupported($this->id . ' parseTicker() is not supported yet');
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseDepositAddress() is not supported yet');
     }
 
-    public function parse_trade(array $trade, $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         throw new NotSupported($this->id . ' parseTrade() is not supported yet');
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseTransaction() is not supported yet');
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
     }
 
@@ -605,11 +605,11 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseAccount() is not supported yet');
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseLedgerEntry() is not supported yet');
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOrder() is not supported yet');
     }
 
@@ -617,7 +617,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchBorrowRates() is not supported yet');
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseMarketLeverageTiers() is not supported yet');
     }
 
@@ -625,31 +625,31 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported yet');
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         throw new NotSupported($this->id . ' parsePosition() is not supported yet');
     }
 
-    public function parse_funding_rate_history($info, $market = null) {
+    public function parse_funding_rate_history($info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseFundingRateHistory() is not supported yet');
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseBorrowInterest() is not supported yet');
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         throw new NotSupported($this->id . ' parseWsTrade() is not supported yet');
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         throw new NotSupported($this->id . ' parseWsOrder() is not supported yet');
     }
 
-    public function parse_ws_order_trade($trade, $market = null) {
+    public function parse_ws_order_trade($trade, ?array $market = null) {
         throw new NotSupported($this->id . ' parseWsOrderTrade() is not supported yet');
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, ?array $market = null) {
         return $this->parse_ohlcv($ohlcv, $market);
     }
 
@@ -788,7 +788,7 @@ class Exchange extends \ccxt\Exchange {
         ), $currency);
     }
 
-    public function safe_market_structure(?array $market = null) {
+    public function safe_market_structure($market = null) {
         $cleanStructure = array(
             'id' => null,
             'lowercaseId' => null,
@@ -1514,7 +1514,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function safe_ticker(array $ticker, $market = null) {
+    public function safe_ticker(array $ticker, ?array $market = null) {
         $open = $this->safe_value($ticker, 'open');
         $close = $this->safe_value($ticker, 'close');
         $last = $this->safe_value($ticker, 'last');
@@ -1775,7 +1775,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_integer($ohlcv, 0), // timestamp
@@ -2304,54 +2304,15 @@ class Exchange extends \ccxt\Exchange {
         return array(
             'id' => $currencyId,
             'code' => $code,
+            'precision' => null,
         );
     }
 
     public function safe_market(?string $marketId, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
-        $result = array(
-            'id' => $marketId,
+        $result = $this->safe_market_structure(array(
             'symbol' => $marketId,
-            'base' => null,
-            'quote' => null,
-            'baseId' => null,
-            'quoteId' => null,
-            'active' => null,
-            'type' => null,
-            'linear' => null,
-            'inverse' => null,
-            'spot' => false,
-            'swap' => false,
-            'future' => false,
-            'option' => false,
-            'margin' => false,
-            'contract' => false,
-            'contractSize' => null,
-            'expiry' => null,
-            'expiryDatetime' => null,
-            'optionType' => null,
-            'strike' => null,
-            'settle' => null,
-            'settleId' => null,
-            'precision' => array(
-                'amount' => null,
-                'price' => null,
-            ),
-            'limits' => array(
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            ),
-            'info' => null,
-        );
+            'marketId' => $marketId,
+        ));
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $markets = $this->markets_by_id[$marketId];
@@ -2829,7 +2790,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
     }
 
-    public function parse_last_price($price, $market = null) {
+    public function parse_last_price($price, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }
 
@@ -2882,20 +2843,18 @@ class Exchange extends \ccxt\Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' $markets not loaded');
         }
-        if (gettype($symbol) === 'string') {
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                return $this->markets[$symbol];
-            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                $markets = $this->markets_by_id[$symbol];
-                $defaultType = $this->safe_string_2($this->options, 'defaultType', 'defaultSubType', 'spot');
-                for ($i = 0; $i < count($markets); $i++) {
-                    $market = $markets[$i];
-                    if ($market[$defaultType]) {
-                        return $market;
-                    }
+        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+            return $this->markets[$symbol];
+        } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
+            $markets = $this->markets_by_id[$symbol];
+            $defaultType = $this->safe_string_2($this->options, 'defaultType', 'defaultSubType', 'spot');
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                if ($market[$defaultType]) {
+                    return $market;
                 }
-                return $markets[0];
             }
+            return $markets[0];
         }
         throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
     }
@@ -3123,7 +3082,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function safe_currency_code(?string $currencyId, mixed $currency = null) {
+    public function safe_currency_code(?string $currencyId, ?array $currency = null) {
         $currency = $this->safe_currency($currencyId, $currency);
         return $currency['code'];
     }
@@ -3236,7 +3195,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function parse_borrow_interests($response, $market = null) {
+    public function parse_borrow_interests($response, ?array $market = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
             $row = $response[$i];
@@ -3256,16 +3215,16 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function safe_symbol($marketId, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_symbol(?string $marketId, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
         $market = $this->safe_market($marketId, $market, $delimiter, $marketType);
         return $market['symbol'];
     }
 
-    public function parse_funding_rate(string $contract, $market = null) {
+    public function parse_funding_rate(string $contract, ?array $market = null) {
         throw new NotSupported($this->id . ' parseFundingRate() is not supported yet');
     }
 
-    public function parse_funding_rates($response, $market = null) {
+    public function parse_funding_rates($response, ?array $market = null) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $parsed = $this->parse_funding_rate($response[$i], $market);
@@ -3357,7 +3316,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }
 
@@ -3568,7 +3527,7 @@ class Exchange extends \ccxt\Exchange {
         return $depositWithdrawFees;
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         throw new NotSupported($this->id . ' parseDepositWithdrawFee() is not supported yet');
     }
 
@@ -3613,7 +3572,7 @@ class Exchange extends \ccxt\Exchange {
         return $fee;
     }
 
-    public function parse_income($info, $market = null) {
+    public function parse_income($info, ?array $market = null) {
         throw new NotSupported($this->id . ' parseIncome () is not supported yet');
     }
 
@@ -4009,7 +3968,7 @@ class Exchange extends \ccxt\Exchange {
         return array( $request, $params );
     }
 
-    public function safe_open_interest($interest, $market = null) {
+    public function safe_open_interest($interest, ?array $market = null) {
         return array_merge($interest, array(
             'symbol' => $this->safe_string($market, 'symbol'),
             'baseVolume' => $this->safe_number($interest, 'baseVolume'), // deprecated
@@ -4022,7 +3981,7 @@ class Exchange extends \ccxt\Exchange {
         ));
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         throw new NotSupported($this->id . ' parseLiquidation () is not supported yet');
     }
 
@@ -4047,7 +4006,7 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_greeks($greeks, $market = null) {
+    public function parse_greeks($greeks, ?array $market = null) {
         throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
     }
 }

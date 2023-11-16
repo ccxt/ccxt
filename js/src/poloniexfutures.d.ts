@@ -8,12 +8,12 @@ export default class poloniexfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
-    parseTicker(ticker: any, market?: any): Ticker;
+    parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTime(params?: {}): Promise<number>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -22,7 +22,7 @@ export default class poloniexfutures extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: any): {
+    parsePosition(position: any, market?: Market): {
         info: any;
         id: any;
         symbol: string;
@@ -43,7 +43,7 @@ export default class poloniexfutures extends Exchange {
         markPrice: number;
         collateral: number;
         marginMode: string;
-        side: any;
+        side: string;
         percentage: number;
         stopLossPrice: any;
         takeProfitPrice: any;
@@ -54,10 +54,10 @@ export default class poloniexfutures extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id?: any, symbol?: Str, params?: {}): Promise<Order>;
-    parseOrder(order: any, market?: any): Order;
+    parseOrder(order: any, market?: Market): Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
-        symbol: any;
+        symbol: string;
         markPrice: any;
         indexPrice: any;
         interestRate: any;

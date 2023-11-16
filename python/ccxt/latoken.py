@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -567,7 +567,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, symbol, None, 'bid', 'ask', 'price', 'quantity')
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #    {
         #        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
@@ -683,7 +683,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -853,7 +853,7 @@ class latoken(Exchange, ImplicitAPI):
             'taker': self.safe_number(response, 'takerFee'),
         }
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -922,7 +922,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1023,7 +1023,7 @@ class latoken(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
@@ -1075,7 +1075,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
@@ -1139,7 +1139,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
@@ -1239,7 +1239,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
@@ -1272,7 +1272,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def cancel_all_orders(self, symbol: String = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
         :see: https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
@@ -1312,7 +1312,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_transactions(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
          * @deprecated
         use fetchDepositsWithdrawals instead
@@ -1360,7 +1360,7 @@ class latoken(Exchange, ImplicitAPI):
         content = self.safe_value(response, 'content', [])
         return self.parse_transactions(content, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
@@ -1437,7 +1437,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def fetch_transfers(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -1532,7 +1532,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         #     {
         #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",

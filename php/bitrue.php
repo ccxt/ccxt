@@ -787,7 +787,7 @@ class bitrue extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchBidsAsks
         //
@@ -926,7 +926,7 @@ class bitrue extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //      {
         //         "i":"1660825020",
@@ -1023,7 +1023,7 @@ class bitrue extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // aggregate trades
         //  - "T" is $timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual $timestamp of trades matter
@@ -1188,7 +1188,7 @@ class bitrue extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1688,7 +1688,7 @@ class bitrue extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1874,7 +1874,7 @@ class bitrue extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //   {
         //       "coin" => "adx",

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -284,7 +284,7 @@ class deribit(ccxt.async_support.deribit):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], channel)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of trades associated with the user
         :see: https://docs.deribit.com/#user-trades-instrument_name-interval
@@ -485,7 +485,7 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.deribit.com/#user-orders-instrument_name-raw
         watches information on multiple orders made by the user

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NetworkError
@@ -400,7 +400,7 @@ class bingx(ccxt.async_support.bingx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
@@ -441,7 +441,7 @@ class bingx(ccxt.async_support.bingx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push

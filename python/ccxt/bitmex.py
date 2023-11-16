@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -60,8 +60,8 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDepositsWithdrawals': 'emulated',
-                'fetchDepositWithdrawalFee': 'emulated',
-                'fetchDepositWithdrawalFees': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
@@ -813,7 +813,7 @@ class bitmex(Exchange, ImplicitAPI):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -831,7 +831,7 @@ class bitmex(Exchange, ImplicitAPI):
             return response[0]
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
-    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
         fetches information on multiple orders made by the user
@@ -870,7 +870,7 @@ class bitmex(Exchange, ImplicitAPI):
         response = self.privateGetOrder(request)
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -886,7 +886,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.deep_extend(request, params))
 
-    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -899,7 +899,7 @@ class bitmex(Exchange, ImplicitAPI):
         orders = self.fetch_orders(symbol, since, limit, params)
         return self.filter_by_array(orders, 'status', ['closed', 'canceled'], False)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.bitmex.com/api/explorer/#not /Execution/Execution_getTradeHistory
         fetch all trades made by the user
@@ -1002,7 +1002,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #     {
         #         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1095,7 +1095,7 @@ class bitmex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -1142,7 +1142,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def fetch_deposits_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
@@ -1180,7 +1180,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #    {
         #        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
@@ -1290,7 +1290,7 @@ class bitmex(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         # see response sample under "fetchMarkets" because same endpoint is being used here
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -1320,7 +1320,7 @@ class bitmex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1418,7 +1418,7 @@ class bitmex(Exchange, ImplicitAPI):
                 result[i][0] = result[i][0] - duration
         return result
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1556,7 +1556,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -1776,7 +1776,7 @@ class bitmex(Exchange, ImplicitAPI):
         response = self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1801,7 +1801,7 @@ class bitmex(Exchange, ImplicitAPI):
                 raise OrderNotFound(self.id + ' cancelOrder() failed: ' + error)
         return self.parse_order(order)
 
-    def cancel_orders(self, ids, symbol: String = None, params={}):
+    def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -1822,7 +1822,7 @@ class bitmex(Exchange, ImplicitAPI):
         response = self.privateDeleteOrder(self.extend(request, params))
         return self.parse_orders(response)
 
-    def cancel_all_orders(self, symbol: String = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1986,7 +1986,7 @@ class bitmex(Exchange, ImplicitAPI):
         results = self.parse_positions(response, symbols)
         return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     {
         #         "account": 9371654,
@@ -2197,7 +2197,7 @@ class bitmex(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(filteredResponse)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         # see response sample under "fetchMarkets" because same endpoint is being used here
         datetime = self.safe_string(contract, 'timestamp')
         marketId = self.safe_string(contract, 'symbol')
@@ -2222,7 +2222,7 @@ class bitmex(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         Fetches the history of funding rates
         :param str symbol: unified symbol of the market to fetch the funding rate history for
@@ -2276,7 +2276,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, info, market=None):
+    def parse_funding_rate_history(self, info, market: Market = None):
         #
         #    {
         #        "timestamp": "2016-05-07T12:00:00.000Z",
@@ -2296,7 +2296,7 @@ class bitmex(Exchange, ImplicitAPI):
             'datetime': datetime,
         }
 
-    def set_leverage(self, leverage, symbol: String = None, params={}):
+    def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2317,7 +2317,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.privatePostPositionLeverage(self.extend(request, params))
 
-    def set_margin_mode(self, marginMode, symbol: String = None, params={}):
+    def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -2375,7 +2375,7 @@ class bitmex(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    {
         #        "asset": "XBT",
@@ -2526,7 +2526,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_liquidations(response, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market=None):
+    def parse_liquidation(self, liquidation, market: Market = None):
         #
         #     {
         #         "orderID": "string",

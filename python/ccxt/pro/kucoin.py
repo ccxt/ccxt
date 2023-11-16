@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, String, Strings
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -579,7 +579,7 @@ class kucoin(ccxt.async_support.kucoin):
         #
         return message
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -736,7 +736,7 @@ class kucoin(ccxt.async_support.kucoin):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in

@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings } from './base/types.js';
+import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
 /**
  * @class mexc
  * @extends Exchange
@@ -22,13 +22,13 @@ export default class mexc extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countKey?: IndexType): number[];
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseTrade(trade: any, market?: Market): Trade;
     syntheticTradeId(market?: any, timestamp?: any, side?: any, amount?: any, price?: any, orderType?: any, takerOrMaker?: any): string;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTicker(ticker: any, market?: any): Ticker;
+    parseTicker(ticker: any, market?: Market): Ticker;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): any;
@@ -45,7 +45,7 @@ export default class mexc extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    parseOrder(order: any, market?: any): Order;
+    parseOrder(order: any, market?: Market): Order;
     parseOrderSide(status: any): string;
     parseOrderType(status: any): string;
     parseOrderStatus(status: any): string;
@@ -63,9 +63,9 @@ export default class mexc extends Exchange {
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
-    parseFundingRate(contract: any, market?: any): {
+    parseFundingRate(contract: any, market?: Market): {
         info: any;
-        symbol: any;
+        symbol: string;
         markPrice: any;
         indexPrice: any;
         interestRate: any;
@@ -84,7 +84,7 @@ export default class mexc extends Exchange {
     };
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
-        symbol: any;
+        symbol: string;
         markPrice: any;
         indexPrice: any;
         interestRate: any;
@@ -103,9 +103,9 @@ export default class mexc extends Exchange {
     }>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    parseMarketLeverageTiers(info: any, market?: any): any[];
-    parseDepositAddress(depositAddress: any, currency?: any): {
-        currency: any;
+    parseMarketLeverageTiers(info: any, market?: Market): any[];
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        currency: string;
         address: string;
         tag: any;
         network: string;
@@ -122,17 +122,17 @@ export default class mexc extends Exchange {
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransaction(transaction: any, currency?: any): Transaction;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionStatusByType(status: any, type?: any): string;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    parsePosition(position: any, market?: any): Position;
+    parsePosition(position: any, market?: Market): Position;
     fetchTransfer(id: string, since?: Int, limit?: Int, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: string;
         toAccount: string;
@@ -140,12 +140,12 @@ export default class mexc extends Exchange {
     }>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
-    parseTransfer(transfer: any, currency?: any): {
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: string;
         toAccount: string;
@@ -171,12 +171,12 @@ export default class mexc extends Exchange {
         deposit: {};
         info: any;
     };
-    parseTransactionFee(transaction: any, currency?: any): {};
+    parseTransactionFee(transaction: any, currency?: Currency): {};
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    parseDepositWithdrawFee(fee: any, currency?: any): any;
-    parseMarginLoan(info: any, currency?: any): {
+    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseMarginLoan(info: any, currency?: Currency): {
         id: string;
-        currency: any;
+        currency: string;
         amount: any;
         symbol: any;
         timestamp: any;

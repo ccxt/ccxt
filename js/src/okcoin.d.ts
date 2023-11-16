@@ -1,5 +1,5 @@
 import Exchange from './abstract/okcoin.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class okcoin
  * @extends Exchange
@@ -12,12 +12,12 @@ export default class okcoin extends Exchange {
     safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: any): Ticker;
+    parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseAccountBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -29,12 +29,12 @@ export default class okcoin extends Exchange {
     parseIds(ids: any): any;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): Order;
+    parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseDepositAddress(depositAddress: any, currency?: any): {
-        currency: any;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        currency: string;
         address: string;
         tag: string;
         network: string;
@@ -47,18 +47,18 @@ export default class okcoin extends Exchange {
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: string;
         toAccount: string;
         status: string;
     }>;
-    parseTransfer(transfer: any, currency?: any): {
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: string;
         toAccount: string;
@@ -69,12 +69,12 @@ export default class okcoin extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): Transaction;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: any, currency?: any): {
+    parseLedgerEntry(item: any, currency?: Currency): {
         id: string;
         info: any;
         timestamp: number;
@@ -83,8 +83,8 @@ export default class okcoin extends Exchange {
         referenceId: string;
         referenceAccount: any;
         type: string;
-        currency: any;
-        symbol: any;
+        currency: string;
+        symbol: string;
         amount: number;
         before: any;
         after: number;

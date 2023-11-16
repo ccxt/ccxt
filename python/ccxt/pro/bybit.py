@@ -7,7 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-from ccxt.base.types import Int, String, Strings
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -127,7 +127,7 @@ class bybit(ccxt.async_support.bybit):
         self.options['requestId'] = requestId
         return requestId
 
-    def get_url_by_market_type(self, symbol: String = None, isPrivate=False, method=None, params={}):
+    def get_url_by_market_type(self, symbol: Str = None, isPrivate=False, method=None, params={}):
         accessibility = 'private' if isPrivate else 'public'
         isUsdcSettled = None
         isSpot = None
@@ -789,7 +789,7 @@ class bybit(ccxt.async_support.bybit):
         else:
             return 'usdc'
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/execution
@@ -1031,7 +1031,7 @@ class bybit(ccxt.async_support.bybit):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/order

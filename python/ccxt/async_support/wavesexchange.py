@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
 import asyncio
 import json
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -745,7 +745,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             return self.options['accessToken']
         return None
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #       {
         #           "symbol": "WAVES/BTC",
@@ -982,7 +982,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             result.append(ohlcvs[i])
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "__type": "candle",
@@ -1388,7 +1388,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             value = self.safe_value(response, 'message')
             return self.parse_order(value, market)
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1434,7 +1434,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'trades': None,
         }
 
-    async def fetch_order(self, id: str, symbol: String = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1464,7 +1464,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         response = await self.matcherGetMatcherOrderbookPublicKeyOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1512,7 +1512,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #     "avgWeighedPrice": 0}, ...]
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1534,7 +1534,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         response = await self.forwardGetMatcherOrdersAddress(request)
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1591,7 +1591,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         quoteId = self.safe_string(assetPair, 'priceAsset', 'WAVES')
         return self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1864,7 +1864,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -2042,7 +2042,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # {__type: "transaction",
         #   "data":
@@ -2411,7 +2411,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #

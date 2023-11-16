@@ -344,7 +344,7 @@ class lykke extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -541,7 +541,7 @@ class lykke extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'p', 'v');
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         //  public fetchTrades
         //
@@ -703,7 +703,7 @@ class lykke extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -1097,7 +1097,7 @@ class lykke extends Exchange {
         );
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"

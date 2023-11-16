@@ -514,7 +514,7 @@ export default class ace extends Exchange {
         //             "type": 1
         //         }
         //
-        let id = undefined;
+        let id;
         let timestamp = undefined;
         let symbol = undefined;
         let price = undefined;
@@ -794,7 +794,7 @@ export default class ace extends Exchange {
             symbol = baseId + '/' + quoteId;
         }
         let side = undefined;
-        const tradeSide = this.safeNumber(trade, 'buyOrSell');
+        const tradeSide = this.safeInteger(trade, 'buyOrSell');
         if (tradeSide !== undefined) {
             side = (tradeSide === 1) ? 'buy' : 'sell';
         }

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -256,7 +256,7 @@ class bitbank(Exchange, ImplicitAPI):
             'info': entry,
         }
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
@@ -319,7 +319,7 @@ class bitbank(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades
         #
@@ -438,7 +438,7 @@ class bitbank(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         "0.02501786",
@@ -579,7 +579,7 @@ class bitbank(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
         market = self.safe_market(marketId, market)
@@ -643,7 +643,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#cancel-order
@@ -662,7 +662,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return data
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
@@ -680,7 +680,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-active-orders
@@ -704,7 +704,7 @@ class bitbank(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-trade-history
@@ -797,7 +797,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #

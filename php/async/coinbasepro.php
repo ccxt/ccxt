@@ -545,7 +545,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -716,7 +716,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         //     {
         //         "type" => "match",
@@ -898,7 +898,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1591514160,
@@ -1012,7 +1012,7 @@ class coinbasepro extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1460,7 +1460,7 @@ class coinbasepro extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //  {
         //      "id" => "12087495079",
         //      "amount" => "-0.0100000000000000",
@@ -1737,7 +1737,7 @@ class coinbasepro extends Exchange {
         }
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // privateGetTransfers
         //

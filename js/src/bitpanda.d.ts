@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitpanda.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bitpanda
  * @extends Exchange
@@ -13,21 +13,21 @@ export default class bitpanda extends Exchange {
     fetchTradingFees(params?: {}): Promise<any>;
     fetchPublicTradingFees(params?: {}): Promise<{}>;
     fetchPrivateTradingFees(params?: {}): Promise<{}>;
-    parseFeeTiers(feeTiers: any, market?: any): {
+    parseFeeTiers(feeTiers: any, market?: Market): {
         maker: any[];
         taker: any[];
     };
-    parseTicker(ticker: any, market?: any): Ticker;
+    parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseDepositAddress(depositAddress: any, currency?: any): {
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: any;
         address: string;
         tag: string;
@@ -51,9 +51,9 @@ export default class bitpanda extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    parseTransaction(transaction: any, currency?: any): Transaction;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): Order;
+    parseOrder(order: any, market?: Market): Order;
     parseTimeInForce(timeInForce: any): string;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;

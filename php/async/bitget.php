@@ -1881,7 +1881,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         //
         // swap and future
         //
@@ -2169,7 +2169,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "id" => "925607360021839872",
@@ -2274,7 +2274,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //    {
         //        "address" => "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
@@ -2339,7 +2339,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot
         //
@@ -2590,7 +2590,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // spot
         //
@@ -2897,7 +2897,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($data, $market = null) {
+    public function parse_trading_fee($data, ?array $market = null) {
         $marketId = $this->safe_string($data, 'symbol');
         return array(
             'info' => $data,
@@ -2907,7 +2907,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         // spot
         //
@@ -3283,7 +3283,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot
         //     {
@@ -4905,7 +4905,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //       "billId" => "881626974170554368",
@@ -5342,7 +5342,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "marginCoin" => "USDT",
@@ -5579,7 +5579,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTCUSDT_UMCBL",
@@ -5668,7 +5668,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_funding_history($contract, $market = null) {
+    public function parse_funding_history($contract, ?array $market = null) {
         //
         //     {
         //         "id" => "892962903462432768",
@@ -5745,7 +5745,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '00000') ? 'ok' : 'failed';
         $code = ($market['linear']) ? $market['quote'] : $market['base'];
@@ -6082,7 +6082,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -6134,7 +6134,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         // {
         //     "chains" => array(
@@ -6225,7 +6225,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTCUSDT_UMCBL",
@@ -6381,7 +6381,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         // isolated => borrowMargin
         //
@@ -6536,7 +6536,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         //
         // isolated
         //
@@ -6692,7 +6692,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_borrow_rate($info, ?array $currency = null) {
         //
         // isolated
         //
@@ -6874,7 +6874,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         // isolated
         //

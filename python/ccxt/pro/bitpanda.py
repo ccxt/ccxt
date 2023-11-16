@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, String, Strings
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -254,7 +254,7 @@ class bitpanda(ccxt.async_support.bitpanda):
             'info': ticker,
         }, market)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://developers.bitpanda.com/exchange/#account-history-channel
         get the list of trades associated with the user
@@ -399,7 +399,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://developers.bitpanda.com/exchange/#account-history-channel
         watches information on multiple orders made by the user

@@ -259,7 +259,7 @@ class bitforex extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public) v1
         //
@@ -456,7 +456,7 @@ class bitforex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "buy":7.04E-7,
@@ -527,7 +527,7 @@ class bitforex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "close":0.02505143,
@@ -629,7 +629,7 @@ class bitforex extends Exchange {
         }
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_number($order, 'createTime');
         $lastTradeTimestamp = $this->safe_number($order, 'lastTime');

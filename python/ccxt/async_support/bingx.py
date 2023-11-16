@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -74,7 +74,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
-                'setMagin': True,
+                'setMargin': True,
                 'setMarginMode': True,
                 'transfer': True,
             },
@@ -693,7 +693,7 @@ class bingx(Exchange, ImplicitAPI):
             ohlcvs = [ohlcvs]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    {
         #        "open": "19394.4",
@@ -794,7 +794,7 @@ class bingx(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # spot
         # fetchTrades
@@ -1015,7 +1015,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -1047,7 +1047,7 @@ class bingx(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
@@ -1137,7 +1137,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         #
         #    {
         #        "openInterest": "3289641547.10",
@@ -1267,7 +1267,7 @@ class bingx(Exchange, ImplicitAPI):
         tickers = self.safe_value(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # spot
         #    {
@@ -1509,7 +1509,7 @@ class bingx(Exchange, ImplicitAPI):
         positions = self.safe_value(response, 'data', [])
         return self.parse_positions(positions, symbols)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -1830,7 +1830,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # spot
         # createOrder, createOrders, cancelOrder
@@ -1986,7 +1986,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20an%20Order
@@ -2059,7 +2059,7 @@ class bingx(Exchange, ImplicitAPI):
         first = self.safe_value(data, 'order', data)
         return self.parse_order(first, market)
 
-    async def cancel_all_orders(self, symbol: String = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
@@ -2107,7 +2107,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return response
 
-    async def cancel_orders(self, ids: List[Int], symbol: String = None, params={}):
+    async def cancel_orders(self, ids: List[Int], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
@@ -2166,7 +2166,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_order(self, id: str, symbol: String = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Orders
@@ -2243,7 +2243,7 @@ class bingx(Exchange, ImplicitAPI):
         first = self.safe_value(data, 'order', data)
         return self.parse_order(first, market)
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Open%20Orders
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20all%20current%20pending%20orders
@@ -2325,7 +2325,7 @@ class bingx(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Order%20History
@@ -2453,7 +2453,7 @@ class bingx(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def fetch_transfers(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :see: https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
@@ -2500,7 +2500,7 @@ class bingx(Exchange, ImplicitAPI):
         rows = self.safe_value(response, 'rows', [])
         return self.parse_transfers(rows, currency, since, limit)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         tranId = self.safe_string(transfer, 'tranId')
         timestamp = self.safe_integer(transfer, 'timestamp')
         currencyCode = self.safe_currency_code(None, currency)
@@ -2565,7 +2565,7 @@ class bingx(Exchange, ImplicitAPI):
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
         #         "coinId": "799",
@@ -2590,7 +2590,7 @@ class bingx(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    async def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)
@@ -2631,7 +2631,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)
@@ -2674,7 +2674,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2770,7 +2770,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def set_margin_mode(self, marginMode: str, symbol: String = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Margin%20Mode
@@ -2853,7 +2853,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_leverage(self, leverage, symbol: String = None, params={}):
+    async def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
@@ -2884,7 +2884,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return await self.swapV2PrivatePostTradeLeverage(self.extend(request, params))
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
@@ -2934,7 +2934,7 @@ class bingx(Exchange, ImplicitAPI):
         fillOrders = self.safe_value(data, 'fill_orders', [])
         return self.parse_trades(fillOrders, market, since, limit, query)
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    {
         #        "coin": "BTC",
@@ -3063,7 +3063,7 @@ class bingx(Exchange, ImplicitAPI):
                 sortedParams[key] = arrStr
         return sortedParams
 
-    async def fetch_my_liquidations(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the users liquidated positions
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
@@ -3121,7 +3121,7 @@ class bingx(Exchange, ImplicitAPI):
         liquidations = self.safe_value(data, 'orders', [])
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market=None):
+    def parse_liquidation(self, liquidation, market: Market = None):
         #
         #     {
         #         "time": "int64",
