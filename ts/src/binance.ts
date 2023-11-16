@@ -155,6 +155,7 @@ export default class binance extends Exchange {
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivateV2': 'https://testnet.binancefuture.com/dapi/v2',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
+                    'fapiPublicV2': 'https://testnet.binancefuture.com/fapi/v2',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
                     'public': 'https://testnet.binance.vision/api/v3',
@@ -173,6 +174,7 @@ export default class binance extends Exchange {
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
+                    'fapiPublicV2': 'https://fapi.binance.com/fapi/v2',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'fapiData': 'https://fapi.binance.com/futures/data',
                     'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
@@ -788,6 +790,11 @@ export default class binance extends Exchange {
                         'order': 1,
                         'allOpenOrders': 1,
                         'listenKey': 1,
+                    },
+                },
+                'fapiPublicV2': {
+                    'get': {
+                        'ticker/price': 0,
                     },
                 },
                 'fapiPrivateV2': {
@@ -3112,7 +3119,7 @@ export default class binance extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLastPrices', market, params);
         let response = undefined;
         if (this.isLinear (type, subType)) {
-            response = await this.fapiPublicGetTickerPrice (params);
+            response = await this.fapiPublicV2GetTickerPrice (params);
             //
             //     [
             //         {
