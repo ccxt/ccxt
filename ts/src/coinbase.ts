@@ -48,6 +48,7 @@ export default class coinbase extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -199,6 +200,8 @@ export default class coinbase extends Exchange {
                         'post': [
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
+                            'brokerage/orders/edit',
+                            'brokerage/orders/edit_preview',
                         ],
                     },
                 },
@@ -2387,6 +2390,53 @@ export default class coinbase extends Exchange {
             }
         }
         return this.parseOrders (orders, market);
+    }
+
+    async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#editOrder
+         * @description edit a trade order
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'order_id': id,
+        };
+        if (amount !== undefined) {
+            request['size'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const preview = this.safeValue2 (params, 'preview', 'test', false);
+        let response = undefined;
+        if (preview) {
+            params = this.omit (params, [ 'preview', 'test' ]);
+            response = await this.v3PrivatePostBrokerageOrdersEditPreview (this.extend (request, params));
+        } else {
+            response = await this.v3PrivatePostBrokerageOrdersEdit (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "success": true,
+        //         "errors": {
+        //           "edit_failure_reason": "UNKNOWN_EDIT_ORDER_FAILURE_REASON",
+        //           "preview_failure_reason": "UNKNOWN_PREVIEW_FAILURE_REASON"
+        //         }
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
