@@ -5587,7 +5587,7 @@ Returns
 
 ## Margin
 
-Note: through the manual we use term "current margin" balance (which is a synonym for "collateral") but do not confuse it with "initial margin" balance. Typically, `collateral (current margin balance) = initial margin + unrealized profit of the position(s)`.
+Note: through the manual we use term "current margin" balance (which is a synonym for "collateral") but do not confuse it with "initial margin" balance (which is a sum of money you had put in a position). Typically, `collateral (current margin balance) = initial margin + unrealized profit of the position(s)`.
 
 *margin and contract only*
 
