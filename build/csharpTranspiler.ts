@@ -609,6 +609,49 @@ class NewTranspiler {
     }
 
     // ---------------------------------------------------------------------------------------------
+    transpileCacheTestsToCSharp (outDir: string) {
+
+        const jsFile = './ts/src/pro/test/base/test.Cache.ts';
+        const csharpFile = `${outDir}/Cache.cs`;
+
+        log.magenta ('Transpiling from', (jsFile as any).yellow)
+
+        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
+        let content = csharp.content;
+        const splitParts = content.split('// ----------------------------------------------------------------------------');
+        splitParts.shift();
+        content = splitParts.join('\n// ----------------------------------------------------------------------------\n');
+        content = this.regexAll (content, [
+            [/typeof\((\w+)\)/g,'$1'], // tmp fix
+            [/typeof\(timestampCache\)/g,'timestampCache'], // tmp fix
+            [ /object  = functions;/g, '' ], // tmp fix
+            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+            [/assert/g, 'Assert'],
+        ]).trim ()
+
+        const contentLines = content.split ('\n');
+        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
+
+        const file = [
+            'using ccxt;',
+            'namespace Tests;',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            'public partial class BaseTest',
+            '{',
+            '    public void CacheTests()',
+            '    {',
+            contentIdented,
+            '    }',
+            '}',
+        ].join('\n')
+
+        log.magenta ('→', (csharpFile as any).yellow)
+
+        overwriteFile (csharpFile, file);
+    }
+
+    // ---------------------------------------------------------------------------------------------
 
     transpilePrecisionTestsToCSharp (outDir: string) {
 
@@ -773,6 +816,7 @@ class NewTranspiler {
         this.transpilePrecisionTestsToCSharp(outDir);
         this.transpileCryptoTestsToCSharp(outDir);
         this.transpileDatetimeTestsToCSharp(outDir);
+        this.transpileCacheTestsToCSharp(outDir); //some fixes to be
     }
 
     capitalize(s: string) {
