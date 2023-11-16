@@ -1457,7 +1457,7 @@ export default class mexc extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         let id = undefined;
         let timestamp = undefined;
         let orderId = undefined;
@@ -1732,7 +1732,7 @@ export default class mexc extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1904,7 +1904,7 @@ export default class mexc extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         let timestamp = undefined;
@@ -3042,7 +3042,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // spot: createOrder
         //
@@ -3985,7 +3985,7 @@ export default class mexc extends Exchange {
         return result as FundingHistory[];
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -4186,7 +4186,7 @@ export default class mexc extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         /**
             @param info {object} Exchange response for 1 market
             @param market {object} CCXT market
@@ -4218,7 +4218,7 @@ export default class mexc extends Exchange {
         return tiers;
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
         //     {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
@@ -4470,7 +4470,7 @@ export default class mexc extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -4656,7 +4656,7 @@ export default class mexc extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "positionId": 1394650,
@@ -4900,7 +4900,7 @@ export default class mexc extends Exchange {
         });
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // spot: fetchTransfer
         //
@@ -5183,7 +5183,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
+    parseTransactionFee (transaction, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "AGLD",
@@ -5266,7 +5266,7 @@ export default class mexc extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "AGLD",
@@ -5313,7 +5313,7 @@ export default class mexc extends Exchange {
         return this.assignDefaultDepositWithdrawFees (result);
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         //     {
         //         "tranId": "762407666453712896"

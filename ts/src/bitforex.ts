@@ -265,7 +265,7 @@ export default class bitforex extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public) v1
         //
@@ -468,7 +468,7 @@ export default class bitforex extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "buy":7.04E-7,
@@ -541,7 +541,7 @@ export default class bitforex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "close":0.02505143,
@@ -647,7 +647,7 @@ export default class bitforex extends Exchange {
         }
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeNumber (order, 'createTime');
         const lastTradeTimestamp = this.safeNumber (order, 'lastTime');

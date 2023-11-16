@@ -423,7 +423,7 @@ export default class p2b extends Exchange {
         );
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined) {
         //
         // parseTickers
         //
@@ -588,7 +588,7 @@ export default class p2b extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined) {
         //
         // fetchTrades
         //
@@ -707,7 +707,7 @@ export default class p2b extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) : OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
         //
         //    [
         //        1699253400,       // Kline open time
@@ -1159,7 +1159,7 @@ export default class p2b extends Exchange {
         return orders;
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //

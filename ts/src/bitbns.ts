@@ -326,7 +326,7 @@ export default class bitbns extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol":"BTC/INR",
@@ -506,7 +506,7 @@ export default class bitbns extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -782,7 +782,7 @@ export default class bitbns extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchMyTrades
         //
@@ -1055,7 +1055,7 @@ export default class bitbns extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //

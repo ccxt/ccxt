@@ -1056,7 +1056,7 @@ export default class bitmex extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1250,7 +1250,7 @@ export default class bitmex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
@@ -1372,7 +1372,7 @@ export default class bitmex extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1403,7 +1403,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1512,7 +1512,7 @@ export default class bitmex extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1655,7 +1655,7 @@ export default class bitmex extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -2128,7 +2128,7 @@ export default class bitmex extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "account": 9371654,
@@ -2350,7 +2350,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');
@@ -2438,7 +2438,7 @@ export default class bitmex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit);
     }
 
-    parseFundingRateHistory (info, market = undefined) {
+    parseFundingRateHistory (info, market: Market = undefined) {
         //
         //    {
         //        "timestamp": "2016-05-07T12:00:00.000Z",
@@ -2552,7 +2552,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "XBT",
@@ -2719,7 +2719,7 @@ export default class bitmex extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "orderID": "string",

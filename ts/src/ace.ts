@@ -251,7 +251,7 @@ export default class ace extends Exchange {
         };
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -407,7 +407,7 @@ export default class ace extends Exchange {
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "changeRate": 0,
@@ -497,7 +497,7 @@ export default class ace extends Exchange {
         return this.safeString (statuses, status, undefined);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -758,7 +758,7 @@ export default class ace extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchOrderTrades
         //         {
@@ -807,7 +807,7 @@ export default class ace extends Exchange {
         if (quoteId !== undefined && baseId !== undefined) {
             symbol = baseId + '/' + quoteId;
         }
-        let side: string;
+        let side: Str = undefined;
         const tradeSide = this.safeInteger (trade, 'buyOrSell');
         if (tradeSide !== undefined) {
             side = (tradeSide === 1) ? 'buy' : 'sell';

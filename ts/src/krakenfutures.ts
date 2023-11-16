@@ -508,7 +508,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //    {
         //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
@@ -645,7 +645,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    {
         //        "time": 1645198500000,
@@ -717,7 +717,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTrades (history, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1215,7 +1215,7 @@ export default class krakenfutures extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // LIMIT
         //
@@ -1830,7 +1830,7 @@ export default class krakenfutures extends Exchange {
         return this.indexBy (fundingRates, 'symbol');
     }
 
-    parseFundingRate (ticker, market = undefined) {
+    parseFundingRate (ticker, market: Market = undefined) {
         //
         // {"ask": 26.283,
         //  "askSize": 4.6,
@@ -1981,7 +1981,7 @@ export default class krakenfutures extends Exchange {
         return result;
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         // cross
         //    {
         //        "side": "long",
@@ -2097,7 +2097,7 @@ export default class krakenfutures extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         /**
          * @method
          * @ignore
@@ -2163,7 +2163,7 @@ export default class krakenfutures extends Exchange {
         return tiers;
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //

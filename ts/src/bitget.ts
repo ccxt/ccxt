@@ -1874,7 +1874,7 @@ export default class bitget extends Exchange {
         return this.parseMarketLeverageTiers (result, market);
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         //
         // swap and future
         //
@@ -2162,7 +2162,7 @@ export default class bitget extends Exchange {
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": "925607360021839872",
@@ -2267,7 +2267,7 @@ export default class bitget extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //    {
         //        "address": "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
@@ -2332,7 +2332,7 @@ export default class bitget extends Exchange {
         return this.parseOrderBook (data, symbol, timestamp);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // spot
         //
@@ -2583,7 +2583,7 @@ export default class bitget extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // spot
         //
@@ -2890,7 +2890,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    parseTradingFee (data, market = undefined) {
+    parseTradingFee (data, market: Market = undefined) {
         const marketId = this.safeString (data, 'symbol');
         return {
             'info': data,
@@ -2900,7 +2900,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         // spot
         //
@@ -3276,7 +3276,7 @@ export default class bitget extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // spot
         //     {
@@ -4896,7 +4896,7 @@ export default class bitget extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //       "billId": "881626974170554368",
@@ -5333,7 +5333,7 @@ export default class bitget extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "marginCoin": "USDT",
@@ -5570,7 +5570,7 @@ export default class bitget extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTCUSDT_UMCBL",
@@ -5659,7 +5659,7 @@ export default class bitget extends Exchange {
         return this.parseFundingHistories (result, market, since, limit);
     }
 
-    parseFundingHistory (contract, market = undefined) {
+    parseFundingHistory (contract, market: Market = undefined) {
         //
         //     {
         //         "id": "892962903462432768",
@@ -5734,7 +5734,7 @@ export default class bitget extends Exchange {
         });
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market: Market = undefined) {
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '00000') ? 'ok' : 'failed';
         const code = (market['linear']) ? market['quote'] : market['base'];
@@ -6071,7 +6071,7 @@ export default class bitget extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
@@ -6123,7 +6123,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         // {
         //     "chains": [
@@ -6214,7 +6214,7 @@ export default class bitget extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOpenInterest (interest, market = undefined) {
+    parseOpenInterest (interest, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTCUSDT_UMCBL",
@@ -6370,7 +6370,7 @@ export default class bitget extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         // isolated: borrowMargin
         //
@@ -6525,7 +6525,7 @@ export default class bitget extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         // isolated
         //
@@ -6681,7 +6681,7 @@ export default class bitget extends Exchange {
         return this.parseBorrowRate (first, currency);
     }
 
-    parseBorrowRate (info, currency = undefined) {
+    parseBorrowRate (info, currency: Currency = undefined) {
         //
         // isolated
         //
@@ -6863,7 +6863,7 @@ export default class bitget extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         //
         // isolated
         //

@@ -298,7 +298,7 @@ export default class btcalpha extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //    {
         //        "timestamp": "1674658.445272",
@@ -376,7 +376,7 @@ export default class btcalpha extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -514,7 +514,7 @@ export default class btcalpha extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //  deposit
         //      {
@@ -571,7 +571,7 @@ export default class btcalpha extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "time":1591296000,
@@ -663,7 +663,7 @@ export default class btcalpha extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // fetchClosedOrders / fetchOrder
         //     {

@@ -593,7 +593,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    [
         //        "1545904980000",          // Start time of the candle cycle
@@ -749,7 +749,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseTicker (response['data'], market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "code": "200000",
@@ -992,7 +992,7 @@ export default class kucoinfutures extends kucoin {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //    {
         //        "code": "200000",
@@ -1364,7 +1364,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseMarginModification (info, market = undefined) {
+    parseMarginModification (info, market: Market = undefined) {
         //
         //    {
         //        "id": "62311d26064e8f00013f2c6d",
@@ -1633,7 +1633,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // fetchOrder, fetchOrdersByStatus
         //
@@ -1889,7 +1889,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
@@ -2032,7 +2032,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -2318,7 +2318,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         /**
          * @ignore
          * @method
@@ -2404,7 +2404,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseFundingRateHistories (dataList, market, since, limit);
     }
 
-    parseFundingRateHistory (info, market = undefined) {
+    parseFundingRateHistory (info, market: Market = undefined) {
         const timestamp = this.safeInteger (info, 'timePoint');
         const marketId = this.safeString (info, 'symbol');
         return {

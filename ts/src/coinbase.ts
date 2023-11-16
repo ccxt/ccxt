@@ -684,7 +684,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, market = undefined) {
+    parseTransaction (transaction, market: Market = undefined) {
         //
         // fiat deposit
         //
@@ -791,7 +791,7 @@ export default class coinbase extends Exchange {
         };
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchMyBuys, fetchMySells
         //
@@ -1403,7 +1403,7 @@ export default class coinbase extends Exchange {
         return ticker;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTickerV2
         //
@@ -1656,7 +1656,7 @@ export default class coinbase extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         // crypto deposit transaction
         //
@@ -2178,7 +2178,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2745,7 +2745,7 @@ export default class coinbase extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         {

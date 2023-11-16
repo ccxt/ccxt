@@ -3,7 +3,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class tidex
@@ -470,7 +470,7 @@ export default class tidex extends Exchange {
         return result as Dictionary<OrderBook>;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "high": 0.03497582,
@@ -563,7 +563,7 @@ export default class tidex extends Exchange {
         return tickers[symbol] as Ticker;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         let side = this.safeString (trade, 'type');
         if (side === 'ask') {
@@ -581,7 +581,7 @@ export default class tidex extends Exchange {
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const type = 'limit'; // all trades are still limit trades
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         let fee = undefined;
         const feeCost = this.safeNumber (trade, 'commission');
         if (feeCost !== undefined) {
@@ -675,7 +675,7 @@ export default class tidex extends Exchange {
             'rate': this.priceToPrecision (symbol, price),
         };
         const response = await this.privatePostTrade (this.extend (request, params));
-        let id = undefined;
+        let id: Str = undefined;
         let status = 'open';
         let filledString = '0.0';
         let remainingString = amountString;
@@ -740,14 +740,14 @@ export default class tidex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'timestamp_created');
         const marketId = this.safeString (order, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        let remaining = undefined;
-        let amount = undefined;
+        let remaining: string;
+        let amount: Str;
         const price = this.safeString (order, 'rate');
         if ('start_amount' in order) {
             amount = this.safeString (order, 'start_amount');
@@ -815,7 +815,7 @@ export default class tidex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -859,7 +859,7 @@ export default class tidex extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         // some derived classes use camelcase notation for request fields
         const request = {
             // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
@@ -940,7 +940,7 @@ export default class tidex extends Exchange {
         return this.parseTransaction (withdrawInfo, currency);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id":1111,

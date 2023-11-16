@@ -582,7 +582,7 @@ export default class deribit extends Exchange {
         return this.parseAccounts (result);
     }
 
-    parseAccount (account, currency = undefined) {
+    parseAccount (account, currency: Currency = undefined) {
         //
         //      {
         //          "username": "someusername_1",
@@ -983,7 +983,7 @@ export default class deribit extends Exchange {
         };
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTicker /public/ticker
         //
@@ -1222,7 +1222,7 @@ export default class deribit extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1581,7 +1581,7 @@ export default class deribit extends Exchange {
         return this.safeString (orderTypes, orderType, orderType);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2265,7 +2265,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchWithdrawals
         //
@@ -2335,7 +2335,7 @@ export default class deribit extends Exchange {
         };
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2683,7 +2683,7 @@ export default class deribit extends Exchange {
         return this.parseTransfer (result, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //     {
         //         "updated_timestamp": 1550232862350,
@@ -2755,7 +2755,7 @@ export default class deribit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //      "withdrawal_priorities": [],
@@ -2909,7 +2909,7 @@ export default class deribit extends Exchange {
         return this.filterBySymbolSinceLimit (rates, symbol, since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //   {
         //       "jsonrpc":"2.0",
@@ -3090,7 +3090,7 @@ export default class deribit extends Exchange {
         return this.parseLiquidations (settlements, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "type": "bankruptcy",
@@ -3183,7 +3183,7 @@ export default class deribit extends Exchange {
         return this.parseGreeks (result, market);
     }
 
-    parseGreeks (greeks, market = undefined) {
+    parseGreeks (greeks, market: Market = undefined) {
         //
         //     {
         //         "estimated_delivery_price": 36552.72,

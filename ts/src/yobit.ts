@@ -509,7 +509,7 @@ export default class yobit extends Exchange {
         return result as Dictionary<OrderBook>;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "high": 0.03497582,
@@ -609,7 +609,7 @@ export default class yobit extends Exchange {
         return tickers[symbol] as Ticker;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -885,7 +885,7 @@ export default class yobit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder (private)
         //

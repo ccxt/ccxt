@@ -362,7 +362,7 @@ export default class luno extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "base": "string",
@@ -512,7 +512,7 @@ export default class luno extends Exchange {
         return await this.fetchOrdersByState ('COMPLETE', symbol, since, limit, params);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         // {
         //     "pair":"XBTAUD",
         //     "timestamp":1642201439301,
@@ -602,7 +602,7 @@ export default class luno extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -970,7 +970,7 @@ export default class luno extends Exchange {
         };
     }
 
-    parseLedgerEntry (entry, currency = undefined) {
+    parseLedgerEntry (entry, currency: Currency = undefined) {
         // const details = this.safeValue (entry, 'details', {});
         const id = this.safeString (entry, 'row_index');
         const account_id = this.safeString (entry, 'account_id');

@@ -664,7 +664,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // Spot fetchTicker, fetchTickers
         //
@@ -995,7 +995,7 @@ export default class coinex extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // Spot and Swap fetchTrades (public)
         //
@@ -1235,7 +1235,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         const marketId = this.safeValue (fee, 'name');
         const symbol = this.safeSymbol (marketId, market);
         return {
@@ -1248,7 +1248,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1591484400,
@@ -1555,7 +1555,7 @@ export default class coinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // fetchOrder
         //
@@ -2825,7 +2825,7 @@ export default class coinex extends Exchange {
         return depositAddress;
     }
 
-    safeNetwork (networkId, currency = undefined) {
+    safeNetwork (networkId, currency: Currency = undefined) {
         const networks = this.safeValue (currency, 'networks', {});
         const networksCodes = Object.keys (networks);
         const networksCodesLength = networksCodes.length;
@@ -2838,12 +2838,12 @@ export default class coinex extends Exchange {
         };
     }
 
-    safeNetworkCode (networkId, currency = undefined) {
+    safeNetworkCode (networkId, currency: Currency = undefined) {
         const network = this.safeNetwork (networkId, currency);
         return network['network'];
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
@@ -3181,7 +3181,7 @@ export default class coinex extends Exchange {
         return this.parsePosition (data[0], market);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "adl_sort": 3396,
@@ -3432,7 +3432,7 @@ export default class coinex extends Exchange {
         return tiers;
     }
 
-    parseMarketLeverageTiers (item, market = undefined) {
+    parseMarketLeverageTiers (item, market: Market = undefined) {
         const tiers = [];
         let minNotional = 0;
         for (let j = 0; j < item.length; j++) {
@@ -3527,7 +3527,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market: Market = undefined) {
         return {
             'info': data,
             'type': undefined,
@@ -3695,7 +3695,7 @@ export default class coinex extends Exchange {
         return this.parseFundingRate (ticker, market);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         // fetchFundingRate
         //
@@ -3962,7 +3962,7 @@ export default class coinex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -4129,7 +4129,7 @@ export default class coinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // fetchTransfers Swap
         //
@@ -4406,7 +4406,7 @@ export default class coinex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseBorrowRate (info, currency = undefined) {
+    parseBorrowRate (info, currency: Currency = undefined) {
         //
         //     {
         //         "market": "BTCUSDT",
@@ -4580,7 +4580,7 @@ export default class coinex extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         //
         //     {
         //         "loan_id": 2616357,
@@ -4701,7 +4701,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         // borrowMargin
         //

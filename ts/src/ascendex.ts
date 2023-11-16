@@ -939,7 +939,7 @@ export default class ascendex extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol":"QTUM/BTC",
@@ -1074,7 +1074,7 @@ export default class ascendex extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "m":"bar",
@@ -1160,7 +1160,7 @@ export default class ascendex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1247,7 +1247,7 @@ export default class ascendex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2354,7 +2354,7 @@ export default class ascendex extends Exchange {
         return response;
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
@@ -2580,7 +2580,7 @@ export default class ascendex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "requestId": "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
@@ -2702,7 +2702,7 @@ export default class ascendex extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTC-PERP",
@@ -2767,7 +2767,7 @@ export default class ascendex extends Exchange {
         });
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //      {
         //          "time": 1640061364830,
@@ -2876,7 +2876,7 @@ export default class ascendex extends Exchange {
         });
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market: Market = undefined) {
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '0') ? 'ok' : 'failed';
         return {
@@ -3025,7 +3025,7 @@ export default class ascendex extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         /**
          * @param {object} info Exchange market response for 1 market
          * @param {object} market CCXT market
@@ -3073,7 +3073,7 @@ export default class ascendex extends Exchange {
         return tiers;
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         // {
         //     "assetCode":      "USDT",
@@ -3187,7 +3187,7 @@ export default class ascendex extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //    { "code": "0" }
         //
@@ -3271,7 +3271,7 @@ export default class ascendex extends Exchange {
         return this.parseIncomes (rows, market, since, limit);
     }
 
-    parseIncome (income, market = undefined) {
+    parseIncome (income, market: Market = undefined) {
         //
         //     {
         //         "timestamp": 1640476800000,

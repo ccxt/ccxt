@@ -530,7 +530,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -803,7 +803,7 @@ export default class lbank extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (old) spotPublicGetTrades
         //
@@ -959,7 +959,7 @@ export default class lbank extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //   [
         //     1482311500, // timestamp
@@ -1218,7 +1218,7 @@ export default class lbank extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         //
         //      {
         //          "symbol":"skt_usdt",
@@ -1376,7 +1376,7 @@ export default class lbank extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // fetchOrderSupplement (private)
         //
@@ -2048,7 +2048,7 @@ export default class lbank extends Exchange {
         return this.safeString (this.safeValue (statuses, type, {}), status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits (private)
         //
@@ -2550,7 +2550,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //

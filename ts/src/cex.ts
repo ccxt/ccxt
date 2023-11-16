@@ -502,7 +502,7 @@ export default class cex extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1591403940,
@@ -568,7 +568,7 @@ export default class cex extends Exchange {
         return undefined;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const volume = this.safeString (ticker, 'volume');
         const high = this.safeString (ticker, 'high');
@@ -647,7 +647,7 @@ export default class cex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -846,7 +846,7 @@ export default class cex extends Exchange {
         return this.extend (this.parseOrder ({}), { 'info': response, 'type': undefined, 'id': id, 'status': 'canceled' });
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         let timestamp = this.safeValue (order, 'time');

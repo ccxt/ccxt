@@ -519,7 +519,7 @@ export default class bittrex extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // ticker
         //
@@ -691,7 +691,7 @@ export default class bittrex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -868,7 +868,7 @@ export default class bittrex extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         const marketId = this.safeString (fee, 'marketSymbol');
         const maker = this.safeNumber (fee, 'makerRate');
         const taker = this.safeNumber (fee, 'takerRate');
@@ -892,7 +892,7 @@ export default class bittrex extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "startsAt":"2020-06-12T02:35:00Z",
@@ -1565,7 +1565,7 @@ export default class bittrex extends Exchange {
         return this.fetchWithdrawals (code, since, limit, this.extend (params, { 'status': 'pending' }));
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1698,7 +1698,7 @@ export default class bittrex extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         //
@@ -2078,7 +2078,7 @@ export default class bittrex extends Exchange {
         };
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //     {
         //         "symbol": "APXP",

@@ -389,7 +389,7 @@ export default class idex extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         // {
         //   "market": "DIL-ETH",
         //   "time": 1598367493008,
@@ -479,7 +479,7 @@ export default class idex extends Exchange {
         }
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         // {
         //   "start": 1598345580000,
         //   "open": "0.09771286",
@@ -535,7 +535,7 @@ export default class idex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public trades
         //  {
@@ -1047,7 +1047,7 @@ export default class idex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "market": "DIL-ETH",
@@ -1620,7 +1620,7 @@ export default class idex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //

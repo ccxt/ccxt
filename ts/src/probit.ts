@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -661,7 +661,7 @@ export default class probit extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "last":"0.022902",
@@ -718,7 +718,7 @@ export default class probit extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const now = this.milliseconds ();
         const request = {
             'limit': 100,
@@ -813,7 +813,7 @@ export default class probit extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -844,7 +844,7 @@ export default class probit extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const id = this.safeString (trade, 'id');
-        let marketId = undefined;
+        let marketId: Str = undefined;
         if (id !== undefined) {
             const parts = id.split (':');
             marketId = this.safeString (parts, 0);
@@ -906,7 +906,7 @@ export default class probit extends Exchange {
             const parts = iso8601.split ('-');
             const year = this.safeString (parts, 0);
             const month = this.safeInteger (parts, 1);
-            let monthString = undefined;
+            let monthString: Str = undefined;
             if (after) {
                 monthString = this.sum (month, 1).toString ();
             }
@@ -1001,7 +1001,7 @@ export default class probit extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1040,7 +1040,7 @@ export default class probit extends Exchange {
         await this.loadMarkets ();
         since = this.parse8601 (since);
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market_id'] = market['id'];
@@ -1068,7 +1068,7 @@ export default class probit extends Exchange {
             'end_time': this.iso8601 (this.milliseconds ()),
             'limit': 100,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market_id'] = market['id'];
@@ -1122,7 +1122,7 @@ export default class probit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         id,
@@ -1307,7 +1307,7 @@ export default class probit extends Exchange {
         return this.parseOrder (data);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'destination_tag');
         const currencyId = this.safeString (depositAddress, 'currency_id');
@@ -1503,7 +1503,7 @@ export default class probit extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1555,7 +1555,7 @@ export default class probit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1705,7 +1705,7 @@ export default class probit extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'id');
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         // {
         //     "id": "USDT",
