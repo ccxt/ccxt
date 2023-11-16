@@ -164,13 +164,15 @@ function set_exchange_prop ($exchange, $prop, $value) {
 }
 
 function create_dynamic_class ($exchangeId, $originalClass, $args) {
-    $filePath = sys_get_temp_dir() . '/temp_' . $exchangeId . '.php';
+    $filePath = sys_get_temp_dir() . '/temp_dynamic_class_' . $exchangeId . '.php';
     $newClassName = $exchangeId . '_mock';
     $content = '<?php if (!class_exists("'.$newClassName.'"))  {
         class '. $newClassName . ' extends ' . $originalClass . ' {
             public function fetch($url, $method = "GET", $headers = null, $body = null) {
-                var_dump("hello");
-                exit;
+                if ($this->fetch_result) {
+                    return $this->fetch_result;
+                }
+                return parent::fetch($url, $method, $headers, $body);
             }
         }
     }';
