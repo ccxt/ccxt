@@ -5591,7 +5591,9 @@ Note: through the manual we use term "current margin" balance (which is a synony
 
 *margin and contract only*
 
-To increase, reduce or set your current margin balance in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
+To increase, reduce or set your current margin balance in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open. 
+
+For example, when you had opened a position initially with 10$ and later you added another 5$ to that position's margin, the "initial margin" value would be $15.
 
 Some scenarios to use these methods include
 - if the trade is going against you, you can add margin to, reducing the risk of liquidation
