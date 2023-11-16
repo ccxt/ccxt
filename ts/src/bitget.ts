@@ -1359,20 +1359,23 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-server-time
+         * @see https://www.bitget.com/api-doc/common/public/Get-Server-Time
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicSpotGetSpotV1PublicTime (params);
+        const response = await this.publicCommonGetV2PublicTime (params);
         //
         //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": 1645837773501,
-        //       "data": "1645837773501"
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700111073740,
+        //         "data": {
+        //             "serverTime": "1700111073740"
+        //         }
         //     }
         //
-        return this.safeInteger (response, 'data');
+        const data = this.safeValue (response, 'data', {});
+        return this.safeInteger (data, 'serverTime');
     }
 
     async fetchMarkets (params = {}) {
