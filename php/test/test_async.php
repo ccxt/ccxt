@@ -168,6 +168,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
     $newClassName = $exchangeId . '_mock';
     $content = '<?php if (!class_exists("'.$newClassName.'"))  {
         class '. $newClassName . ' extends ' . $originalClass . ' {
+            public $fetch_result = null;
             public function fetch($url, $method = "GET", $headers = null, $body = null) {
                 if ($this->fetch_result) {
                     return $this->fetch_result;
