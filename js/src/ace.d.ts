@@ -6,7 +6,7 @@ import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, S
  */
 export default class ace extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;

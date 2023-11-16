@@ -6,7 +6,7 @@ import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, S
  */
 export default class zonda extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(item: any): Market;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrder(order: any, market?: any): Order;

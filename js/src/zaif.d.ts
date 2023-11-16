@@ -6,7 +6,7 @@ import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Tic
  */
 export default class zaif extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
