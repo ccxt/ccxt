@@ -410,6 +410,7 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinfalcon',
+        'coinlist',
         'coinmate',
         'coinone',
         'coinsph',
