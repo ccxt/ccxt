@@ -6,7 +6,7 @@ import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -241,25 +241,25 @@ export default class coinbasepro extends Exchange {
         //
         //     [
         //         {
-        //             id: 'XTZ',
-        //             name: 'Tezos',
-        //             min_size: '0.000001',
-        //             status: 'online',
-        //             message: '',
-        //             max_precision: '0.000001',
-        //             convertible_to: [],
-        //             details: {
-        //                 type: 'crypto',
-        //                 symbol: 'Τ',
-        //                 network_confirmations: 60,
-        //                 sort_order: 53,
-        //                 crypto_address_link: 'https://tzstats.com/{{address}}',
-        //                 crypto_transaction_link: 'https://tzstats.com/{{txId}}',
-        //                 push_payment_methods: [ 'crypto' ],
-        //                 group_types: [],
-        //                 display_name: '',
-        //                 processing_time_seconds: 0,
-        //                 min_withdrawal_amount: 1
+        //             "id": "XTZ",
+        //             "name": "Tezos",
+        //             "min_size": "0.000001",
+        //             "status": "online",
+        //             "message": '',
+        //             "max_precision": "0.000001",
+        //             "convertible_to": [],
+        //             "details": {
+        //                 "type": "crypto",
+        //                 "symbol": "Τ",
+        //                 "network_confirmations": 60,
+        //                 "sort_order": 53,
+        //                 "crypto_address_link": "https://tzstats.com/{{address}}",
+        //                 "crypto_transaction_link": "https://tzstats.com/{{txId}}",
+        //                 "push_payment_methods": [ "crypto" ],
+        //                 "group_types": [],
+        //                 "display_name": '',
+        //                 "processing_time_seconds": 0,
+        //                 "min_withdrawal_amount": 1
         //             }
         //         }
         //     ]
@@ -312,48 +312,48 @@ export default class coinbasepro extends Exchange {
         //
         //     [
         //         {
-        //             id: 'BTCAUCTION-USD',
-        //             base_currency: 'BTC',
-        //             quote_currency: 'USD',
-        //             base_min_size: '0.000016',
-        //             base_max_size: '1500',
-        //             quote_increment: '0.01',
-        //             base_increment: '0.00000001',
-        //             display_name: 'BTCAUCTION/USD',
-        //             min_market_funds: '1',
-        //             max_market_funds: '20000000',
-        //             margin_enabled: false,
-        //             fx_stablecoin: false,
-        //             max_slippage_percentage: '0.02000000',
-        //             post_only: false,
-        //             limit_only: false,
-        //             cancel_only: true,
-        //             trading_disabled: false,
-        //             status: 'online',
-        //             status_message: '',
-        //             auction_mode: false
+        //             "id": "BTCAUCTION-USD",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USD",
+        //             "base_min_size": "0.000016",
+        //             "base_max_size": "1500",
+        //             "quote_increment": "0.01",
+        //             "base_increment": "0.00000001",
+        //             "display_name": "BTCAUCTION/USD",
+        //             "min_market_funds": "1",
+        //             "max_market_funds": "20000000",
+        //             "margin_enabled": false,
+        //             "fx_stablecoin": false,
+        //             "max_slippage_percentage": "0.02000000",
+        //             "post_only": false,
+        //             "limit_only": false,
+        //             "cancel_only": true,
+        //             "trading_disabled": false,
+        //             "status": "online",
+        //             "status_message": '',
+        //             "auction_mode": false
         //         },
         //         {
-        //             id: 'BTC-USD',
-        //             base_currency: 'BTC',
-        //             quote_currency: 'USD',
-        //             base_min_size: '0.000016',
-        //             base_max_size: '1500',
-        //             quote_increment: '0.01',
-        //             base_increment: '0.00000001',
-        //             display_name: 'BTC/USD',
-        //             min_market_funds: '1',
-        //             max_market_funds: '20000000',
-        //             margin_enabled: false,
-        //             fx_stablecoin: false,
-        //             max_slippage_percentage: '0.02000000',
-        //             post_only: false,
-        //             limit_only: false,
-        //             cancel_only: false,
-        //             trading_disabled: false,
-        //             status: 'online',
-        //             status_message: '',
-        //             auction_mode: false
+        //             "id": "BTC-USD",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USD",
+        //             "base_min_size": "0.000016",
+        //             "base_max_size": "1500",
+        //             "quote_increment": "0.01",
+        //             "base_increment": "0.00000001",
+        //             "display_name": "BTC/USD",
+        //             "min_market_funds": "1",
+        //             "max_market_funds": "20000000",
+        //             "margin_enabled": false,
+        //             "fx_stablecoin": false,
+        //             "max_slippage_percentage": "0.02000000",
+        //             "post_only": false,
+        //             "limit_only": false,
+        //             "cancel_only": false,
+        //             "trading_disabled": false,
+        //             "status": "online",
+        //             "status_message": '',
+        //             "auction_mode": false
         //         }
         //     ]
         //
@@ -434,20 +434,20 @@ export default class coinbasepro extends Exchange {
         //
         //     [
         //         {
-        //             id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
-        //             currency: 'BTC',
-        //             balance: '0.0000000000000000',
-        //             available: '0',
-        //             hold: '0.0000000000000000',
-        //             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //             "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+        //             "currency": "BTC",
+        //             "balance": "0.0000000000000000",
+        //             "available": "0",
+        //             "hold": "0.0000000000000000",
+        //             "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
         //         },
         //         {
-        //             id: 'f75fa69a-1ad1-4a80-bd61-ee7faa6135a3',
-        //             currency: 'USDC',
-        //             balance: '0.0000000000000000',
-        //             available: '0',
-        //             hold: '0.0000000000000000',
-        //             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //             "id": "f75fa69a-1ad1-4a80-bd61-ee7faa6135a3",
+        //             "currency": "USDC",
+        //             "balance": "0.0000000000000000",
+        //             "available": "0",
+        //             "hold": "0.0000000000000000",
+        //             "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
         //         },
         //     ]
         //
@@ -457,12 +457,12 @@ export default class coinbasepro extends Exchange {
     parseAccount (account) {
         //
         //     {
-        //         id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
-        //         currency: 'BTC',
-        //         balance: '0.0000000000000000',
-        //         available: '0',
-        //         hold: '0.0000000000000000',
-        //         profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //         "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+        //         "currency": "BTC",
+        //         "balance": "0.0000000000000000",
+        //         "available": "0",
+        //         "hold": "0.0000000000000000",
+        //         "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
         //     }
         //
         const currencyId = this.safeString (account, 'currency');
@@ -474,7 +474,7 @@ export default class coinbasepro extends Exchange {
         };
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -489,7 +489,7 @@ export default class coinbasepro extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name coinbasepro#fetchBalance
@@ -502,7 +502,7 @@ export default class coinbasepro extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinbasepro#fetchOrderBook
@@ -542,7 +542,7 @@ export default class coinbasepro extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTickers
         //
@@ -623,7 +623,7 @@ export default class coinbasepro extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinbasepro#fetchTickers
@@ -670,7 +670,7 @@ export default class coinbasepro extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinbasepro#fetchTicker
@@ -713,27 +713,27 @@ export default class coinbasepro extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         //     {
-        //         type: 'match',
-        //         trade_id: 82047307,
-        //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
-        //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
-        //         order_id: 'd50ec984-77a8-460a-b958-66f114b0de9b',
-        //         side: 'sell',
-        //         size: '0.00513192',
-        //         price: '9314.78',
-        //         product_id: 'BTC-USD',
-        //         profile_id: '6244401d-c078-40d9-b305-7ad3551bc3b0',
-        //         sequence: 12038915443,
-        //         time: '2020-01-31T20:03:41.158814Z'
-        //         created_at: '2014-11-07T22:19:28.578544Z',
-        //         liquidity: 'T',
-        //         fee: '0.00025',
-        //         settled: true,
-        //         usd_volume: '0.0924556000000000',
-        //         user_id: '595eb864313c2b02ddf2937d'
+        //         "type": "match",
+        //         "trade_id": 82047307,
+        //         "maker_order_id": "0f358725-2134-435e-be11-753912a326e0",
+        //         "taker_order_id": "252b7002-87a3-425c-ac73-f5b9e23f3caf",
+        //         "order_id": "d50ec984-77a8-460a-b958-66f114b0de9b",
+        //         "side": "sell",
+        //         "size": "0.00513192",
+        //         "price": "9314.78",
+        //         "product_id": "BTC-USD",
+        //         "profile_id": "6244401d-c078-40d9-b305-7ad3551bc3b0",
+        //         "sequence": 12038915443,
+        //         "time": "2020-01-31T20:03:41.158814Z"
+        //         "created_at": "2014-11-07T22:19:28.578544Z",
+        //         "liquidity": "T",
+        //         "fee": "0.00025",
+        //         "settled": true,
+        //         "usd_volume": "0.0924556000000000",
+        //         "user_id": "595eb864313c2b02ddf2937d"
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
@@ -786,7 +786,7 @@ export default class coinbasepro extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#fetchMyTrades
@@ -826,7 +826,7 @@ export default class coinbasepro extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbasepro#fetchTrades
@@ -895,7 +895,7 @@ export default class coinbasepro extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1591514160,
@@ -916,7 +916,7 @@ export default class coinbasepro extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name coinbasepro#fetchOHLCV
@@ -1009,7 +1009,7 @@ export default class coinbasepro extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1085,7 +1085,7 @@ export default class coinbasepro extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#fetchOrder
@@ -1111,7 +1111,7 @@ export default class coinbasepro extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#fetchOrderTrades
@@ -1135,7 +1135,7 @@ export default class coinbasepro extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbasepro#fetchOrders
@@ -1154,7 +1154,7 @@ export default class coinbasepro extends Exchange {
         return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbasepro#fetchOpenOrders
@@ -1195,7 +1195,7 @@ export default class coinbasepro extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbasepro#fetchClosedOrders
@@ -1254,7 +1254,7 @@ export default class coinbasepro extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_oid'] = clientOrderId;
         }
-        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop_price');
+        const stopPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         if (stopPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
         }
@@ -1266,7 +1266,7 @@ export default class coinbasepro extends Exchange {
         if (postOnly) {
             request['post_only'] = true;
         }
-        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only' ]);
+        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ]);
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['size'] = this.amountToPrecision (symbol, amount);
@@ -1308,7 +1308,7 @@ export default class coinbasepro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#cancelOrder
@@ -1341,7 +1341,7 @@ export default class coinbasepro extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#cancelAllOrders
@@ -1455,29 +1455,29 @@ export default class coinbasepro extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //  {
-        //      id: '12087495079',
-        //      amount: '-0.0100000000000000',
-        //      balance: '0.0645419900000000',
-        //      created_at: '2021-10-28T17:14:32.593168Z',
-        //      type: 'transfer',
-        //      details: {
-        //          from: '2f74edf7-1440-4586-86dc-ae58c5693691',
-        //          profile_transfer_id: '3ef093ad-2482-40d1-8ede-2f89cff5099e',
-        //          to: 'dda99503-4980-4b60-9549-0b770ee51336'
+        //      "id": "12087495079",
+        //      "amount": "-0.0100000000000000",
+        //      "balance": "0.0645419900000000",
+        //      "created_at": "2021-10-28T17:14:32.593168Z",
+        //      "type": "transfer",
+        //      "details": {
+        //          "from": "2f74edf7-1440-4586-86dc-ae58c5693691",
+        //          "profile_transfer_id": "3ef093ad-2482-40d1-8ede-2f89cff5099e",
+        //          "to": "dda99503-4980-4b60-9549-0b770ee51336"
         //      }
         //  },
         //  {
-        //     id: '11740725774',
-        //     amount: '-1.7565669701255000',
-        //     balance: '0.0016490047745000',
-        //     created_at: '2021-10-22T03:47:34.764122Z',
-        //     type: 'fee',
-        //     details: {
-        //         order_id: 'ad06abf4-95ab-432a-a1d8-059ef572e296',
-        //         product_id: 'ETH-DAI',
-        //         trade_id: '1740617'
+        //     "id": "11740725774",
+        //     "amount": "-1.7565669701255000",
+        //     "balance": "0.0016490047745000",
+        //     "created_at": "2021-10-22T03:47:34.764122Z",
+        //     "type": "fee",
+        //     "details": {
+        //         "order_id": "ad06abf4-95ab-432a-a1d8-059ef572e296",
+        //         "product_id": "ETH-DAI",
+        //         "trade_id": "1740617"
         //     }
         //  }
         const id = this.safeString (item, 'id');
@@ -1528,7 +1528,7 @@ export default class coinbasepro extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#fetchLedger
@@ -1580,7 +1580,7 @@ export default class coinbasepro extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbasepro#fetchDepositsWithdrawals
@@ -1688,7 +1688,7 @@ export default class coinbasepro extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbasepro#fetchDeposits
@@ -1702,7 +1702,7 @@ export default class coinbasepro extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend ({ 'type': 'deposit' }, params));
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbasepro#fetchWithdrawals
@@ -1732,7 +1732,7 @@ export default class coinbasepro extends Exchange {
         }
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // privateGetTransfers
         //
@@ -1808,6 +1808,7 @@ export default class coinbasepro extends Exchange {
             'tagTo': undefined,
             'updated': this.parse8601 (this.safeString (transaction, 'processed_at')),
             'comment': undefined,
+            'internal': false,
             'fee': fee,
         };
     }

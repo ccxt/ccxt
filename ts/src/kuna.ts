@@ -5,9 +5,9 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Precise } from '../ccxt.js';
+import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
@@ -606,13 +606,14 @@ export default class kuna extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': item,
             });
         }
         return markets;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name kuna#fetchOrderBook
@@ -662,7 +663,7 @@ export default class kuna extends Exchange {
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //    {
         //        "pair": "BTC_USDT",                                   // Traded pair
@@ -701,7 +702,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name kuna#fetchTickers
@@ -745,7 +746,7 @@ export default class kuna extends Exchange {
         return this.parseTickers (data, symbols, params);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name kuna#fetchTicker
@@ -800,7 +801,7 @@ export default class kuna extends Exchange {
         return await this.fetchOrderBook (symbol, limit, params);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name kuna#fetchTrades
@@ -838,7 +839,7 @@ export default class kuna extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -855,17 +856,17 @@ export default class kuna extends Exchange {
         // fetchMyTrades, fetchOrder (private)
         //
         //    {
-        //        id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
-        //        orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
-        //        pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //        quantity: "1.5862",                                // Traded quantity of base asset
-        //        price: "19087",                                    // Price of the trade
-        //        isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //        fee: "0.0039655",                                  // Exchange commission fee
-        //        feeCurrency: "BTC",                                // Currency of the commission
-        //        isBuyer: true,                                     // Buy or sell the base asset
-        //        quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //        createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //        "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //        "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //        "pair": "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //        "quantity": "1.5862",                                // Traded quantity of base asset
+        //        "price": "19087",                                    // Price of the trade
+        //        "isTaker": true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //        "fee": "0.0039655",                                  // Exchange commission fee
+        //        "feeCurrency": "BTC",                                // Currency of the commission
+        //        "isBuyer": true,                                     // Buy or sell the base asset
+        //        "quoteQuantity": "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //        "createdAt": "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
         //    }
         //
         const datetime = this.safeString (trade, 'createdAt');
@@ -897,7 +898,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         //
         //    [
         //        {
@@ -921,7 +922,7 @@ export default class kuna extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name kuna#fetchBalance
@@ -1006,7 +1007,7 @@ export default class kuna extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#cancelOrder
@@ -1038,7 +1039,7 @@ export default class kuna extends Exchange {
         return order;
     }
 
-    async cancelOrders (ids: string[], symbol: string = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#cancelOrder
@@ -1081,7 +1082,7 @@ export default class kuna extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         //
@@ -1159,7 +1160,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOrder
@@ -1216,7 +1217,7 @@ export default class kuna extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kuna#fetchOpenOrders
@@ -1277,7 +1278,7 @@ export default class kuna extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kuna#fetchClosedOrders
@@ -1296,7 +1297,7 @@ export default class kuna extends Exchange {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOrdersByStatus
@@ -1363,7 +1364,7 @@ export default class kuna extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchMyTrades
@@ -1391,17 +1392,17 @@ export default class kuna extends Exchange {
         //    {
         //        "data": [
         //            {
-        //                id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
-        //                orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
-        //                pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //                quantity: "1.5862",                                // Traded quantity of base asset
-        //                price: "19087",                                    // Price of the trade
-        //                isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //                fee: "0.0039655",                                  // Exchange commission fee
-        //                feeCurrency: "BTC",                                // Currency of the commission
-        //                isBuyer: true,                                     // Buy or sell the base asset
-        //                quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //                createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //                "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //                "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //                "pair": "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //                "quantity": "1.5862",                                // Traded quantity of base asset
+        //                "price": "19087",                                    // Price of the trade
+        //                "isTaker": true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //                "fee": "0.0039655",                                  // Exchange commission fee
+        //                "feeCurrency": "BTC",                                // Currency of the commission
+        //                "isBuyer": true,                                     // Buy or sell the base asset
+        //                "quoteQuantity": "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //                "createdAt": "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
         //            },
         //        ]
         //    }
@@ -1463,7 +1464,7 @@ export default class kuna extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kuna#fetchWithdrawals
@@ -1487,7 +1488,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let currency = undefined;
-        if (currency !== undefined) {
+        if (code !== undefined) {
             currency = this.currency (code);
         }
         const request = {};
@@ -1532,7 +1533,7 @@ export default class kuna extends Exchange {
         return this.parseTransactions (data, currency);
     }
 
-    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchWithdrawal
@@ -1631,7 +1632,7 @@ export default class kuna extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //    {
         //        "id": "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
@@ -1663,7 +1664,7 @@ export default class kuna extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kuna#fetchDeposits
@@ -1687,7 +1688,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let currency = undefined;
-        if (currency !== undefined) {
+        if (code !== undefined) {
             currency = this.currency (code);
         }
         const request = {};
@@ -1732,7 +1733,7 @@ export default class kuna extends Exchange {
         return this.parseTransactions (data, currency);
     }
 
-    async fetchDeposit (id: string, code: string = undefined, params = {}) {
+    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchDeposit
@@ -1777,7 +1778,7 @@ export default class kuna extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
@@ -1804,6 +1805,7 @@ export default class kuna extends Exchange {
         const type = this.safeStringLower (transaction, 'type');
         const address = this.safeString (transaction, 'address');
         const isDeposit = (type === 'deposit');
+        const parsedType = isDeposit ? type : 'withdrawal';
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
@@ -1816,15 +1818,16 @@ export default class kuna extends Exchange {
             'address': address,
             'addressTo': address,
             'amount': this.safeNumber (transaction, 'amount'),
-            'type': !isDeposit ? 'withdrawal' : type,
+            'type': parsedType,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'updated': this.parse8601 (this.safeString (transaction, 'updatedAt')),
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString (transaction, 'memo'),
+            'internal': undefined,
             'fee': {
-                'cost': this.safeString (transaction, 'fee'),
+                'cost': this.safeNumber (transaction, 'fee'),
                 'currency': code,
             },
         };

@@ -5,8 +5,8 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Trade
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
@@ -252,73 +252,72 @@ class alpaca(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        markets = []
-        for i in range(0, len(assets)):
-            asset = assets[i]
-            marketId = self.safe_string(asset, 'symbol')
-            parts = marketId.split('/')
-            baseId = self.safe_string(parts, 0)
-            quoteId = self.safe_string(parts, 1)
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            status = self.safe_string(asset, 'status')
-            active = (status == 'active')
-            minAmount = self.safe_number(asset, 'min_order_size')
-            amount = self.safe_number(asset, 'min_trade_increment')
-            price = self.safe_number(asset, 'price_increment')
-            markets.append({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': None,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': active,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': amount,
-                    'price': price,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': None,
-                'info': asset,
-            })
-        return markets
+        return self.parse_markets(assets)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_market(self, asset) -> Market:
+        marketId = self.safe_string(asset, 'symbol')
+        parts = marketId.split('/')
+        baseId = self.safe_string(parts, 0)
+        quoteId = self.safe_string(parts, 1)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
+        status = self.safe_string(asset, 'status')
+        active = (status == 'active')
+        minAmount = self.safe_number(asset, 'min_order_size')
+        amount = self.safe_number(asset, 'min_trade_increment')
+        price = self.safe_number(asset, 'price_increment')
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': None,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': active,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': amount,
+                'price': price,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': minAmount,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': asset,
+        }
+
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -359,7 +358,7 @@ class alpaca(Exchange, ImplicitAPI):
         symbolTrades = self.safe_value(trades, market['id'], {})
         return self.parse_trades(symbolTrades, market, since, limit)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -416,7 +415,7 @@ class alpaca(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(rawOrderbook, 't'))
         return self.parse_order_book(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's')
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -471,7 +470,7 @@ class alpaca(Exchange, ImplicitAPI):
         ohlcvs = self.safe_value(bars, market['id'], {})
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #        "c":22895,
@@ -577,7 +576,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_order(order, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -597,7 +596,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.safe_value(response, 'message', {})
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -613,7 +612,7 @@ class alpaca(Exchange, ImplicitAPI):
         market = self.safe_market(marketId)
         return self.parse_order(order, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -629,7 +628,7 @@ class alpaca(Exchange, ImplicitAPI):
         orders = self.privateGetOrders(params)
         return self.parse_orders(orders, market, since, limit)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #    {
         #        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -728,7 +727,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         #   {
         #       "t":"2022-06-14T05:00:00.027869Z",
@@ -744,7 +743,7 @@ class alpaca(Exchange, ImplicitAPI):
         datetime = self.safe_string(trade, 't')
         timestamp = self.parse8601(datetime)
         alpacaSide = self.safe_string(trade, 'tks')
-        side = None
+        side: str
         if alpacaSide == 'B':
             side = 'buy'
         elif alpacaSide == 'S':

@@ -179,7 +179,7 @@ class wazirx extends Exchange {
          * @see https://docs.wazirx.com/#exchange-info
          * retrieves data on all $markets for wazirx
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetExchangeInfo ($params);
         //
@@ -209,86 +209,85 @@ class wazirx extends Exchange {
         //     ),
         //
         $markets = $this->safe_value($response, 'symbols', array());
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $baseId = $this->safe_string($market, 'baseAsset');
-            $quoteId = $this->safe_string($market, 'quoteAsset');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $isSpot = $this->safe_value($market, 'isSpotTradingAllowed');
-            $filters = $this->safe_value($market, 'filters');
-            $minPrice = null;
-            for ($j = 0; $j < count($filters); $j++) {
-                $filter = $filters[$j];
-                $filterType = $this->safe_string($filter, 'filterType');
-                if ($filterType === 'PRICE_FILTER') {
-                    $minPrice = $this->safe_number($filter, 'minPrice');
-                }
-            }
-            $fee = $this->safe_value($this->fees, $quote, array());
-            $takerString = $this->safe_string($fee, 'taker', '0.2');
-            $takerString = Precise::string_div($takerString, '100');
-            $makerString = $this->safe_string($fee, 'maker', '0.2');
-            $makerString = Precise::string_div($makerString, '100');
-            $status = $this->safe_string($market, 'status');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => $isSpot,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => ($status === 'trading'),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $this->parse_number($takerString),
-                'maker' => $this->parse_number($makerString),
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteAssetPrecision'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => $minPrice,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'created' => null,
-                'info' => $market,
-            );
-        }
-        return $result;
+        return $this->parse_markets($markets);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $baseId = $this->safe_string($market, 'baseAsset');
+        $quoteId = $this->safe_string($market, 'quoteAsset');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $isSpot = $this->safe_value($market, 'isSpotTradingAllowed');
+        $filters = $this->safe_value($market, 'filters');
+        $minPrice = null;
+        for ($j = 0; $j < count($filters); $j++) {
+            $filter = $filters[$j];
+            $filterType = $this->safe_string($filter, 'filterType');
+            if ($filterType === 'PRICE_FILTER') {
+                $minPrice = $this->safe_number($filter, 'minPrice');
+            }
+        }
+        $fee = $this->safe_value($this->fees, $quote, array());
+        $takerString = $this->safe_string($fee, 'taker', '0.2');
+        $takerString = Precise::string_div($takerString, '100');
+        $makerString = $this->safe_string($fee, 'maker', '0.2');
+        $makerString = Precise::string_div($makerString, '100');
+        $status = $this->safe_string($market, 'status');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => $isSpot,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'trading'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'taker' => $this->parse_number($takerString),
+            'maker' => $this->parse_number($makerString),
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteAssetPrecision'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => $minPrice,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
+    }
+
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#kline-candlestick-data
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -327,7 +326,7 @@ class wazirx extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    [1669014300,1402001,1402001,1402001,1402001,0],
         //
@@ -341,7 +340,7 @@ class wazirx extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#order-book
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -376,7 +375,7 @@ class wazirx extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#24hr-$ticker-price-change-statistics
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -408,7 +407,7 @@ class wazirx extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#24hr-$tickers-price-change-statistics
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -445,7 +444,7 @@ class wazirx extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#recent-trades-list
          * get the list of most recent trades for a particular $symbol
@@ -478,7 +477,7 @@ class wazirx extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         //     {
         //         "id":322307791,
@@ -555,7 +554,7 @@ class wazirx extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //        "symbol":"btcinr",
@@ -606,7 +605,7 @@ class wazirx extends Exchange {
         ), $market);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -620,7 +619,7 @@ class wazirx extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#fund-details-user_data
          * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -641,19 +640,17 @@ class wazirx extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#all-$orders-user_data
          * fetches information on multiple $orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the wazirx api endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
-        }
+        $this->check_required_symbol('fetchOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -700,7 +697,7 @@ class wazirx extends Exchange {
         return $orders;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#current-open-$orders-user_data
          * fetch all unfilled currently open $orders
@@ -757,9 +754,7 @@ class wazirx extends Exchange {
          * @param {array} [$params] extra parameters specific to the wazirx api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a `$symbol` argument');
-        }
+        $this->check_required_symbol('cancelAllOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -777,9 +772,7 @@ class wazirx extends Exchange {
          * @param {array} [$params] extra parameters specific to the wazirx api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
-        }
+        $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -839,7 +832,7 @@ class wazirx extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         // array(
         //     "id":1949417813,
         //     "symbol":"ltcusdt",

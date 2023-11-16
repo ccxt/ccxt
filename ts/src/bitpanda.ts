@@ -5,7 +5,7 @@ import Exchange from './abstract/bitpanda.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -309,8 +309,8 @@ export default class bitpanda extends Exchange {
         const response = await this.publicGetTime (params);
         //
         //     {
-        //         iso: '2020-07-10T05:17:26.716Z',
-        //         epoch_millis: 1594358246716,
+        //         "iso": "2020-07-10T05:17:26.716Z",
+        //         "epoch_millis": 1594358246716,
         //     }
         //
         return this.safeInteger (response, 'epoch_millis');
@@ -370,77 +370,76 @@ export default class bitpanda extends Exchange {
         //
         //     [
         //         {
-        //             state: 'ACTIVE',
-        //             base: { code: 'ETH', precision: 8 },
-        //             quote: { code: 'CHF', precision: 2 },
-        //             amount_precision: 4,
-        //             market_precision: 2,
-        //             min_size: '10.0'
+        //             "state": "ACTIVE",
+        //             "base": { code: "ETH", precision: 8 },
+        //             "quote": { code: "CHF", precision: 2 },
+        //             "amount_precision": 4,
+        //             "market_precision": 2,
+        //             "min_size": "10.0"
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const baseAsset = this.safeValue (market, 'base', {});
-            const quoteAsset = this.safeValue (market, 'quote', {});
-            const baseId = this.safeString (baseAsset, 'code');
-            const quoteId = this.safeString (quoteAsset, 'code');
-            const id = baseId + '_' + quoteId;
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const state = this.safeString (market, 'state');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (state === 'ACTIVE'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'market_precision'))),
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market): Market {
+        const baseAsset = this.safeValue (market, 'base', {});
+        const quoteAsset = this.safeValue (market, 'quote', {});
+        const baseId = this.safeString (baseAsset, 'code');
+        const quoteId = this.safeString (quoteAsset, 'code');
+        const id = baseId + '_' + quoteId;
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const state = this.safeString (market, 'state');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (state === 'ACTIVE'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'market_precision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'min_size'),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_size'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     async fetchTradingFees (params = {}) {
@@ -549,7 +548,7 @@ export default class bitpanda extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers, market = undefined) {
+    parseFeeTiers (feeTiers, market: Market = undefined) {
         const takerFees = [];
         const makerFees = [];
         for (let i = 0; i < feeTiers.length; i++) {
@@ -568,7 +567,7 @@ export default class bitpanda extends Exchange {
         };
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTicker, fetchTickers
         //
@@ -621,7 +620,7 @@ export default class bitpanda extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitpanda#fetchTicker
@@ -657,7 +656,7 @@ export default class bitpanda extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitpanda#fetchTickers
@@ -698,7 +697,7 @@ export default class bitpanda extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitpanda#fetchOrderBook
@@ -782,7 +781,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -825,7 +824,7 @@ export default class bitpanda extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitpanda#fetchOHLCV
@@ -872,7 +871,7 @@ export default class bitpanda extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -954,7 +953,7 @@ export default class bitpanda extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitpanda#fetchTrades
@@ -996,7 +995,7 @@ export default class bitpanda extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'balances', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -1011,7 +1010,7 @@ export default class bitpanda extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitpanda#fetchBalance
@@ -1040,7 +1039,7 @@ export default class bitpanda extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         let code = undefined;
         if (currency !== undefined) {
             code = currency['code'];
@@ -1110,7 +1109,7 @@ export default class bitpanda extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitpanda#fetchDeposits
@@ -1175,7 +1174,7 @@ export default class bitpanda extends Exchange {
         return this.parseTransactions (depositHistory, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitpanda#fetchWithdrawals
@@ -1302,7 +1301,7 @@ export default class bitpanda extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits, fetchWithdrawals
         //
@@ -1373,6 +1372,8 @@ export default class bitpanda extends Exchange {
             'type': undefined,
             'updated': undefined,
             'txid': this.safeString (transaction, 'blockchain_transaction_id'),
+            'comment': undefined,
+            'internal': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,
@@ -1394,7 +1395,7 @@ export default class bitpanda extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1586,7 +1587,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#cancelOrder
@@ -1614,7 +1615,7 @@ export default class bitpanda extends Exchange {
         return response;
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#cancelAllOrders
@@ -1638,7 +1639,7 @@ export default class bitpanda extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#cancelOrders
@@ -1661,7 +1662,7 @@ export default class bitpanda extends Exchange {
         return response;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOrder
@@ -1719,7 +1720,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitpanda#fetchOpenOrders
@@ -1840,7 +1841,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrders (orderHistory, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitpanda#fetchClosedOrders
@@ -1857,7 +1858,7 @@ export default class bitpanda extends Exchange {
         return await this.fetchOpenOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchOrderTrades
@@ -1917,7 +1918,7 @@ export default class bitpanda extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#fetchMyTrades

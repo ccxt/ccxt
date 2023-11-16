@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kuna import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -600,11 +599,12 @@ class kuna(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': item,
             })
         return markets
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.kuna.io/docs/get-public-orders-book
@@ -650,7 +650,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 0, 1)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #    {
         #        "pair": "BTC_USDT",                                   # Traded pair
@@ -688,7 +688,7 @@ class kuna(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market. The average is not returned in the response, but the median can be accessed via response['info']['price']
         :see: https://docs.kuna.io/docs/get-market-info-by-tickers
@@ -728,7 +728,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols, params)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.kuna.io/docs/get-market-info-by-tickers
@@ -766,7 +766,7 @@ class kuna(Exchange, ImplicitAPI):
         ticker = self.safe_value(data, 0)
         return self.parse_ticker(ticker, market)
 
-    async def fetch_l3_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
         """
          * TODO: double check
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -777,7 +777,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         return await self.fetch_order_book(symbol, limit, params)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.kuna.io/docs/get-public-trades-book
@@ -811,7 +811,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -828,17 +828,17 @@ class kuna(Exchange, ImplicitAPI):
         # fetchMyTrades, fetchOrder(private)
         #
         #    {
-        #        id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        # Unique identifier of a trade
-        #        orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   # Unique identifier of an order associated with the trade
-        #        pair: "BTC_USDT",                                  # Traded pair, base asset first, followed by quoted asset
-        #        quantity: "1.5862",                                # Traded quantity of base asset
-        #        price: "19087",                                    # Price of the trade
-        #        isTaker: True,                                     # Various fees for Makers and Takers; "Market" orders are always `true`
-        #        fee: "0.0039655",                                  # Exchange commission fee
-        #        feeCurrency: "BTC",                                # Currency of the commission
-        #        isBuyer: True,                                     # Buy or sell the base asset
-        #        quoteQuantity: "30275.7994",                       # Quote asset quantity spent to fulfill the base amount
-        #        createdAt: "2022-09-29T13:43:53.824Z",             # Date-time of trade execution, UTC
+        #        "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        # Unique identifier of a trade
+        #        "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   # Unique identifier of an order associated with the trade
+        #        "pair": "BTC_USDT",                                  # Traded pair, base asset first, followed by quoted asset
+        #        "quantity": "1.5862",                                # Traded quantity of base asset
+        #        "price": "19087",                                    # Price of the trade
+        #        "isTaker": True,                                     # Various fees for Makers and Takers; "Market" orders are always `true`
+        #        "fee": "0.0039655",                                  # Exchange commission fee
+        #        "feeCurrency": "BTC",                                # Currency of the commission
+        #        "isBuyer": True,                                     # Buy or sell the base asset
+        #        "quoteQuantity": "30275.7994",                       # Quote asset quantity spent to fulfill the base amount
+        #        "createdAt": "2022-09-29T13:43:53.824Z",             # Date-time of trade execution, UTC
         #    }
         #
         datetime = self.safe_string(trade, 'createdAt')
@@ -868,7 +868,7 @@ class kuna(Exchange, ImplicitAPI):
             },
         }, market)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         #    [
         #        {
@@ -890,7 +890,7 @@ class kuna(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the kuna api endpoint
@@ -965,7 +965,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -993,7 +993,7 @@ class kuna(Exchange, ImplicitAPI):
         order['id'] = id
         return order
 
-    async def cancel_orders(self, ids: List[str], symbol: Optional[str] = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancels an open order
         :param str ids: order ids
@@ -1032,7 +1032,7 @@ class kuna(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         #
@@ -1108,7 +1108,7 @@ class kuna(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.kuna.io/docs/get-order-details-by-id
@@ -1162,7 +1162,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://docs.kuna.io/docs/get-active-client-orders-private
@@ -1216,7 +1216,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://docs.kuna.io/docs/get-private-orders-history
@@ -1232,7 +1232,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a list of orders
         :see: https://docs.kuna.io/docs/get-private-orders-history
@@ -1291,7 +1291,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://docs.kuna.io/docs/get-private-trades-history
@@ -1316,17 +1316,17 @@ class kuna(Exchange, ImplicitAPI):
         #    {
         #        "data": [
         #            {
-        #                id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        # Unique identifier of a trade
-        #                orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   # Unique identifier of an order associated with the trade
-        #                pair: "BTC_USDT",                                  # Traded pair, base asset first, followed by quoted asset
-        #                quantity: "1.5862",                                # Traded quantity of base asset
-        #                price: "19087",                                    # Price of the trade
-        #                isTaker: True,                                     # Various fees for Makers and Takers; "Market" orders are always `true`
-        #                fee: "0.0039655",                                  # Exchange commission fee
-        #                feeCurrency: "BTC",                                # Currency of the commission
-        #                isBuyer: True,                                     # Buy or sell the base asset
-        #                quoteQuantity: "30275.7994",                       # Quote asset quantity spent to fulfill the base amount
-        #                createdAt: "2022-09-29T13:43:53.824Z",             # Date-time of trade execution, UTC
+        #                "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        # Unique identifier of a trade
+        #                "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   # Unique identifier of an order associated with the trade
+        #                "pair": "BTC_USDT",                                  # Traded pair, base asset first, followed by quoted asset
+        #                "quantity": "1.5862",                                # Traded quantity of base asset
+        #                "price": "19087",                                    # Price of the trade
+        #                "isTaker": True,                                     # Various fees for Makers and Takers; "Market" orders are always `true`
+        #                "fee": "0.0039655",                                  # Exchange commission fee
+        #                "feeCurrency": "BTC",                                # Currency of the commission
+        #                "isBuyer": True,                                     # Buy or sell the base asset
+        #                "quoteQuantity": "30275.7994",                       # Quote asset quantity spent to fulfill the base amount
+        #                "createdAt": "2022-09-29T13:43:53.824Z",             # Date-time of trade execution, UTC
         #            },
         #        ]
         #    }
@@ -1381,7 +1381,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made to an account
         :see: https://docs.kuna.io/docs/get-withdraw-history
@@ -1403,7 +1403,7 @@ class kuna(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
         currency = None
-        if currency is not None:
+        if code is not None:
             currency = self.currency(code)
         request = {}
         if code is not None:
@@ -1442,7 +1442,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency)
 
-    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :see: https://docs.kuna.io/docs/get-withdraw-details-by-id
@@ -1532,7 +1532,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #    {
         #        "id": "c52b6646-fb91-4760-b147-a4f952e8652c",             # ID of the address.
@@ -1562,7 +1562,7 @@ class kuna(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://docs.kuna.io/docs/get-deposit-history
@@ -1584,7 +1584,7 @@ class kuna(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
         currency = None
-        if currency is not None:
+        if code is not None:
             currency = self.currency(code)
         request = {}
         if code is not None:
@@ -1623,7 +1623,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency)
 
-    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
         :see: https://docs.kuna.io/docs/get-deposit-details-by-id
@@ -1664,7 +1664,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #    {
         #        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               # Unique ID of deposit
@@ -1691,6 +1691,7 @@ class kuna(Exchange, ImplicitAPI):
         type = self.safe_string_lower(transaction, 'type')
         address = self.safe_string(transaction, 'address')
         isDeposit = (type == 'deposit')
+        parsedType = type if isDeposit else 'withdrawal'
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
@@ -1703,15 +1704,16 @@ class kuna(Exchange, ImplicitAPI):
             'address': address,
             'addressTo': address,
             'amount': self.safe_number(transaction, 'amount'),
-            'type': not 'withdrawal' if isDeposit else type,
+            'type': parsedType,
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'updated': self.parse8601(self.safe_string(transaction, 'updatedAt')),
             'tagFrom': None,
             'tag': None,
             'tagTo': None,
             'comment': self.safe_string(transaction, 'memo'),
+            'internal': None,
             'fee': {
-                'cost': self.safe_string(transaction, 'fee'),
+                'cost': self.safe_number(transaction, 'fee'),
                 'currency': code,
             },
         }

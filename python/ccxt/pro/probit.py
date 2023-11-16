@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -75,12 +75,12 @@ class probit(ccxt.async_support.probit):
     def handle_balance(self, client: Client, message):
         #
         #     {
-        #         channel: 'balance',
-        #         reset: False,
-        #         data: {
-        #             USDT: {
-        #                 available: '15',
-        #                 total: '15'
+        #         "channel": "balance",
+        #         "reset": False,
+        #         "data": {
+        #             "USDT": {
+        #                 "available": "15",
+        #                 "total": "15"
         #             }
         #         }
         #     }
@@ -92,12 +92,12 @@ class probit(ccxt.async_support.probit):
     def parse_ws_balance(self, message):
         #
         #     {
-        #         channel: 'balance',
-        #         reset: False,
-        #         data: {
-        #             USDT: {
-        #                 available: '15',
-        #                 total: '15'
+        #         "channel": "balance",
+        #         "reset": False,
+        #         "data": {
+        #             "USDT": {
+        #                 "available": "15",
+        #                 "total": "15"
         #             }
         #         }
         #     }
@@ -133,20 +133,20 @@ class probit(ccxt.async_support.probit):
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         channel: 'marketdata',
-        #         market_id: 'BTC-USDT',
-        #         status: 'ok',
-        #         lag: 0,
-        #         ticker: {
-        #             time: '2022-07-21T14:18:04.000Z',
-        #             last: '22591.3',
-        #             low: '22500.1',
-        #             high: '39790.7',
-        #             change: '-1224',
-        #             base_volume: '1002.32005445',
-        #             quote_volume: '23304489.385351021'
+        #         "channel": "marketdata",
+        #         "market_id": "BTC-USDT",
+        #         "status": "ok",
+        #         "lag": 0,
+        #         "ticker": {
+        #             "time": "2022-07-21T14:18:04.000Z",
+        #             "last": "22591.3",
+        #             "low": "22500.1",
+        #             "high": "39790.7",
+        #             "change": "-1224",
+        #             "base_volume": "1002.32005445",
+        #             "quote_volume": "23304489.385351021"
         #         },
-        #         reset: True
+        #         "reset": True
         #     }
         #
         marketId = self.safe_string(message, 'market_id')
@@ -158,7 +158,7 @@ class probit(ccxt.async_support.probit):
         self.tickers[symbol] = parsedTicker
         client.resolve(parsedTicker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs-en.probit.com/reference/trade_history
@@ -179,22 +179,22 @@ class probit(ccxt.async_support.probit):
     def handle_trades(self, client: Client, message):
         #
         #     {
-        #         channel: 'marketdata',
-        #         market_id: 'BTC-USDT',
-        #         status: 'ok',
-        #         lag: 0,
-        #         recent_trades: [
+        #         "channel": "marketdata",
+        #         "market_id": "BTC-USDT",
+        #         "status": "ok",
+        #         "lag": 0,
+        #         "recent_trades": [
         #             {
-        #                 id: 'BTC-USDT:8010233',
-        #                 price: '22701.4',
-        #                 quantity: '0.011011',
-        #                 time: '2022-07-21T13:40:40.983Z',
-        #                 side: 'buy',
-        #                 tick_direction: 'up'
+        #                 "id": "BTC-USDT:8010233",
+        #                 "price": "22701.4",
+        #                 "quantity": "0.011011",
+        #                 "time": "2022-07-21T13:40:40.983Z",
+        #                 "side": "buy",
+        #                 "tick_direction": "up"
         #             }
         #             ...
         #         ]
-        #         reset: True
+        #         "reset": True
         #     }
         #
         marketId = self.safe_string(message, 'market_id')
@@ -215,7 +215,7 @@ class probit(ccxt.async_support.probit):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of trades associated with the user
         :param str symbol: unified symbol of the market to fetch trades for
@@ -246,20 +246,20 @@ class probit(ccxt.async_support.probit):
     def handle_my_trades(self, client: Client, message):
         #
         #     {
-        #         channel: 'trade_history',
-        #         reset: False,
-        #         data: [{
-        #             id: 'BTC-USDT:8010722',
-        #             order_id: '4124999207',
-        #             side: 'buy',
-        #             fee_amount: '0.0134999868096',
-        #             fee_currency_id: 'USDT',
-        #             status: 'settled',
-        #             price: '23136.7',
-        #             quantity: '0.00032416',
-        #             cost: '7.499992672',
-        #             time: '2022-07-21T17:09:33.056Z',
-        #             market_id: 'BTC-USDT'
+        #         "channel": "trade_history",
+        #         "reset": False,
+        #         "data": [{
+        #             "id": "BTC-USDT:8010722",
+        #             "order_id": "4124999207",
+        #             "side": "buy",
+        #             "fee_amount": "0.0134999868096",
+        #             "fee_currency_id": "USDT",
+        #             "status": "settled",
+        #             "price": "23136.7",
+        #             "quantity": "0.00032416",
+        #             "cost": "7.499992672",
+        #             "time": "2022-07-21T17:09:33.056Z",
+        #             "market_id": "BTC-USDT"
         #         }]
         #     }
         #
@@ -287,7 +287,7 @@ class probit(ccxt.async_support.probit):
             client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on an order made by the user
         :see: https://docs-en.probit.com/reference/open_order
@@ -320,23 +320,23 @@ class probit(ccxt.async_support.probit):
     def handle_orders(self, client: Client, message):
         #
         #     {
-        #         channel: 'order_history',
-        #         reset: True,
-        #         data: [{
-        #                 id: '4124999207',
-        #                 user_id: '633dc56a-621b-4680-8a4e-85a823499b6d',
-        #                 market_id: 'BTC-USDT',
-        #                 type: 'market',
-        #                 side: 'buy',
-        #                 limit_price: '0',
-        #                 time_in_force: 'ioc',
-        #                 filled_cost: '7.499992672',
-        #                 filled_quantity: '0.00032416',
-        #                 open_quantity: '0',
-        #                 status: 'filled',
-        #                 time: '2022-07-21T17:09:33.056Z',
-        #                 client_order_id: '',
-        #                 cost: '7.5'
+        #         "channel": "order_history",
+        #         "reset": True,
+        #         "data": [{
+        #                 "id": "4124999207",
+        #                 "user_id": "633dc56a-621b-4680-8a4e-85a823499b6d",
+        #                 "market_id": "BTC-USDT",
+        #                 "type": "market",
+        #                 "side": "buy",
+        #                 "limit_price": "0",
+        #                 "time_in_force": "ioc",
+        #                 "filled_cost": "7.499992672",
+        #                 "filled_quantity": "0.00032416",
+        #                 "open_quantity": "0",
+        #                 "status": "filled",
+        #                 "time": "2022-07-21T17:09:33.056Z",
+        #                 "client_order_id": '',
+        #                 "cost": "7.5"
         #             },
         #             ...
         #         ]
@@ -366,7 +366,7 @@ class probit(ccxt.async_support.probit):
             client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs-en.probit.com/reference/marketdata
@@ -412,15 +412,15 @@ class probit(ccxt.async_support.probit):
     def handle_order_book(self, client: Client, message, orderBook):
         #
         #     {
-        #         channel: 'marketdata',
-        #         market_id: 'BTC-USDT',
-        #         status: 'ok',
-        #         lag: 0,
-        #         order_books: [
-        #           {side: 'buy', price: '1420.7', quantity: '0.057'},
+        #         "channel": "marketdata",
+        #         "market_id": "BTC-USDT",
+        #         "status": "ok",
+        #         "lag": 0,
+        #         "order_books": [
+        #           {side: "buy", price: '1420.7', quantity: "0.057"},
         #           ...
         #         ],
-        #         reset: True
+        #         "reset": True
         #     }
         #
         marketId = self.safe_string(message, 'market_id')
@@ -456,10 +456,10 @@ class probit(ccxt.async_support.probit):
     def handle_error_message(self, client: Client, message):
         #
         #     {
-        #         errorCode: 'INVALID_ARGUMENT',
-        #         message: '',
-        #         details: {
-        #             interval: 'invalid'
+        #         "errorCode": "INVALID_ARGUMENT",
+        #         "message": '',
+        #         "details": {
+        #             "interval": "invalid"
         #         }
         #     }
         #
@@ -471,7 +471,7 @@ class probit(ccxt.async_support.probit):
 
     def handle_authenticate(self, client: Client, message):
         #
-        #     {type: 'authorization', result: 'ok'}
+        #     {type: "authorization", result: "ok"}
         #
         result = self.safe_string(message, 'result')
         future = client.subscriptions['authenticated']
@@ -495,10 +495,10 @@ class probit(ccxt.async_support.probit):
     def handle_message(self, client: Client, message):
         #
         #     {
-        #         errorCode: 'INVALID_ARGUMENT',
-        #         message: '',
-        #         details: {
-        #             interval: 'invalid'
+        #         "errorCode": "INVALID_ARGUMENT",
+        #         "message": '',
+        #         "details": {
+        #             "interval": "invalid"
         #         }
         #     }
         #
@@ -532,9 +532,9 @@ class probit(ccxt.async_support.probit):
             response = await self.signIn()
             #
             #     {
-            #         access_token: '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-            #         token_type: 'bearer',
-            #         expires_in: 900
+            #         "access_token": "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+            #         "token_type": "bearer",
+            #         "expires_in": 900
             #     }
             #
             accessToken = self.safe_string(response, 'access_token')

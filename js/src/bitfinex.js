@@ -412,8 +412,8 @@ export default class bitfinex extends Exchange {
         const response = await this.privatePostAccountFees(params);
         //
         // {
-        //     'withdraw': {
-        //         'BTC': '0.0004',
+        //     "withdraw": {
+        //         "BTC": "0.0004",
         //     }
         // }
         //
@@ -447,8 +447,8 @@ export default class bitfinex extends Exchange {
         const response = await this.privatePostAccountFees(params);
         //
         //    {
-        //        'withdraw': {
-        //            'BTC': '0.0004',
+        //        "withdraw": {
+        //            "BTC": "0.0004",
         //            ...
         //        }
         //    }
@@ -485,41 +485,41 @@ export default class bitfinex extends Exchange {
         const response = await this.privatePostSummary(params);
         //
         //     {
-        //          time: '2022-02-23T16:05:47.659000Z',
-        //          status: { resid_hint: null, login_last: '2022-02-23T16:05:48Z' },
-        //          is_locked: false,
-        //          leo_lev: '0',
-        //          leo_amount_avg: '0.0',
-        //          trade_vol_30d: [
+        //          "time": "2022-02-23T16:05:47.659000Z",
+        //          "status": { resid_hint: null, login_last: "2022-02-23T16:05:48Z" },
+        //          "is_locked": false,
+        //          "leo_lev": "0",
+        //          "leo_amount_avg": "0.0",
+        //          "trade_vol_30d": [
         //          {
-        //              curr: 'Total (USD)',
-        //              vol: '0.0',
-        //              vol_safe: '0.0',
-        //              vol_maker: '0.0',
-        //              vol_BFX: '0.0',
-        //              vol_BFX_safe: '0.0',
-        //              vol_BFX_maker: '0.0'
+        //              "curr": "Total (USD)",
+        //              "vol": "0.0",
+        //              "vol_safe": "0.0",
+        //              "vol_maker": "0.0",
+        //              "vol_BFX": "0.0",
+        //              "vol_BFX_safe": "0.0",
+        //              "vol_BFX_maker": "0.0"
         //          }
         //          ],
-        //          fees_funding_30d: {},
-        //          fees_funding_total_30d: '0',
-        //          fees_trading_30d: {},
-        //          fees_trading_total_30d: '0',
-        //          rebates_trading_30d: {},
-        //          rebates_trading_total_30d: '0',
-        //          maker_fee: '0.001',
-        //          taker_fee: '0.002',
-        //          maker_fee_2crypto: '0.001',
-        //          maker_fee_2stablecoin: '0.001',
-        //          maker_fee_2fiat: '0.001',
-        //          maker_fee_2deriv: '0.0002',
-        //          taker_fee_2crypto: '0.002',
-        //          taker_fee_2stablecoin: '0.002',
-        //          taker_fee_2fiat: '0.002',
-        //          taker_fee_2deriv: '0.00065',
-        //          deriv_maker_rebate: '0.0002',
-        //          deriv_taker_fee: '0.00065',
-        //          trade_last: null
+        //          "fees_funding_30d": {},
+        //          "fees_funding_total_30d": "0",
+        //          "fees_trading_30d": {},
+        //          "fees_trading_total_30d": "0",
+        //          "rebates_trading_30d": {},
+        //          "rebates_trading_total_30d": "0",
+        //          "maker_fee": "0.001",
+        //          "taker_fee": "0.002",
+        //          "maker_fee_2crypto": "0.001",
+        //          "maker_fee_2stablecoin": "0.001",
+        //          "maker_fee_2fiat": "0.001",
+        //          "maker_fee_2deriv": "0.0002",
+        //          "taker_fee_2crypto": "0.002",
+        //          "taker_fee_2stablecoin": "0.002",
+        //          "taker_fee_2fiat": "0.002",
+        //          "taker_fee_2deriv": "0.00065",
+        //          "deriv_maker_rebate": "0.0002",
+        //          "deriv_taker_fee": "0.00065",
+        //          "trade_last": null
         //     }
         //
         const result = {};
@@ -697,18 +697,18 @@ export default class bitfinex extends Exchange {
         }
         const query = this.omit(params, 'type');
         const response = await this.privatePostBalances(query);
-        //    [ { type: 'deposit',
-        //        currency: 'btc',
-        //        amount: '0.00116721',
-        //        available: '0.00116721' },
-        //      { type: 'exchange',
-        //        currency: 'ust',
-        //        amount: '0.0000002',
-        //        available: '0.0000002' },
-        //      { type: 'trading',
-        //        currency: 'btc',
-        //        amount: '0.0005',
-        //        available: '0.0005' } ],
+        //    [ { type: "deposit",
+        //        "currency": "btc",
+        //        "amount": "0.00116721",
+        //        "available": "0.00116721" },
+        //      { type: "exchange",
+        //        "currency": "ust",
+        //        "amount": "0.0000002",
+        //        "available": "0.0000002" },
+        //      { type: "trading",
+        //        "currency": "btc",
+        //        "amount": "0.0005",
+        //        "available": "0.0005" } ],
         const result = { 'info': response };
         const isDerivative = requestedType === 'derivatives';
         for (let i = 0; i < response.length; i++) {
@@ -769,8 +769,8 @@ export default class bitfinex extends Exchange {
         //
         //     [
         //         {
-        //             status: 'success',
-        //             message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        //             "status": "success",
+        //             "message": "0.0001 Bitcoin transfered from Margin to Exchange"
         //         }
         //     ]
         //
@@ -788,8 +788,8 @@ export default class bitfinex extends Exchange {
     parseTransfer(transfer, currency = undefined) {
         //
         //     {
-        //         status: 'success',
-        //         message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        //         "status": "success",
+        //         "message": "0.0001 Bitcoin transfered from Margin to Exchange"
         //     }
         //
         const timestamp = this.milliseconds();
@@ -1026,9 +1026,7 @@ export default class bitfinex extends Exchange {
          * @param {object} [params] extra parameters specific to the bitfinex api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1140,26 +1138,26 @@ export default class bitfinex extends Exchange {
     parseOrder(order, market = undefined) {
         //
         //     {
-        //           id: 57334010955,
-        //           cid: 1611584840966,
-        //           cid_date: null,
-        //           gid: null,
-        //           symbol: 'ltcbtc',
-        //           exchange: null,
-        //           price: '0.0042125',
-        //           avg_execution_price: '0.0042097',
-        //           side: 'sell',
-        //           type: 'exchange market',
-        //           timestamp: '1611584841.0',
-        //           is_live: false,
-        //           is_cancelled: false,
-        //           is_hidden: 0,
-        //           oco_order: 0,
-        //           was_forced: false,
-        //           original_amount: '0.205176',
-        //           remaining_amount: '0.0',
-        //           executed_amount: '0.205176',
-        //           src: 'web'
+        //           "id": 57334010955,
+        //           "cid": 1611584840966,
+        //           "cid_date": null,
+        //           "gid": null,
+        //           "symbol": "ltcbtc",
+        //           "exchange": null,
+        //           "price": "0.0042125",
+        //           "avg_execution_price": "0.0042097",
+        //           "side": "sell",
+        //           "type": "exchange market",
+        //           "timestamp": "1611584841.0",
+        //           "is_live": false,
+        //           "is_cancelled": false,
+        //           "is_hidden": 0,
+        //           "oco_order": 0,
+        //           "was_forced": false,
+        //           "original_amount": "0.205176",
+        //           "remaining_amount": "0.0",
+        //           "executed_amount": "0.205176",
+        //           "src": "web"
         //     }
         //
         const side = this.safeString(order, 'side');
@@ -1506,6 +1504,7 @@ export default class bitfinex extends Exchange {
             'tagTo': undefined,
             'updated': this.safeTimestamp(transaction, 'timestamp'),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCost),

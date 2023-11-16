@@ -338,7 +338,7 @@ class tidex extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'return');
         $timestamp = $this->safe_timestamp($balances, 'server_time');
         $result = array(
@@ -360,7 +360,7 @@ class tidex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the tidex api endpoint
@@ -397,7 +397,7 @@ class tidex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -460,18 +460,18 @@ class tidex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
-        //         high => 0.03497582,
-        //         low => 0.03248474,
-        //         avg => 0.03373028,
-        //         vol => 120.11485715062999,
-        //         vol_cur => 3572.24914074,
-        //         $last => 0.0337611,
-        //         buy => 0.0337442,
-        //         sell => 0.03377798,
-        //         updated => 1537522009
+        //         "high" => 0.03497582,
+        //         "low" => 0.03248474,
+        //         "avg" => 0.03373028,
+        //         "vol" => 120.11485715062999,
+        //         "vol_cur" => 3572.24914074,
+        //         "last" => 0.0337611,
+        //         "buy" => 0.0337442,
+        //         "sell" => 0.03377798,
+        //         "updated" => 1537522009
         //     }
         //
         $timestamp = $this->safe_timestamp($ticker, 'updated');
@@ -501,7 +501,7 @@ class tidex extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
@@ -538,7 +538,7 @@ class tidex extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
@@ -549,7 +549,7 @@ class tidex extends Exchange {
         return $tickers[$symbol];
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $side = $this->safe_string($trade, 'type');
         if ($side === 'ask') {
@@ -605,7 +605,7 @@ class tidex extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -720,14 +720,12 @@ class tidex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_timestamp($order, 'timestamp_created');
         $marketId = $this->safe_string($order, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $remaining = null;
-        $amount = null;
         $price = $this->safe_string($order, 'rate');
         if (is_array($order) && array_key_exists('start_amount', $order)) {
             $amount = $this->safe_string($order, 'start_amount');
@@ -780,7 +778,7 @@ class tidex extends Exchange {
         return $this->parse_order(array_merge(array( 'id' => $id ), $order));
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
          * @param {string} $symbol unified $market $symbol
@@ -912,7 +910,7 @@ class tidex extends Exchange {
         return $this->parse_transaction($withdrawInfo, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "id":1111,
@@ -950,6 +948,7 @@ class tidex extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => null,
             'info' => $transaction,
         );

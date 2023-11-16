@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -92,42 +92,42 @@ class deribit(ccxt.async_support.deribit):
         #
         # subscription
         #     {
-        #         jsonrpc: '2.0',
-        #         method: 'subscription',
-        #         params: {
-        #             channel: 'user.portfolio.btc',
-        #             data: {
-        #                 total_pl: 0,
-        #                 session_upl: 0,
-        #                 session_rpl: 0,
-        #                 projected_maintenance_margin: 0,
-        #                 projected_initial_margin: 0,
-        #                 projected_delta_total: 0,
-        #                 portfolio_margining_enabled: False,
-        #                 options_vega: 0,
-        #                 options_value: 0,
-        #                 options_theta: 0,
-        #                 options_session_upl: 0,
-        #                 options_session_rpl: 0,
-        #                 options_pl: 0,
-        #                 options_gamma: 0,
-        #                 options_delta: 0,
-        #                 margin_balance: 0.0015,
-        #                 maintenance_margin: 0,
-        #                 initial_margin: 0,
-        #                 futures_session_upl: 0,
-        #                 futures_session_rpl: 0,
-        #                 futures_pl: 0,
-        #                 fee_balance: 0,
-        #                 estimated_liquidation_ratio_map: {},
-        #                 estimated_liquidation_ratio: 0,
-        #                 equity: 0.0015,
-        #                 delta_total_map: {},
-        #                 delta_total: 0,
-        #                 currency: 'BTC',
-        #                 balance: 0.0015,
-        #                 available_withdrawal_funds: 0.0015,
-        #                 available_funds: 0.0015
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "user.portfolio.btc",
+        #             "data": {
+        #                 "total_pl": 0,
+        #                 "session_upl": 0,
+        #                 "session_rpl": 0,
+        #                 "projected_maintenance_margin": 0,
+        #                 "projected_initial_margin": 0,
+        #                 "projected_delta_total": 0,
+        #                 "portfolio_margining_enabled": False,
+        #                 "options_vega": 0,
+        #                 "options_value": 0,
+        #                 "options_theta": 0,
+        #                 "options_session_upl": 0,
+        #                 "options_session_rpl": 0,
+        #                 "options_pl": 0,
+        #                 "options_gamma": 0,
+        #                 "options_delta": 0,
+        #                 "margin_balance": 0.0015,
+        #                 "maintenance_margin": 0,
+        #                 "initial_margin": 0,
+        #                 "futures_session_upl": 0,
+        #                 "futures_session_rpl": 0,
+        #                 "futures_pl": 0,
+        #                 "fee_balance": 0,
+        #                 "estimated_liquidation_ratio_map": {},
+        #                 "estimated_liquidation_ratio": 0,
+        #                 "equity": 0.0015,
+        #                 "delta_total_map": {},
+        #                 "delta_total": 0,
+        #                 "currency": "BTC",
+        #                 "balance": 0.0015,
+        #                 "available_withdrawal_funds": 0.0015,
+        #                 "available_funds": 0.0015
         #             }
         #         }
         #     }
@@ -174,29 +174,29 @@ class deribit(ccxt.async_support.deribit):
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         method: 'subscription',
-        #         params: {
-        #             channel: 'ticker.BTC_USDC-PERPETUAL.raw',
-        #             data: {
-        #                 timestamp: 1655393725041,
-        #                 stats: [Object],
-        #                 state: 'open',
-        #                 settlement_price: 21729.5891,
-        #                 open_interest: 164.501,
-        #                 min_price: 20792.9376,
-        #                 max_price: 21426.225,
-        #                 mark_price: 21109.555,
-        #                 last_price: 21132,
-        #                 instrument_name: 'BTC_USDC-PERPETUAL',
-        #                 index_price: 21122.3937,
-        #                 funding_8h: -0.00022427,
-        #                 estimated_delivery_price: 21122.3937,
-        #                 current_funding: -0.00010782,
-        #                 best_bid_price: 21106,
-        #                 best_bid_amount: 1.143,
-        #                 best_ask_price: 21113,
-        #                 best_ask_amount: 0.327
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
+        #             "data": {
+        #                 "timestamp": 1655393725041,
+        #                 "stats": [Object],
+        #                 "state": "open",
+        #                 "settlement_price": 21729.5891,
+        #                 "open_interest": 164.501,
+        #                 "min_price": 20792.9376,
+        #                 "max_price": 21426.225,
+        #                 "mark_price": 21109.555,
+        #                 "last_price": 21132,
+        #                 "instrument_name": "BTC_USDC-PERPETUAL",
+        #                 "index_price": 21122.3937,
+        #                 "funding_8h": -0.00022427,
+        #                 "estimated_delivery_price": 21122.3937,
+        #                 "current_funding": -0.00010782,
+        #                 "best_bid_price": 21106,
+        #                 "best_bid_amount": 1.143,
+        #                 "best_ask_price": 21113,
+        #                 "best_ask_amount": 0.327
         #             }
         #         }
         #     }
@@ -210,7 +210,7 @@ class deribit(ccxt.async_support.deribit):
         self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.deribit.com/#trades-instrument_name-interval
@@ -284,7 +284,7 @@ class deribit(ccxt.async_support.deribit):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], channel)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of trades associated with the user
         :see: https://docs.deribit.com/#user-trades-instrument_name-interval
@@ -364,7 +364,7 @@ class deribit(ccxt.async_support.deribit):
             marketIds[symbol] = True
         client.resolve(cachedTrades, channel)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         :see: https://docs.deribit.com/#public-get_book_summary_by_instrument
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -485,7 +485,7 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.deribit.com/#user-orders-instrument_name-raw
         watches information on multiple orders made by the user
@@ -523,33 +523,33 @@ class deribit(ccxt.async_support.deribit):
         # Does not return a snapshot of current orders
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         method: 'subscription',
-        #         params: {
-        #             channel: 'user.orders.any.any.raw',
-        #             data: {
-        #                 web: True,
-        #                 time_in_force: 'good_til_cancelled',
-        #                 replaced: False,
-        #                 reduce_only: False,
-        #                 profit_loss: 0,
-        #                 price: 50000,
-        #                 post_only: False,
-        #                 order_type: 'limit',
-        #                 order_state: 'open',
-        #                 order_id: '46094375191',
-        #                 max_show: 10,
-        #                 last_update_timestamp: 1655401625037,
-        #                 label: '',
-        #                 is_liquidation: False,
-        #                 instrument_name: 'BTC-PERPETUAL',
-        #                 filled_amount: 0,
-        #                 direction: 'sell',
-        #                 creation_timestamp: 1655401625037,
-        #                 commission: 0,
-        #                 average_price: 0,
-        #                 api: False,
-        #                 amount: 10
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "user.orders.any.any.raw",
+        #             "data": {
+        #                 "web": True,
+        #                 "time_in_force": "good_til_cancelled",
+        #                 "replaced": False,
+        #                 "reduce_only": False,
+        #                 "profit_loss": 0,
+        #                 "price": 50000,
+        #                 "post_only": False,
+        #                 "order_type": "limit",
+        #                 "order_state": "open",
+        #                 "order_id": "46094375191",
+        #                 "max_show": 10,
+        #                 "last_update_timestamp": 1655401625037,
+        #                 "label": '',
+        #                 "is_liquidation": False,
+        #                 "instrument_name": "BTC-PERPETUAL",
+        #                 "filled_amount": 0,
+        #                 "direction": "sell",
+        #                 "creation_timestamp": 1655401625037,
+        #                 "commission": 0,
+        #                 "average_price": 0,
+        #                 "api": False,
+        #                 "amount": 10
         #             }
         #         }
         #     }
@@ -571,7 +571,7 @@ class deribit(ccxt.async_support.deribit):
             cachedOrders.append(orders[i])
         client.resolve(self.orders, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.deribit.com/#chart-trades-instrument_name-resolution
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -607,18 +607,18 @@ class deribit(ccxt.async_support.deribit):
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         method: 'subscription',
-        #         params: {
-        #             channel: 'chart.trades.BTC_USDC-PERPETUAL.1',
-        #             data: {
-        #                 volume: 0,
-        #                 tick: 1655403420000,
-        #                 open: 20951,
-        #                 low: 20951,
-        #                 high: 20951,
-        #                 cost: 0,
-        #                 close: 20951
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "chart.trades.BTC_USDC-PERPETUAL.1",
+        #             "data": {
+        #                 "volume": 0,
+        #                 "tick": 1655403420000,
+        #                 "open": 20951,
+        #                 "low": 20951,
+        #                 "high": 20951,
+        #                 "cost": 0,
+        #                 "close": 20951
         #             }
         #         }
         #     }
@@ -667,40 +667,40 @@ class deribit(ccxt.async_support.deribit):
         #
         # subscribe
         #     {
-        #         jsonrpc: '2.0',
-        #         id: 2,
-        #         result: ['ticker.BTC_USDC-PERPETUAL.raw'],
-        #         usIn: '1655393625889396',
-        #         usOut: '1655393625889518',
-        #         usDiff: 122,
-        #         testnet: False
+        #         "jsonrpc": "2.0",
+        #         "id": 2,
+        #         "result": ["ticker.BTC_USDC-PERPETUAL.raw"],
+        #         "usIn": "1655393625889396",
+        #         "usOut": "1655393625889518",
+        #         "usDiff": 122,
+        #         "testnet": False
         #     }
         #
         # notification
         #     {
-        #         jsonrpc: '2.0',
-        #         method: 'subscription',
-        #         params: {
-        #             channel: 'ticker.BTC_USDC-PERPETUAL.raw',
-        #             data: {
-        #                 timestamp: 1655393724752,
-        #                 stats: [Object],
-        #                 state: 'open',
-        #                 settlement_price: 21729.5891,
-        #                 open_interest: 164.501,
-        #                 min_price: 20792.9001,
-        #                 max_price: 21426.1864,
-        #                 mark_price: 21109.4757,
-        #                 last_price: 21132,
-        #                 instrument_name: 'BTC_USDC-PERPETUAL',
-        #                 index_price: 21122.3937,
-        #                 funding_8h: -0.00022427,
-        #                 estimated_delivery_price: 21122.3937,
-        #                 current_funding: -0.00011158,
-        #                 best_bid_price: 21106,
-        #                 best_bid_amount: 1.143,
-        #                 best_ask_price: 21113,
-        #                 best_ask_amount: 0.402
+        #         "jsonrpc": "2.0",
+        #         "method": "subscription",
+        #         "params": {
+        #             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
+        #             "data": {
+        #                 "timestamp": 1655393724752,
+        #                 "stats": [Object],
+        #                 "state": "open",
+        #                 "settlement_price": 21729.5891,
+        #                 "open_interest": 164.501,
+        #                 "min_price": 20792.9001,
+        #                 "max_price": 21426.1864,
+        #                 "mark_price": 21109.4757,
+        #                 "last_price": 21132,
+        #                 "instrument_name": "BTC_USDC-PERPETUAL",
+        #                 "index_price": 21122.3937,
+        #                 "funding_8h": -0.00022427,
+        #                 "estimated_delivery_price": 21122.3937,
+        #                 "current_funding": -0.00011158,
+        #                 "best_bid_price": 21106,
+        #                 "best_bid_amount": 1.143,
+        #                 "best_ask_price": 21113,
+        #                 "best_ask_amount": 0.402
         #             }
         #         }
         #     }
@@ -738,19 +738,19 @@ class deribit(ccxt.async_support.deribit):
     def handle_authentication_message(self, client: Client, message):
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         id: 1,
-        #         result: {
-        #             token_type: 'bearer',
-        #             scope: 'account:read_write block_trade:read_write connection custody:read_write mainaccount name:ccxt trade:read_write wallet:read_write',
-        #             refresh_token: '1686927372328.1EzFBRmt.logRQWXkPA1oE_Tk0gRsls9Hau7YN6a321XUBnxvR4x6cryhbkKcniUJU-czA8_zKXrqQGpQmfoDwhLIjIsWCvRuu6otbg-LKWlrtTX1GQqLcPaTTHAdZGTMV-HM8HiS03QBd9MIXWRfF53sKj2hdR9nZPZ6MH1XrkpAZPB_peuEEB9wlcc3elzWEZFtCmiy1fnQ8TPHwAJMt3nuUmEcMLt_-F554qrsg_-I66D9xMiifJj4dBemdPfV_PkGPRIwIoKlxDjyv2-xfCw-4eKyo6Hu1m2h6gT1DPOTxSXcBgfBQjpi-_uY3iAIj7U6xjC46PHthEdquhEuCTZl7UfCRZSAWwZA',
-        #             expires_in: 31536000,
-        #             access_token: '1686923272328.1CkwEx-u.qHradpIulmuoeboKMEi8PkQ1_4DF8yFE2zywBTtkD32sruVC53b1HwL5OWRuh2nYAndXff4xuXIMRkkEfMAFCeq24prihxxinoS8DDVkKBxedGx4CUPJFeXjmh7wuRGqQOLg1plXOpbF3fwF2KPEkAuETwcpcVY6K9HUVjutNRfxFe2TR7CvuS9x8TATvoPeu7H1ezYl-LkKSaRifdTXuwituXgp4oDbPRyQLniEBWuYF9rY7qbABxuOJlXI1VZ63u7Bh0mGWei-KeVeqHGNpy6OgrFRPXPxa9_U7vaxCyHW3zZ9959TQ1QUMLWtUX-NLBEv3BT5eCieW9HORYIOKfsgkpd3'
+        #         "jsonrpc": "2.0",
+        #         "id": 1,
+        #         "result": {
+        #             "token_type": "bearer",
+        #             "scope": "account:read_write block_trade:read_write connection custody:read_write mainaccount name:ccxt trade:read_write wallet:read_write",
+        #             "refresh_token": "1686927372328.1EzFBRmt.logRQWXkPA1oE_Tk0gRsls9Hau7YN6a321XUBnxvR4x6cryhbkKcniUJU-czA8_zKXrqQGpQmfoDwhLIjIsWCvRuu6otbg-LKWlrtTX1GQqLcPaTTHAdZGTMV-HM8HiS03QBd9MIXWRfF53sKj2hdR9nZPZ6MH1XrkpAZPB_peuEEB9wlcc3elzWEZFtCmiy1fnQ8TPHwAJMt3nuUmEcMLt_-F554qrsg_-I66D9xMiifJj4dBemdPfV_PkGPRIwIoKlxDjyv2-xfCw-4eKyo6Hu1m2h6gT1DPOTxSXcBgfBQjpi-_uY3iAIj7U6xjC46PHthEdquhEuCTZl7UfCRZSAWwZA",
+        #             "expires_in": 31536000,
+        #             "access_token": "1686923272328.1CkwEx-u.qHradpIulmuoeboKMEi8PkQ1_4DF8yFE2zywBTtkD32sruVC53b1HwL5OWRuh2nYAndXff4xuXIMRkkEfMAFCeq24prihxxinoS8DDVkKBxedGx4CUPJFeXjmh7wuRGqQOLg1plXOpbF3fwF2KPEkAuETwcpcVY6K9HUVjutNRfxFe2TR7CvuS9x8TATvoPeu7H1ezYl-LkKSaRifdTXuwituXgp4oDbPRyQLniEBWuYF9rY7qbABxuOJlXI1VZ63u7Bh0mGWei-KeVeqHGNpy6OgrFRPXPxa9_U7vaxCyHW3zZ9959TQ1QUMLWtUX-NLBEv3BT5eCieW9HORYIOKfsgkpd3"
         #         },
-        #         usIn: '1655391872327712',
-        #         usOut: '1655391872328515',
-        #         usDiff: 803,
-        #         testnet: False
+        #         "usIn": "1655391872327712",
+        #         "usOut": "1655391872328515",
+        #         "usDiff": 803,
+        #         "testnet": False
         #     }
         #
         messageHash = 'authenticated'

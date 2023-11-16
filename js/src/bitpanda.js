@@ -308,8 +308,8 @@ export default class bitpanda extends Exchange {
         const response = await this.publicGetTime(params);
         //
         //     {
-        //         iso: '2020-07-10T05:17:26.716Z',
-        //         epoch_millis: 1594358246716,
+        //         "iso": "2020-07-10T05:17:26.716Z",
+        //         "epoch_millis": 1594358246716,
         //     }
         //
         return this.safeInteger(response, 'epoch_millis');
@@ -367,77 +367,75 @@ export default class bitpanda extends Exchange {
         //
         //     [
         //         {
-        //             state: 'ACTIVE',
-        //             base: { code: 'ETH', precision: 8 },
-        //             quote: { code: 'CHF', precision: 2 },
-        //             amount_precision: 4,
-        //             market_precision: 2,
-        //             min_size: '10.0'
+        //             "state": "ACTIVE",
+        //             "base": { code: "ETH", precision: 8 },
+        //             "quote": { code: "CHF", precision: 2 },
+        //             "amount_precision": 4,
+        //             "market_precision": 2,
+        //             "min_size": "10.0"
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const baseAsset = this.safeValue(market, 'base', {});
-            const quoteAsset = this.safeValue(market, 'quote', {});
-            const baseId = this.safeString(baseAsset, 'code');
-            const quoteId = this.safeString(quoteAsset, 'code');
-            const id = baseId + '_' + quoteId;
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const state = this.safeString(market, 'state');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (state === 'ACTIVE'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'market_precision'))),
+        return this.parseMarkets(response);
+    }
+    parseMarket(market) {
+        const baseAsset = this.safeValue(market, 'base', {});
+        const quoteAsset = this.safeValue(market, 'quote', {});
+        const baseId = this.safeString(baseAsset, 'code');
+        const quoteId = this.safeString(quoteAsset, 'code');
+        const id = baseId + '_' + quoteId;
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const state = this.safeString(market, 'state');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (state === 'ACTIVE'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'market_precision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber(market, 'min_size'),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber(market, 'min_size'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchTradingFees(params = {}) {
         /**
@@ -1351,6 +1349,8 @@ export default class bitpanda extends Exchange {
             'type': undefined,
             'updated': undefined,
             'txid': this.safeString(transaction, 'blockchain_transaction_id'),
+            'comment': undefined,
+            'internal': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fee': fee,

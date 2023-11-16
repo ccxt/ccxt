@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -87,15 +87,15 @@ class mexc(ccxt.async_support.mexc):
     def handle_ticker(self, client: Client, message):
         #
         #    {
-        #        c: 'spot@public.bookTicker.v3.api@BTCUSDT',
-        #        d: {
-        #            A: '4.70432',
-        #            B: '6.714863',
-        #            a: '20744.54',
-        #            b: '20744.17'
+        #        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        #        "d": {
+        #            "A": "4.70432",
+        #            "B": "6.714863",
+        #            "a": "20744.54",
+        #            "b": "20744.17"
         #        },
-        #        s: 'BTCUSDT',
-        #        t: 1678643605721
+        #        "s": "BTCUSDT",
+        #        "t": 1678643605721
         #    }
         #
         rawTicker = self.safe_value_2(message, 'd', 'data')
@@ -118,10 +118,10 @@ class mexc(ccxt.async_support.mexc):
         #
         # spot
         #    {
-        #        A: '4.70432',
-        #        B: '6.714863',
-        #        a: '20744.54',
-        #        b: '20744.17'
+        #        "A": "4.70432",
+        #        "B": "6.714863",
+        #        "a": "20744.54",
+        #        "b": "20744.17"
         #    }
         #
         return self.safe_ticker({
@@ -191,7 +191,7 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -228,46 +228,46 @@ class mexc(ccxt.async_support.mexc):
         # spot
         #
         #    {
-        #        d: {
-        #            e: 'spot@public.kline.v3.api',
-        #            k: {
-        #                t: 1678642260,
-        #                o: 20626.94,
-        #                c: 20599.69,
-        #                h: 20626.94,
-        #                l: 20597.06,
-        #                v: 27.678686,
-        #                a: 570332.77,
-        #                T: 1678642320,
-        #                i: 'Min1'
+        #        "d": {
+        #            "e": "spot@public.kline.v3.api",
+        #            "k": {
+        #                "t": 1678642260,
+        #                "o": 20626.94,
+        #                "c": 20599.69,
+        #                "h": 20626.94,
+        #                "l": 20597.06,
+        #                "v": 27.678686,
+        #                "a": 570332.77,
+        #                "T": 1678642320,
+        #                "i": "Min1"
         #            }
         #        },
-        #        c: 'spot@public.kline.v3.api@BTCUSDT@Min1',
-        #        t: 1678642276459,
-        #        s: 'BTCUSDT'
+        #        "c": "spot@public.kline.v3.api@BTCUSDT@Min1",
+        #        "t": 1678642276459,
+        #        "s": "BTCUSDT"
         #    }
         #
         # swap
         #
         #   {
-        #       channel: 'push.kline',
-        #       data: {
-        #         a: 325653.3287,
-        #         c: 38839,
-        #         h: 38909.5,
-        #         interval: 'Min1',
-        #         l: 38833,
-        #         o: 38901.5,
-        #         q: 83808,
-        #         rc: 38839,
-        #         rh: 38909.5,
-        #         rl: 38833,
-        #         ro: 38909.5,
-        #         symbol: 'BTC_USDT',
-        #         t: 1651230660
+        #       "channel": "push.kline",
+        #       "data": {
+        #         "a": 325653.3287,
+        #         "c": 38839,
+        #         "h": 38909.5,
+        #         "interval": "Min1",
+        #         "l": 38833,
+        #         "o": 38901.5,
+        #         "q": 83808,
+        #         "rc": 38839,
+        #         "rh": 38909.5,
+        #         "rl": 38833,
+        #         "ro": 38909.5,
+        #         "symbol": "BTC_USDT",
+        #         "t": 1651230660
         #       },
-        #       symbol: 'BTC_USDT',
-        #       ts: 1651230713067
+        #       "symbol": "BTC_USDT",
+        #       "ts": 1651230713067
         #   }
         #
         d = self.safe_value_2(message, 'd', 'data', {})
@@ -294,32 +294,32 @@ class mexc(ccxt.async_support.mexc):
         # spot
         #
         #    {
-        #        t: 1678642260,
-        #        o: 20626.94,
-        #        c: 20599.69,
-        #        h: 20626.94,
-        #        l: 20597.06,
-        #        v: 27.678686,
-        #        a: 570332.77,
-        #        T: 1678642320,
-        #        i: 'Min1'
+        #        "t": 1678642260,
+        #        "o": 20626.94,
+        #        "c": 20599.69,
+        #        "h": 20626.94,
+        #        "l": 20597.06,
+        #        "v": 27.678686,
+        #        "a": 570332.77,
+        #        "T": 1678642320,
+        #        "i": "Min1"
         #    }
         #
         # swap
         #    {
-        #       symbol: 'BTC_USDT',
-        #       interval: 'Min1',
-        #       t: 1680055080,
-        #       o: 27301.9,
-        #       c: 27301.8,
-        #       h: 27301.9,
-        #       l: 27301.8,
-        #       a: 8.19054,
-        #       q: 3,
-        #       ro: 27301.8,
-        #       rc: 27301.8,
-        #       rh: 27301.8,
-        #       rl: 27301.8
+        #       "symbol": "BTC_USDT",
+        #       "interval": "Min1",
+        #       "t": 1680055080,
+        #       "o": 27301.9,
+        #       "c": 27301.8,
+        #       "h": 27301.9,
+        #       "l": 27301.8,
+        #       "a": 8.19054,
+        #       "q": 3,
+        #       "ro": 27301.8,
+        #       "rc": 27301.8,
+        #       "rh": 27301.8,
+        #       "rl": 27301.8
         #     }
         #
         return [
@@ -331,7 +331,7 @@ class mexc(ccxt.async_support.mexc):
             self.safe_number_2(ohlcv, 'v', 'q'),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -358,7 +358,7 @@ class mexc(ccxt.async_support.mexc):
 
     def handle_order_book_subscription(self, client: Client, message):
         # spot
-        #     {id: 0, code: 0, msg: 'spot@public.increase.depth.v3.api@BTCUSDT'}
+        #     {id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT"}
         #
         msg = self.safe_string(message, 'msg')
         parts = msg.split('@')
@@ -482,7 +482,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_bookside_delta(asksOrderSide, asks)
         self.handle_bookside_delta(bidsOrderSide, bids)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
         get the list of most recent trades for a particular symbol
@@ -513,18 +513,18 @@ class mexc(ccxt.async_support.mexc):
     def handle_trades(self, client: Client, message):
         #
         #    {
-        #        c: "spot@public.deals.v3.api@BTCUSDT",
-        #        d: {
-        #            deals: [{
-        #                p: "20382.70",
-        #                v: "0.043800",
-        #                S: 1,
-        #                t: 1678593222456,
+        #        "c": "spot@public.deals.v3.api@BTCUSDT",
+        #        "d": {
+        #            "deals": [{
+        #                "p": "20382.70",
+        #                "v": "0.043800",
+        #                "S": 1,
+        #                "t": 1678593222456,
         #            },],
-        #            e: "spot@public.deals.v3.api",
+        #            "e": "spot@public.deals.v3.api",
         #        },
-        #        s: "BTCUSDT",
-        #        t: 1678593222460,
+        #        "s": "BTCUSDT",
+        #        "t": 1678593222460,
         #    }
         #
         # swap
@@ -562,7 +562,7 @@ class mexc(ccxt.async_support.mexc):
             stored.append(parsedTrade)
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
         watches information on multiple trades made by the user
@@ -594,20 +594,20 @@ class mexc(ccxt.async_support.mexc):
     def handle_my_trade(self, client: Client, message, subscription=None):
         #
         #    {
-        #        c: 'spot@private.deals.v3.api',
-        #        d: {
-        #            p: '22339.99',
-        #            v: '0.000235',
-        #            S: 1,
-        #            T: 1678670940695,
-        #            t: '9f6a47fb926442e496c5c4c104076ae3',
-        #            c: '',
-        #            i: 'e2b9835d1b6745f8a10ab74a81a16d50',
-        #            m: 0,
-        #            st: 0
+        #        "c": "spot@private.deals.v3.api",
+        #        "d": {
+        #            "p": "22339.99",
+        #            "v": "0.000235",
+        #            "S": 1,
+        #            "T": 1678670940695,
+        #            "t": "9f6a47fb926442e496c5c4c104076ae3",
+        #            "c": '',
+        #            "i": "e2b9835d1b6745f8a10ab74a81a16d50",
+        #            "m": 0,
+        #            "st": 0
         #        },
-        #        s: 'BTCUSDT',
-        #        t: 1678670940700
+        #        "s": "BTCUSDT",
+        #        "t": 1678670940700
         #    }
         #
         messageHash = 'myTrades'
@@ -635,10 +635,10 @@ class mexc(ccxt.async_support.mexc):
         #
         # public trade
         #    {
-        #        p: "20382.70",
-        #        v: "0.043800",
-        #        S: 1,
-        #        t: 1678593222456,
+        #        "p": "20382.70",
+        #        "v": "0.043800",
+        #        "S": 1,
+        #        "t": 1678593222456,
         #    }
         # private trade
         #    {
@@ -679,7 +679,7 @@ class mexc(ccxt.async_support.mexc):
             'fee': None,
         }, market)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
@@ -1018,7 +1018,7 @@ class mexc(ccxt.async_support.mexc):
             listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
             self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, listenKey, params)
         except Exception as error:
-            url = self.urls['api']['ws'] + '?listenKey=' + listenKey
+            url = self.urls['api']['ws']['spot'] + '?listenKey=' + listenKey
             client = self.client(url)
             self.options['listenKey'] = None
             client.reject(error)
@@ -1031,9 +1031,9 @@ class mexc(ccxt.async_support.mexc):
     def handle_subscription_status(self, client: Client, message):
         #
         #    {
-        #        id: 0,
-        #        code: 0,
-        #        msg: 'spot@public.increase.depth.v3.api@BTCUSDT'
+        #        "id": 0,
+        #        "code": 0,
+        #        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         #    }
         #
         msg = self.safe_string(message, 'msg')

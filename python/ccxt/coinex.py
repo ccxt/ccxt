@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -70,8 +69,8 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchDepositAddressByNetwork': False,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
-                'fetchDepsoitWithdrawFee': 'emulated',
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -296,6 +295,7 @@ class coinex(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'brokerId': 'x-167673045',
                 'createMarketBuyOrderRequiresPrice': True,
                 'defaultType': 'spot',  # spot, swap, margin
                 'defaultSubType': 'linear',  # linear, inverse
@@ -315,13 +315,33 @@ class coinex(Exchange, ImplicitAPI):
                 'ACM': 'Actinium',
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    # https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                    '23': PermissionDenied,  # IP Prohibited
+                    '24': AuthenticationError,
+                    '25': AuthenticationError,
+                    '34': AuthenticationError,  # Access id is expires
+                    '35': ExchangeNotAvailable,  # Service unavailable
+                    '36': RequestTimeout,  # Service timeout
+                    '213': RateLimitExceeded,  # Too many requests
+                    '107': InsufficientFunds,
+                    '600': OrderNotFound,
+                    '601': InvalidOrder,
+                    '602': InvalidOrder,
+                    '606': InvalidOrder,
+                },
+                'broad': {
+                    'ip not allow visit': PermissionDenied,
+                },
+            },
         })
 
     def fetch_currencies(self, params={}):
         response = self.publicGetCommonAssetConfig(params)
         #     {
-        #         code: 0,
-        #         data: {
+        #         "code": 0,
+        #         "data": {
         #             "USDT-ERC20": {
         #                  "asset": "USDT",
         #                  "chain": "ERC20",
@@ -335,7 +355,7 @@ class coinex(Exchange, ImplicitAPI):
         #             },
         #             ...
         #         },
-        #         message: 'Success',
+        #         "message": "Success",
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -638,7 +658,7 @@ class coinex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # Spot fetchTicker, fetchTickers
         #
@@ -706,7 +726,7 @@ class coinex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -776,7 +796,7 @@ class coinex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response['data'], market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
@@ -878,9 +898,9 @@ class coinex(Exchange, ImplicitAPI):
         response = self.perpetualPublicGetTime(params)
         #
         #     {
-        #         code: '0',
-        #         data: '1653261274414',
-        #         message: 'OK'
+        #         "code": "0",
+        #         "data": "1653261274414",
+        #         "message": "OK"
         #     }
         #
         return self.safe_integer(response, 'data')
@@ -893,8 +913,6 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -955,7 +973,7 @@ class coinex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(result, 'time')
         return self.parse_order_book(result, symbol, timestamp)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # Spot and Swap fetchTrades(public)
         #
@@ -1071,7 +1089,7 @@ class coinex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1177,7 +1195,7 @@ class coinex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_trading_fee(fee, market)
         return result
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         marketId = self.safe_value(fee, 'name')
         symbol = self.safe_symbol(marketId, market)
         return {
@@ -1189,7 +1207,7 @@ class coinex(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         1591484400,
@@ -1211,7 +1229,7 @@ class coinex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1444,7 +1462,7 @@ class coinex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         # spot
@@ -1478,7 +1496,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOrder
         #
@@ -1501,6 +1519,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "status": "done",
         #         "taker_fee_rate": "0.0005",
         #         "type": "sell",
+        #         "client_id": "",
         #     }
         #
         # Spot and Margin createOrder, cancelOrder, fetchOrder
@@ -1528,6 +1547,7 @@ class coinex(Exchange, ImplicitAPI):
         #          "stock_fee":"0",
         #          "taker_fee_rate":"0.002",
         #          "type":"buy"
+        #          "client_id": "",
         #      }
         #
         # Swap createOrder, cancelOrder, fetchOrder
@@ -1735,9 +1755,12 @@ class coinex(Exchange, ImplicitAPI):
                 type = 'market'
         else:
             type = rawType
+        clientOrderId = self.safe_string(order, 'client_id')
+        if clientOrderId == '':
+            clientOrderId = None
         return self.safe_order({
             'id': self.safe_string_2(order, 'id', 'order_id'),
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': self.safe_timestamp(order, 'update_time'),
@@ -1792,6 +1815,7 @@ class coinex(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
+        clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
         stopPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
@@ -1810,6 +1834,12 @@ class coinex(Exchange, ImplicitAPI):
         request = {
             'market': market['id'],
         }
+        if clientOrderId is None:
+            defaultId = 'x-167673045'
+            brokerId = self.safe_string(self.options, 'brokerId', defaultId)
+            request['client_id'] = brokerId + '-' + self.uuid16()
+        else:
+            request['client_id'] = clientOrderId
         if swap:
             if stopLossPrice or takeProfitPrice:
                 request['stop_type'] = self.safe_integer(params, 'stop_type', 1)  # 1: triggered by the latest transaction, 2: mark price, 3: index price
@@ -2047,7 +2077,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2187,15 +2217,14 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancellAllOrders() requires a symbol argument')
+        self.check_required_symbol('cancelAllOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
@@ -2230,15 +2259,14 @@ class coinex(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
@@ -2358,7 +2386,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         limit = 100 if (limit is None) else limit
         request = {
@@ -2555,7 +2583,7 @@ class coinex(Exchange, ImplicitAPI):
         orders = self.safe_value(data, tradeRequest, [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -2566,7 +2594,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('pending', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2596,12 +2624,12 @@ class coinex(Exchange, ImplicitAPI):
         response = self.privatePutBalanceDepositAddressCoinType(self.extend(request, params))
         #
         #     {
-        #         code: 0,
-        #         data: {
-        #             coin_address: 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
-        #             is_bitcoin_cash: False
+        #         "code": 0,
+        #         "data": {
+        #             "coin_address": "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
+        #             "is_bitcoin_cash": False
         #         },
-        #         message: 'Success'
+        #         "message": "Success"
         #     }
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
@@ -2633,13 +2661,13 @@ class coinex(Exchange, ImplicitAPI):
         response = self.privateGetBalanceDepositAddressCoinType(self.extend(request, params))
         #
         #      {
-        #          code: 0,
-        #          data: {
-        #            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        #            # coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy',  # with embedded tag/memo
-        #            is_bitcoin_cash: False
+        #          "code": 0,
+        #          "data": {
+        #            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        #            # coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy",  # with embedded tag/memo
+        #            "is_bitcoin_cash": False
         #          },
-        #          message: 'Success'
+        #          "message": "Success"
         #      }
         #
         data = self.safe_value(response, 'data', {})
@@ -2650,7 +2678,7 @@ class coinex(Exchange, ImplicitAPI):
             depositAddress['network'] = self.safe_network_code(network, currency)
         return depositAddress
 
-    def safe_network(self, networkId, currency=None):
+    def safe_network(self, networkId, currency: Currency = None):
         networks = self.safe_value(currency, 'networks', {})
         networksCodes = list(networks.keys())
         networksCodesLength = len(networksCodes)
@@ -2661,15 +2689,15 @@ class coinex(Exchange, ImplicitAPI):
             'network': None if (networkId is None) else networkId.upper(),
         }
 
-    def safe_network_code(self, networkId, currency=None):
+    def safe_network_code(self, networkId, currency: Currency = None):
         network = self.safe_network(networkId, currency)
         return network['network']
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
-        #         coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        #         is_bitcoin_cash: False
+        #         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        #         "is_bitcoin_cash": False
         #     }
         #
         coinAddress = self.safe_string(depositAddress, 'coin_address')
@@ -2690,7 +2718,7 @@ class coinex(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -2817,7 +2845,7 @@ class coinex(Exchange, ImplicitAPI):
         trades = self.safe_value(data, tradeRequest, [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
@@ -2980,7 +3008,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_position(data[0], market)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     {
         #         "adl_sort": 3396,
@@ -3082,7 +3110,7 @@ class coinex(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_number(position, 'take_profit_price'),
         })
 
-    def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+    def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
@@ -3090,8 +3118,7 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
@@ -3120,7 +3147,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.perpetualPrivatePostMarketAdjustLeverage(self.extend(request, params))
 
-    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
         set the level of leverage for a market
@@ -3153,7 +3180,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.perpetualPrivatePostMarketAdjustLeverage(self.extend(request, params))
 
-    def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
@@ -3182,7 +3209,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_leverage_tiers(data, symbols, None)
 
-    def parse_leverage_tiers(self, response, symbols: Optional[List[str]] = None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
         #
         #     {
         #         "BTCUSD": [
@@ -3209,7 +3236,7 @@ class coinex(Exchange, ImplicitAPI):
                 tiers[symbol] = self.parse_market_leverage_tiers(response[marketId], market)
         return tiers
 
-    def parse_market_leverage_tiers(self, item, market=None):
+    def parse_market_leverage_tiers(self, item, market: Market = None):
         tiers = []
         minNotional = 0
         for j in range(0, len(item)):
@@ -3301,7 +3328,7 @@ class coinex(Exchange, ImplicitAPI):
             'status': status,
         })
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None):
         return {
             'info': data,
             'type': None,
@@ -3331,7 +3358,7 @@ class coinex(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 2, params)
 
-    def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :param str symbol: unified market symbol
@@ -3340,8 +3367,7 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingHistory', symbol)
         limit = 100 if (limit is None) else limit
         self.load_markets()
         market = self.market(symbol)
@@ -3454,7 +3480,7 @@ class coinex(Exchange, ImplicitAPI):
         ticker['timestamp'] = timestamp  # avoid changing parseFundingRate signature
         return self.parse_funding_rate(ticker, market)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         # fetchFundingRate
         #
@@ -3506,7 +3532,7 @@ class coinex(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
          *  @method
         fetch the current funding rates
@@ -3633,7 +3659,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
         fetches historical funding rate prices
@@ -3645,8 +3671,7 @@ class coinex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest funding rate
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
@@ -3702,7 +3727,7 @@ class coinex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -3774,6 +3799,8 @@ class coinex(Exchange, ImplicitAPI):
         networkId = self.safe_string(transaction, 'smart_contract_name')
         amount = self.safe_number(transaction, 'actual_amount')
         feeCost = self.safe_string(transaction, 'tx_fee')
+        transferMethod = self.safe_string(transaction, 'transfer_method')
+        internal = transferMethod == 'local'
         addressTo = None
         addressFrom = None
         if type == 'deposit':
@@ -3804,6 +3831,8 @@ class coinex(Exchange, ImplicitAPI):
             'status': status,
             'updated': None,
             'fee': fee,
+            'comment': None,
+            'internal': internal,
         }
 
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
@@ -3854,7 +3883,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # fetchTransfers Swap
         #
@@ -3910,7 +3939,7 @@ class coinex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'status')),
         }
 
-    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -3989,7 +4018,7 @@ class coinex(Exchange, ImplicitAPI):
         transfers = self.safe_value(data, 'records', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -4050,7 +4079,7 @@ class coinex(Exchange, ImplicitAPI):
             data = self.safe_value(data, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -4111,7 +4140,7 @@ class coinex(Exchange, ImplicitAPI):
             data = self.safe_value(data, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_borrow_rate(self, info, currency=None):
+    def parse_borrow_rate(self, info, market: Market = None):
         #
         #     {
         #         "market": "BTCUSDT",
@@ -4128,18 +4157,25 @@ class coinex(Exchange, ImplicitAPI):
         #         }
         #     },
         #
-        timestamp = self.milliseconds()
-        baseCurrencyData = self.safe_value(info, currency, {})
+        marketId = self.safe_string(info, 'market')
+        market = self.safe_market(marketId, market, None, 'spot')
+        baseInfo = self.safe_value(info, market['baseId'])
+        baseRate = self.safe_number(baseInfo, 'day_rate')
+        quoteInfo = self.safe_value(info, market['quoteId'])
+        quoteRate = self.safe_number(quoteInfo, 'day_rate')
         return {
-            'currency': self.safe_currency_code(currency),
-            'rate': self.safe_number(baseCurrencyData, 'day_rate'),
+            'symbol': market['symbol'],
+            'base': market['base'],
+            'baseRate': baseRate,
+            'quote': market['quote'],
+            'quoteRate': quoteRate,
             'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'info': info,
         }
 
-    def fetch_borrow_rate(self, code: str, params={}):
+    def fetch_isolated_borrow_rate(self, symbol: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
@@ -4148,14 +4184,10 @@ class coinex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        if code in self.markets:
-            market = self.market(code)
-        else:
-            defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
-            market = self.market(code + '/' + defaultSettle)
-        request = {
-            'market': market['id'],
-        }
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
         response = self.privateGetMarginConfig(self.extend(request, params))
         #
         #     {
@@ -4178,9 +4210,9 @@ class coinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_borrow_rate(data, market['base'])
+        return self.parse_borrow_rate(data, market)
 
-    def fetch_borrow_rates(self, params={}):
+    def fetch_isolated_borrow_rates(self, params={}):
         """
         fetch the borrow interest rates of all currencies
         :param dict [params]: extra parameters specific to the coinex api endpoint
@@ -4210,25 +4242,13 @@ class coinex(Exchange, ImplicitAPI):
         #         "message": "Success"
         #     }
         #
-        timestamp = self.milliseconds()
         data = self.safe_value(response, 'data', {})
         rates = []
         for i in range(0, len(data)):
-            entry = data[i]
-            symbol = self.safe_string(entry, 'market')
-            market = self.safe_market(symbol, None, None, 'spot')
-            currencyData = self.safe_value(entry, market['base'])
-            rates.append({
-                'currency': market['base'],
-                'rate': self.safe_number(currencyData, 'day_rate'),
-                'period': 86400000,
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'info': entry,
-            })
+            rates.append(self.parse_borrow_rate(data[i]))
         return rates
 
-    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -4273,7 +4293,7 @@ class coinex(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market=None):
+    def parse_borrow_interest(self, info, market: Market = None):
         #
         #     {
         #         "loan_id": 2616357,
@@ -4312,7 +4332,7 @@ class coinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         create a loan to borrow margin
         :see: https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
@@ -4322,8 +4342,7 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
+        self.check_required_symbol('borrowMargin', symbol)
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -4349,7 +4368,7 @@ class coinex(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
@@ -4360,8 +4379,7 @@ class coinex(Exchange, ImplicitAPI):
         :param str [params.loan_id]: extra parameter that is not required
         :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
+        self.check_required_symbol('repayMargin', symbol)
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -4387,7 +4405,7 @@ class coinex(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def parse_margin_loan(self, info, currency=None):
+    def parse_margin_loan(self, info, currency: Currency = None):
         #
         # borrowMargin
         #
@@ -4413,7 +4431,7 @@ class coinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
@@ -4507,6 +4525,29 @@ class coinex(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + '/' + self.version + '/' + path
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
+        if method == 'POST':
+            parts = path.split('/')
+            firstPart = self.safe_string(parts, 0, '')
+            numParts = len(parts)
+            lastPart = self.safe_string(parts, numParts - 1, '')
+            lastWords = lastPart.split('_')
+            numWords = len(lastWords)
+            lastWord = self.safe_string(lastWords, numWords - 1, '')
+            if (firstPart == 'order') and (lastWord == 'limit' or lastWord == 'market'):
+                # inject in implicit API calls
+                # POST /order/limit - Place limit orders
+                # POST /order/market - Place market orders
+                # POST /order/stop/limit - Place stop limit orders
+                # POST /order/stop/market - Place stop market orders
+                # POST /perpetual/v1/order/put_limit - Place limit orders
+                # POST /perpetual/v1/order/put_market - Place market orders
+                # POST /perpetual/v1/order/put_stop_limit - Place stop limit orders
+                # POST /perpetual/v1/order/put_stop_market - Place stop market orders
+                clientOrderId = self.safe_string(params, 'client_id')
+                if clientOrderId is None:
+                    defaultId = 'x-167673045'
+                    brokerId = self.safe_value(self.options, 'brokerId', defaultId)
+                    query['client_id'] = brokerId + '_' + self.uuid16()
         if api == 'perpetualPrivate' or url == 'https://api.coinex.com/perpetual/v1/market/user_deals':
             self.check_required_credentials()
             query = self.extend({
@@ -4554,21 +4595,8 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         message = self.safe_string(response, 'message')
         if (code != '0') or ((message != 'Success') and (message != 'Succeeded') and (message != 'Ok') and not data):
-            responseCodes = {
-                # https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
-                '23': PermissionDenied,  # IP Prohibited
-                '24': AuthenticationError,
-                '25': AuthenticationError,
-                '34': AuthenticationError,  # Access id is expires
-                '35': ExchangeNotAvailable,  # Service unavailable
-                '36': RequestTimeout,  # Service timeout
-                '213': RateLimitExceeded,  # Too many requests
-                '107': InsufficientFunds,
-                '600': OrderNotFound,
-                '601': InvalidOrder,
-                '602': InvalidOrder,
-                '606': InvalidOrder,
-            }
-            ErrorClass = self.safe_value(responseCodes, code, ExchangeError)
-            raise ErrorClass(response['message'])
+            feedback = self.id + ' ' + message
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            raise ExchangeError(feedback)
         return None

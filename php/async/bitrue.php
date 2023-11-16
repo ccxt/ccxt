@@ -13,6 +13,7 @@ use ccxt\InvalidOrder;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitrue extends Exchange {
 
@@ -499,17 +500,17 @@ class bitrue extends Exchange {
             //         ],
             //         "coins":array(
             //           array(
-            //               coin => "near",
-            //               coinFulName => "NEAR Protocol",
-            //               chains => array( "BEP20", ),
-            //               chainDetail => array(
+            //               "coin" => "near",
+            //               "coinFulName" => "NEAR Protocol",
+            //               "chains" => array( "BEP20", ),
+            //               "chainDetail" => array(
             //                 array(
-            //                     chain => "BEP20",
-            //                     $enableWithdraw => true,
-            //                     $enableDeposit => true,
-            //                     withdrawFee => "0.2000",
-            //                     minWithdraw => "5.0000",
-            //                     maxWithdraw => "1000000000000000.0000",
+            //                     "chain" => "BEP20",
+            //                     "enableWithdraw" => true,
+            //                     "enableDeposit" => true,
+            //                     "withdrawFee" => "0.2000",
+            //                     "minWithdraw" => "5.0000",
+            //                     "maxWithdraw" => "1000000000000000.0000",
             //                 ),
             //               ),
             //           ),
@@ -596,7 +597,7 @@ class bitrue extends Exchange {
             /**
              * retrieves data on all $markets for bitrue
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->v1PublicGetExchangeInfo ($params));
             //
@@ -644,83 +645,79 @@ class bitrue extends Exchange {
                 Async\await($this->load_time_difference());
             }
             $markets = $this->safe_value($response, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'symbol');
-                $lowercaseId = $this->safe_string_lower($market, 'symbol');
-                $baseId = $this->safe_string($market, 'baseAsset');
-                $quoteId = $this->safe_string($market, 'quoteAsset');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $filters = $this->safe_value($market, 'filters', array());
-                $filtersByType = $this->index_by($filters, 'filterType');
-                $status = $this->safe_string($market, 'status');
-                $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-                $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
-                $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
-                $defaultAmountPrecision = $this->safe_string($market, 'quantityPrecision');
-                $pricePrecision = $this->safe_string($priceFilter, 'priceScale', $defaultPricePrecision);
-                $amountPrecision = $this->safe_string($amountFilter, 'volumeScale', $defaultAmountPrecision);
-                $entry = array(
-                    'id' => $id,
-                    'lowercaseId' => $lowercaseId,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => ($status === 'TRADING'),
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($amountPrecision)),
-                        'price' => $this->parse_number($this->parse_precision($pricePrecision)),
-                        'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
-                        'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $this->safe_number($amountFilter, 'minQty'),
-                            'max' => $this->safe_number($amountFilter, 'maxQty'),
-                        ),
-                        'price' => array(
-                            'min' => $this->safe_number($priceFilter, 'minPrice'),
-                            'max' => $this->safe_number($priceFilter, 'maxPrice'),
-                        ),
-                        'cost' => array(
-                            'min' => $this->safe_number($amountFilter, 'minVal'),
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                );
-                $result[] = $entry;
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $lowercaseId = $this->safe_string_lower($market, 'symbol');
+        $baseId = $this->safe_string($market, 'baseAsset');
+        $quoteId = $this->safe_string($market, 'quoteAsset');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $filters = $this->safe_value($market, 'filters', array());
+        $filtersByType = $this->index_by($filters, 'filterType');
+        $status = $this->safe_string($market, 'status');
+        $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+        $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
+        $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
+        $defaultAmountPrecision = $this->safe_string($market, 'quantityPrecision');
+        $pricePrecision = $this->safe_string($priceFilter, 'priceScale', $defaultPricePrecision);
+        $amountPrecision = $this->safe_string($amountFilter, 'volumeScale', $defaultAmountPrecision);
+        return array(
+            'id' => $id,
+            'lowercaseId' => $lowercaseId,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'TRADING'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($amountPrecision)),
+                'price' => $this->parse_number($this->parse_precision($pricePrecision)),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($amountFilter, 'minQty'),
+                    'max' => $this->safe_number($amountFilter, 'maxQty'),
+                ),
+                'price' => array(
+                    'min' => $this->safe_number($priceFilter, 'minPrice'),
+                    'max' => $this->safe_number($priceFilter, 'maxPrice'),
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($amountFilter, 'minVal'),
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
+    }
+
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
         );
@@ -740,7 +737,7 @@ class bitrue extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -770,7 +767,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -809,7 +806,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchBidsAsks
         //
@@ -862,7 +859,7 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -909,7 +906,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -952,7 +949,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //      {
         //         "i":"1660825020",
@@ -1006,7 +1003,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1053,7 +1050,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // aggregate trades
         //  - "T" is $timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual $timestamp of trades matter
@@ -1144,7 +1141,7 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1220,7 +1217,7 @@ class bitrue extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1390,9 +1387,7 @@ class bitrue extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitrue api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1410,19 +1405,17 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitrue api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchClosedOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1465,19 +1458,17 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitrue api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOpenOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1519,17 +1510,15 @@ class bitrue extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitrue api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
             $request = array(
                 'symbol' => $market['id'],
-                // 'orderId' => $id,
-                // 'origClientOrderId' => $id,
-                // 'newClientOrderId' => $id,
+                // "orderId" => $id,
+                // "origClientOrderId" => $id,
+                // "newClientOrderId" => $id,
             );
             if ($origClientOrderId === null) {
                 $request['orderId'] = $id;
@@ -1606,7 +1595,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1678,7 +1667,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1744,7 +1733,7 @@ class bitrue extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1866,6 +1855,7 @@ class bitrue extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'internal' => false,
+            'comment' => null,
             'fee' => $fee,
         );
     }
@@ -1931,13 +1921,13 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //   {
-        //       coin => 'adx',
-        //       coinFulName => 'Ambire AdEx',
-        //       chains => array( 'BSC' ),
-        //       $chainDetail => [ [Object] ]
+        //       "coin" => "adx",
+        //       "coinFulName" => "Ambire AdEx",
+        //       "chains" => array( "BSC" ),
+        //       "chainDetail" => [ [Object] ]
         //   }
         //
         $chainDetails = $this->safe_value($fee, 'chainDetail', array());

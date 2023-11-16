@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -630,7 +629,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -666,7 +665,7 @@ class bitstamp(Exchange, ImplicitAPI):
         orderbook['nonce'] = microtimestamp
         return orderbook
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # {
         #     "timestamp": "1686068944",
@@ -713,7 +712,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -743,7 +742,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://www.bitstamp.net/api/#all-tickers
@@ -828,7 +827,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 return self.safe_market(marketId)
         return None
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -946,7 +945,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -965,24 +964,24 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             date: '1551814435',
-        #             tid: '83581898',
-        #             price: '0.03532850',
-        #             type: '1',
-        #             amount: '0.85945907'
+        #             "date": "1551814435",
+        #             "tid": "83581898",
+        #             "price": "0.03532850",
+        #             "type": "1",
+        #             "amount": "0.85945907"
         #         },
         #         {
-        #             date: '1551814434',
-        #             tid: '83581896',
-        #             price: '0.03532851',
-        #             type: '1',
-        #             amount: '11.34130961'
+        #             "date": "1551814434",
+        #             "tid": "83581896",
+        #             "price": "0.03532851",
+        #             "type": "1",
+        #             "amount": "11.34130961"
         #         },
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "high": "9064.77",
@@ -1002,7 +1001,7 @@ class bitstamp(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1051,7 +1050,7 @@ class bitstamp(Exchange, ImplicitAPI):
         ohlc = self.safe_value(data, 'ohlc', [])
         return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1069,7 +1068,7 @@ class bitstamp(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitstamp api endpoint
@@ -1112,7 +1111,7 @@ class bitstamp(Exchange, ImplicitAPI):
         response = await self.privatePostBalancePair(self.extend(request, params))
         return self.parse_trading_fee(response, market)
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         market = self.safe_market(None, market)
         feeString = self.safe_string(fee, market['id'] + '_fee')
         dividedFeeString = Precise.string_div(feeString, '100')
@@ -1160,18 +1159,18 @@ class bitstamp(Exchange, ImplicitAPI):
     def parse_transaction_fees(self, response, codes=None):
         #
         #  {
-        #     yfi_available: '0.00000000',
-        #     yfi_balance: '0.00000000',
-        #     yfi_reserved: '0.00000000',
-        #     yfi_withdrawal_fee: '0.00070000',
-        #     yfieur_fee: '0.000',
-        #     yfiusd_fee: '0.000',
-        #     zrx_available: '0.00000000',
-        #     zrx_balance: '0.00000000',
-        #     zrx_reserved: '0.00000000',
-        #     zrx_withdrawal_fee: '12.00000000',
-        #     zrxeur_fee: '0.000',
-        #     zrxusd_fee: '0.000',
+        #     "yfi_available": "0.00000000",
+        #     "yfi_balance": "0.00000000",
+        #     "yfi_reserved": "0.00000000",
+        #     "yfi_withdrawal_fee": "0.00070000",
+        #     "yfieur_fee": "0.000",
+        #     "yfiusd_fee": "0.000",
+        #     "zrx_available": "0.00000000",
+        #     "zrx_balance": "0.00000000",
+        #     "zrx_reserved": "0.00000000",
+        #     "zrx_withdrawal_fee": "12.00000000",
+        #     "zrxeur_fee": "0.000",
+        #     "zrxusd_fee": "0.000",
         #     ...
         #  }
         #
@@ -1199,7 +1198,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 result[code]['withdraw'] = self.safe_number(response, id)
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://www.bitstamp.net/api/#balance
@@ -1211,18 +1210,18 @@ class bitstamp(Exchange, ImplicitAPI):
         response = await self.privatePostBalance(params)
         #
         #    {
-        #        yfi_available: '0.00000000',
-        #        yfi_balance: '0.00000000',
-        #        yfi_reserved: '0.00000000',
-        #        yfi_withdrawal_fee: '0.00070000',
-        #        yfieur_fee: '0.000',
-        #        yfiusd_fee: '0.000',
-        #        zrx_available: '0.00000000',
-        #        zrx_balance: '0.00000000',
-        #        zrx_reserved: '0.00000000',
-        #        zrx_withdrawal_fee: '12.00000000',
-        #        zrxeur_fee: '0.000',
-        #        zrxusd_fee: '0.000',
+        #        "yfi_available": "0.00000000",
+        #        "yfi_balance": "0.00000000",
+        #        "yfi_reserved": "0.00000000",
+        #        "yfi_withdrawal_fee": "0.00070000",
+        #        "yfieur_fee": "0.000",
+        #        "yfiusd_fee": "0.000",
+        #        "zrx_available": "0.00000000",
+        #        "zrx_balance": "0.00000000",
+        #        "zrx_reserved": "0.00000000",
+        #        "zrx_withdrawal_fee": "12.00000000",
+        #        "zrxeur_fee": "0.000",
+        #        "zrxusd_fee": "0.000",
         #        ...
         #    }
         #
@@ -1231,18 +1230,18 @@ class bitstamp(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
         #
         #    {
-        #        yfi_available: '0.00000000',
-        #        yfi_balance: '0.00000000',
-        #        yfi_reserved: '0.00000000',
-        #        yfi_withdrawal_fee: '0.00070000',
-        #        yfieur_fee: '0.000',
-        #        yfiusd_fee: '0.000',
-        #        zrx_available: '0.00000000',
-        #        zrx_balance: '0.00000000',
-        #        zrx_reserved: '0.00000000',
-        #        zrx_withdrawal_fee: '12.00000000',
-        #        zrxeur_fee: '0.000',
-        #        zrxusd_fee: '0.000',
+        #        "yfi_available": "0.00000000",
+        #        "yfi_balance": "0.00000000",
+        #        "yfi_reserved": "0.00000000",
+        #        "yfi_withdrawal_fee": "0.00070000",
+        #        "yfieur_fee": "0.000",
+        #        "yfiusd_fee": "0.000",
+        #        "zrx_available": "0.00000000",
+        #        "zrx_balance": "0.00000000",
+        #        "zrx_reserved": "0.00000000",
+        #        "zrx_withdrawal_fee": "12.00000000",
+        #        "zrxeur_fee": "0.000",
+        #        "zrxusd_fee": "0.000",
         #        ...
         #    }
         #
@@ -1298,7 +1297,7 @@ class bitstamp(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1312,7 +1311,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1338,7 +1337,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order_status(self, id: str, symbol: Str = None, params={}):
         await self.load_markets()
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         request = {}
@@ -1350,7 +1349,7 @@ class bitstamp(Exchange, ImplicitAPI):
         response = await self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1389,7 +1388,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1412,7 +1411,7 @@ class bitstamp(Exchange, ImplicitAPI):
         result = self.filter_by(response, 'type', '2')
         return self.parse_trades(result, market, since, limit)
 
-    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
@@ -1458,7 +1457,7 @@ class bitstamp(Exchange, ImplicitAPI):
         transactions = self.filter_by_array(response, 'type', ['0', '1'], False)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1477,30 +1476,30 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             status: 2,
-        #             datetime: '2018-10-17 10:58:13',
-        #             currency: 'BTC',
-        #             amount: '0.29669259',
-        #             address: 'aaaaa',
-        #             type: 1,
-        #             id: 111111,
-        #             transaction_id: 'xxxx',
+        #             "status": 2,
+        #             "datetime": "2018-10-17 10:58:13",
+        #             "currency": "BTC",
+        #             "amount": "0.29669259",
+        #             "address": "aaaaa",
+        #             "type": 1,
+        #             "id": 111111,
+        #             "transaction_id": "xxxx",
         #         },
         #         {
-        #             status: 2,
-        #             datetime: '2018-10-17 10:55:17',
-        #             currency: 'ETH',
-        #             amount: '1.11010664',
-        #             address: 'aaaa',
-        #             type: 16,
-        #             id: 222222,
-        #             transaction_id: 'xxxxx',
+        #             "status": 2,
+        #             "datetime": "2018-10-17 10:55:17",
+        #             "currency": "ETH",
+        #             "amount": "1.11010664",
+        #             "address": "aaaa",
+        #             "type": 16,
+        #             "id": 222222,
+        #             "transaction_id": "xxxxx",
         #         },
         #     ]
         #
         return self.parse_transactions(response, None, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDepositsWithdrawals
         #
@@ -1519,14 +1518,14 @@ class bitstamp(Exchange, ImplicitAPI):
         # fetchWithdrawals
         #
         #     {
-        #         status: 2,
-        #         datetime: '2018-10-17 10:58:13',
-        #         currency: 'BTC',
-        #         amount: '0.29669259',
-        #         address: 'aaaaa',
-        #         type: 1,
-        #         id: 111111,
-        #         transaction_id: 'xxxx',
+        #         "status": 2,
+        #         "datetime": "2018-10-17 10:58:13",
+        #         "currency": "BTC",
+        #         "amount": "0.29669259",
+        #         "address": "aaaaa",
+        #         "type": 1,
+        #         "id": 111111,
+        #         "transaction_id": "xxxx",
         #     }
         #
         #     {
@@ -1610,6 +1609,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'tagTo': tag,
             'updated': None,
             'comment': None,
+            'internal': None,
             'fee': fee,
         }
 
@@ -1627,20 +1627,20 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #   from fetch order:
-        #     {status: 'Finished',
-        #       id: 731693945,
-        #       client_order_id: '',
-        #       transactions:
-        #       [{fee: '0.000019',
-        #           price: '0.00015803',
-        #           datetime: '2018-01-07 10:45:34.132551',
-        #           btc: '0.0079015000000000',
-        #           tid: 42777395,
-        #           type: 2,
-        #           xrp: '50.00000000'}]}
+        #     {status: "Finished",
+        #       "id": 731693945,
+        #       "client_order_id": '',
+        #       "transactions":
+        #       [{fee: "0.000019",
+        #           "price": "0.00015803",
+        #           "datetime": "2018-01-07 10:45:34.132551",
+        #           "btc": "0.0079015000000000",
+        #           "tid": 42777395,
+        #           "type": 2,
+        #           "xrp": "50.00000000"}]}
         #
         #   partially filled order:
         #     {"id": 468646390,
@@ -1658,13 +1658,13 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         #   from create order response:
         #       {
-        #           price: '0.00008012',
-        #           client_order_id: '',
-        #           currency_pair: 'XRP/BTC',
-        #           datetime: '2019-01-31 21:23:36',
-        #           amount: '15.00000000',
-        #           type: '0',
-        #           id: '2814205012'
+        #           "price": "0.00008012",
+        #           "client_order_id": '',
+        #           "currency_pair": "XRP/BTC",
+        #           "datetime": "2019-01-31 21:23:36",
+        #           "amount": "15.00000000",
+        #           "type": "0",
+        #           "id": "2814205012"
         #       }
         #
         id = self.safe_string(order, 'id')
@@ -1714,7 +1714,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #     [
         #         {
@@ -1801,7 +1801,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'fee': parsedTransaction['fee'],
             }
 
-    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -1820,7 +1820,7 @@ class bitstamp(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_ledger(response, currency, since, limit)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1837,13 +1837,13 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             price: '0.00008012',
-        #             currency_pair: 'XRP/BTC',
-        #             client_order_id: '',
-        #             datetime: '2019-01-31 21:23:36',
-        #             amount: '15.00000000',
-        #             type: '0',
-        #             id: '2814205012',
+        #             "price": "0.00008012",
+        #             "currency_pair": "XRP/BTC",
+        #             "client_order_id": '',
+        #             "datetime": "2019-01-31 21:23:36",
+        #             "amount": "15.00000000",
+        #             "type": "0",
+        #             "id": "2814205012",
         #         }
         #     ]
         #

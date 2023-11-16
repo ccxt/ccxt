@@ -243,68 +243,66 @@ class novadax extends novadax$1 {
         //         "message":"Success"
         //     }
         //
-        const result = [];
         const data = this.safeValue(response, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const baseId = this.safeString(market, 'baseCurrency');
-            const quoteId = this.safeString(market, 'quoteCurrency');
-            const id = this.safeString(market, 'symbol');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const status = this.safeString(market, 'status');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'ONLINE'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amountPrecision'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
-                    'cost': this.parseNumber(this.parsePrecision(this.safeString(market, 'valuePrecision'))),
+        return this.parseMarkets(data);
+    }
+    parseMarket(market) {
+        const baseId = this.safeString(market, 'baseCurrency');
+        const quoteId = this.safeString(market, 'quoteCurrency');
+        const id = this.safeString(market, 'symbol');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const status = this.safeString(market, 'status');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'ONLINE'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amountPrecision'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
+                // 'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'valuePrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(market, 'minOrderAmount'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber(market, 'minOrderValue'),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber(market, 'minOrderAmount'),
+                    'max': undefined,
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber(market, 'minOrderValue'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1421,6 +1419,7 @@ class novadax extends novadax$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': undefined,
                 'cost': undefined,

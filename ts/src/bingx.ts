@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeEr
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ export default class bingx extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
-                'setMagin': true,
+                'setMargin': true,
                 'setMarginMode': true,
                 'transfer': true,
             },
@@ -390,32 +390,32 @@ export default class bingx extends Exchange {
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
         //
         //    {
-        //        'code': 0,
-        //        'timestamp': 1688045966616,
-        //        'data': [
+        //        "code": 0,
+        //        "timestamp": 1688045966616,
+        //        "data": [
         //            {
-        //              coin: 'BTC',
-        //              name: 'BTC',
-        //              networkList: [
+        //              "coin": "BTC",
+        //              "name": "BTC",
+        //              "networkList": [
         //                {
-        //                  name: 'BTC',
-        //                  network: 'BTC',
-        //                  isDefault: true,
-        //                  minConfirm: '2',
-        //                  withdrawEnable: true,
-        //                  withdrawFee: '0.00035',
-        //                  withdrawMax: '1.62842',
-        //                  withdrawMin: '0.0005'
+        //                  "name": "BTC",
+        //                  "network": "BTC",
+        //                  "isDefault": true,
+        //                  "minConfirm": "2",
+        //                  "withdrawEnable": true,
+        //                  "withdrawFee": "0.00035",
+        //                  "withdrawMax": "1.62842",
+        //                  "withdrawMin": "0.0005"
         //                },
         //                {
-        //                  name: 'BTC',
-        //                  network: 'BEP20',
-        //                  isDefault: false,
-        //                  minConfirm: '15',
-        //                  withdrawEnable: true,
-        //                  withdrawFee: '0.00001',
-        //                  withdrawMax: '1.62734',
-        //                  withdrawMin: '0.0001'
+        //                  "name": "BTC",
+        //                  "network": "BEP20",
+        //                  "isDefault": false,
+        //                  "minConfirm": "15",
+        //                  "withdrawEnable": true,
+        //                  "withdrawFee": "0.00001",
+        //                  "withdrawMax": "1.62734",
+        //                  "withdrawMin": "0.0001"
         //                }
         //              ]
         //          },
@@ -503,13 +503,9 @@ export default class bingx extends Exchange {
         //         }
         //    }
         //
-        const result = [];
         const data = this.safeValue (response, 'data');
         const markets = this.safeValue (data, 'symbols', []);
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
+        return this.parseMarkets (markets);
     }
 
     async fetchSwapMarkets (params) {
@@ -537,15 +533,11 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        const result = [];
-        const markets = this.safeValue (response, 'data');
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
+        const markets = this.safeValue (response, 'data', []);
+        return this.parseMarkets (markets);
     }
 
-    parseMarket (market) {
+    parseMarket (market): Market {
         const id = this.safeString (market, 'symbol');
         const symbolParts = id.split ('-');
         const baseId = symbolParts[0];
@@ -646,7 +638,7 @@ export default class bingx extends Exchange {
         return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bingx#fetchOHLCV
@@ -715,7 +707,7 @@ export default class bingx extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    {
         //        "open": "19394.4",
@@ -757,7 +749,7 @@ export default class bingx extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bingx#fetchTrades
@@ -823,7 +815,7 @@ export default class bingx extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // spot
         // fetchTrades
@@ -851,15 +843,15 @@ export default class bingx extends Exchange {
         // fetchMyTrades
         //
         //    {
-        //        volume: '0.1',
-        //        price: '106.75',
-        //        amount: '10.6750',
-        //        commission: '-0.0053',
-        //        currency: 'USDT',
-        //        orderId: '1676213270274379776',
-        //        liquidatedPrice: '0.00',
-        //        liquidatedMarginRatio: '0.00',
-        //        filledTime: '2023-07-04T20:56:01.000+0800'
+        //        "volume": "0.1",
+        //        "price": "106.75",
+        //        "amount": "10.6750",
+        //        "commission": "-0.0053",
+        //        "currency": "USDT",
+        //        "orderId": "1676213270274379776",
+        //        "liquidatedPrice": "0.00",
+        //        "liquidatedMarginRatio": "0.00",
+        //        "filledTime": "2023-07-04T20:56:01.000+0800"
         //    }
         //
         //
@@ -868,24 +860,24 @@ export default class bingx extends Exchange {
         // spot
         //
         //    {
-        //        E: 1690214529432,
-        //        T: 1690214529386,
-        //        e: 'trade',
-        //        m: true,
-        //        p: '29110.19',
-        //        q: '0.1868',
-        //        s: 'BTC-USDT',
-        //        t: '57903921'
+        //        "E": 1690214529432,
+        //        "T": 1690214529386,
+        //        "e": "trade",
+        //        "m": true,
+        //        "p": "29110.19",
+        //        "q": "0.1868",
+        //        "s": "BTC-USDT",
+        //        "t": "57903921"
         //    }
         //
         // swap
         //
         //    {
-        //        q: '0.0421',
-        //        p: '29023.5',
-        //        T: 1690221401344,
-        //        m: false,
-        //        s: 'BTC-USDT'
+        //        "q": "0.0421",
+        //        "p": "29023.5",
+        //        "T": 1690221401344,
+        //        "m": false,
+        //        "s": "BTC-USDT"
         //    }
         //
         let time = this.safeIntegerN (trade, [ 'time', 'filledTm', 'T' ]);
@@ -930,7 +922,7 @@ export default class bingx extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bingx#fetchOrderBook
@@ -1056,7 +1048,7 @@ export default class bingx extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -1089,7 +1081,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchFundingRateHistory
@@ -1167,7 +1159,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1190,7 +1182,7 @@ export default class bingx extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    parseOpenInterest (interest, market = undefined) {
+    parseOpenInterest (interest, market: Market = undefined) {
         //
         //    {
         //        "openInterest": "3289641547.10",
@@ -1214,7 +1206,7 @@ export default class bingx extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bingx#fetchTicker
@@ -1252,7 +1244,16 @@ export default class bingx extends Exchange {
         //          "quoteVolume": "4151395117.73",
         //          "openPrice": "16832.0",
         //          "openTime": 1672026667803,
-        //          "closeTime": 1672026648425
+        //          "closeTime": 1672026648425,
+        //  added some time ago:
+        //          "firstId": 12345,
+        //          "lastId": 12349,
+        //          "count": 5,
+        //  added 2023-11-10:
+        //          "bidPrice": 16726.0,
+        //          "bidQty": 0.05,
+        //          "askPrice": 16726.0,
+        //          "askQty": 0.05,
         //        }
         //    }
         //
@@ -1261,7 +1262,7 @@ export default class bingx extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bingx#fetchTickers
@@ -1303,7 +1304,16 @@ export default class bingx extends Exchange {
         //                "quoteVolume": "4151395117.73",
         //                "openPrice": "16832.0",
         //                "openTime": 1672026667803,
-        //                "closeTime": 1672026648425
+        //                "closeTime": 1672026648425,
+        //  added some time ago:
+        //                "firstId": 12345,
+        //                "lastId": 12349,
+        //                "count": 5,
+        //  added 2023-11-10:
+        //                "bidPrice": 16726.0,
+        //                "bidQty": 0.05,
+        //                "askPrice": 16726.0,
+        //                "askQty": 0.05,
         //            },
         //        ]
         //    }
@@ -1312,19 +1322,28 @@ export default class bingx extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // spot
         //    {
-        //        symbol: 'BTC-USDT',
-        //        openPrice: '26032.08',
-        //        highPrice: '26178.86',
-        //        lowPrice: '25968.18',
-        //        lastPrice: '26113.60',
-        //        volume: '1161.79',
-        //        quoteVolume: '30288466.44',
-        //        openTime: '1693081020762',
-        //        closeTime: '1693167420762'
+        //        "symbol": "BTC-USDT",
+        //        "openPrice": "26032.08",
+        //        "highPrice": "26178.86",
+        //        "lowPrice": "25968.18",
+        //        "lastPrice": "26113.60",
+        //        "volume": "1161.79",
+        //        "quoteVolume": "30288466.44",
+        //        "openTime": "1693081020762",
+        //        "closeTime": "1693167420762",
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
         //    }
         // swap
         //
@@ -1340,7 +1359,16 @@ export default class bingx extends Exchange {
         //        "quoteVolume": "4151395117.73",
         //        "openPrice": "16832.0",
         //        "openTime": 1672026667803,
-        //        "closeTime": 1672026648425
+        //        "closeTime": 1672026648425,
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
         //    }
         //
         const marketId = this.safeString (ticker, 'symbol');
@@ -1356,16 +1384,20 @@ export default class bingx extends Exchange {
         const percentage = this.safeString (ticker, 'priceChangePercent');
         const ts = this.safeInteger (ticker, 'closeTime');
         const datetime = this.iso8601 (ts);
+        const bid = this.safeString (ticker, 'bidPrice');
+        const bidVolume = this.safeString (ticker, 'bidQty');
+        const ask = this.safeString (ticker, 'askPrice');
+        const askVolume = this.safeString (ticker, 'askQty');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': ts,
             'datetime': datetime,
             'high': high,
             'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': open,
             'close': close,
@@ -1380,7 +1412,7 @@ export default class bingx extends Exchange {
         }, market);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name cryptocom#fetchBalance
@@ -1471,7 +1503,7 @@ export default class bingx extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue2 (data, 'balance', 'balances', data);
         const result = { 'info': response };
@@ -1497,7 +1529,7 @@ export default class bingx extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchPositions
@@ -1544,7 +1576,7 @@ export default class bingx extends Exchange {
         return this.parsePositions (positions, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -1896,7 +1928,7 @@ export default class bingx extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // spot
         // createOrder, createOrders, cancelOrder
@@ -1917,20 +1949,20 @@ export default class bingx extends Exchange {
         // fetchOrder
         //
         //    {
-        //        symbol: 'ETH-USDT',
-        //        orderId: '1660602123001266176',
-        //        price: '1700',
-        //        origQty: '0.003',
-        //        executedQty: '0',
-        //        cummulativeQuoteQty: '0',
-        //        status: 'PENDING',
-        //        type: 'LIMIT',
-        //        side: 'BUY',
-        //        time: '1684753373276',
-        //        updateTime: '1684753373276',
-        //        origQuoteOrderQty: '0',
-        //        fee: '0',
-        //        feeAsset: 'ETH'
+        //        "symbol": "ETH-USDT",
+        //        "orderId": "1660602123001266176",
+        //        "price": "1700",
+        //        "origQty": "0.003",
+        //        "executedQty": "0",
+        //        "cummulativeQuoteQty": "0",
+        //        "status": "PENDING",
+        //        "type": "LIMIT",
+        //        "side": "BUY",
+        //        "time": "1684753373276",
+        //        "updateTime": "1684753373276",
+        //        "origQuoteOrderQty": "0",
+        //        "fee": "0",
+        //        "feeAsset": "ETH"
         //    }
         //
         // fetchOpenOrders, fetchClosedOrders
@@ -2054,7 +2086,7 @@ export default class bingx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#cancelOrder
@@ -2131,7 +2163,7 @@ export default class bingx extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#cancelAllOrders
@@ -2183,7 +2215,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids: Int[], symbol: string = undefined, params = {}) {
+    async cancelOrders (ids: Int[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#cancelOrders
@@ -2247,7 +2279,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchOrder
@@ -2328,7 +2360,7 @@ export default class bingx extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#fetchOpenOrders
@@ -2414,7 +2446,7 @@ export default class bingx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#fetchClosedOrders
@@ -2549,7 +2581,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchTransfers
@@ -2586,8 +2618,8 @@ export default class bingx extends Exchange {
         const response = await this.spotV3PrivateGetAssetTransfer (this.extend (request, params));
         //
         //     {
-        //         total: 3,
-        //         rows: [
+        //         "total": 3,
+        //         "rows": [
         //             {
         //                 "asset":"USDT",
         //                 "amount":"-100.00000000000000000000",
@@ -2603,7 +2635,7 @@ export default class bingx extends Exchange {
         return this.parseTransfers (rows, currency, since, limit);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         const tranId = this.safeString (transfer, 'tranId');
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const currencyCode = this.safeCurrencyCode (undefined, currency);
@@ -2651,19 +2683,19 @@ export default class bingx extends Exchange {
         const response = await this.walletsV1PrivateGetCapitalDepositAddress (this.extend (request, params));
         //
         //     {
-        //         code: '0',
-        //         timestamp: '1695200226859',
-        //         data: {
-        //           data: [
+        //         "code": "0",
+        //         "timestamp": "1695200226859",
+        //         "data": {
+        //           "data": [
         //             {
-        //               coinId: '799',
-        //               coin: 'USDT',
-        //               network: 'BEP20',
-        //               address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-        //               tag: ''
+        //               "coinId": "799",
+        //               "coin": "USDT",
+        //               "network": "BEP20",
+        //               "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        //               "tag": ''
         //             }
         //           ],
-        //           total: '1'
+        //           "total": "1"
         //         }
         //     }
         //
@@ -2672,14 +2704,14 @@ export default class bingx extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
-        //         coinId: '799',
-        //         coin: 'USDT',
-        //         network: 'BEP20',
-        //         address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-        //         tag: ''
+        //         "coinId": "799",
+        //         "coin": "USDT",
+        //         "network": "BEP20",
+        //         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        //         "tag": ''
         //     }
         //
         const address = this.safeString (depositAddress, 'address');
@@ -2698,7 +2730,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bingx#fetchDeposits
@@ -2745,7 +2777,7 @@ export default class bingx extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bingx#fetchWithdrawals
@@ -2794,7 +2826,7 @@ export default class bingx extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2872,6 +2904,7 @@ export default class bingx extends Exchange {
                 'cost': this.safeNumber (transaction, 'transactionFee'),
                 'rate': undefined,
             },
+            'internal': undefined,
         };
     }
 
@@ -2894,7 +2927,7 @@ export default class bingx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async setMarginMode (marginMode: string, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#setMarginMode
@@ -2991,7 +3024,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#setLeverage
@@ -3025,7 +3058,7 @@ export default class bingx extends Exchange {
         return await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchMyTrades
@@ -3056,19 +3089,19 @@ export default class bingx extends Exchange {
         const response = await this.swapV2PrivateGetTradeAllFillOrders (this.extend (request, query));
         //
         //    {
-        //       code: '0',
-        //       msg: '',
-        //       data: { fill_orders: [
+        //       "code": "0",
+        //       "msg": '',
+        //       "data": { fill_orders: [
         //          {
-        //              volume: '0.1',
-        //              price: '106.75',
-        //              amount: '10.6750',
-        //              commission: '-0.0053',
-        //              currency: 'USDT',
-        //              orderId: '1676213270274379776',
-        //              liquidatedPrice: '0.00',
-        //              liquidatedMarginRatio: '0.00',
-        //              filledTime: '2023-07-04T20:56:01.000+0800'
+        //              "volume": "0.1",
+        //              "price": "106.75",
+        //              "amount": "10.6750",
+        //              "commission": "-0.0053",
+        //              "currency": "USDT",
+        //              "orderId": "1676213270274379776",
+        //              "liquidatedPrice": "0.00",
+        //              "liquidatedMarginRatio": "0.00",
+        //              "filledTime": "2023-07-04T20:56:01.000+0800"
         //          }
         //        ]
         //      }
@@ -3079,31 +3112,31 @@ export default class bingx extends Exchange {
         return this.parseTrades (fillOrders, market, since, limit, query);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
-        //        coin: 'BTC',
-        //        name: 'BTC',
-        //        networkList: [
+        //        "coin": "BTC",
+        //        "name": "BTC",
+        //        "networkList": [
         //          {
-        //            name: 'BTC',
-        //            network: 'BTC',
-        //            isDefault: true,
-        //            minConfirm: '2',
-        //            withdrawEnable: true,
-        //            withdrawFee: '0.00035',
-        //            withdrawMax: '1.62842',
-        //            withdrawMin: '0.0005'
+        //            "name": "BTC",
+        //            "network": "BTC",
+        //            "isDefault": true,
+        //            "minConfirm": "2",
+        //            "withdrawEnable": true,
+        //            "withdrawFee": "0.00035",
+        //            "withdrawMax": "1.62842",
+        //            "withdrawMin": "0.0005"
         //          },
         //          {
-        //            name: 'BTC',
-        //            network: 'BEP20',
-        //            isDefault: false,
-        //            minConfirm: '15',
-        //            withdrawEnable: true,
-        //            withdrawFee: '0.00001',
-        //            withdrawMax: '1.62734',
-        //            withdrawMin: '0.0001'
+        //            "name": "BTC",
+        //            "network": "BEP20",
+        //            "isDefault": false,
+        //            "minConfirm": "15",
+        //            "withdrawEnable": true,
+        //            "withdrawFee": "0.00001",
+        //            "withdrawMax": "1.62734",
+        //            "withdrawMin": "0.0001"
         //          }
         //        ]
         //    }
@@ -3142,7 +3175,7 @@ export default class bingx extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchDepositWithdrawFees
@@ -3226,7 +3259,7 @@ export default class bingx extends Exchange {
         return sortedParams;
     }
 
-    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchMyLiquidations
@@ -3290,7 +3323,7 @@ export default class bingx extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "time": "int64",
@@ -3384,7 +3417,7 @@ export default class bingx extends Exchange {
         //
         //    {
         //        "code": 80014,
-        //        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for 'Symbol' failed on the 'len=0|endswith=-USDT' tag",
+        //        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for "Symbol" failed on the "len=0|endswith=-USDT" tag",
         //        "data": {
         //        }
         //    }

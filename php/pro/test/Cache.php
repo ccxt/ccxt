@@ -346,3 +346,49 @@ assert ($cache->getLimit (null, $outsideLimit) === 2); // watch all orders
 $cache->append (array( 'symbol' => $symbol2, 'id' => 'two', 'i' => 3 )); // update second order
 $cache->append (array( 'symbol' => $symbol2, 'id' => 'three', 'i' => 3 )); // create third order
 assert ($cache->getLimit (null, $outsideLimit) === 2); // watch all orders
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolBySide, watch all positions, same $symbol and side id gets updated
+
+$cache = new ArrayCacheBySymbolBySide ();
+$symbol = 'BTC/USDT';
+$outsideLimit = 5;
+$cache->append (array( 'symbol' => $symbol, 'side' => 'short', 'contracts' => 1 )); // create $first position
+$cache->append (array( 'symbol' => $symbol, 'side' => 'short', 'contracts' => 0 )); // $first position is closed
+assert ($cache->getLimit ($symbol, $outsideLimit) === 1); // limit position
+$cache->append (array( 'symbol' => $symbol, 'side' => 'short', 'contracts' => 1 )); // create $first position
+assert ($cache->getLimit ($symbol, $outsideLimit) === 1); // watch all positions
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolBySide, watch all positions, same $symbol and side id gets updated
+
+$cache = new ArrayCacheBySymbolBySide ();
+$symbol = 'BTC/USDT';
+$outsideLimit = 5;
+$cache->append (array( 'symbol' => $symbol, 'side' => 'short', 'contracts' => 1 )); // create $first position
+assert ($cache->getLimit (null, $outsideLimit) === 1); // watch all positions
+$cache->append (array( 'symbol' => $symbol, 'side' => 'short', 'contracts' => 0 )); // $first position is closed
+assert ($cache->getLimit (null, $outsideLimit) === 1); // watch all positions
+$cache->append (array( 'symbol' => $symbol, 'side' => 'long', 'contracts' => 3 )); // create second position
+assert ($cache->getLimit (null, $outsideLimit) === 1); // watch all positions
+$cache->append (array( 'symbol' => $symbol, 'side' => 'long', 'contracts' => 2 )); // second position is reduced
+$cache->append (array( 'symbol' => $symbol, 'side' => 'long', 'contracts' => 1 )); // second position is reduced
+assert ($cache->getLimit (null, $outsideLimit) === 1); // watch all orders
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolBySide, watchPositions, and watchPosition ($symbol) work independently
+
+$cache = new ArrayCacheBySymbolBySide ();
+$symbol = 'BTC/USDT';
+$symbol2 = 'ETH/USDT';
+
+$cache->append (array( 'symbol' => $symbol, 'side' => 'short', 'contracts' => 1 )); // create $first position
+$cache->append (array( 'symbol' => $symbol2, 'side' => 'long', 'contracts' => 1 )); // create second position
+assert ($cache->getLimit (null, $outsideLimit) === 2); // watch all positions
+assert ($cache->getLimit ($symbol, $outsideLimit) === 1); // watch by $symbol
+$cache->append (array( 'symbol' => $symbol, 'side' => 'short', 'contracts' => 2 )); // update $first position
+$cache->append (array( 'symbol' => $symbol2, 'side' => 'long', 'contracts' => 2 )); // update second position
+assert ($cache->getLimit ($symbol, $outsideLimit) === 1); // watch by $symbol
+assert ($cache->getLimit (null, $outsideLimit) === 2); // watch all positions
+$cache->append (array( 'symbol' => $symbol2, 'side' => 'long', 'contracts' => 3 )); // update second position
+assert ($cache->getLimit (null, $outsideLimit) === 1); // watch all positions

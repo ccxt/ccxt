@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -307,101 +307,99 @@ export default class zonda extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.v1_01PublicGetTradingTicker (params);
-        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //
         //     {
-        //         status: 'Ok',
-        //         items: {
-        //             'BSV-USD': {
-        //                 market: {
-        //                     code: 'BSV-USD',
-        //                     first: { currency: 'BSV', minOffer: '0.00035', scale: 8 },
-        //                     second: { currency: 'USD', minOffer: '5', scale: 2 }
+        //         "status": "Ok",
+        //         "items": {
+        //             "BSV-USD": {
+        //                 "market": {
+        //                     "code": "BSV-USD",
+        //                     "first": { currency: "BSV", minOffer: "0.00035", scale: 8 },
+        //                     "second": { currency: "USD", minOffer: "5", scale: 2 }
         //                 },
-        //                 time: '1557569762154',
-        //                 highestBid: '52.31',
-        //                 lowestAsk: '62.99',
-        //                 rate: '63',
-        //                 previousRate: '51.21',
+        //                 "time": "1557569762154",
+        //                 "highestBid": "52.31",
+        //                 "lowestAsk": "62.99",
+        //                 "rate": "63",
+        //                 "previousRate": "51.21",
         //             },
         //         },
         //     }
         //
-        const result = [];
         const items = this.safeValue (response, 'items', {});
-        const keys = Object.keys (items);
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const item = items[id];
-            const market = this.safeValue (item, 'market', {});
-            const first = this.safeValue (market, 'first', {});
-            const second = this.safeValue (market, 'second', {});
-            const baseId = this.safeString (first, 'currency');
-            const quoteId = this.safeString (second, 'currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            let fees = this.safeValue (this.fees, 'trading', {});
-            if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
-                fees = this.safeValue (this.fees, 'fiat', {});
-            }
-            // todo: check that the limits have ben interpreted correctly
-            // todo: parse the fees page
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.safeNumber (fees, 'taker'),
-                'maker': this.safeNumber (fees, 'maker'),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'optionType': undefined,
-                'strike': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (first, 'minOffer'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (second, 'minOffer'),
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': item,
-            });
-        }
-        return result;
+        const markets = Object.values (items);
+        return this.parseMarkets (markets);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseMarket (item): Market {
+        const market = this.safeValue (item, 'market', {});
+        const id = this.safeString (market, 'code');
+        const first = this.safeValue (market, 'first', {});
+        const second = this.safeValue (market, 'second', {});
+        const baseId = this.safeString (first, 'currency');
+        const quoteId = this.safeString (second, 'currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        let fees = this.safeValue (this.fees, 'trading', {});
+        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
+        if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
+            fees = this.safeValue (this.fees, 'fiat', {});
+        }
+        // todo: check that the limits have ben interpreted correctly
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'optionType': undefined,
+            'strike': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (first, 'minOffer'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': item,
+        };
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name zonda#fetchOpenOrders
@@ -420,23 +418,23 @@ export default class zonda extends Exchange {
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
-        //         market: 'ETH-EUR',
-        //         offerType: 'Sell',
-        //         id: '93d3657b-d616-11e9-9248-0242ac110005',
-        //         currentAmount: '0.04',
-        //         lockedAmount: '0.04',
-        //         rate: '280',
-        //         startAmount: '0.04',
-        //         time: '1568372806924',
-        //         postOnly: false,
-        //         hidden: false,
-        //         mode: 'limit',
-        //         receivedAmount: '0.0',
-        //         firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
-        //         secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af'
+        //         "market": "ETH-EUR",
+        //         "offerType": "Sell",
+        //         "id": "93d3657b-d616-11e9-9248-0242ac110005",
+        //         "currentAmount": "0.04",
+        //         "lockedAmount": "0.04",
+        //         "rate": "280",
+        //         "startAmount": "0.04",
+        //         "time": "1568372806924",
+        //         "postOnly": false,
+        //         "hidden": false,
+        //         "mode": "limit",
+        //         "receivedAmount": "0.0",
+        //         "firstBalanceId": "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
+        //         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
         //
         const marketId = this.safeString (order, 'market');
@@ -471,7 +469,7 @@ export default class zonda extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchMyTrades
@@ -494,20 +492,20 @@ export default class zonda extends Exchange {
         const response = await this.v1_01PrivateGetTradingHistoryTransactions (query);
         //
         //     {
-        //         status: 'Ok',
-        //         totalRows: '67',
-        //         items: [
+        //         "status": "Ok",
+        //         "totalRows": "67",
+        //         "items": [
         //             {
-        //                 id: 'b54659a0-51b5-42a0-80eb-2ac5357ccee2',
-        //                 market: 'BTC-EUR',
-        //                 time: '1541697096247',
-        //                 amount: '0.00003',
-        //                 rate: '4341.44',
-        //                 initializedBy: 'Sell',
-        //                 wasTaker: false,
-        //                 userAction: 'Buy',
-        //                 offerId: 'bd19804a-6f89-4a69-adb8-eb078900d006',
-        //                 commissionValue: null
+        //                 "id": "b54659a0-51b5-42a0-80eb-2ac5357ccee2",
+        //                 "market": "BTC-EUR",
+        //                 "time": "1541697096247",
+        //                 "amount": "0.00003",
+        //                 "rate": "4341.44",
+        //                 "initializedBy": "Sell",
+        //                 "wasTaker": false,
+        //                 "userAction": "Buy",
+        //                 "offerId": "bd19804a-6f89-4a69-adb8-eb078900d006",
+        //                 "commissionValue": null
         //             },
         //         ]
         //     }
@@ -520,7 +518,7 @@ export default class zonda extends Exchange {
         return this.filterBySymbol (result, symbol) as Trade[];
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'balances');
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
@@ -538,7 +536,7 @@ export default class zonda extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name zonda#fetchBalance
@@ -552,7 +550,7 @@ export default class zonda extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name zonda#fetchOrderBook
@@ -599,42 +597,42 @@ export default class zonda extends Exchange {
         } as OrderBook;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // version 1
         //
         //    {
-        //        m: 'ETH-PLN',
-        //        h: '13485.13',
-        //        l: '13100.01',
-        //        v: '126.10710939',
-        //        r24h: '13332.72'
+        //        "m": "ETH-PLN",
+        //        "h": "13485.13",
+        //        "l": "13100.01",
+        //        "v": "126.10710939",
+        //        "r24h": "13332.72"
         //    }
         //
         // version 2
         //
         //    {
-        //        market: {
-        //            code: 'ADA-USDT',
-        //            first: {
-        //                currency: 'ADA',
-        //                minOffer: '0.2',
-        //                scale: '6'
+        //        "market": {
+        //            "code": "ADA-USDT",
+        //            "first": {
+        //                "currency": "ADA",
+        //                "minOffer": "0.2",
+        //                "scale": "6"
         //            },
-        //            second: {
-        //                currency: 'USDT',
-        //                minOffer: '0.099',
-        //                scale: '6'
+        //            "second": {
+        //                "currency": "USDT",
+        //                "minOffer": "0.099",
+        //                "scale": "6"
         //            },
-        //            amountPrecision: '6',
-        //            pricePrecision: '6',
-        //            ratePrecision: '6'
+        //            "amountPrecision": "6",
+        //            "pricePrecision": "6",
+        //            "ratePrecision": "6"
         //        },
-        //        time: '1655812661202',
-        //        highestBid: '0.492',
-        //        lowestAsk: '0.499389',
-        //        rate: '0.50588',
-        //        previousRate: '0.504981'
+        //        "time": "1655812661202",
+        //        "highestBid": "0.492",
+        //        "lowestAsk": "0.499389",
+        //        "rate": "0.50588",
+        //        "previousRate": "0.504981"
         //    }
         //
         const tickerMarket = this.safeValue (ticker, 'market');
@@ -737,7 +735,7 @@ export default class zonda extends Exchange {
         return this.parseTicker (stats, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @ignore
          * @method
@@ -791,14 +789,14 @@ export default class zonda extends Exchange {
             response = await this.v1_01PublicGetTradingStats (params);
             //
             //     {
-            //         status: 'Ok',
-            //         items: {
-            //             'DAI-PLN': {
-            //                 m: 'DAI-PLN',
-            //                 h: '4.41',
-            //                 l: '4.37',
-            //                 v: '8.71068087',
-            //                 r24h: '4.36'
+            //         "status": "Ok",
+            //         "items": {
+            //             "DAI-PLN": {
+            //                 "m": "DAI-PLN",
+            //                 "h": "4.41",
+            //                 "l": "4.37",
+            //                 "v": "8.71068087",
+            //                 "r24h": "4.36"
             //             },
             //             ...
             //         }
@@ -811,7 +809,7 @@ export default class zonda extends Exchange {
         return this.parseTickers (items, symbols);
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchLedger
@@ -843,7 +841,7 @@ export default class zonda extends Exchange {
         return this.parseLedger (items, undefined, since, limit);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //    FUNDS_MIGRATION
         //    {
@@ -1164,17 +1162,17 @@ export default class zonda extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
-        //         '1582399800000',
+        //         "1582399800000",
         //         {
-        //             o: '0.0001428',
-        //             c: '0.0001428',
-        //             h: '0.0001428',
-        //             l: '0.0001428',
-        //             v: '4',
-        //             co: '1'
+        //             "o": "0.0001428",
+        //             "c": "0.0001428",
+        //             "h": "0.0001428",
+        //             "l": "0.0001428",
+        //             "v": "4",
+        //             "co": "1"
         //         }
         //     ]
         //
@@ -1189,7 +1187,7 @@ export default class zonda extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name zonda#fetchOHLCV
@@ -1238,7 +1236,7 @@ export default class zonda extends Exchange {
         return this.parseOHLCVs (items, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // createOrder trades
         //
@@ -1250,32 +1248,32 @@ export default class zonda extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         amount: "0.29285199",
-        //         commissionValue: "0.00125927",
-        //         id: "11c8203a-a267-11e9-b698-0242ac110007",
-        //         initializedBy: "Buy",
-        //         market: "ETH-EUR",
-        //         offerId: "11c82038-a267-11e9-b698-0242ac110007",
-        //         rate: "277",
-        //         time: "1562689917517",
-        //         userAction: "Buy",
-        //         wasTaker: true,
+        //         "amount": "0.29285199",
+        //         "commissionValue": "0.00125927",
+        //         "id": "11c8203a-a267-11e9-b698-0242ac110007",
+        //         "initializedBy": "Buy",
+        //         "market": "ETH-EUR",
+        //         "offerId": "11c82038-a267-11e9-b698-0242ac110007",
+        //         "rate": "277",
+        //         "time": "1562689917517",
+        //         "userAction": "Buy",
+        //         "wasTaker": true,
         //     }
         //
         // fetchTrades (public)
         //
         //     {
-        //          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
-        //          t: '1570108958831',
-        //          a: '0.04776653',
-        //          r: '0.02145854',
-        //          ty: 'Sell'
+        //          "id": "df00b0da-e5e0-11e9-8c19-0242ac11000a",
+        //          "t": "1570108958831",
+        //          "a": "0.04776653",
+        //          "r": "0.02145854",
+        //          "ty": "Sell"
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'time', 't');
         const side = this.safeStringLower2 (trade, 'userAction', 'ty');
         const wasTaker = this.safeValue (trade, 'wasTaker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (wasTaker !== undefined) {
             takerOrMaker = wasTaker ? 'taker' : 'maker';
         }
@@ -1295,7 +1293,7 @@ export default class zonda extends Exchange {
         }
         const order = this.safeString (trade, 'offerId');
         // todo: check this logic
-        let type = undefined;
+        let type: Str = undefined;
         if (order !== undefined) {
             type = order ? 'limit' : 'market';
         }
@@ -1316,7 +1314,7 @@ export default class zonda extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name zonda#fetchTrades
@@ -1397,10 +1395,10 @@ export default class zonda extends Exchange {
         // unfilled (open order)
         //
         //     {
-        //         status: 'Ok',
-        //         completed: false, // can deduce status from here
-        //         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
-        //         transactions: [], // can deduce order info from here
+        //         "status": "Ok",
+        //         "completed": false, // can deduce status from here
+        //         "offerId": "ce9cc72e-d61c-11e9-9248-0242ac110005",
+        //         "transactions": [], // can deduce order info from here
         //     }
         //
         // filled (closed order)
@@ -1473,7 +1471,7 @@ export default class zonda extends Exchange {
         });
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name zonda#cancelOrder
@@ -1501,8 +1499,8 @@ export default class zonda extends Exchange {
             'side': side,
             'price': price,
         };
-        // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
-        // { status: 'Ok', errors: [] }
+        // { status: "Fail", errors: [ "NOT_RECOGNIZED_OFFER_TYPE" ] }  -- if required params are missing
+        // { status: "Ok", errors: [] }
         return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
     }
 
@@ -1515,7 +1513,7 @@ export default class zonda extends Exchange {
         return this.safeValue (fiatCurrencies, currency, false);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
@@ -1660,7 +1658,7 @@ export default class zonda extends Exchange {
         return transfer;
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //     {
         //         "status": "Ok",
@@ -1761,7 +1759,7 @@ export default class zonda extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -1788,6 +1786,7 @@ export default class zonda extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };
@@ -1812,7 +1811,7 @@ export default class zonda extends Exchange {
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
             const nonce = this.milliseconds ().toString ();
-            let payload = undefined;
+            let payload: Str = undefined;
             if (method !== 'POST') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
@@ -1850,12 +1849,12 @@ export default class zonda extends Exchange {
         }
         if ('code' in response) {
             //
-            // bitbay returns the integer 'success': 1 key from their private API
-            // or an integer 'code' value from 0 to 510 and an error message
+            // bitbay returns the integer "success": 1 key from their private API
+            // or an integer "code" value from 0 to 510 and an error message
             //
-            //      { 'success': 1, ... }
-            //      { 'code': 502, 'message': 'Invalid sign' }
-            //      { 'code': 0, 'message': 'offer funds not exceeding minimums' }
+            //      { "success": 1, ... }
+            //      { 'code': 502, "message": "Invalid sign" }
+            //      { 'code': 0, "message": "offer funds not exceeding minimums" }
             //
             //      400 At least one parameter wasn't set
             //      401 Invalid order type

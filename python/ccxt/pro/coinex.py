@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
@@ -90,19 +89,19 @@ class coinex(ccxt.async_support.coinex):
         #  spot
         #
         #     {
-        #         method: 'state.update',
-        #         params: [{
-        #             BTCUSDT: {
-        #                 last: '31577.89',
-        #                 open: '29318.36',
-        #                 close: '31577.89',
-        #                 high: '32222.19',
-        #                 low: '29317.21',
-        #                 volume: '630.43024965',
-        #                 sell_total: '13.66143951',
-        #                 buy_total: '2.76410939',
-        #                 period: 86400,
-        #                 deal: '19457487.84611409070000000000'
+        #         "method": "state.update",
+        #         "params": [{
+        #             "BTCUSDT": {
+        #                 "last": "31577.89",
+        #                 "open": "29318.36",
+        #                 "close": "31577.89",
+        #                 "high": "32222.19",
+        #                 "low": "29317.21",
+        #                 "volume": "630.43024965",
+        #                 "sell_total": "13.66143951",
+        #                 "buy_total": "2.76410939",
+        #                 "period": 86400,
+        #                 "deal": "19457487.84611409070000000000"
         #             }
         #         }]
         #     }
@@ -110,27 +109,27 @@ class coinex(ccxt.async_support.coinex):
         #  swap
         #
         #     {
-        #         method: 'state.update',
-        #         params: [{
-        #             BTCUSDT: {
-        #                 period: 86400,
-        #                 funding_time: 422,
-        #                 position_amount: '285.6246',
-        #                 funding_rate_last: '-0.00097933',
-        #                 funding_rate_next: '0.00022519',
-        #                 funding_rate_predict: '0.00075190',
-        #                 insurance: '17474289.49925859030905338270',
-        #                 last: '31570.08',
-        #                 sign_price: '31568.09',
-        #                 index_price: '31561.85000000',
-        #                 open: '29296.11',
-        #                 close: '31570.08',
-        #                 high: '32463.40',
-        #                 low: '29296.11',
-        #                 volume: '8774.7318',
-        #                 deal: '270675177.827928219109030017258398',
-        #                 sell_total: '19.2230',
-        #                 buy_total: '25.7814'
+        #         "method": "state.update",
+        #         "params": [{
+        #             "BTCUSDT": {
+        #                 "period": 86400,
+        #                 "funding_time": 422,
+        #                 "position_amount": "285.6246",
+        #                 "funding_rate_last": "-0.00097933",
+        #                 "funding_rate_next": "0.00022519",
+        #                 "funding_rate_predict": "0.00075190",
+        #                 "insurance": "17474289.49925859030905338270",
+        #                 "last": "31570.08",
+        #                 "sign_price": "31568.09",
+        #                 "index_price": "31561.85000000",
+        #                 "open": "29296.11",
+        #                 "close": "31570.08",
+        #                 "high": "32463.40",
+        #                 "low": "29296.11",
+        #                 "volume": "8774.7318",
+        #                 "deal": "270675177.827928219109030017258398",
+        #                 "sell_total": "19.2230",
+        #                 "buy_total": "25.7814"
         #             }
         #         }]
         #     }
@@ -166,39 +165,39 @@ class coinex(ccxt.async_support.coinex):
         #  spot
         #
         #     {
-        #         last: '31577.89',
-        #         open: '29318.36',
-        #         close: '31577.89',
-        #         high: '32222.19',
-        #         low: '29317.21',
-        #         volume: '630.43024965',
-        #         sell_total: '13.66143951',
-        #         buy_total: '2.76410939',
-        #         period: 86400,
-        #         deal: '19457487.84611409070000000000'
+        #         "last": "31577.89",
+        #         "open": "29318.36",
+        #         "close": "31577.89",
+        #         "high": "32222.19",
+        #         "low": "29317.21",
+        #         "volume": "630.43024965",
+        #         "sell_total": "13.66143951",
+        #         "buy_total": "2.76410939",
+        #         "period": 86400,
+        #         "deal": "19457487.84611409070000000000"
         #     }
         #
         #  swap
         #
         #     {
-        #         period: 86400,
-        #         funding_time: 422,
-        #         position_amount: '285.6246',
-        #         funding_rate_last: '-0.00097933',
-        #         funding_rate_next: '0.00022519',
-        #         funding_rate_predict: '0.00075190',
-        #         insurance: '17474289.49925859030905338270',
-        #         last: '31570.08',
-        #         sign_price: '31568.09',
-        #         index_price: '31561.85000000',
-        #         open: '29296.11',
-        #         close: '31570.08',
-        #         high: '32463.40',
-        #         low: '29296.11',
-        #         volume: '8774.7318',
-        #         deal: '270675177.827928219109030017258398',
-        #         sell_total: '19.2230',
-        #         buy_total: '25.7814'
+        #         "period": 86400,
+        #         "funding_time": 422,
+        #         "position_amount": "285.6246",
+        #         "funding_rate_last": "-0.00097933",
+        #         "funding_rate_next": "0.00022519",
+        #         "funding_rate_predict": "0.00075190",
+        #         "insurance": "17474289.49925859030905338270",
+        #         "last": "31570.08",
+        #         "sign_price": "31568.09",
+        #         "index_price": "31561.85000000",
+        #         "open": "29296.11",
+        #         "close": "31570.08",
+        #         "high": "32463.40",
+        #         "low": "29296.11",
+        #         "volume": "8774.7318",
+        #         "deal": "270675177.827928219109030017258398",
+        #         "sell_total": "19.2230",
+        #         "buy_total": "25.7814"
         #     }
         #
         defaultType = self.safe_string(self.options, 'defaultType')
@@ -348,35 +347,35 @@ class coinex(ccxt.async_support.coinex):
         #
         #  spot
         #     {
-        #         error: null,
-        #         result: [
+        #         "error": null,
+        #         "result": [
         #           [
         #             1673846940,
-        #             '21148.74',
-        #             '21148.38',
-        #             '21148.75',
-        #             '21138.66',
-        #             '1.57060173',
-        #             '33214.9138778914'
+        #             "21148.74",
+        #             "21148.38",
+        #             "21148.75",
+        #             "21138.66",
+        #             "1.57060173",
+        #             "33214.9138778914"
         #           ],
         #         ]
-        #         id: 1,
+        #         "id": 1,
         #     }
         #  swap
         #     {
-        #         method: 'kline.update',
-        #         params: [
+        #         "method": "kline.update",
+        #         "params": [
         #             [
         #                 1654019640,   # timestamp
-        #                 '32061.99',   # open
-        #                 '32061.28',   # close
-        #                 '32061.99',   # high
-        #                 '32061.28',   # low
-        #                 '0.1285',     # amount base
-        #                 '4119.943736'  # amount quote
+        #                 "32061.99",   # open
+        #                 "32061.28",   # close
+        #                 "32061.99",   # high
+        #                 "32061.28",   # low
+        #                 "0.1285",     # amount base
+        #                 "4119.943736"  # amount quote
         #             ]
         #         ],
-        #         id: null
+        #         "id": null
         #     }
         #
         candles = self.safe_value_2(message, 'params', 'result', [])
@@ -407,7 +406,7 @@ class coinex(ccxt.async_support.coinex):
         """
         return await self.watch_tickers([symbol], params)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -434,7 +433,7 @@ class coinex(ccxt.async_support.coinex):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
@@ -464,7 +463,7 @@ class coinex(ccxt.async_support.coinex):
         trades = await self.watch(url, messageHash, request, subscriptionHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
@@ -507,7 +506,7 @@ class coinex(ccxt.async_support.coinex):
         orderbook = await self.watch(url, messageHash, request, subscriptionHash, request)
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -660,7 +659,7 @@ class coinex(ccxt.async_support.coinex):
         # self.checkOrderBookChecksum(self.orderbooks[symbol])
         client.resolve(self.orderbooks[symbol], messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         await self.authenticate(params)
         messageHash = 'orders'
@@ -689,86 +688,86 @@ class coinex(ccxt.async_support.coinex):
         #  spot
         #
         #      {
-        #          method: 'order.update',
-        #          params: [
+        #          "method": "order.update",
+        #          "params": [
         #              1,
         #              {
-        #                  id: 77782469357,
-        #                  type: 1,
-        #                  side: 2,
-        #                  user: 1849116,
-        #                  account: 0,
-        #                  option: 2,
-        #                  ctime: 1653961043.048967,
-        #                  mtime: 1653961043.048967,
-        #                  market: 'BTCUSDT',
-        #                  source: 'web',
-        #                  client_id: '',
-        #                  price: '1.00',
-        #                  amount: '1.00000000',
-        #                  taker_fee: '0.0020',
-        #                  maker_fee: '0.0020',
-        #                  left: '1.00000000',
-        #                  deal_stock: '0',
-        #                  deal_money: '0',
-        #                  money_fee: '0',
-        #                  stock_fee: '0',
-        #                  asset_fee: '0',
-        #                  fee_discount: '1',
-        #                  last_deal_amount: '0',
-        #                  last_deal_price: '0',
-        #                  last_deal_time: 0,
-        #                  last_deal_id: 0,
-        #                  last_role: 0,
-        #                  fee_asset: null,
-        #                  stop_id: 0
+        #                  "id": 77782469357,
+        #                  "type": 1,
+        #                  "side": 2,
+        #                  "user": 1849116,
+        #                  "account": 0,
+        #                  "option": 2,
+        #                  "ctime": 1653961043.048967,
+        #                  "mtime": 1653961043.048967,
+        #                  "market": "BTCUSDT",
+        #                  "source": "web",
+        #                  "client_id": '',
+        #                  "price": "1.00",
+        #                  "amount": "1.00000000",
+        #                  "taker_fee": "0.0020",
+        #                  "maker_fee": "0.0020",
+        #                  "left": "1.00000000",
+        #                  "deal_stock": "0",
+        #                  "deal_money": "0",
+        #                  "money_fee": "0",
+        #                  "stock_fee": "0",
+        #                  "asset_fee": "0",
+        #                  "fee_discount": "1",
+        #                  "last_deal_amount": "0",
+        #                  "last_deal_price": "0",
+        #                  "last_deal_time": 0,
+        #                  "last_deal_id": 0,
+        #                  "last_role": 0,
+        #                  "fee_asset": null,
+        #                  "stop_id": 0
         #              }
         #          ],
-        #          id: null
+        #          "id": null
         #      }
         #
         #  swap
         #
         #      {
-        #          method: 'order.update',
-        #          params: [
+        #          "method": "order.update",
+        #          "params": [
         #              1,
         #              {
-        #                  order_id: 23423462821,
-        #                  position_id: 0,
-        #                  stop_id: 0,
-        #                  market: 'BTCUSDT',
-        #                  type: 1,
-        #                  side: 2,
-        #                  target: 0,
-        #                  effect_type: 1,
-        #                  user_id: 1849116,
-        #                  create_time: 1653961509.25049,
-        #                  update_time: 1653961509.25049,
-        #                  source: 'web',
-        #                  price: '1.00',
-        #                  amount: '1.0000',
-        #                  taker_fee: '0.00050',
-        #                  maker_fee: '0.00030',
-        #                  left: '1.0000',
-        #                  deal_stock: '0.00000000000000000000',
-        #                  deal_fee: '0.00000000000000000000',
-        #                  deal_profit: '0.00000000000000000000',
-        #                  last_deal_amount: '0.00000000000000000000',
-        #                  last_deal_price: '0.00000000000000000000',
-        #                  last_deal_time: 0,
-        #                  last_deal_id: 0,
-        #                  last_deal_type: 0,
-        #                  last_deal_role: 0,
-        #                  client_id: '',
-        #                  fee_asset: '',
-        #                  fee_discount: '0.00000000000000000000',
-        #                  deal_asset_fee: '0.00000000000000000000',
-        #                  leverage: '3',
-        #                  position_type: 2
+        #                  "order_id": 23423462821,
+        #                  "position_id": 0,
+        #                  "stop_id": 0,
+        #                  "market": "BTCUSDT",
+        #                  "type": 1,
+        #                  "side": 2,
+        #                  "target": 0,
+        #                  "effect_type": 1,
+        #                  "user_id": 1849116,
+        #                  "create_time": 1653961509.25049,
+        #                  "update_time": 1653961509.25049,
+        #                  "source": "web",
+        #                  "price": "1.00",
+        #                  "amount": "1.0000",
+        #                  "taker_fee": "0.00050",
+        #                  "maker_fee": "0.00030",
+        #                  "left": "1.0000",
+        #                  "deal_stock": "0.00000000000000000000",
+        #                  "deal_fee": "0.00000000000000000000",
+        #                  "deal_profit": "0.00000000000000000000",
+        #                  "last_deal_amount": "0.00000000000000000000",
+        #                  "last_deal_price": "0.00000000000000000000",
+        #                  "last_deal_time": 0,
+        #                  "last_deal_id": 0,
+        #                  "last_deal_type": 0,
+        #                  "last_deal_role": 0,
+        #                  "client_id": '',
+        #                  "fee_asset": '',
+        #                  "fee_discount": "0.00000000000000000000",
+        #                  "deal_asset_fee": "0.00000000000000000000",
+        #                  "leverage": "3",
+        #                  "position_type": 2
         #              }
         #          ],
-        #          id: null
+        #          "id": null
         #      }
         #
         params = self.safe_value(message, 'params', [])
@@ -789,97 +788,97 @@ class coinex(ccxt.async_support.coinex):
         #  spot
         #
         #       {
-        #           id: 77782469357,
-        #           type: 1,
-        #           side: 2,
-        #           user: 1849116,
-        #           account: 0,
-        #           option: 2,
-        #           ctime: 1653961043.048967,
-        #           mtime: 1653961043.048967,
-        #           market: 'BTCUSDT',
-        #           source: 'web',
-        #           client_id: '',
-        #           price: '1.00',
-        #           amount: '1.00000000',
-        #           taker_fee: '0.0020',
-        #           maker_fee: '0.0020',
-        #           left: '1.00000000',
-        #           deal_stock: '0',
-        #           deal_money: '0',
-        #           money_fee: '0',
-        #           stock_fee: '0',
-        #           asset_fee: '0',
-        #           fee_discount: '1',
-        #           last_deal_amount: '0',
-        #           last_deal_price: '0',
-        #           last_deal_time: 0,
-        #           last_deal_id: 0,
-        #           last_role: 0,
-        #           fee_asset: null,
-        #           stop_id: 0
+        #           "id": 77782469357,
+        #           "type": 1,
+        #           "side": 2,
+        #           "user": 1849116,
+        #           "account": 0,
+        #           "option": 2,
+        #           "ctime": 1653961043.048967,
+        #           "mtime": 1653961043.048967,
+        #           "market": "BTCUSDT",
+        #           "source": "web",
+        #           "client_id": '',
+        #           "price": "1.00",
+        #           "amount": "1.00000000",
+        #           "taker_fee": "0.0020",
+        #           "maker_fee": "0.0020",
+        #           "left": "1.00000000",
+        #           "deal_stock": "0",
+        #           "deal_money": "0",
+        #           "money_fee": "0",
+        #           "stock_fee": "0",
+        #           "asset_fee": "0",
+        #           "fee_discount": "1",
+        #           "last_deal_amount": "0",
+        #           "last_deal_price": "0",
+        #           "last_deal_time": 0,
+        #           "last_deal_id": 0,
+        #           "last_role": 0,
+        #           "fee_asset": null,
+        #           "stop_id": 0
         #       }
         #
         #  swap
         #
         #      {
-        #          order_id: 23423462821,
-        #          position_id: 0,
-        #          stop_id: 0,
-        #          market: 'BTCUSDT',
-        #          type: 1,
-        #          side: 2,
-        #          target: 0,
-        #          effect_type: 1,
-        #          user_id: 1849116,
-        #          create_time: 1653961509.25049,
-        #          update_time: 1653961509.25049,
-        #          source: 'web',
-        #          price: '1.00',
-        #          amount: '1.0000',
-        #          taker_fee: '0.00050',
-        #          maker_fee: '0.00030',
-        #          left: '1.0000',
-        #          deal_stock: '0.00000000000000000000',
-        #          deal_fee: '0.00000000000000000000',
-        #          deal_profit: '0.00000000000000000000',
-        #          last_deal_amount: '0.00000000000000000000',
-        #          last_deal_price: '0.00000000000000000000',
-        #          last_deal_time: 0,
-        #          last_deal_id: 0,
-        #          last_deal_type: 0,
-        #          last_deal_role: 0,
-        #          client_id: '',
-        #          fee_asset: '',
-        #          fee_discount: '0.00000000000000000000',
-        #          deal_asset_fee: '0.00000000000000000000',
-        #          leverage: '3',
-        #          position_type: 2
+        #          "order_id": 23423462821,
+        #          "position_id": 0,
+        #          "stop_id": 0,
+        #          "market": "BTCUSDT",
+        #          "type": 1,
+        #          "side": 2,
+        #          "target": 0,
+        #          "effect_type": 1,
+        #          "user_id": 1849116,
+        #          "create_time": 1653961509.25049,
+        #          "update_time": 1653961509.25049,
+        #          "source": "web",
+        #          "price": "1.00",
+        #          "amount": "1.0000",
+        #          "taker_fee": "0.00050",
+        #          "maker_fee": "0.00030",
+        #          "left": "1.0000",
+        #          "deal_stock": "0.00000000000000000000",
+        #          "deal_fee": "0.00000000000000000000",
+        #          "deal_profit": "0.00000000000000000000",
+        #          "last_deal_amount": "0.00000000000000000000",
+        #          "last_deal_price": "0.00000000000000000000",
+        #          "last_deal_time": 0,
+        #          "last_deal_id": 0,
+        #          "last_deal_type": 0,
+        #          "last_deal_role": 0,
+        #          "client_id": '',
+        #          "fee_asset": '',
+        #          "fee_discount": "0.00000000000000000000",
+        #          "deal_asset_fee": "0.00000000000000000000",
+        #          "leverage": "3",
+        #          "position_type": 2
         #      }
         #
         #  order.update_stop
         #
         #       {
-        #           id: 78006745870,
-        #           type: 1,
-        #           side: 2,
-        #           user: 1849116,
-        #           account: 1,
-        #           option: 70,
-        #           direction: 1,
-        #           ctime: 1654171725.131976,
-        #           mtime: 1654171725.131976,
-        #           market: 'BTCUSDT',
-        #           source: 'web',
-        #           client_id: '',
-        #           stop_price: '1.00',
-        #           price: '1.00',
-        #           amount: '1.00000000',
-        #           taker_fee: '0.0020',
-        #           maker_fee: '0.0020',
-        #           fee_discount: '1',
-        #           fee_asset: null,
-        #           status: 0
+        #           "id": 78006745870,
+        #           "type": 1,
+        #           "side": 2,
+        #           "user": 1849116,
+        #           "account": 1,
+        #           "option": 70,
+        #           "direction": 1,
+        #           "ctime": 1654171725.131976,
+        #           "mtime": 1654171725.131976,
+        #           "market": "BTCUSDT",
+        #           "source": "web",
+        #           "client_id": '',
+        #           "stop_price": "1.00",
+        #           "price": "1.00",
+        #           "amount": "1.00000000",
+        #           "taker_fee": "0.0020",
+        #           "maker_fee": "0.0020",
+        #           "fee_discount": "1",
+        #           "fee_asset": null,
+        #           "status": 0
         #       }
         #
         timestamp = self.safe_timestamp_2(order, 'update_time', 'mtime')
@@ -969,11 +968,11 @@ class coinex(ccxt.async_support.coinex):
     def handle_authentication_message(self, client: Client, message):
         #
         #     {
-        #         error: null,
-        #         result: {
-        #             status: 'success'
+        #         "error": null,
+        #         "result": {
+        #             "status": "success"
         #         },
-        #         id: 1
+        #         "id": 1
         #     }
         #
         messageHashSpot = 'authenticated:spot'
