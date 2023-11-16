@@ -24,6 +24,57 @@
                     }
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/historical/9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                "input": [
+                    "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                    "DOGE-USDT"
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit order",
+                "method": "editOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/edit",
+                "input": [
+                    "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                    "DOGE-USDT",
+                    null,
+                    null,
+                    20,
+                    0.08
+                ],
+                "output": "{\"order_id\":\"9fd0cadc-2ccc-45e8-b254-ea511c34e5b2\",\"size\":\"20\",\"price\":\"0.08\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel",
+                "input": [
+                    "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                    "DOGE-USDT"
+                ],
+                "output": "{\"order_ids\":[\"9fd0cadc-2ccc-45e8-b254-ea511c34e5b2\"]}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders",
+                "method": "cancelOrders",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel",
+                "input": [
+                    ["9fd0cadc-2ccc-45e8-b254-ea511c34e5b2"],
+                    "DOGE-USDT"
+                ],
+                "output": "{\"order_ids\":[\"9fd0cadc-2ccc-45e8-b254-ea511c34e5b2\"]}"
+            }
         ]
     }
 }
