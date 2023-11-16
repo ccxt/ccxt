@@ -1701,37 +1701,38 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
+         * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicSpotGetSpotV1PublicCurrencies (params);
+        const response = await this.publicSpotGetV2SpotPublicCoins (params);
         //
         //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": 1645935668288,
-        //       "data": [
-        //         {
-        //           "coinId": "230",
-        //           "coinName": "KIN",
-        //           "transfer": "false",
-        //           "chains": [
+        //         "code": "00000",
+        //         "data": [
         //             {
-        //               "chain": "SOL",
-        //               "needTag": "false",
-        //               "withdrawable": "true",
-        //               "rechargeable": "true",
-        //               "withdrawFee": "187500",
-        //               "depositConfirm": "100",
-        //               "withdrawConfirm": "100",
-        //               "minDepositAmount": "12500",
-        //               "minWithdrawAmount": "250000",
-        //               "browserUrl": "https://explorer.solana.com/tx/"
+        //                 "chains": [
+        //                     {
+        //                         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+        //                         "chain": "BTC",
+        //                         "depositConfirm": "1",
+        //                         "extraWithdrawFee": "0",
+        //                         "minDepositAmount": "0.0001",
+        //                         "minWithdrawAmount": "0.005",
+        //                         "needTag": "false",
+        //                         "rechargeable": "true",
+        //                         "withdrawConfirm": "1",
+        //                         "withdrawFee": "0.0004",
+        //                         "withdrawable": "true"
+        //                     },
+        //                 ],
+        //                 "coin": "BTC",
+        //                 "coinId": "1",
+        //                 "transfer": "true""
         //             }
-        //           ]
-        //         }
-        //       ]
+        //         ],
+        //         "msg": "success",
+        //         "requestTime": "1700120731773"
         //     }
         //
         const result = {};
@@ -1739,7 +1740,7 @@ export default class bitget extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const id = this.safeString (entry, 'coinId');
-            const code = this.safeCurrencyCode (this.safeString (entry, 'coinName'));
+            const code = this.safeCurrencyCode (this.safeString (entry, 'coin'));
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
             let deposit = false;
