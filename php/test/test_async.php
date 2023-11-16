@@ -367,7 +367,7 @@ class testMainClass extends baseMainTestClass {
     public function add_padding($message, $size) {
         // has to be transpilable
         $res = '';
-        $missing_space = $size - strlen($message) - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
+        $missing_space = $size - count($message) - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if ($missing_space > 0) {
             for ($i = 0; $i < $missing_space; $i++) {
                 $res .= ' ';
