@@ -31,6 +31,7 @@ public class Tests
     public static bool privateTests = false;
     public static bool privateOnly = false;
     public static bool baseTests = false;
+    public static bool cacheTests = false;
     public static bool info = false;
     public static bool debug = false;
 
@@ -42,6 +43,7 @@ public class Tests
     {
         var isBase = args.Contains("--base");
         baseTests = isBase;
+        cacheTests = args.Contains("--cache");
         var argsWithoutOptions = args.Where(arg => !arg.StartsWith("--")).ToList();
         if (argsWithoutOptions.Count > 0)
         {
@@ -87,6 +89,14 @@ public class Tests
         if (baseTests)
         {
             RunBaseTests();
+            return;
+        }
+
+
+        if (cacheTests)
+        {
+            tests.CacheTests();
+            Helper.Green(" [C#] ArrayCache tests passed");
             return;
         }
 

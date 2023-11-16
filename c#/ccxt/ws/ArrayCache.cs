@@ -121,6 +121,7 @@ public class ArrayCacheByTimestamp : BaseCache
 
     public int getLimit(object symbol, object limit2)
     {
+        this.clearUpdates = true;
         if (limit2 == null)
         {
             return this.newUpdates;
@@ -256,7 +257,8 @@ public class ArrayCacheBySymbolBySide : ArrayCache
     {
         var itemSymbol = Exchange.SafeString(item, "symbol");
         var itemSide = Exchange.SafeString(item, "side");
-        var bySide = this.hashmap[itemSymbol] as Dictionary<string, object>;
+        var bySide = (this.hashmap.ContainsKey(itemSymbol)) ? this.hashmap[itemSide] as Dictionary<string, object> : new Dictionary<string, object>();
+
         if (bySide.ContainsKey(itemSide))
         {
             var reference = bySide[itemSide];
@@ -265,26 +267,45 @@ public class ArrayCacheBySymbolBySide : ArrayCache
                 reference = item;
             }
             item = reference;
+            var value = this.Find(x => Exchange.SafeString(x, "symbol") == itemSymbol && Exchange.SafeString(x, "side") == itemSide);
+            var indexInt = this.IndexOf(value);
+            // move to the end
+            this.RemoveAt(indexInt);
+
         }
         else
         {
             bySide[itemSide] = item;
         }
-
-        if (this.maxSize != null && (this.Count == this.maxSize))
-        {
-            var first = this[0];
-            this.RemoveAt(0);
-            var deletedSymbol = Exchange.SafeString(first, "symbol");
-            var deletedSide = Exchange.SafeString(first, "side");
-            var secondHashMap = (this.hashmap[deletedSymbol] as Dictionary<string, object>)[deletedSide] as Dictionary<string, object>;
-            if (secondHashMap != null)
-            {
-                secondHashMap.Remove(deletedSide);
-            }
-        }
         this.Add(item);
 
+        if (this.clearAllUpdates)
+        {
+            this.clearAllUpdates = false;
+            this.clearUpdatesBySymbol = new Dictionary<string, object>();
+            this.allNewUpdates = 0;
+            this.newUpdatesBySymbol = new Dictionary<string, object>();
+        }
+
+        var newUpdatesBySymbolValue = (this.newUpdatesBySymbol.ContainsKey(itemSymbol)) ? this.newUpdatesBySymbol[itemSymbol] : null;
+        if (newUpdatesBySymbolValue == null)
+        {
+            this.newUpdatesBySymbol[itemSymbol] = new HashSet<object>();
+        }
+
+        var clearUpdatesBySymbolValue = (this.clearUpdatesBySymbol.ContainsKey(itemSymbol)) ? this.clearUpdatesBySymbol[itemSymbol] : null;
+        if (clearUpdatesBySymbolValue != null)
+        {
+            this.clearUpdatesBySymbol[itemSymbol] = false;
+            (this.newUpdatesBySymbol[itemSymbol] as HashSet<object>).Clear();
+        }
+
+        var sideSet = this.newUpdatesBySymbol[itemSymbol] as HashSet<object>;
+        var beforeLength = sideSet.Count;
+        sideSet.Add(itemSide);
+        var afterLength = sideSet.Count;
+        var defaultAllNewUpdates = (this.allNewUpdates == null) ? 0 : this.allNewUpdates;
+        this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
     }
 }
 // }
