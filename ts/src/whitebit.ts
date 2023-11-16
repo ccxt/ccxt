@@ -314,8 +314,8 @@ export default class whitebit extends Exchange {
         const isCollateral = this.safeValue (market, 'isCollateral');
         const typeId = this.safeString (market, 'type');
         let type: string;
-        let settle: Str;
-        let settleId: Str;
+        let settle: Str = undefined;
+        let settleId: Str = undefined;
         let symbol = base + '/' + quote;
         const swap = typeId === 'futures';
         const margin = isCollateral && !swap;

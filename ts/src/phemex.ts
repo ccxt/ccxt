@@ -1610,19 +1610,19 @@ export default class phemex extends Exchange {
         let priceString: Str;
         let amountString: Str;
         let timestamp: Int;
-        let id: Str;
-        let side: Str;
-        let costString: Str;
-        let type: Str;
+        let id: Str = undefined;
+        let side: Str = undefined;
+        let costString: Str = undefined;
+        let type: Str = undefined;
         let fee = undefined;
-        let feeCostString: Str;
-        let feeRateString: Str;
-        let feeCurrencyCode: Str;
+        let feeCostString: Str = undefined;
+        let feeRateString: Str = undefined;
+        let feeCurrencyCode: Str = undefined;
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let orderId: Str;
-        let takerOrMaker: Str;
+        let orderId: Str = undefined;
+        let takerOrMaker: Str = undefined;
         if (Array.isArray (trade)) {
             const tradeLength = trade.length;
             timestamp = this.safeIntegerProduct (trade, 0, 0.000001);
