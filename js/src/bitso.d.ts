@@ -17,7 +17,7 @@ export default class bitso extends Exchange {
         referenceId: string;
         referenceAccount: string;
         type: string;
-        currency: any;
+        currency: string;
         amount: number;
         before: number;
         after: number;

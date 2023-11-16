@@ -4,8 +4,8 @@ export default class bingx extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchSpotMarkets(params: any): Promise<Market[]>;
-    fetchSwapMarkets(params: any): Promise<Market[]>;
+    fetchSpotMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(market: any): Market;
     fetchMarkets(params?: {}): Promise<any>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

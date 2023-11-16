@@ -66,7 +66,7 @@ export default class okx extends Exchange {
     fetchAccounts(params?: {}): Promise<any[]>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseMarket(market: any): Market;
-    fetchMarketsByType(type: any, params?: {}): Promise<Market[]>;
+    fetchMarketsByType(type: any, params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.53'
+__version__ = '4.1.54'
 
 # -----------------------------------------------------------------------------
 
@@ -2171,7 +2171,7 @@ class Exchange(object):
                 (self.markets_by_id[value['id']]).append(value)
             else:
                 self.markets_by_id[value['id']] = [value]
-            market = self.deep_extend(self.safeMarketStructure(), {
+            market = self.deep_extend(self.safe_market_structure(), {
                 'precision': self.precision,
                 'limits': self.limits,
             }, self.fees['trading'], value)
