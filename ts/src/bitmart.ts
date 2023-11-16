@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, AccountSuspended, Permission
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3288,7 +3288,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchBorrowRate (code: string, params = {}) {
+    async fetchIsolatedBorrowRate (symbol: string, params = {}) {
         /**
          * @method
          * @name bitmart#fetchBorrowRate
@@ -3300,15 +3300,8 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        if (code in this.markets) {
-            market = this.market (code);
-        } else {
-            const defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
-            if (code === 'USDT') {
-                market = this.market ('BTC' + '/' + defaultSettle);
-            } else {
-                market = this.market (code + '/' + defaultSettle);
-            }
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
         const request = {
             'symbol': market['id'],
@@ -3348,11 +3341,11 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
-        const currency = (code === 'USDT') ? market['quote'] : market['base'];
-        return this.parseBorrowRate (symbols, currency);
+        const borrowRate = this.safeValue (symbols, 0);
+        return this.parseIsolatedBorrowRate (borrowRate, market);
     }
 
-    parseBorrowRate (info, currency: Currency = undefined) {
+    parseIsolatedBorrowRate (info, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -3376,19 +3369,30 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const timestamp = this.milliseconds ();
-        const currencyData = (currency === 'USDT') ? this.safeValue (info[0], 'quote', {}) : this.safeValue (info[0], 'base', {});
+        const marketId = this.safeString (info, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const baseData = this.safeValue (info, 'base');
+        const quoteData = this.safeValue (info, 'quote');
+        const baseId = this.safeString (baseData, 'currency');
+        const quoteId = this.safeString (quoteData, 'currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const baseRate = this.safeNumber (baseData, 'hourly_interest');
+        const quoteRate = this.safeNumber (quoteData, 'hourly_interest');
         return {
-            'currency': this.safeCurrencyCode (currency),
-            'rate': this.safeNumber (currencyData, 'hourly_interest'),
+            'symbol': symbol,
+            'base': base,
+            'baseRate': baseRate,
+            'quote': quote,
+            'quoteRate': quoteRate,
             'period': 3600000, // 1-Hour
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
 
-    async fetchBorrowRates (params = {}) {
+    async fetchIsolatedBorrowRates (params = {}) {
         /**
          * @method
          * @name bitmart#fetchBorrowRates
@@ -3433,48 +3437,12 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
-        return this.parseBorrowRates (symbols, undefined);
-    }
-
-    parseBorrowRates (info, codeKey) {
-        //
-        //     {
-        //         "symbol": "BTC_USDT",
-        //         "max_leverage": "5",
-        //         "symbol_enabled": true,
-        //         "base": {
-        //             "currency": "BTC",
-        //             "daily_interest": "0.00055000",
-        //             "hourly_interest": "0.00002291",
-        //             "max_borrow_amount": "2.00000000",
-        //             "min_borrow_amount": "0.00000001",
-        //             "borrowable_amount": "0.00670810"
-        //         },
-        //         "quote": {
-        //             "currency": "USDT",
-        //             "daily_interest": "0.00055000",
-        //             "hourly_interest": "0.00002291",
-        //             "max_borrow_amount": "50000.00000000",
-        //             "min_borrow_amount": "0.00000001",
-        //             "borrowable_amount": "135.12575038"
-        //         }
-        //     }
-        //
-        const timestamp = this.milliseconds ();
-        const rates = [];
-        for (let i = 0; i < info.length; i++) {
-            const entry = info[i];
-            const base = this.safeValue (entry, 'base', {});
-            rates.push ({
-                'currency': this.safeCurrencyCode (this.safeString (base, 'currency')),
-                'rate': this.safeNumber (base, 'hourly_interest'),
-                'period': 3600000, // 1-Hour
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'info': entry,
-            });
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = this.safeValue (symbols, i);
+            result.push (this.parseIsolatedBorrowRate (symbol));
         }
-        return rates;
+        return result;
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {

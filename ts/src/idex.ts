@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1506,7 +1506,7 @@ export default class idex extends Exchange {
             'depositId': id,
         };
         const response = await this.privateGetDeposits (this.extend (request, params));
-        return this.parseTransaction (response, code);
+        return this.parseTransaction (response);
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1559,7 +1559,7 @@ export default class idex extends Exchange {
             'withdrawalId': id,
         };
         const response = await this.privateGetWithdrawals (this.extend (request, params));
-        return this.parseTransaction (response, code);
+        return this.parseTransaction (response);
     }
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

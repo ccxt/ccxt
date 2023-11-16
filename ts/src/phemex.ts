@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -2112,7 +2112,7 @@ export default class phemex extends Exchange {
             };
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp', market))));
+        const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp'))));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
@@ -4283,7 +4283,7 @@ export default class phemex extends Exchange {
         const id = this.safeString (transfer, 'linkKey');
         const status = this.safeString (transfer, 'status');
         const amountEv = this.safeString (transfer, 'amountEv');
-        const amountTransfered = this.fromEv (amountEv, currency);
+        const amountTransfered = this.fromEv (amountEv);
         const currencyId = this.safeString (transfer, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const side = this.safeInteger (transfer, 'side');

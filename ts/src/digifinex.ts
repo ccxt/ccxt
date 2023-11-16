@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings } from './base/types.js';
+import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3021,7 +3021,7 @@ export default class digifinex extends Exchange {
                 result = entry;
             }
         }
-        const currency = this.safeString (result, 'currency');
+        const currency = this.currency (code);
         return this.parseBorrowRate (result, currency);
     }
 
@@ -3091,7 +3091,7 @@ export default class digifinex extends Exchange {
             const item = info[i];
             const currency = this.safeString (item, codeKey);
             const code = this.safeCurrencyCode (currency);
-            const borrowRate = this.parseBorrowRate (item, currency);
+            const borrowRate = this.parseBorrowRate (item);
             result[code] = borrowRate;
         }
         return result;

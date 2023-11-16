@@ -2154,7 +2154,7 @@ export default class poloniex extends Exchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    parseDepositWithdrawFee (fee, currency) {
         const depositWithdrawFee = this.depositWithdrawFee ({});
         depositWithdrawFee['info'][currency] = fee;
         const networkId = this.safeString (fee, 'blockchain');

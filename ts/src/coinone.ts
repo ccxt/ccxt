@@ -6,7 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -637,10 +637,10 @@ export default class coinone extends Exchange {
         let base = undefined;
         let quote = undefined;
         if (baseId !== undefined) {
-            base = this.safeCurrencyCode (baseId, this.safeString (market, 'base'));
+            base = this.safeCurrencyCode (baseId);
         }
         if (quoteId !== undefined) {
-            quote = this.safeCurrencyCode (quoteId, this.safeString (market, 'quote'));
+            quote = this.safeCurrencyCode (quoteId);
         }
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
