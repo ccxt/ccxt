@@ -163,38 +163,9 @@ function set_exchange_prop ($exchange, $prop, $value) {
     $exchange->{$prop} = $value;
 }
 
-if (!class_exists('ExchangeMock')) {
-    class ExchangeMock {
-        public $exchangeInstance = null;
-
-        public function __construct($parentClassName, $args) {
-            $this->exchangeInstance = new $parentClassName($args);
-        }
-
-        public function __call($name, array $arguments) {
-            return call_user_func_array([$this->exchangeInstance, $name], $arguments);
-        }
-
-        public function &__get($key)
-        {
-            return $this->exchangeInstance->$key;
-        }
-    
-        public function __set($key, $value)
-        {
-            $this->exchangeInstance->$key = $value;
-        }
-
-        public function fetch($url, $method = "GET", $headers = null, $body = null){
-            var_dump('hello');
-            exit;
-        }
-    }
-}
-
 function init_exchange ($exchangeId, $args) {
     $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
-    $newClass = new ExchangeMock($exchangeClassString, $args);
+    $newClass = new ExchangeMocker($exchangeClassString, $args);
     return $newClass;
 }
 
