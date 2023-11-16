@@ -997,7 +997,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "today_available_withdraw_BTC" => "100.0000",
@@ -1052,7 +1052,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot
         //
@@ -1334,7 +1334,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades spot ( $amount = count * price )
         //
@@ -1474,7 +1474,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         // spot
         //
@@ -1947,7 +1947,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETH_USDT",
@@ -1999,7 +1999,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -3111,7 +3111,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -3270,7 +3270,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         // borrowMargin
         //
@@ -3296,26 +3296,19 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_borrow_rate(string $code, $params = array ()) {
-        return Async\async(function () use ($code, $params) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
             /**
-             * fetch the rate of interest to borrow a $currency for margin trading
+             * fetch the rate of interest to borrow a currency for margin trading
              * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
-             * @param {string} $code unified $currency $code
+             * @param {string} code unified currency code
              * @param {array} [$params] extra parameters specific to the bitmart api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structure}
              */
             Async\await($this->load_markets());
             $market = null;
-            if (is_array($this->markets) && array_key_exists($code, $this->markets)) {
-                $market = $this->market($code);
-            } else {
-                $defaultSettle = $this->safe_string($this->options, 'defaultSettle', 'USDT');
-                if ($code === 'USDT') {
-                    $market = $this->market('BTC' . '/' . $defaultSettle);
-                } else {
-                    $market = $this->market($code . '/' . $defaultSettle);
-                }
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
             }
             $request = array(
                 'symbol' => $market['id'],
@@ -3355,12 +3348,12 @@ class bitmart extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $symbols = $this->safe_value($data, 'symbols', array());
-            $currency = ($code === 'USDT') ? $market['quote'] : $market['base'];
-            return $this->parse_borrow_rate($symbols, $currency);
+            $borrowRate = $this->safe_value($symbols, 0);
+            return $this->parse_isolated_borrow_rate($borrowRate, $market);
         }) ();
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -3384,19 +3377,30 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $timestamp = $this->milliseconds();
-        $currencyData = ($currency === 'USDT') ? $this->safe_value($info[0], 'quote', array()) : $this->safe_value($info[0], 'base', array());
+        $marketId = $this->safe_string($info, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $baseData = $this->safe_value($info, 'base');
+        $quoteData = $this->safe_value($info, 'quote');
+        $baseId = $this->safe_string($baseData, 'currency');
+        $quoteId = $this->safe_string($quoteData, 'currency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $baseRate = $this->safe_number($baseData, 'hourly_interest');
+        $quoteRate = $this->safe_number($quoteData, 'hourly_interest');
         return array(
-            'currency' => $this->safe_currency_code($currency),
-            'rate' => $this->safe_number($currencyData, 'hourly_interest'),
+            'symbol' => $symbol,
+            'base' => $base,
+            'baseRate' => $baseRate,
+            'quote' => $quote,
+            'quoteRate' => $quoteRate,
             'period' => 3600000, // 1-Hour
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }
 
-    public function fetch_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()) {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest rates of all currencies, currently only works for isolated margin
@@ -3440,49 +3444,13 @@ class bitmart extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $symbols = $this->safe_value($data, 'symbols', array());
-            return $this->parse_borrow_rates($symbols, null);
+            $result = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $this->safe_value($symbols, $i);
+                $result[] = $this->parse_isolated_borrow_rate($symbol);
+            }
+            return $result;
         }) ();
-    }
-
-    public function parse_borrow_rates($info, $codeKey) {
-        //
-        //     {
-        //         "symbol" => "BTC_USDT",
-        //         "max_leverage" => "5",
-        //         "symbol_enabled" => true,
-        //         "base" => array(
-        //             "currency" => "BTC",
-        //             "daily_interest" => "0.00055000",
-        //             "hourly_interest" => "0.00002291",
-        //             "max_borrow_amount" => "2.00000000",
-        //             "min_borrow_amount" => "0.00000001",
-        //             "borrowable_amount" => "0.00670810"
-        //         ),
-        //         "quote" => {
-        //             "currency" => "USDT",
-        //             "daily_interest" => "0.00055000",
-        //             "hourly_interest" => "0.00002291",
-        //             "max_borrow_amount" => "50000.00000000",
-        //             "min_borrow_amount" => "0.00000001",
-        //             "borrowable_amount" => "135.12575038"
-        //         }
-        //     }
-        //
-        $timestamp = $this->milliseconds();
-        $rates = array();
-        for ($i = 0; $i < count($info); $i++) {
-            $entry = $info[$i];
-            $base = $this->safe_value($entry, 'base', array());
-            $rates[] = array(
-                'currency' => $this->safe_currency_code($this->safe_string($base, 'currency')),
-                'rate' => $this->safe_number($base, 'hourly_interest'),
-                'period' => 3600000, // 1-Hour
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $entry,
-            );
-        }
-        return $rates;
     }
 
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -3586,7 +3554,7 @@ class bitmart extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // margin
         //
@@ -3743,7 +3711,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     {
         //         "borrow_id" => "1657664327844Lk5eJJugXmdHHZoe",
@@ -3808,7 +3776,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //     {
         //         "timestamp" => 1694657502415,
@@ -3894,7 +3862,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "timestamp" => 1695184410697,
@@ -4038,7 +4006,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -4167,7 +4135,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         //
         //     {
         //         "order_id" => "231007865458273",

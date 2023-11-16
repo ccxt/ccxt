@@ -585,7 +585,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    array(
         //        "1545904980000",          // Start time of the candle cycle
@@ -735,7 +735,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_ticker($response['data'], $market);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "code" => "200000",
@@ -972,7 +972,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //    {
         //        "code" => "200000",
@@ -1336,7 +1336,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function parse_margin_modification($info, $market = null) {
+    public function parse_margin_modification($info, ?array $market = null) {
         //
         //    {
         //        "id" => "62311d26064e8f00013f2c6d",
@@ -1599,7 +1599,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_order($responseData, $market);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrder, fetchOrdersByStatus
         //
@@ -1849,7 +1849,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -1988,7 +1988,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -2268,7 +2268,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @ignore
          * @param {array} $info Exchange $market response for 1 $market
@@ -2351,7 +2351,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_funding_rate_histories($dataList, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($info, $market = null) {
+    public function parse_funding_rate_history($info, ?array $market = null) {
         $timestamp = $this->safe_integer($info, 'timePoint');
         $marketId = $this->safe_string($info, 'symbol');
         return array(

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, OrderSide, OrderType, String, Strings
+from ccxt.base.types import Int, OrderSide, OrderType, Str, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -765,7 +765,7 @@ class okx(ccxt.async_support.okx):
             },
         }, market)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple trades made by the user
@@ -913,7 +913,7 @@ class okx(ccxt.async_support.okx):
             if not self.is_empty(positions):
                 client.resolve(positions, messageHash)
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple orders made by the user
@@ -1205,7 +1205,7 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def cancel_order_ws(self, id: str, symbol: String = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
         cancel multiple orders
@@ -1237,7 +1237,7 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: String = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
         cancel multiple orders
@@ -1269,7 +1269,7 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def cancel_all_orders_ws(self, symbol: String = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         :see: https://docs.okx.com/websockets/#message-cancelAll
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.

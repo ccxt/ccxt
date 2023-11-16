@@ -497,7 +497,7 @@ class krakenfutures extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //    {
         //        "tag" => 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
@@ -632,7 +632,7 @@ class krakenfutures extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    {
         //        "time" => 1645198500000,
@@ -702,7 +702,7 @@ class krakenfutures extends Exchange {
         return $this->parse_trades($history, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1186,7 +1186,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // LIMIT
         //
@@ -1795,7 +1795,7 @@ class krakenfutures extends Exchange {
         return $this->index_by($fundingRates, 'symbol');
     }
 
-    public function parse_funding_rate($ticker, $market = null) {
+    public function parse_funding_rate($ticker, ?array $market = null) {
         //
         // {"ask" => 26.283,
         //  "askSize" => 4.6,
@@ -1942,7 +1942,7 @@ class krakenfutures extends Exchange {
         return $result;
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         // cross
         //    {
         //        "side" => "long",
@@ -2056,7 +2056,7 @@ class krakenfutures extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @ignore
          * @param $info Exchange $market response for 1 $market
@@ -2121,7 +2121,7 @@ class krakenfutures extends Exchange {
         return $tiers;
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //

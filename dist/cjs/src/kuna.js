@@ -1461,6 +1461,9 @@ class kuna extends kuna$1 {
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
         let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         const request = {};
         if (code !== undefined) {
             request['currency'] = code;
@@ -1652,6 +1655,9 @@ class kuna extends kuna$1 {
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
         let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
         const request = {};
         if (code !== undefined) {
             request['currency'] = code;

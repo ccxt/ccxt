@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, String, Trade
+from ccxt.base.types import Int, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -418,13 +418,13 @@ class bitfinex(ccxt.async_support.bitfinex):
             if method in client.subscriptions:
                 del client.subscriptions[method]
 
-    async def watch_order(self, id, symbol: String = None, params={}):
+    async def watch_order(self, id, symbol: Str = None, params={}):
         await self.load_markets()
         url = self.urls['api']['ws']['private']
         await self.authenticate()
         return await self.watch(url, id, None, 1)
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in

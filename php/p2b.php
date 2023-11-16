@@ -412,7 +412,7 @@ class p2b extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null) {
         //
         // parseTickers
         //
@@ -573,7 +573,7 @@ class p2b extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null) {
         //
         // fetchTrades
         //
@@ -690,7 +690,7 @@ class p2b extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    array(
         //        1699253400,       // Kline open time
@@ -1128,7 +1128,7 @@ class p2b extends Exchange {
         return $orders;
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //

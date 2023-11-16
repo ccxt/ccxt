@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mercado import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -259,7 +259,7 @@ class mercado(Exchange, ImplicitAPI):
         response = self.publicGetCoinOrderbook(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "high":"103.96000000",
@@ -328,7 +328,7 @@ class mercado(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp_2(trade, 'date', 'executed_timestamp')
         market = self.safe_market(None, market)
         id = self.safe_string_2(trade, 'tid', 'operation_id')
@@ -445,7 +445,7 @@ class mercado(Exchange, ImplicitAPI):
             'id': str(response['response_data']['order']['order_id']),
         }, market)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -496,7 +496,7 @@ class mercado(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         "order_id": 4,
@@ -567,7 +567,7 @@ class mercado(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -643,7 +643,7 @@ class mercado(Exchange, ImplicitAPI):
         withdrawal = self.safe_value(responseData, 'withdrawal')
         return self.parse_transaction(withdrawal, currency)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "id": 1,
@@ -681,7 +681,7 @@ class mercado(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -719,7 +719,7 @@ class mercado(Exchange, ImplicitAPI):
         candles = self.convert_trading_view_to_ohlcv(response, 't', 'o', 'h', 'l', 'c', 'v')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -739,7 +739,7 @@ class mercado(Exchange, ImplicitAPI):
         orders = self.safe_value(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -760,7 +760,7 @@ class mercado(Exchange, ImplicitAPI):
         orders = self.safe_value(responseData, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol

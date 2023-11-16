@@ -1687,7 +1687,7 @@ class okx extends Exchange {
         return $this->parse_order_book($first, $symbol, $timestamp);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "instType" => "SPOT",
@@ -1852,7 +1852,7 @@ class okx extends Exchange {
         return $this->fetch_tickers_by_type($type, $symbols, $query);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -2020,7 +2020,7 @@ class okx extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1678928760000", // timestamp
@@ -2271,7 +2271,7 @@ class okx extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         // https://www.okx.com/docs-v5/en/#rest-api-account-get-$fee-rates
         //
         //     {
@@ -3065,7 +3065,7 @@ class okx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -4134,7 +4134,7 @@ class okx extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -4213,7 +4213,7 @@ class okx extends Exchange {
         );
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "addr" => "okbtothemoon",
@@ -4726,7 +4726,7 @@ class okx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -5022,7 +5022,7 @@ class okx extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //        "adl" => "3",
@@ -5224,7 +5224,7 @@ class okx extends Exchange {
         return $this->parse_transfer($rawTransfer, $currency);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -5465,7 +5465,7 @@ class okx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //    {
         //        "fundingRate" => "0.00027815",
@@ -5911,7 +5911,7 @@ class okx extends Exchange {
         return $this->parse_borrow_rate($rate);
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_borrow_rate($info, ?array $currency = null) {
         //
         //    {
         //        "amt" => "992.10341195",
@@ -6089,7 +6089,7 @@ class okx extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         $innerData = $this->safe_value($data, 'data', array());
         $entry = $this->safe_value($innerData, 0, array());
         $errorCode = $this->safe_string($data, 'code');
@@ -6191,7 +6191,7 @@ class okx extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @ignore
          * @param {array} $info Exchange response for 1 $market
@@ -6293,7 +6293,7 @@ class okx extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         $instId = $this->safe_string($info, 'instId');
         if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
@@ -6398,7 +6398,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         //     {
         //         "amt" => "102",
@@ -6530,7 +6530,7 @@ class okx extends Exchange {
         return $this->parse_open_interests($data, null, $since, $limit);
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         // fetchOpenInterestHistory
         //
@@ -6907,7 +6907,7 @@ class okx extends Exchange {
         }
     }
 
-    public function parse_greeks($greeks, $market = null) {
+    public function parse_greeks($greeks, ?array $market = null) {
         //
         //     {
         //         "askVol" => "0",

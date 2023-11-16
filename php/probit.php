@@ -645,7 +645,7 @@ class probit extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "last":"0.022902",
@@ -793,7 +793,7 @@ class probit extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -977,7 +977,7 @@ class probit extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1092,7 +1092,7 @@ class probit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         $id,
@@ -1273,7 +1273,7 @@ class probit extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'destination_tag');
         $currencyId = $this->safe_string($depositAddress, 'currency_id');
@@ -1509,7 +1509,7 @@ class probit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "id" => "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1657,7 +1657,7 @@ class probit extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'id');
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         // {
         //     "id" => "USDT",

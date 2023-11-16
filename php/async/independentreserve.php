@@ -269,7 +269,7 @@ class independentreserve extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -349,7 +349,7 @@ class independentreserve extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrder
         //
@@ -568,7 +568,7 @@ class independentreserve extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         $timestamp = $this->parse8601($trade['TradeTimestampUtc']);
         $id = $this->safe_string($trade, 'TradeGuid');
         $orderId = $this->safe_string($trade, 'OrderGuid');

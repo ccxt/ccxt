@@ -1894,7 +1894,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot
         //
@@ -2180,7 +2180,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1621162800",
@@ -2311,7 +2311,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($ticker, $market = null) {
+    public function parse_funding_rate($ticker, ?array $market = null) {
         //     {
         //         "symbol" => "BTCUSDT",
         //         "bidPrice" => "19255",
@@ -2538,7 +2538,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public https://bybit-exchange.github.io/docs/v5/market/recent-$trade
         //
@@ -3194,7 +3194,7 @@ class bybit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // v1 for usdc normal account
         //     {
@@ -4826,7 +4826,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "chainType" => "ERC20",
@@ -5117,7 +5117,7 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchWithdrawals
         //
@@ -5362,7 +5362,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //         "id" => 234467,
@@ -5775,7 +5775,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         // linear swap
         //
@@ -6331,7 +6331,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //    {
         //        "openInterest" => 64757.62400000,
@@ -6384,7 +6384,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_borrow_rate($info, ?array $currency = null) {
         //
         //     {
         //         "coin" => "USDT",
@@ -6452,7 +6452,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     array(
         //         "tokenId" => "BTC",
@@ -6674,7 +6674,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         // borrowMargin
         //
@@ -6708,7 +6708,7 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -6811,7 +6811,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         //
         //     {
         //         "id" => 1,
@@ -6842,7 +6842,7 @@ class bybit extends Exchange {
         return $tiers;
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -6947,7 +6947,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "name" => "BTC",
@@ -7361,7 +7361,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_greeks($greeks, $market = null) {
+    public function parse_greeks($greeks, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-26JAN24-39000-C",

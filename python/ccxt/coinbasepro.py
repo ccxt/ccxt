@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbasepro import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -531,7 +531,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'sequence')
         return orderbook
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #
@@ -693,7 +693,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         #     {
         #         "type": "match",
@@ -762,7 +762,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             'cost': cost,
         }, market)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
         fetch all trades made by the user
@@ -856,7 +856,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         1591514160,
@@ -956,7 +956,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1029,7 +1029,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
         fetches information on an order made by the user
@@ -1051,7 +1051,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response)
 
-    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1071,7 +1071,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple orders made by the user
@@ -1087,7 +1087,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetch all unfilled currently open orders
@@ -1120,7 +1120,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple closed orders made by the user
@@ -1219,7 +1219,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
         cancels an open order
@@ -1247,7 +1247,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
         return getattr(self, method)(self.extend(request, params))
 
-    def cancel_all_orders(self, symbol: String = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
         cancel all open orders
@@ -1344,7 +1344,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #  {
         #      "id": "12087495079",
         #      "amount": "-0.0100000000000000",
@@ -1414,7 +1414,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             'info': item,
         }
 
-    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -1457,7 +1457,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             response[i]['currency'] = code
         return self.parse_ledger(response, currency, since, limit)
 
-    def fetch_deposits_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
@@ -1554,7 +1554,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1565,7 +1565,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         """
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'deposit'}, params))
 
-    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1589,7 +1589,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         else:
             return 'pending'
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # privateGetTransfers
         #

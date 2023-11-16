@@ -1033,7 +1033,7 @@ class bitmex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //         "transactID" => "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1223,7 +1223,7 @@ class bitmex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //    {
         //        "transactID" => "ffe699c2-95ee-4c13-91f9-0faf41daec25",
@@ -1341,7 +1341,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1372,7 +1372,7 @@ class bitmex extends Exchange {
         ), $market);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1479,7 +1479,7 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1622,7 +1622,7 @@ class bitmex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -2083,7 +2083,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "account" => 9371654,
@@ -2301,7 +2301,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         $datetime = $this->safe_string($contract, 'timestamp');
         $marketId = $this->safe_string($contract, 'symbol');
@@ -2387,7 +2387,7 @@ class bitmex extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history($info, $market = null) {
+    public function parse_funding_rate_history($info, ?array $market = null) {
         //
         //    {
         //        "timestamp" => "2016-05-07T12:00:00.000Z",
@@ -2495,7 +2495,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "asset" => "XBT",
@@ -2658,7 +2658,7 @@ class bitmex extends Exchange {
         return $this->parse_liquidations($response, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         //
         //     {
         //         "orderID" => "string",

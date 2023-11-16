@@ -1119,7 +1119,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -1191,7 +1191,7 @@ class digifinex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // spot => fetchTrades
         //
@@ -1444,7 +1444,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1556712900,
@@ -1924,7 +1924,7 @@ class digifinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot => createOrder
         //
@@ -2471,7 +2471,7 @@ class digifinex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // spot and margin
         //
@@ -2609,7 +2609,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "addressTag":"",
@@ -2752,7 +2752,7 @@ class digifinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -2824,7 +2824,7 @@ class digifinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -2970,7 +2970,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     {
         //         "amount" => 0.0006103,
@@ -3034,7 +3034,7 @@ class digifinex extends Exchange {
                     $result = $entry;
                 }
             }
-            $currency = $this->safe_string($result, 'currency');
+            $currency = $this->currency($code);
             return $this->parse_borrow_rate($result, $currency);
         }) ();
     }
@@ -3070,7 +3070,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_borrow_rate($info, ?array $currency = null) {
         //
         //     {
         //         "valuation_rate" => 1,
@@ -3105,7 +3105,7 @@ class digifinex extends Exchange {
             $item = $info[$i];
             $currency = $this->safe_string($item, $codeKey);
             $code = $this->safe_currency_code($currency);
-            $borrowRate = $this->parse_borrow_rate($item, $currency);
+            $borrowRate = $this->parse_borrow_rate($item);
             $result[$code] = $borrowRate;
         }
         return $result;
@@ -3146,7 +3146,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -3275,7 +3275,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -3490,7 +3490,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         // swap
         //
@@ -3820,7 +3820,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -4069,7 +4069,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -4136,7 +4136,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_income($income, $market = null) {
+    public function parse_income($income, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Greeks, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, String, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1756,7 +1756,7 @@ class gate(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(response)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         #    {
         #        "name": "BTC_USDT",
@@ -1980,7 +1980,7 @@ class gate(Exchange, ImplicitAPI):
             result[symbol] = self.parse_trading_fee(response, market)
         return result
 
-    def parse_trading_fee(self, info, market=None):
+    def parse_trading_fee(self, info, market: Market = None):
         #
         #    {
         #        "user_id": 1486602,
@@ -2091,7 +2091,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    {
         #        "currency": "MTN",
@@ -2138,7 +2138,7 @@ class gate(Exchange, ImplicitAPI):
                 }
         return result
 
-    def fetch_funding_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :see: https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
@@ -2190,7 +2190,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_funding_history(self, info, market=None):
+    def parse_funding_history(self, info, market: Market = None):
         #
         #    {
         #        "time": 1646899200,
@@ -2358,7 +2358,7 @@ class gate(Exchange, ImplicitAPI):
             ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # SPOT
         #
@@ -2795,7 +2795,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.publicOptionsGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
         :see: https://www.gate.io/docs/developers/apiv4/en/#funding-rate-history
@@ -2835,7 +2835,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         # Spot market candles
         #
@@ -2981,7 +2981,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
@@ -3019,7 +3019,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.fetch_my_trades(symbol, since, limit, {'order_id': id})
         return response
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         Fetch personal trading history
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
@@ -3144,7 +3144,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public
         #
@@ -3286,7 +3286,7 @@ class gate(Exchange, ImplicitAPI):
             'fees': fees,
         }, market)
 
-    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-deposit-records
@@ -3318,7 +3318,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-records
@@ -3410,7 +3410,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # deposits
         #
@@ -3937,7 +3937,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # SPOT
         # createOrder/cancelOrder/fetchOrder/editOrder
@@ -4186,7 +4186,7 @@ class gate(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         Retrieves information on an order
         :see: https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
@@ -4228,7 +4228,7 @@ class gate(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
@@ -4243,7 +4243,7 @@ class gate(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-orders
@@ -4264,7 +4264,7 @@ class gate(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
-    def fetch_orders_by_status(self, status, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         market = None
         if symbol is not None:
@@ -4449,7 +4449,7 @@ class gate(Exchange, ImplicitAPI):
         orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         Cancels an open order
         :see: https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order
@@ -4561,7 +4561,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_all_orders(self, symbol: String = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :see: https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
@@ -4671,7 +4671,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         timestamp = self.milliseconds()
         return {
             'id': self.safe_string(transfer, 'tx_id'),
@@ -4685,7 +4685,7 @@ class gate(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    def set_leverage(self, leverage, symbol: String = None, params={}):
+    def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage
@@ -4748,7 +4748,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         # swap and future
         #
@@ -5137,7 +5137,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_leverage_tiers(response, symbols, 'name')
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         """
          * @ignore
         https://www.gate.io/help/futures/perpetual/22162/instrctions-of-risk-limit
@@ -5257,7 +5257,7 @@ class gate(Exchange, ImplicitAPI):
             floor = cap
         return tiers
 
-    def repay_margin(self, code: str, amount, symbol: String = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
@@ -5335,7 +5335,7 @@ class gate(Exchange, ImplicitAPI):
             response = response[0]
         return self.parse_margin_loan(response, currency)
 
-    def borrow_margin(self, code: str, amount, symbol: String = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         create a loan to borrow margin
         :see: https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
@@ -5407,7 +5407,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def parse_margin_loan(self, info, currency=None):
+    def parse_margin_loan(self, info, currency: Currency = None):
         #
         # Cross
         #
@@ -5533,7 +5533,7 @@ class gate(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_margin_modification(response, market)
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None):
         #
         #     {
         #         "value": "11.9257",
@@ -5649,7 +5649,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_open_interests(response, market, since, limit)
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         #
         #    {
         #        "long_liq_size": "0",
@@ -5678,7 +5678,7 @@ class gate(Exchange, ImplicitAPI):
             'info': interest,
         }
 
-    def fetch_settlement_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2
@@ -5721,7 +5721,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_my_settlement_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records of the user
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-my-options-settlements
@@ -5843,7 +5843,7 @@ class gate(Exchange, ImplicitAPI):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://www.gate.io/docs/developers/apiv4/en/#query-account-book
@@ -5947,7 +5947,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         # spot
         #
@@ -6158,7 +6158,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_liquidations(response, market, since, limit)
 
-    def fetch_my_liquidations(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the users liquidated positions
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
@@ -6228,7 +6228,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_liquidations(response, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market=None):
+    def parse_liquidation(self, liquidation, market: Market = None):
         #
         # fetchLiquidations
         #
@@ -6334,7 +6334,7 @@ class gate(Exchange, ImplicitAPI):
             if entryMarketId == marketId:
                 return self.parse_greeks(entry, market)
 
-    def parse_greeks(self, greeks, market=None):
+    def parse_greeks(self, greeks, market: Market = None):
         #
         #     {
         #         "vega": "1.78992",

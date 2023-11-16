@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.timex import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -343,7 +343,7 @@ class timex(Exchange, ImplicitAPI):
             result.append(self.parse_currency(currency))
         return self.index_by(result, 'code')
 
-    async def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -375,7 +375,7 @@ class timex(Exchange, ImplicitAPI):
         currency = self.safe_currency(code)
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made to an account
         :param str code: unified currency code
@@ -417,7 +417,7 @@ class timex(Exchange, ImplicitAPI):
                 return currency
         return None
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -802,7 +802,7 @@ class timex(Exchange, ImplicitAPI):
         order = self.safe_value(firstOrder, 'newOrder', {})
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -813,7 +813,7 @@ class timex(Exchange, ImplicitAPI):
         await self.load_markets()
         return await self.cancel_orders([id], symbol, params)
 
-    async def cancel_orders(self, ids, symbol: String = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -852,7 +852,7 @@ class timex(Exchange, ImplicitAPI):
         #     }
         return response
 
-    async def fetch_order(self, id: str, symbol: String = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: not used by timex fetchOrder
@@ -901,7 +901,7 @@ class timex(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_order(self.extend(order, {'trades': trades}))
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -920,7 +920,7 @@ class timex(Exchange, ImplicitAPI):
             # page: 0,  # results page you want to retrieve(0 .. N)
             'sort': sort,  # sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -951,7 +951,7 @@ class timex(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -972,7 +972,7 @@ class timex(Exchange, ImplicitAPI):
             'side': 'BUY',  # or 'SELL'
             # 'till': self.iso8601(self.milliseconds()),
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1005,7 +1005,7 @@ class timex(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1032,7 +1032,7 @@ class timex(Exchange, ImplicitAPI):
             # 'takerOrderId': '1234',
             # 'till': self.iso8601(self.milliseconds()),
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1062,7 +1062,7 @@ class timex(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         #
         #     {
         #         "fee": 0.0075,
@@ -1264,7 +1264,7 @@ class timex(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "ask": 0.017,
@@ -1308,7 +1308,7 @@ class timex(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'volumeQuote'),
         }, market)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1347,7 +1347,7 @@ class timex(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'id')
         side = self.safe_string_lower_2(trade, 'direction', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'makerOrTaker')
-        orderId = None
+        orderId: Str = None
         if takerOrMaker is not None:
             orderId = self.safe_string(trade, takerOrMaker + 'OrderId')
         fee = None
@@ -1374,7 +1374,7 @@ class timex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "timestamp":"2019-12-04T23:00:00",
@@ -1395,7 +1395,7 @@ class timex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         #
@@ -1426,7 +1426,7 @@ class timex(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filledQuantity')
         canceledQuantity = self.omit_zero(self.safe_string(order, 'cancelledQuantity'))
-        status = None
+        status: str
         if Precise.string_equals(filled, amount):
             status = 'closed'
         elif canceledQuantity is not None:

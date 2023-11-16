@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -491,7 +491,7 @@ class cex(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         1591403940,
@@ -549,7 +549,7 @@ class cex(Exchange, ImplicitAPI):
                 return []
         return None
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         volume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'high')
@@ -620,7 +620,7 @@ class cex(Exchange, ImplicitAPI):
         ticker = self.publicGetTickerPair(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -784,7 +784,7 @@ class cex(Exchange, ImplicitAPI):
             'trades': None,
         })
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -800,7 +800,7 @@ class cex(Exchange, ImplicitAPI):
         # 'true'
         return self.extend(self.parse_order({}), {'info': response, 'type': None, 'id': id, 'status': 'canceled'})
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
         # Yes, really
         timestamp = self.safe_value(order, 'time')
@@ -1046,7 +1046,7 @@ class cex(Exchange, ImplicitAPI):
             'average': None,
         })
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1068,7 +1068,7 @@ class cex(Exchange, ImplicitAPI):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1085,7 +1085,7 @@ class cex(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: not used by cex fetchOrder
@@ -1200,7 +1200,7 @@ class cex(Exchange, ImplicitAPI):
         #
         return self.parse_order(data)
 
-    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in

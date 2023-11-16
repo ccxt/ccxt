@@ -362,7 +362,7 @@ class bitopro extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "pair":"btc_twd",
@@ -502,7 +502,7 @@ class bitopro extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //         {
@@ -710,7 +710,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -881,7 +881,7 @@ class bitopro extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //         {
@@ -1302,7 +1302,7 @@ class bitopro extends Exchange {
         return $this->safe_string($states, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1576,7 +1576,7 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //    {
         //        "currency":"eth",
         //        "withdrawFee":"0.007",

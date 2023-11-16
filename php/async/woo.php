@@ -466,7 +466,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public/market_trades
         //
@@ -1222,7 +1222,7 @@ class woo extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, null);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // Possible input functions:
         // * createOrder
@@ -1449,7 +1449,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // example response in fetchOHLCV
         return array(
             $this->safe_integer($ohlcv, 'start_timestamp'),
@@ -1765,7 +1765,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         $networkizedCode = $this->safe_string($item, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
         $code = $currencyDefined['code'];
@@ -1880,7 +1880,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         // example in fetchLedger
         $networkizedCode = $this->safe_string($transaction, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
@@ -1984,7 +1984,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //    getAssetHistoryRows
         //        {
@@ -2137,7 +2137,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         //     {
         //         "success" => true,
@@ -2239,7 +2239,7 @@ class woo extends Exchange {
         return null;
     }
 
-    public function parse_income($income, $market = null) {
+    public function parse_income($income, ?array $market = null) {
         //
         //     {
         //         "id":666666,
@@ -2313,7 +2313,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($fundingRate, $market = null) {
+    public function parse_funding_rate($fundingRate, ?array $market = null) {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -2584,7 +2584,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "0_symbol",

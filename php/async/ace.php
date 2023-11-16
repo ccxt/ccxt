@@ -250,7 +250,7 @@ class ace extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -406,7 +406,7 @@ class ace extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "changeRate" => 0,
@@ -496,7 +496,7 @@ class ace extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -523,7 +523,6 @@ class ace extends Exchange {
         //             "type" => 1
         //         }
         //
-        $id = null;
         $timestamp = null;
         $symbol = null;
         $price = null;
@@ -757,7 +756,7 @@ class ace extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchOrderTrades
         //         {
@@ -807,7 +806,7 @@ class ace extends Exchange {
             $symbol = $baseId . '/' . $quoteId;
         }
         $side = null;
-        $tradeSide = $this->safe_number($trade, 'buyOrSell');
+        $tradeSide = $this->safe_integer($trade, 'buyOrSell');
         if ($tradeSide !== null) {
             $side = ($tradeSide === 1) ? 'buy' : 'sell';
         }

@@ -38,16 +38,17 @@ const errorHierarchy = {
             },
             'NotSupported': {},
         },
-        'NetworkError': {
-            'DDoSProtection': {
-                'RateLimitExceeded': {},
+        'OperationFailed': {
+            'NetworkError': {
+                'DDoSProtection': {
+                    'RateLimitExceeded': {},
+                },
+                'ExchangeNotAvailable': {
+                    'OnMaintenance': {},
+                },
+                'InvalidNonce': {},
+                'RequestTimeout': {},
             },
-            'ExchangeNotAvailable': {
-                'OnMaintenance': {},
-            },
-            'InvalidNonce': {},
-            'RequestTimeout': {},
-            'OperationFailed': {},
         },
     },
 };
