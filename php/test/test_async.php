@@ -40,7 +40,7 @@ class baseMainTestClass {
     public $lang = 'PHP';
     public $test_files = [];
     public $skipped_methods = [];
-    public $check_public_tests = [];
+    public $checked_public_tests = [];
     public $public_tests = [];
     public $info = false;
     public $verbose = false;
@@ -165,7 +165,7 @@ function set_exchange_prop ($exchange, $prop, $value) {
 
 function create_dynamic_class ($exchangeId, $originalClass, $args) {
     $filePath = sys_get_temp_dir() . '/temp_' . $exchangeId . '.php';
-    $newClassName = 'Proxied_' . $exchangeId;
+    $newClassName = $exchangeId . '_mock';
     $content = '<?php if (!class_exists("'.$newClassName.'"))  {
         class '. $newClassName . ' extends ' . $originalClass . ' {
             public function fetch($url, $method = "GET", $headers = null, $body = null) {
@@ -345,7 +345,7 @@ class testMainClass extends baseMainTestClass {
     public function add_padding($message, $size) {
         // has to be transpilable
         $res = '';
-        $missing_space = $size - count($message) - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
+        $missing_space = $size - strlen($message) - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if ($missing_space > 0) {
             for ($i = 0; $i < $missing_space; $i++) {
                 $res .= ' ';
