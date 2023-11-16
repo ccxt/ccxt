@@ -2125,7 +2125,8 @@ export default class poloniex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const feeInfo = response[currencyId];
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, code);
+                const currency = this.currency (code);
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
                 const childChains = this.safeValue (feeInfo, 'childChains');
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
@@ -2154,9 +2155,9 @@ export default class poloniex extends Exchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee, currency) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         const depositWithdrawFee = this.depositWithdrawFee ({});
-        depositWithdrawFee['info'][currency] = fee;
+        depositWithdrawFee['info'][currency['code']] = fee;
         const networkId = this.safeString (fee, 'blockchain');
         const withdrawFee = this.safeNumber (fee, 'withdrawalFee');
         const withdrawResult = {

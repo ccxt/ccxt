@@ -1811,7 +1811,7 @@ export default class zonda extends Exchange {
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
             const nonce = this.milliseconds ().toString ();
-            let payload: string = '';
+            let payload: Str = undefined;
             if (method !== 'POST') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
