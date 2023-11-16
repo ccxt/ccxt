@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -687,7 +687,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, market = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined) {
         //
         // fiat deposit
         //
@@ -759,7 +759,7 @@ export default class coinbase extends Exchange {
         const type = this.safeString (transaction, 'resource');
         const amount = this.safeNumber (subtotalObject, 'amount');
         const currencyId = this.safeString (subtotalObject, 'currency');
-        const currency = this.safeCurrencyCode (currencyId);
+        const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeNumber (feeObject, 'amount');
         const feeCurrencyId = this.safeString (feeObject, 'currency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
@@ -787,14 +787,14 @@ export default class coinbase extends Exchange {
             'tagFrom': undefined,
             'type': type,
             'amount': amount,
-            'currency': currency,
+            'currency': code,
             'status': status,
             'updated': updated,
             'fee': fee,
         };
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchMyBuys, fetchMySells
         //
@@ -1406,7 +1406,7 @@ export default class coinbase extends Exchange {
         return ticker;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTickerV2
         //
@@ -1659,7 +1659,7 @@ export default class coinbase extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         // crypto deposit transaction
         //
@@ -2181,7 +2181,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2795,7 +2795,7 @@ export default class coinbase extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         {

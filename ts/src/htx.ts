@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1457,7 +1457,7 @@ export default class htx extends Exchange {
         return this.safeInteger2 (response, 'data', 'ts');
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         //
         //     {
         //         "symbol":"btcusdt",
@@ -1914,7 +1914,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -2334,7 +2334,7 @@ export default class htx extends Exchange {
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // spot fetchTrades (public)
         //
@@ -2750,7 +2750,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "amount":1.2082,
@@ -4343,7 +4343,7 @@ export default class htx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // spot
         //
@@ -5641,7 +5641,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "usdt",
@@ -5871,7 +5871,7 @@ export default class htx extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -6052,7 +6052,7 @@ export default class htx extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
@@ -6371,7 +6371,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         // {
         //      "status": "ok",
@@ -6568,7 +6568,7 @@ export default class htx extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -6941,7 +6941,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    parseIncome (income, market = undefined) {
+    parseIncome (income, market: Market = undefined) {
         //
         //     {
         //       "id": "1667161118",
@@ -6970,7 +6970,7 @@ export default class htx extends Exchange {
         };
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC",
@@ -7462,7 +7462,7 @@ export default class htx extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "accountId": 10000001,
@@ -7936,7 +7936,7 @@ export default class htx extends Exchange {
         return openInterest;
     }
 
-    parseOpenInterest (interest, market = undefined) {
+    parseOpenInterest (interest, market: Market = undefined) {
         //
         // fetchOpenInterestHistory
         //
@@ -8103,7 +8103,7 @@ export default class htx extends Exchange {
         });
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         // borrowMargin cross
         //
@@ -8289,7 +8289,7 @@ export default class htx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //            {
         //              "currency": "sxp",
@@ -8516,7 +8516,7 @@ export default class htx extends Exchange {
         return this.parseLiquidations (data, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "query_id": 452057,

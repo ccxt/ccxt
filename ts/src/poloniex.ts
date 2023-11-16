@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -374,7 +374,7 @@ export default class poloniex extends Exchange {
         });
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         [
@@ -578,7 +578,7 @@ export default class poloniex extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol" : "BTC_USDT",
@@ -849,7 +849,7 @@ export default class poloniex extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -998,7 +998,7 @@ export default class poloniex extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1052,7 +1052,7 @@ export default class poloniex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // fetchOpenOrder
         //
@@ -1124,8 +1124,8 @@ export default class poloniex extends Exchange {
         const id = this.safeStringN (order, [ 'orderNumber', 'id', 'orderId' ]);
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'tokenFeeCurrency');
-        let feeCost = undefined;
-        let feeCurrencyCode = undefined;
+        let feeCost: Str = undefined;
+        let feeCurrencyCode: Str = undefined;
         const rate = this.safeString (order, 'fee');
         if (feeCurrency === undefined) {
             feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
@@ -1208,7 +1208,7 @@ export default class poloniex extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1436,7 +1436,7 @@ export default class poloniex extends Exchange {
             // 'accountTypes': 'SPOT',
             'symbols': [ ],
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbols'] = [
@@ -1753,7 +1753,7 @@ export default class poloniex extends Exchange {
         //     }
         //
         let address = this.safeString (response, 'address');
-        let tag = undefined;
+        let tag: Str = undefined;
         this.checkAddress (address);
         if (currency !== undefined) {
             const depositAddress = this.safeString (currency['info'], 'depositAddress');
@@ -1804,7 +1804,7 @@ export default class poloniex extends Exchange {
         //     }
         //
         let address = this.safeString (response, request['currency']);
-        let tag = undefined;
+        let tag: Str = undefined;
         this.checkAddress (address);
         if (currency !== undefined) {
             const depositAddress = this.safeString (currency['info'], 'depositAddress');
@@ -1856,7 +1856,7 @@ export default class poloniex extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //    {
         //        "transferId" : "168041074"
@@ -2016,7 +2016,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2041,7 +2041,7 @@ export default class poloniex extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2125,7 +2125,8 @@ export default class poloniex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const feeInfo = response[currencyId];
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, code);
+                const currency = this.currency (code);
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
                 const childChains = this.safeValue (feeInfo, 'childChains');
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
@@ -2154,9 +2155,9 @@ export default class poloniex extends Exchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         const depositWithdrawFee = this.depositWithdrawFee ({});
-        depositWithdrawFee['info'][currency] = fee;
+        depositWithdrawFee['info'][currency['code']] = fee;
         const networkId = this.safeString (fee, 'blockchain');
         const withdrawFee = this.safeNumber (fee, 'withdrawalFee');
         const withdrawResult = {
@@ -2213,7 +2214,7 @@ export default class poloniex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // deposits
         //

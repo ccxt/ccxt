@@ -479,7 +479,7 @@ export default class alpaca extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //        "c":22895,
@@ -654,7 +654,7 @@ export default class alpaca extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //    {
         //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -758,7 +758,7 @@ export default class alpaca extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
@@ -774,7 +774,7 @@ export default class alpaca extends Exchange {
         const datetime = this.safeString (trade, 't');
         const timestamp = this.parse8601 (datetime);
         const alpacaSide = this.safeString (trade, 'tks');
-        let side = undefined;
+        let side: string;
         if (alpacaSide === 'B') {
             side = 'buy';
         } else if (alpacaSide === 'S') {

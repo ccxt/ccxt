@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -1713,7 +1713,7 @@ export default class binance extends Exchange {
                 },
             },
             'info': undefined,
-        };
+        } as MarketInterface;
     }
 
     market (symbol) {
@@ -2846,7 +2846,7 @@ export default class binance extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "ETHBTC",
@@ -3159,7 +3159,7 @@ export default class binance extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    parseLastPrice (info, market = undefined) {
+    parseLastPrice (info, market: Market = undefined) {
         //
         // spot
         //
@@ -3241,7 +3241,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     [
         //         1591478520000, // open time
@@ -3420,7 +3420,7 @@ export default class binance extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         if ('isDustTrade' in trade) {
             return this.parseDustTrade (trade, market);
         }
@@ -4089,7 +4089,7 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // spot
         //
@@ -5412,7 +5412,7 @@ export default class binance extends Exchange {
         return this.filterBySinceLimit (trades, since, limit);
     }
 
-    parseDustTrade (trade, market = undefined) {
+    parseDustTrade (trade, market: Market = undefined) {
         //
         //     {
         //       "fromAsset": "USDT",
@@ -5770,7 +5770,7 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -5908,7 +5908,7 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
@@ -5957,7 +5957,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseIncome (income, market = undefined) {
+    parseIncome (income, market: Market = undefined) {
         //
         //     {
         //       "symbol": "ETHUSDT",
@@ -6407,7 +6407,7 @@ export default class binance extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "BAT",
@@ -6516,7 +6516,7 @@ export default class binance extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         //
         // spot
         //     [
@@ -6966,7 +6966,7 @@ export default class binance extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
         //   {
@@ -7043,7 +7043,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseAccountPosition (position, market = undefined) {
+    parseAccountPosition (position, market: Market = undefined) {
         //
         // usdm
         //    {
@@ -7239,7 +7239,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parsePositionRisk (position, market = undefined) {
+    parsePositionRisk (position, market: Market = undefined) {
         //
         // usdm
         //
@@ -7517,7 +7517,7 @@ export default class binance extends Exchange {
         return this.parseLeverageTiers (response, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         /**
          * @ignore
          * @method
@@ -7663,7 +7663,7 @@ export default class binance extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "entryPrice": "27.70000000",
@@ -8335,7 +8335,7 @@ export default class binance extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         // options (eapi)
         //
@@ -8683,7 +8683,7 @@ export default class binance extends Exchange {
         });
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market: Market = undefined) {
         const rawType = this.safeInteger (data, 'type');
         const resultType = (rawType === 1) ? 'add' : 'reduce';
         const resultAmount = this.safeNumber (data, 'amount');
@@ -8815,7 +8815,7 @@ export default class binance extends Exchange {
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
     }
 
-    parseBorrowRate (info, currency = undefined) {
+    parseBorrowRate (info, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "USDT",
@@ -8825,9 +8825,9 @@ export default class binance extends Exchange {
         //    }
         //
         const timestamp = this.safeNumber (info, 'timestamp');
-        currency = this.safeString (info, 'asset');
+        const currencyId = this.safeString (info, 'asset');
         return {
-            'currency': this.safeCurrencyCode (currency),
+            'currency': this.safeCurrencyCode (currencyId, currency),
             'rate': this.safeNumber (info, 'dailyInterestRate'),
             'period': 86400000,
             'timestamp': timestamp,
@@ -8980,7 +8980,7 @@ export default class binance extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         const symbol = this.safeString (info, 'isolatedSymbol');
         const timestamp = this.safeNumber (info, 'interestAccuredTime');
         const marginMode = (symbol === undefined) ? 'cross' : 'isolated';
@@ -9068,7 +9068,7 @@ export default class binance extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         //     {
         //         "tranId": 108988250265,
@@ -9227,7 +9227,7 @@ export default class binance extends Exchange {
         }
     }
 
-    parseOpenInterest (interest, market = undefined) {
+    parseOpenInterest (interest, market: Market = undefined) {
         const timestamp = this.safeInteger2 (interest, 'timestamp', 'time');
         const id = this.safeString (interest, 'symbol');
         const amount = this.safeNumber2 (interest, 'sumOpenInterest', 'openInterest');
@@ -9386,7 +9386,7 @@ export default class binance extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         // margin
         //
@@ -9506,7 +9506,7 @@ export default class binance extends Exchange {
         return this.parseGreeks (response[0], market);
     }
 
-    parseGreeks (greeks, market = undefined) {
+    parseGreeks (greeks, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTC-231229-40000-C",

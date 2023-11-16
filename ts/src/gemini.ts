@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -758,7 +758,7 @@ export default class gemini extends Exchange {
         return await this.fetchTickerV1AndV2 (symbol, params);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTickers
         //
@@ -880,7 +880,7 @@ export default class gemini extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1070,7 +1070,7 @@ export default class gemini extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder (private)
         //
@@ -1569,7 +1569,7 @@ export default class gemini extends Exchange {
         return this.parseTransactions (response);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -1635,7 +1635,7 @@ export default class gemini extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //      {
         //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
