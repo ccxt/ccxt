@@ -180,7 +180,9 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
             }
         }';
     } else {
-        $content = '<?php if (!class_exists("'.$newClassName.'"))  {
+        $content = '<?php 
+        use React\Async;
+        if (!class_exists("'.$newClassName.'"))  {
             class '. $newClassName . ' extends ' . $originalClass . ' {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
@@ -188,7 +190,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
                         if ($this->fetch_result) {
                             return $this->fetch_result;
                         }
-                        return parent::fetch($url, $method, $headers, $body);
+                        return  Async\await(parent::fetch($url, $method, $headers, $body));
                     })();
                 }
             }
@@ -197,7 +199,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
     file_put_contents ($filePath, $content);
     include_once $filePath;
     $initedClass = new $newClassName($args);
-    unlink ($filePath);
+    // unlink ($filePath);
     return $initedClass;
 }
 
