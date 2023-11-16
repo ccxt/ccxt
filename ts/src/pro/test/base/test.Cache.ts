@@ -64,7 +64,7 @@ assert (equals (arraycache2, [
 
 // ----------------------------------------------------------------------------
 
-let timestampCache = new ArrayCacheByTimestamp ();
+const timestampCache = new ArrayCacheByTimestamp ();
 
 const ohlcv1 = [ 100, 1, 2, 3 ];
 const ohlcv2 = [ 200, 5, 6, 7 ];
@@ -285,11 +285,11 @@ assert (limited2 === 2);
 // ----------------------------------------------------------------------------
 // test testLimitArrayCacheByTimestamp limit
 
-timestampCache = new ArrayCacheByTimestamp ();
+const timestampCache2 = new ArrayCacheByTimestamp ();
 
 initialLength = 5;
 for (let i = 0; i < initialLength; i++) {
-    timestampCache.append ([
+    timestampCache2.append ([
         i * 10,
         i * 10,
         i * 10,
@@ -297,13 +297,13 @@ for (let i = 0; i < initialLength; i++) {
     ]);
 }
 
-limited = timestampCache.getLimit (undefined, undefined);
+limited = timestampCache2.getLimit (undefined, undefined);
 
 assert (initialLength === limited);
 
 appendItemsLength = 3;
 for (let i = 0; i < appendItemsLength; i++) {
-    timestampCache.append ([
+    timestampCache2.append ([
         i * 4,
         i * 4,
         i * 4,
@@ -311,12 +311,12 @@ for (let i = 0; i < appendItemsLength; i++) {
     ]);
 }
 outsideLimit = 5;
-limited = timestampCache.getLimit (undefined, outsideLimit);
+limited = timestampCache2.getLimit (undefined, outsideLimit);
 
 assert (appendItemsLength === limited);
 
 outsideLimit = 2; // if limit < newsUpdate that should be returned
-limited = timestampCache.getLimit (undefined, outsideLimit);
+limited = timestampCache2.getLimit (undefined, outsideLimit);
 
 assert (outsideLimit === limited);
 
