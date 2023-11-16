@@ -458,7 +458,6 @@ export default class alpaca extends Exchange {
             'symbols': id,
             'loc': loc,
         };
-        params = this.omit (params, 'loc');
         const response = await this.marketPublicGetV1beta3CryptoLocLatestOrderbooks (this.extend (request, params));
         //
         //   {
