@@ -235,7 +235,7 @@ class Greeks(TypedDict):
     info: Dict[str, Any]
 
 
-class Market(TypedDict):
+class MarketInterface(TypedDict):
     info: Dict[str, Any]
     id: Str
     symbol: Str
@@ -269,7 +269,12 @@ class Market(TypedDict):
     limits: Any
     created: Int
 
-class Currency(TypedDict):
+
+class CurrencyInterface(TypedDict):
     id: Str
     code: Str
     precision: Num
+
+
+Market = Optional[MarketInterface]
+Currency = Optional[CurrencyInterface]

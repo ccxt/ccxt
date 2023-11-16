@@ -30,7 +30,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Numeric
+from ccxt.base.types import Balance, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Numeric, Market, String
 
 # -----------------------------------------------------------------------------
 
@@ -2019,7 +2019,7 @@ class Exchange(object):
             },
         }
 
-    def safe_ledger_entry(self, entry: object, currency: Currency | None = None):
+    def safe_ledger_entry(self, entry: object, currency: Currency = None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
         before = self.safe_string(entry, 'before')
@@ -3314,7 +3314,7 @@ class Exchange(object):
         amount = self.safe_number(bidask, amountKey)
         return [price, amount]
 
-    def safe_currency(self, currencyId: String, currency: Currency | None = None):
+    def safe_currency(self, currencyId: String, currency: Currency = None):
         if (currencyId is None) and (currency is not None):
             return currency
         if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
@@ -3327,7 +3327,7 @@ class Exchange(object):
             'code': code,
         }
 
-    def safe_market(self, marketId: String, market: Market | None = None, delimiter: String = None, marketType: String = None):
+    def safe_market(self, marketId: String, market: Market = None, delimiter: String = None, marketType: String = None):
         result = {
             'id': marketId,
             'symbol': marketId,

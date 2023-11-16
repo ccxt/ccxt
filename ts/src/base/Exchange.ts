@@ -1808,7 +1808,7 @@ export default class Exchange {
         };
     }
 
-    safeLedgerEntry (entry: object, currency: Currency | undefined = undefined) {
+    safeLedgerEntry (entry: object, currency: Currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
         let before = this.safeString (entry, 'before');
@@ -3369,7 +3369,7 @@ export default class Exchange {
         return [ price, amount ];
     }
 
-    safeCurrency (currencyId: Str, currency: Currency | undefined = undefined) {
+    safeCurrency (currencyId: Str, currency: Currency = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
@@ -3386,7 +3386,7 @@ export default class Exchange {
         };
     }
 
-    safeMarket (marketId: Str, market: Market | undefined = undefined, delimiter: Str = undefined, marketType: Str = undefined) {
+    safeMarket (marketId: Str, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined) {
         const result = {
             'id': marketId,
             'symbol': marketId,

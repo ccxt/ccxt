@@ -3,6 +3,8 @@ export type Str = string | undefined;
 export type Strings = string[] | undefined;
 export type Num = number | undefined;
 export type Bool = boolean | undefined;
+export type Market = MarketInterface | undefined;
+export type Currency = CurrencyInterface | undefined;
 
 export interface Dictionary<T> {
     [key: string]: T;
@@ -22,7 +24,7 @@ export interface Fee {
     cost: number;
 }
 
-export interface Market {
+export interface MarketInterface {
     id: string;
     uppercaseId?: string;
     lowercaseId?: string;
@@ -167,7 +169,7 @@ export interface Transaction {
 export interface Tickers extends Dictionary<Ticker> {
 }
 
-export interface Currency {
+export interface CurrencyInterface {
     id: string;
     code: string;
     numericId?: number;

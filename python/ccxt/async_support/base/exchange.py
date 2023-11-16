@@ -16,7 +16,7 @@ import sys
 import yarl
 import math
 from typing import Any, List
-from ccxt.base.types import Int
+from ccxt.base.types import Int, Currency, String, Market
 
 # -----------------------------------------------------------------------------
 
@@ -815,7 +815,7 @@ class Exchange(BaseExchange):
             },
         }
 
-    def safe_ledger_entry(self, entry: object, currency: object = None):
+    def safe_ledger_entry(self, entry: object, currency: Currency = None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
         before = self.safe_string(entry, 'before')
@@ -967,7 +967,7 @@ class Exchange(BaseExchange):
                 (self.markets_by_id[value['id']]).append(value)
             else:
                 self.markets_by_id[value['id']] = [value]
-            market = self.deep_extend(self.safe_market(), {
+            market = self.deep_extend(self.safeMarketStructure(), {
                 'precision': self.precision,
                 'limits': self.limits,
             }, self.fees['trading'], value)
@@ -2110,7 +2110,7 @@ class Exchange(BaseExchange):
         amount = self.safe_number(bidask, amountKey)
         return [price, amount]
 
-    def safe_currency(self, currencyId: str, currency: Any = None):
+    def safe_currency(self, currencyId: String, currency: Currency = None):
         if (currencyId is None) and (currency is not None):
             return currency
         if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
@@ -2123,7 +2123,7 @@ class Exchange(BaseExchange):
             'code': code,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+    def safe_market(self, marketId: String, market: Market = None, delimiter: String = None, marketType: String = None):
         result = {
             'id': marketId,
             'symbol': marketId,
@@ -2175,12 +2175,14 @@ class Exchange(BaseExchange):
                 if numMarkets == 1:
                     return markets[0]
                 else:
-                    if (marketType is None) and (market is None):
-                        raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
-                    inferredMarketType = market['type'] if (marketType is None) else marketType
+                    if marketType is None:
+                        if market is None:
+                            raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
+                        else:
+                            marketType = market['type']
                     for i in range(0, len(markets)):
                         currentMarket = markets[i]
-                        if currentMarket[inferredMarketType]:
+                        if currentMarket[marketType]:
                             return currentMarket
             elif delimiter is not None:
                 parts = marketId.split(delimiter)
