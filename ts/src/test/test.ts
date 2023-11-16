@@ -272,7 +272,7 @@ export default class testMainClass extends baseMainTestClass {
         this.checkedPublicTests = {};
     }
 
-    addPadding (message, size) {
+    addPadding (message: string, size) {
         // has to be transpilable
         let res = '';
         const missingSpace = size - message.length - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
