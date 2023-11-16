@@ -1743,7 +1743,6 @@ class Transpiler {
                     python3Async.push (arr[i+1])
                 }
             })
-            let index = 0
             const pythonDelimiter = '# ' + delimiter + '\n'
             const phpDelimiter = '// ' + delimiter + '\n'
             const restOfFile = '([^\n]*\n)+'
