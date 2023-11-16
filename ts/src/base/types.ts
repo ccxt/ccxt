@@ -52,6 +52,7 @@ export interface MarketInterface {
     optionType: Str;
     percentage?: boolean | undefined;
     quanto?: boolean;
+    quote?: string;
     quoteId: string;
     precision: {
         amount: Num
@@ -169,6 +170,7 @@ export interface Tickers extends Dictionary<Ticker> {
 }
 
 export interface CurrencyInterface {
+    code?: string;
     id: string;
     numericId?: number;
     precision: number;
