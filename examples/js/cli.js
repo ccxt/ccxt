@@ -157,7 +157,7 @@ function createResponseTemplate(exchange, methodName, args, result) {
     }
     log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')
     log.green('-------------------------------------------')
-    log (JSON.stringify (final, null, 2))
+    log (JSON.stringify (final, function(k, v) { return v === undefined ? null : v; }, 2))
     log.green('-------------------------------------------')
 }
 
