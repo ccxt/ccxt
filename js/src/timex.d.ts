@@ -1,18 +1,18 @@
 import Exchange from './abstract/timex.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class timex
  * @extends Exchange
  */
 export default class timex extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     getCurrencyByAddress(address: any): any;
     parseTransaction(transaction: any, currency?: any): Transaction;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

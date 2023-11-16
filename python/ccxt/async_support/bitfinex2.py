@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1074,7 +1074,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://docs.bitfinex.com/reference/rest-public-tickers
@@ -2318,7 +2318,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'address': address,
         })
 
-    async def fetch_positions(self, symbols: List[str] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :see: https://docs.bitfinex.com/reference/rest-auth-positions
@@ -2609,7 +2609,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         """
         return self.fetch_funding_rates([symbol], params)
 
-    async def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetch the current funding rate
         :see: https://docs.bitfinex.com/reference/rest-public-derivatives-status

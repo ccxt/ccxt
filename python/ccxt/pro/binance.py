@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, OrderSide, OrderType, String, Trade
+from ccxt.base.types import Int, OrderSide, OrderType, String, Strings, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -891,7 +891,7 @@ class binance(ccxt.async_support.binance):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
 
-    async def watch_tickers(self, symbols: List[str] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -2160,7 +2160,7 @@ class binance(ccxt.async_support.binance):
         self.handle_my_trade(client, message)
         self.handle_order(client, message)
 
-    async def watch_positions(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
@@ -2200,7 +2200,7 @@ class binance(ccxt.async_support.binance):
             return newPositions
         return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type, symbols: List[str] = None):
+    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
         if self.positions is None:
             self.positions = {}
         if type in self.positions:

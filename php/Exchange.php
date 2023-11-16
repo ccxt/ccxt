@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.52';
+$version = '4.1.54';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.52';
+    const VERSION = '4.1.54';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -452,6 +452,7 @@ class Exchange {
         'okex',
         'okex5',
         'okx',
+        'p2b',
         'paymium',
         'phemex',
         'poloniex',
@@ -2733,7 +2734,7 @@ class Exchange {
             } else {
                 $this->markets_by_id[$value['id']] = array( $value );
             }
-            $market = $this->deep_extend($this->safe_market(), array(
+            $market = $this->deep_extend($this->safe_market_structure(), array(
                 'precision' => $this->precision,
                 'limits' => $this->limits,
             ), $this->fees['trading'], $value);
@@ -4118,7 +4119,7 @@ class Exchange {
         return array( $price, $amount );
     }
 
-    public function safe_currency(?string $currencyId, mixed $currency = null) {
+    public function safe_currency(?string $currencyId, ?array $currency = null) {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
@@ -4135,7 +4136,7 @@ class Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId, ?array $market = null, ?string $delimiter = null, ?string $marketType = null) {
         $result = array(
             'id' => $marketId,
             'symbol' => $marketId,
@@ -4187,13 +4188,16 @@ class Exchange {
                 if ($numMarkets === 1) {
                     return $markets[0];
                 } else {
-                    if (($marketType === null) && ($market === null)) {
-                        throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
+                    if ($marketType === null) {
+                        if ($market === null) {
+                            throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
+                        } else {
+                            $marketType = $market['type'];
+                        }
                     }
-                    $inferredMarketType = ($marketType === null) ? $market['type'] : $marketType;
                     for ($i = 0; $i < count($markets); $i++) {
                         $currentMarket = $markets[$i];
-                        if ($currentMarket[$inferredMarketType]) {
+                        if ($currentMarket[$marketType]) {
                             return $currentMarket;
                         }
                     }

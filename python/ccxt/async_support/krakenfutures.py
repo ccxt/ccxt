@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -461,7 +461,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         timestamp = self.parse8601(response['serverTime'])
         return self.parse_order_book(response['orderBook'], symbol, timestamp)
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
@@ -1694,7 +1694,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
         fetch the current funding rates
@@ -1820,7 +1820,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_positions(self, symbols: List[str] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
         Fetches current contract trading positions
@@ -1850,7 +1850,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         result = self.parse_positions(response)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_positions(self, response, symbols: List[str] = None, params={}):
+    def parse_positions(self, response, symbols: Strings = None, params={}):
         result = []
         positions = self.safe_value(response, 'openPositions')
         for i in range(0, len(positions)):
@@ -1912,7 +1912,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'percentage': None,
         }
 
-    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes

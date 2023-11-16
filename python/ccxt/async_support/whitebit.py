@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -504,7 +504,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :param str[]|None codes: not used by fetchDepositWithdrawFees()
@@ -775,7 +775,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1961,7 +1961,7 @@ class whitebit(Exchange, ImplicitAPI):
         response = await self.fetch_funding_rates([symbol], params)
         return self.safe_value(response, symbol)
 
-    async def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         :see: https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
         fetch the funding rate for multiple markets

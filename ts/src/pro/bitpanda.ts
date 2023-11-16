@@ -4,7 +4,7 @@
 import bitpandaRest from '../bitpanda.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, Str } from '../base/types.js';
+import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -167,7 +167,7 @@ export default class bitpanda extends bitpandaRest {
         return await this.watchMultiple (messageHash, request, subscriptionHash, [ symbol ], params);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitpanda#watchTickers
@@ -1311,7 +1311,7 @@ export default class bitpanda extends bitpandaRest {
         return message;
     }
 
-    async watchMultiple (messageHash, request, subscriptionHash, symbols: string[] = [], params = {}) {
+    async watchMultiple (messageHash, request, subscriptionHash, symbols: Strings = [], params = {}) {
         let marketIds = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {

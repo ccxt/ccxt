@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1513,7 +1513,7 @@ class htx(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, {})
         return self.parse_trading_fee(first, market)
 
-    async def fetch_trading_limits(self, symbols: List[str] = None, params={}):
+    async def fetch_trading_limits(self, symbols: Strings = None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
         #  however if you define symbols = ['ETH/BTC', 'LTC/BTC'] in args it will only load those
@@ -2052,7 +2052,7 @@ class htx(Exchange, ImplicitAPI):
         ticker['datetime'] = self.iso8601(timestamp)
         return ticker
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
@@ -6052,7 +6052,7 @@ class htx(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(result, market)
 
-    async def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param str[]|None symbols: list of unified market symbols
@@ -6609,7 +6609,7 @@ class htx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_positions(self, symbols: List[str] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
@@ -7106,7 +7106,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ledger(data, currency, since, limit)
 
-    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
@@ -7195,7 +7195,7 @@ class htx(Exchange, ImplicitAPI):
         tiers = self.parse_leverage_tiers(data, [symbol], 'contract_code')
         return self.safe_value(tiers, symbol)
 
-    def parse_leverage_tiers(self, response, symbols: List[str] = None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
         result = {}
         for i in range(0, len(response)):
             item = response[i]
@@ -7715,7 +7715,7 @@ class htx(Exchange, ImplicitAPI):
         settlements = self.parse_settlements(settlementRecord, market)
         return self.sort_by(settlements, 'timestamp')
 
-    async def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2

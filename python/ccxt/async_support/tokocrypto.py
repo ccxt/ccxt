@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1142,7 +1142,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1180,7 +1180,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
-    async def fetch_bids_asks(self, symbols: List[str] = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
         fetches the bid and ask price and volume for multiple markets

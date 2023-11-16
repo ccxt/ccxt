@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -353,6 +353,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     '219': InvalidOrder,
+                    '314': InvalidOrder,  # {"id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : {"client_oid" : "1700xxx", "order_id" : "6530xxx"}}
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
@@ -581,7 +582,7 @@ class cryptocom(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
@@ -2452,7 +2453,7 @@ class cryptocom(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://exchange-docs.crypto.com/spot/index.html#private-get-currency-networks
@@ -2869,7 +2870,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'data', [])
         return self.parse_position(data[0], market)
 
-    async def fetch_positions(self, symbols: List[str] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions

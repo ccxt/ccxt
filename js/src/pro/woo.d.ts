@@ -1,5 +1,5 @@
 import wooRest from '../woo.js';
-import { Int, Str } from '../base/types.js';
+import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class woo extends wooRest {
     describe(): any;
@@ -10,7 +10,7 @@ export default class woo extends wooRest {
     watchTicker(symbol: string, params?: {}): Promise<any>;
     parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
     handleTicker(client: Client, message: any): any;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTickers(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;

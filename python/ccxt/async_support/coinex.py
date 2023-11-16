@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Int, Order, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Order, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -797,7 +797,7 @@ class coinex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response['data'], market)
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
@@ -2846,7 +2846,7 @@ class coinex(Exchange, ImplicitAPI):
         trades = self.safe_value(data, tradeRequest, [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_positions(self, symbols: List[str] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
@@ -3181,7 +3181,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return await self.perpetualPrivatePostMarketAdjustLeverage(self.extend(request, params))
 
-    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
@@ -3210,7 +3210,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_leverage_tiers(data, symbols, None)
 
-    def parse_leverage_tiers(self, response, symbols: List[str] = None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
         #
         #     {
         #         "BTCUSD": [
@@ -3533,7 +3533,7 @@ class coinex(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
          *  @method
         fetch the current funding rates
@@ -4441,7 +4441,7 @@ class coinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config

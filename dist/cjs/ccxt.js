@@ -99,6 +99,7 @@ var okcoin = require('./src/okcoin.js');
 var okex = require('./src/okex.js');
 var okex5 = require('./src/okex5.js');
 var okx = require('./src/okx.js');
+var p2b = require('./src/p2b.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
@@ -179,7 +180,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.1.52';
+const version = '4.1.54';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -269,6 +270,7 @@ const exchanges = {
     'okex': okex,
     'okex5': okex5,
     'okx': okx,
+    'p2b': p2b,
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
@@ -477,6 +479,7 @@ exports.okcoin = okcoin;
 exports.okex = okex;
 exports.okex5 = okex5;
 exports.okx = okx;
+exports.p2b = p2b;
 exports.paymium = paymium;
 exports.phemex = phemex;
 exports.poloniex = poloniex;

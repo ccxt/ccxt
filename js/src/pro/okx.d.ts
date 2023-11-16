@@ -1,16 +1,16 @@
 import okxRest from '../okx.js';
-import { Int, OrderSide, OrderType, Str } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class okx extends okxRest {
     describe(): any;
     getUrl(channel: string, access?: string): string;
-    subscribeMultiple(access: any, channel: any, symbols?: string[], params?: {}): Promise<any>;
+    subscribeMultiple(access: any, channel: any, symbols?: Strings, params?: {}): Promise<any>;
     subscribe(access: any, messageHash: any, channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
@@ -25,7 +25,7 @@ export default class okx extends okxRest {
     handleBalance(client: Client, message: any): void;
     orderToTrade(order: any, market?: any): import("../base/types.js").Trade;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handlePositions(client: any, message: any): void;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription?: any): void;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
+import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings } from './base/types.js';
 /**
  * @class digifinex
  * @extends Exchange
@@ -13,7 +13,7 @@ export default class digifinex extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: any): Ticker;
     parseTrade(trade: any, market?: any): Trade;
@@ -176,17 +176,17 @@ export default class digifinex extends Exchange {
         maker: number;
         taker: number;
     };
-    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
-    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): {};
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;

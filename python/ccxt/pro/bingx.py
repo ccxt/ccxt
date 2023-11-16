@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NetworkError
 
 
 class bingx(ccxt.async_support.bingx):
@@ -284,11 +285,12 @@ class bingx(ccxt.async_support.bingx):
         #        "h": "28915.4",
         #        "l": "28896.1",
         #        "v": "27.6919",
-        #        "T": 1690907580000
+        #        "T": 1696687499999,
+        #        "t": 1696687440000
         #    }
         #
         return [
-            self.safe_integer(ohlcv, 'T'),
+            self.safe_integer(ohlcv, 't'),  # needs to be opening-time(t) instead of closing-time(T), to be compatible with fetchOHLCV
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
@@ -553,15 +555,19 @@ class bingx(ccxt.async_support.bingx):
         # swap
         # Ping
         #
-        if message == 'Ping':
-            await client.send('Pong')
-        else:
-            ping = self.safe_string(message, 'ping')
-            time = self.safe_string(message, 'time')
-            await client.send({
-                'pong': ping,
-                'time': time,
-            })
+        try:
+            if message == 'Ping':
+                await client.send('Pong')
+            else:
+                ping = self.safe_string(message, 'ping')
+                time = self.safe_string(message, 'time')
+                await client.send({
+                    'pong': ping,
+                    'time': time,
+                })
+        except Exception as e:
+            error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
+            client.reset(error)
 
     def handle_order(self, client, message):
         #

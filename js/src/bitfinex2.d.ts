@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings } from './base/types.js';
 /**
  * @class bitfinex2
  * @extends Exchange
@@ -48,7 +48,7 @@ export default class bitfinex2 extends Exchange {
     convertDerivativesId(currency: any, type: any): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -86,7 +86,7 @@ export default class bitfinex2 extends Exchange {
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
@@ -116,7 +116,7 @@ export default class bitfinex2 extends Exchange {
     };
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{}>;
-    fetchFundingRates(symbols?: string[], params?: {}): Promise<{}>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: any): {
         info: any;

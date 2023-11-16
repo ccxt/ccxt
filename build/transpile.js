@@ -244,6 +244,7 @@ class Transpiler {
             [ /\.safeCurrency\s/g, '.safe_currency'],
             [ /\.safeSymbol\s/g, '.safe_symbol'],
             [ /\.safeMarket\s/g, '.safe_market'],
+            [ /\.safeMarketStructure\s/g, '.safe_market_structure'],
             [ /\.safeOrder\s/g, '.safe_order'],
             [ /\.safeTicker\s/g, '.safe_ticker'],
             [ /\.roundTimeframe\s/g, '.round_timeframe'],
@@ -310,6 +311,9 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, 'isinstance($1, int)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
+
+            // convert javascript primitive types to python ones
+            [ /(^\s+(?:let|const|var)\s+\w+:\s+)string/mg, '$1str' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
@@ -538,6 +542,9 @@ class Transpiler {
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
+            // we want to remove type hinting variable lines
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|string|number);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number)(\s+=\s+\w+)/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -915,10 +922,11 @@ class Transpiler {
         }
         const matchObject = {
             'Balances': /-> Balances:/,
+            'Currency': /(-> Currency:|: Currency)/,
             'Greeks': /-> Greeks:/,
             'Int': /: Int =/,
             'MarginMode': /-> MarginMode:/,
-            'Market': /-> Market:/,
+            'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
@@ -926,7 +934,9 @@ class Transpiler {
             'OrderType': /: OrderType/,
             'IndexType': /: IndexType/,
             'FundingHistory': /\[FundingHistory/,
-            'String': /: String =/,
+            'Num': /: Num =/,
+            'Str': /: Str =/,
+            'Strings': /: Strings =/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
@@ -1563,6 +1573,7 @@ class Transpiler {
                 'any': 'mixed',
                 'string': 'string',
                 'Str': '?string',
+                'Strings': '?array',
                 'number': 'float',
                 'boolean': 'bool',
                 'IndexType': 'int|string',
@@ -1570,7 +1581,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /^(?:Market|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1590,7 +1601,7 @@ class Transpiler {
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
                     const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
-                    const ignore = (resolveType === 'mixed' || type === 'Str' || type === 'Int')
+                    const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
                     return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
@@ -1621,7 +1632,6 @@ class Transpiler {
             // remove excessive spacing from argument defaults in Python method signature
             const pythonTypes = {
                 'string': 'str',
-                'Str': 'String',
                 'number': 'float',
                 'any': 'Any',
                 'boolean': 'bool',

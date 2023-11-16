@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinspot import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -271,7 +271,7 @@ class coinspot(Exchange, ImplicitAPI):
         ticker = self.safe_value(prices, id)
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://www.coinspot.com.au/api#latestprices

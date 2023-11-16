@@ -150,6 +150,7 @@ class ImplicitAPI:
     private_get_v5_asset_withdraw_withdrawable_amount = privateGetV5AssetWithdrawWithdrawableAmount = Entry('v5/asset/withdraw/withdrawable-amount', 'private', 'GET', {'cost': 5})
     private_get_v5_user_query_sub_members = privateGetV5UserQuerySubMembers = Entry('v5/user/query-sub-members', 'private', 'GET', {'cost': 5})
     private_get_v5_user_query_api = privateGetV5UserQueryApi = Entry('v5/user/query-api', 'private', 'GET', {'cost': 5})
+    private_get_v5_user_sub_apikeys = privateGetV5UserSubApikeys = Entry('v5/user/sub-apikeys', 'private', 'GET', {'cost': 5})
     private_get_v5_user_get_member_type = privateGetV5UserGetMemberType = Entry('v5/user/get-member-type', 'private', 'GET', {'cost': 5})
     private_get_v5_user_aff_customer_info = privateGetV5UserAffCustomerInfo = Entry('v5/user/aff-customer-info', 'private', 'GET', {'cost': 5})
     private_get_v5_user_del_submember = privateGetV5UserDelSubmember = Entry('v5/user/del-submember', 'private', 'GET', {'cost': 5})

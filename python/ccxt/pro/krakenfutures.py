@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, String, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -152,7 +152,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         params = self.omit(params, ['method'])
         return await self.subscribe_public(name, [symbol], params)
 
-    async def watch_tickers(self, symbols: List[str] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
@@ -195,7 +195,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         orderbook = await self.subscribe_public('book', [symbol], params)
         return orderbook.limit()
 
-    async def watch_positions(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
         watch all open positions

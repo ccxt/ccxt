@@ -1,6 +1,9 @@
 export declare type Int = number | undefined;
 export declare type Str = string | undefined;
+export declare type Strings = string[] | undefined;
 export declare type Bool = boolean | undefined;
+export declare type Market = MarketInterface | undefined;
+export declare type Currency = CurrencyInterface | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
 }
@@ -15,17 +18,17 @@ export interface Fee {
     rate?: number;
     cost: number;
 }
-export interface Market {
+export interface MarketInterface {
     id: string;
     uppercaseId?: string;
     lowercaseId?: string;
-    symbol: Str;
-    base: Str;
-    quote: Str;
-    baseId: Str;
-    quoteId: Str;
+    symbol: string;
+    base: string;
+    quote: string;
+    baseId: string;
+    quoteId: string;
     active: Bool;
-    type: Str;
+    type: string;
     spot: boolean;
     margin: boolean;
     swap: boolean;
@@ -153,7 +156,7 @@ export interface Transaction {
 }
 export interface Tickers extends Dictionary<Ticker> {
 }
-export interface Currency {
+export interface CurrencyInterface {
     id: string;
     code: string;
     numericId?: number;

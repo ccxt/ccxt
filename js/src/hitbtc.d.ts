@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings } from './base/types.js';
 /**
  * @class hitbtc
  * @extends Exchange
@@ -28,7 +28,7 @@ export default class hitbtc extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -40,7 +40,7 @@ export default class hitbtc extends Exchange {
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
+    fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTradingFee(fee: any, market?: any): {
         info: any;
@@ -95,9 +95,9 @@ export default class hitbtc extends Exchange {
         info: any;
     }>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     parsePosition(position: any, market?: any): Position;
     parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
@@ -153,7 +153,7 @@ export default class hitbtc extends Exchange {
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     fetchLeverage(symbol: string, params?: {}): Promise<number>;
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;

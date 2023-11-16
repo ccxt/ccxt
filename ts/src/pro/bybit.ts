@@ -5,7 +5,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Str } from '../base/types.js';
+import { Int, OHLCV, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -190,7 +190,7 @@ export default class bybit extends bybitRest {
         return await this.watchTopics (url, messageHash, topics, messageHash, params);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchTickers
@@ -984,7 +984,7 @@ export default class bybit extends bybitRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchPositions
@@ -1022,7 +1022,7 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, symbols: string[] = undefined) {
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
             return this.positions;
         }

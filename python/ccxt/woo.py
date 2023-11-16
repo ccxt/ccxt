@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Trade, Transaction
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Strings, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -2194,7 +2194,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.v1PublicGetFundingRates(params)
@@ -2350,7 +2350,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    def fetch_positions(self, symbols: List[str] = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}):
         self.load_markets()
         response = self.v3PrivateGetPositions(params)
         #

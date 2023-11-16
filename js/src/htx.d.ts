@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings } from './base/types.js';
 /**
  * @class huobi
  * @extends Exchange
@@ -26,7 +26,7 @@ export default class htx extends Exchange {
         maker: number;
         taker: number;
     }>;
-    fetchTradingLimits(symbols?: string[], params?: {}): Promise<{}>;
+    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
     fetchTradingLimitsById(id: string, params?: {}): Promise<{
         info: any;
         limits: {
@@ -50,7 +50,7 @@ export default class htx extends Exchange {
     fetchMarketsByTypeAndSubType(type: any, subType: any, params?: {}): Promise<any[]>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTrade(trade: any, market?: any): Trade;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -171,7 +171,7 @@ export default class htx extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     }>;
-    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         account: string;
@@ -204,7 +204,7 @@ export default class htx extends Exchange {
         amount: number;
     };
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
-    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
@@ -225,9 +225,9 @@ export default class htx extends Exchange {
         info: any;
     };
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any>;
-    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): {};
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OpenInterest[]>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
@@ -243,7 +243,7 @@ export default class htx extends Exchange {
         info: any;
     };
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     parseSettlements(settlements: any, market: any): any[];
     parseSettlement(settlement: any, market: any): {

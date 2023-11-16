@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, MarginMode, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, MarginMode, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1041,7 +1041,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://api.hitbtc.com/#tickers
@@ -1467,7 +1467,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
 
-    def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :see: https://api.hitbtc.com/#order-books
@@ -2417,7 +2417,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetches funding rates for multiple markets
         :see: https://api.hitbtc.com/#futures-info
@@ -2539,7 +2539,7 @@ class hitbtc(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_positions(self, symbols: List[str] = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: not used by hitbtc fetchPositions()
@@ -3039,7 +3039,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
-    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://api.hitbtc.com/#currencies

@@ -1,5 +1,5 @@
 import Exchange from './abstract/deribit.js';
-import { Balances, FundingRateHistory, Greeks, Int, Liquidation, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, FundingRateHistory, Greeks, Int, Liquidation, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class deribit
  * @extends Exchange
@@ -41,7 +41,7 @@ export default class deribit extends Exchange {
     }>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -66,7 +66,7 @@ export default class deribit extends Exchange {
     parseTransaction(transaction: any, currency?: any): Transaction;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
     parseVolatilityHistory(volatility: any): any[];
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -106,7 +106,7 @@ export default class deribit extends Exchange {
         };
         networks: {};
     };
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;

@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, String, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
@@ -202,7 +201,7 @@ class woo(ccxt.async_support.woo):
         client.resolve(ticker, topic)
         return message
 
-    async def watch_tickers(self, symbols: List[str] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         await self.load_markets()
         name = 'tickers'
         topic = name

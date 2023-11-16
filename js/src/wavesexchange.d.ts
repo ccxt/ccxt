@@ -1,6 +1,6 @@
 import Exchange from './abstract/wavesexchange.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class wavesexchange
  * @extends Exchange
@@ -29,7 +29,7 @@ export default class wavesexchange extends Exchange {
     signIn(params?: {}): Promise<any>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     filterFutureCandles(ohlcvs: any): any[];
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
@@ -86,8 +86,8 @@ export default class wavesexchange extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: any): Trade;
-    parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): any;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): any;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: any): Transaction;

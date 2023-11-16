@@ -7,7 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, String, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -186,7 +186,7 @@ class bybit(ccxt.async_support.bybit):
         topics = [topic]
         return await self.watch_topics(url, messageHash, topics, messageHash, params)
 
-    async def watch_tickers(self, symbols: List[str] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
@@ -907,7 +907,7 @@ class bybit(ccxt.async_support.bybit):
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
-    async def watch_positions(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/position
         watch all open positions
@@ -939,7 +939,7 @@ class bybit(ccxt.async_support.bybit):
             return newPositions
         return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, symbols: List[str] = None):
+    def set_positions_cache(self, client: Client, symbols: Strings = None):
         if self.positions is not None:
             return self.positions
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)

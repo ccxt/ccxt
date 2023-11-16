@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -1170,7 +1170,7 @@ class coinbase(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1182,7 +1182,7 @@ class coinbase(Exchange, ImplicitAPI):
             return await self.fetch_tickers_v3(symbols, params)
         return await self.fetch_tickers_v2(symbols, params)
 
-    async def fetch_tickers_v2(self, symbols: List[str] = None, params={}):
+    async def fetch_tickers_v2(self, symbols: Strings = None, params={}):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {
@@ -1215,7 +1215,7 @@ class coinbase(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(rates[baseId], market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_tickers_v3(self, symbols: List[str] = None, params={}):
+    async def fetch_tickers_v3(self, symbols: Strings = None, params={}):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.v3PrivateGetBrokerageProducts(params)
@@ -2740,7 +2740,7 @@ class coinbase(Exchange, ImplicitAPI):
         timestamp = self.parse8601(time)
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'size')
 
-    async def fetch_bids_asks(self, symbols: List[str] = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask

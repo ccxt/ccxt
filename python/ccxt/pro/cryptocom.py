@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, OrderSide, OrderType, String
+from ccxt.base.types import Int, OrderSide, OrderType, String, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NetworkError
@@ -424,7 +424,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             client.resolve(stored, channel)  # channel might have a symbol-specific suffix
             client.resolve(stored, 'user.order')
 
-    async def watch_positions(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         watch all open positions
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
@@ -459,7 +459,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type, symbols: List[str] = None):
+    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot:
             messageHash = 'fetchPositionsSnapshot'

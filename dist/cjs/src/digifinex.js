@@ -1645,8 +1645,7 @@ class digifinex extends digifinex$1 {
                     }
                 }
             }
-            let orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            orderRequest = this.omit(orderRequest, 'marginMode');
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
         const market = this.market(symbol);
@@ -4132,7 +4131,13 @@ class digifinex extends digifinex$1 {
         const payload = pathPart + request;
         let url = this.urls['api']['rest'] + payload;
         const query = this.omit(params, this.extractParams(path));
-        let urlencoded = this.urlencode(this.keysort(query));
+        let urlencoded = undefined;
+        if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {
+            urlencoded = JSON.stringify(params);
+        }
+        else {
+            urlencoded = this.urlencode(this.keysort(query));
+        }
         if (signed) {
             let auth = undefined;
             let nonce = undefined;
@@ -4145,9 +4150,7 @@ class digifinex extends digifinex$1 {
                     }
                 }
                 else if (method === 'POST') {
-                    const swapPostParams = JSON.stringify(params);
-                    urlencoded = swapPostParams;
-                    auth += swapPostParams;
+                    auth += urlencoded;
                 }
             }
             else {

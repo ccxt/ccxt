@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { Int, OrderSide, OrderType, Str, Trade } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str, Strings, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -977,7 +977,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchTickers
@@ -2359,7 +2359,7 @@ export default class binance extends binanceRest {
         this.handleOrder (client, message);
     }
 
-    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchPositions
@@ -2407,7 +2407,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: string[] = undefined) {
+    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
         if (this.positions === undefined) {
             this.positions = {};
         }

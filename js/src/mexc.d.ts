@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers } from './base/types.js';
+import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings } from './base/types.js';
 /**
  * @class mexc
  * @extends Exchange
@@ -26,10 +26,10 @@ export default class mexc extends Exchange {
     syntheticTradeId(market?: any, timestamp?: any, side?: any, amount?: any, price?: any, orderType?: any, takerOrMaker?: any): string;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: any): Ticker;
-    fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createSpotOrderRequest(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): any;
     createSpotOrder(market: any, type: any, side: any, amount: any, price?: any, marginMode?: any, params?: {}): Promise<Order>;
@@ -102,7 +102,7 @@ export default class mexc extends Exchange {
         previousFundingDatetime: any;
     }>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
+    fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
@@ -125,7 +125,7 @@ export default class mexc extends Exchange {
     parseTransaction(transaction: any, currency?: any): Transaction;
     parseTransactionStatusByType(status: any, type?: any): string;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: any, market?: any): Position;
     fetchTransfer(id: string, since?: Int, limit?: Int, params?: {}): Promise<{
         info: any;
@@ -172,7 +172,7 @@ export default class mexc extends Exchange {
         info: any;
     };
     parseTransactionFee(transaction: any, currency?: any): {};
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     parseMarginLoan(info: any, currency?: any): {
         id: string;
