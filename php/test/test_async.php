@@ -367,7 +367,8 @@ class testMainClass extends baseMainTestClass {
     public function add_padding($message, $size) {
         // has to be transpilable
         $res = '';
-        $missing_space = $size - count($message) - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
+        $message_length = strlen($message); // avoid php transpilation issue
+        $missing_space = $size - $message_length - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if ($missing_space > 0) {
             for ($i = 0; $i < $missing_space; $i++) {
                 $res .= ' ';
@@ -906,6 +907,12 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true) {
+        if (is_null_value($new_output) && is_null_value($stored_output)) {
+            return;
+        }
+        if (!$new_output && !$stored_output) {
+            return;
+        }
         if ((is_array($stored_output)) && (is_array($new_output))) {
             $stored_output_keys = is_array($stored_output) ? array_keys($stored_output) : array();
             $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
@@ -1066,6 +1073,7 @@ class testMainClass extends baseMainTestClass {
         $currencies = $this->load_currencies_from_file($exchange_name);
         $exchange = init_exchange($exchange_name, array(
             'markets' => $markets,
+            'enableRateLimit' => false,
             'rateLimit' => 1,
             'httpsProxy' => 'http://fake:8080',
             'apiKey' => 'key',

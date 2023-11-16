@@ -324,7 +324,8 @@ class testMainClass(baseMainTestClass):
     def add_padding(self, message, size):
         # has to be transpilable
         res = ''
-        missing_space = size - len(message) - 0  # - 0 is added just to trick transpile to treat the .length as a string for php
+        message_length = len(message)  # avoid php transpilation issue
+        missing_space = size - message_length - 0  # - 0 is added just to trick transpile to treat the .length as a string for php
         if missing_space > 0:
             for i in range(0, missing_space):
                 res += ' '
@@ -754,6 +755,10 @@ class testMainClass(baseMainTestClass):
         return result
 
     def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True):
+        if is_null_value(new_output) and is_null_value(stored_output):
+            return
+        if not new_output and not stored_output:
+            return
         if (isinstance(stored_output, dict)) and (isinstance(new_output, dict)):
             stored_output_keys = list(stored_output.keys())
             new_output_keys = list(new_output.keys())
@@ -883,6 +888,7 @@ class testMainClass(baseMainTestClass):
         currencies = self.load_currencies_from_file(exchange_name)
         exchange = init_exchange(exchange_name, {
             'markets': markets,
+            'enableRateLimit': False,
             'rateLimit': 1,
             'httpsProxy': 'http://fake:8080',
             'apiKey': 'key',
