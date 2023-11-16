@@ -936,6 +936,7 @@ class Transpiler {
             'FundingHistory': /\[FundingHistory/,
             'Num': /: Num =/,
             'Str': /: Str =/,
+            'Bool': /: Bool =/,
             'Strings': /: Strings =/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
