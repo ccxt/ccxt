@@ -5587,9 +5587,11 @@ Returns
 
 ## Margin
 
+Note: through the manual we use term "current margin" balance (which is a synonym for "collateral") but do not confuse it with "initial margin" balance. Typically, `collateral (current margin balance) = initial margin + unrealized profit of the position(s)`.
+
 *margin and contract only*
 
-To increase, reduce or set your margin balance (collateral) in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
+To increase, reduce or set your current margin balance in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
 
 Some scenarios to use these methods include
 - if the trade is going against you, you can add margin to, reducing the risk of liquidation
