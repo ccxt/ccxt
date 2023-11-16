@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/probit.js';
-import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
@@ -275,73 +275,70 @@ export default class probit extends Exchange {
         //     }
         //
         const markets = this.safeValue(response, 'data', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'id');
-            const baseId = this.safeString(market, 'base_currency_id');
-            const quoteId = this.safeString(market, 'quote_currency_id');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const closed = this.safeValue(market, 'closed', false);
-            const takerFeeRate = this.safeString(market, 'taker_fee_rate');
-            const taker = Precise.stringDiv(takerFeeRate, '100');
-            const makerFeeRate = this.safeString(market, 'maker_fee_rate');
-            const maker = Precise.stringDiv(makerFeeRate, '100');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': !closed,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.parseNumber(taker),
-                'maker': this.parseNumber(maker),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantity_precision'))),
-                    'price': this.safeNumber(market, 'price_increment'),
-                    'cost': this.parseNumber(this.parsePrecision(this.safeString(market, 'cost_precision'))),
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'id');
+        const baseId = this.safeString(market, 'base_currency_id');
+        const quoteId = this.safeString(market, 'quote_currency_id');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const closed = this.safeValue(market, 'closed', false);
+        const takerFeeRate = this.safeString(market, 'taker_fee_rate');
+        const taker = Precise.stringDiv(takerFeeRate, '100');
+        const makerFeeRate = this.safeString(market, 'maker_fee_rate');
+        const maker = Precise.stringDiv(makerFeeRate, '100');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': !closed,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.parseNumber(taker),
+            'maker': this.parseNumber(maker),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantity_precision'))),
+                'price': this.safeNumber(market, 'price_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(market, 'min_quantity'),
-                        'max': this.safeNumber(market, 'max_quantity'),
-                    },
-                    'price': {
-                        'min': this.safeNumber(market, 'min_price'),
-                        'max': this.safeNumber(market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber(market, 'min_cost'),
-                        'max': this.safeNumber(market, 'max_cost'),
-                    },
+                'amount': {
+                    'min': this.safeNumber(market, 'min_quantity'),
+                    'max': this.safeNumber(market, 'max_quantity'),
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': this.safeNumber(market, 'min_price'),
+                    'max': this.safeNumber(market, 'max_price'),
+                },
+                'cost': {
+                    'min': this.safeNumber(market, 'min_cost'),
+                    'max': this.safeNumber(market, 'max_cost'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -540,7 +537,7 @@ export default class probit extends Exchange {
         const response = await this.privateGetBalance(params);
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
         //                 "currency_id":"XRP",
         //                 "total":"100",
@@ -733,7 +730,7 @@ export default class probit extends Exchange {
         const response = await this.privateGetTradeHistory(this.extend(request, params));
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
         //                 "id":"BTC-USDT:183566",
         //                 "order_id":"17209376",
@@ -1083,9 +1080,7 @@ export default class probit extends Exchange {
          * @param {object} [params] extra parameters specific to the probit api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1118,17 +1113,17 @@ export default class probit extends Exchange {
         //         id,
         //         user_id,
         //         market_id,
-        //         type: 'orderType',
-        //         side: 'side',
+        //         "type": "orderType",
+        //         "side": "side",
         //         quantity,
         //         limit_price,
-        //         time_in_force: 'timeInForce',
+        //         "time_in_force": "timeInForce",
         //         filled_cost,
         //         filled_quantity,
         //         open_quantity,
         //         cancelled_quantity,
-        //         status: 'orderStatus',
-        //         time: 'date',
+        //         "status": "orderStatus",
+        //         "time": "date",
         //         client_order_id,
         //     }
         //
@@ -1245,21 +1240,21 @@ export default class probit extends Exchange {
         const response = await this.privatePostNewOrder(this.extend(request, query));
         //
         //     {
-        //         data: {
+        //         "data": {
         //             id,
         //             user_id,
         //             market_id,
-        //             type: 'orderType',
-        //             side: 'side',
+        //             "type": "orderType",
+        //             "side": "side",
         //             quantity,
         //             limit_price,
-        //             time_in_force: 'timeInForce',
+        //             "time_in_force": "timeInForce",
         //             filled_cost,
         //             filled_quantity,
         //             open_quantity,
         //             cancelled_quantity,
-        //             status: 'orderStatus',
-        //             time: 'date',
+        //             "status": "orderStatus",
+        //             "time": "date",
         //             client_order_id,
         //         }
         //     }
@@ -1286,9 +1281,7 @@ export default class probit extends Exchange {
          * @param {object} [params] extra parameters specific to the probit api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1601,6 +1594,8 @@ export default class probit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
             'info': transaction,
         };
@@ -1691,36 +1686,36 @@ export default class probit extends Exchange {
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         // {
-        //     id: 'USDT',
-        //     display_name: { 'ko-kr': '테더', 'en-us': 'Tether' },
-        //     show_in_ui: true,
-        //     platform: [
+        //     "id": "USDT",
+        //     "display_name": { "ko-kr": '테더', "en-us": "Tether" },
+        //     "show_in_ui": true,
+        //     "platform": [
         //       {
-        //         id: 'ETH',
-        //         priority: '1',
-        //         deposit: true,
-        //         withdrawal: true,
-        //         currency_id: 'USDT',
-        //         precision: '6',
-        //         min_confirmation_count: '15',
-        //         require_destination_tag: false,
-        //         allow_withdrawal_destination_tag: false,
-        //         display_name: [Object],
-        //         min_deposit_amount: '0',
-        //         min_withdrawal_amount: '1',
-        //         withdrawal_fee: [Array],
-        //         deposit_fee: {},
-        //         suspended_reason: '',
-        //         deposit_suspended: false,
-        //         withdrawal_suspended: false,
-        //         platform_currency_display_name: [Object]
+        //         "id": "ETH",
+        //         "priority": "1",
+        //         "deposit": true,
+        //         "withdrawal": true,
+        //         "currency_id": "USDT",
+        //         "precision": "6",
+        //         "min_confirmation_count": "15",
+        //         "require_destination_tag": false,
+        //         "allow_withdrawal_destination_tag": false,
+        //         "display_name": [Object],
+        //         "min_deposit_amount": "0",
+        //         "min_withdrawal_amount": "1",
+        //         "withdrawal_fee": [Array],
+        //         "deposit_fee": {},
+        //         "suspended_reason": '',
+        //         "deposit_suspended": false,
+        //         "withdrawal_suspended": false,
+        //         "platform_currency_display_name": [Object]
         //       },
         //     ],
-        //     internal_transfer: { suspended_reason: null, suspended: false },
-        //     stakeable: false,
-        //     unstakeable: false,
-        //     auto_stake: false,
-        //     auto_stake_amount: '0'
+        //     "internal_transfer": { suspended_reason: null, suspended: false },
+        //     "stakeable": false,
+        //     "unstakeable": false,
+        //     "auto_stake": false,
+        //     "auto_stake_amount": "0"
         //   }
         //
         const depositWithdrawFee = this.depositWithdrawFee({});
@@ -1820,9 +1815,9 @@ export default class probit extends Exchange {
         const response = await this.accountsPostToken(this.extend(request, params));
         //
         //     {
-        //         access_token: '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-        //         token_type: 'bearer',
-        //         expires_in: 900
+        //         "access_token": "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+        //         "token_type": "bearer",
+        //         "expires_in": 900
         //     }
         //
         const expiresIn = this.safeInteger(response, 'expires_in');

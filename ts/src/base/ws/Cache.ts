@@ -206,8 +206,60 @@ class ArrayCacheBySymbolById extends ArrayCache {
     }
 }
 
+class ArrayCacheBySymbolBySide extends ArrayCache {
+
+    constructor () {
+        super ()
+        this.nestedNewUpdatesBySymbol = true
+        Object.defineProperty (this, 'hashmap', {
+            __proto__: null, // make it invisible
+            value: {},
+            writable: true,
+        })
+    }
+
+    append (item) {
+        const bySide = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {}
+        if (item.side in bySide) {
+            const reference = bySide[item.side]
+            if (reference !== item) {
+                for (const prop in item) {
+                    reference[prop] = item[prop]
+                }
+            }
+            item = reference
+            const index = this.findIndex ((x) => x.symbol === item.symbol && x.side === item.side)
+            // move the order to the end of the array
+            this.splice (index, 1)
+        } else {
+            bySide[item.side] = item
+        }
+        this.push (item)
+        if (this.clearAllUpdates) {
+            this.clearAllUpdates = false
+            this.clearUpdatesBySymbol = {}
+            this.allNewUpdates = 0
+            this.newUpdatesBySymbol = {}
+        }
+        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
+            this.newUpdatesBySymbol[item.symbol] = new Set ()
+        }
+        if (this.clearUpdatesBySymbol[item.symbol]) {
+            this.clearUpdatesBySymbol[item.symbol] = false
+            this.newUpdatesBySymbol[item.symbol].clear ()
+        }
+        // in case an exchange updates the same order id twice
+        const sideSet = this.newUpdatesBySymbol[item.symbol]
+        const beforeLength = sideSet.size
+        sideSet.add (item.side)
+        const afterLength = sideSet.size
+        this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength)
+    }
+}
+
 export {
     ArrayCache,
     ArrayCacheByTimestamp,
     ArrayCacheBySymbolById,
+    ArrayCacheBySymbolBySide,
 };

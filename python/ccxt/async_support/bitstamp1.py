@@ -6,8 +6,8 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitstamp1 import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Int, OrderBook, OrderSide, OrderType, String, Ticker, Trade
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -126,7 +126,7 @@ class bitstamp1(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -141,7 +141,7 @@ class bitstamp1(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # {
         #     "volume": "2836.47827985",
@@ -184,7 +184,7 @@ class bitstamp1(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -211,7 +211,7 @@ class bitstamp1(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public trade
         #
@@ -247,7 +247,7 @@ class bitstamp1(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -277,7 +277,7 @@ class bitstamp1(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -291,7 +291,7 @@ class bitstamp1(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitstamp1 api endpoint
@@ -328,7 +328,7 @@ class bitstamp1(Exchange, ImplicitAPI):
             'id': id,
         })
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -347,7 +347,7 @@ class bitstamp1(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_order_status(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order_status(self, id: str, symbol: String = None, params={}):
         await self.load_markets()
         request = {
             'id': id,
@@ -355,7 +355,7 @@ class bitstamp1(Exchange, ImplicitAPI):
         response = await self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(response)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol

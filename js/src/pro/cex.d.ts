@@ -1,5 +1,5 @@
 import cexRest from '../cex.js';
-import { Int } from '../base/types.js';
+import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
     describe(): any;
@@ -11,11 +11,11 @@ export default class cex extends cexRest {
     parseWsOldTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleTrade(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): any;
+    watchTickers(symbols?: Strings, params?: {}): any;
     handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTransaction(client: Client, message: any): void;
     handleMyTrades(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;

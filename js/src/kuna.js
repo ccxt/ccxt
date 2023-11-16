@@ -10,7 +10,7 @@ import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadR
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Precise } from '../ccxt.js';
+import { Precise } from './base/Precise.js';
 // ---------------------------------------------------------------------------
 /**
  * @class kuna
@@ -602,6 +602,7 @@ export default class kuna extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': item,
             });
         }
@@ -844,17 +845,17 @@ export default class kuna extends Exchange {
         // fetchMyTrades, fetchOrder (private)
         //
         //    {
-        //        id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
-        //        orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
-        //        pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //        quantity: "1.5862",                                // Traded quantity of base asset
-        //        price: "19087",                                    // Price of the trade
-        //        isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //        fee: "0.0039655",                                  // Exchange commission fee
-        //        feeCurrency: "BTC",                                // Currency of the commission
-        //        isBuyer: true,                                     // Buy or sell the base asset
-        //        quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //        createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //        "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //        "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //        "pair": "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //        "quantity": "1.5862",                                // Traded quantity of base asset
+        //        "price": "19087",                                    // Price of the trade
+        //        "isTaker": true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //        "fee": "0.0039655",                                  // Exchange commission fee
+        //        "feeCurrency": "BTC",                                // Currency of the commission
+        //        "isBuyer": true,                                     // Buy or sell the base asset
+        //        "quoteQuantity": "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //        "createdAt": "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
         //    }
         //
         const datetime = this.safeString(trade, 'createdAt');
@@ -1368,17 +1369,17 @@ export default class kuna extends Exchange {
         //    {
         //        "data": [
         //            {
-        //                id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
-        //                orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
-        //                pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //                quantity: "1.5862",                                // Traded quantity of base asset
-        //                price: "19087",                                    // Price of the trade
-        //                isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //                fee: "0.0039655",                                  // Exchange commission fee
-        //                feeCurrency: "BTC",                                // Currency of the commission
-        //                isBuyer: true,                                     // Buy or sell the base asset
-        //                quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //                createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //                "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //                "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //                "pair": "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //                "quantity": "1.5862",                                // Traded quantity of base asset
+        //                "price": "19087",                                    // Price of the trade
+        //                "isTaker": true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //                "fee": "0.0039655",                                  // Exchange commission fee
+        //                "feeCurrency": "BTC",                                // Currency of the commission
+        //                "isBuyer": true,                                     // Buy or sell the base asset
+        //                "quoteQuantity": "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //                "createdAt": "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
         //            },
         //        ]
         //    }
@@ -1463,7 +1464,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
         let currency = undefined;
-        if (currency !== undefined) {
+        if (code !== undefined) {
             currency = this.currency(code);
         }
         const request = {};
@@ -1657,7 +1658,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
         let currency = undefined;
-        if (currency !== undefined) {
+        if (code !== undefined) {
             currency = this.currency(code);
         }
         const request = {};
@@ -1772,6 +1773,7 @@ export default class kuna extends Exchange {
         const type = this.safeStringLower(transaction, 'type');
         const address = this.safeString(transaction, 'address');
         const isDeposit = (type === 'deposit');
+        const parsedType = isDeposit ? type : 'withdrawal';
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
@@ -1784,15 +1786,16 @@ export default class kuna extends Exchange {
             'address': address,
             'addressTo': address,
             'amount': this.safeNumber(transaction, 'amount'),
-            'type': !isDeposit ? 'withdrawal' : type,
+            'type': parsedType,
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'updated': this.parse8601(this.safeString(transaction, 'updatedAt')),
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString(transaction, 'memo'),
+            'internal': undefined,
             'fee': {
-                'cost': this.safeString(transaction, 'fee'),
+                'cost': this.safeNumber(transaction, 'fee'),
                 'currency': code,
             },
         };

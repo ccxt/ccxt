@@ -244,6 +244,7 @@ class Transpiler {
             [ /\.safeCurrency\s/g, '.safe_currency'],
             [ /\.safeSymbol\s/g, '.safe_symbol'],
             [ /\.safeMarket\s/g, '.safe_market'],
+            [ /\.safeMarketStructure\s/g, '.safe_market_structure'],
             [ /\.safeOrder\s/g, '.safe_order'],
             [ /\.safeTicker\s/g, '.safe_ticker'],
             [ /\.roundTimeframe\s/g, '.round_timeframe'],
@@ -310,6 +311,9 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, 'isinstance($1, int)' ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'isinstance($1, str)' ],
             [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
+
+            // convert javascript primitive types to python ones
+            [ /(^\s+(?:let|const|var)\s+\w+:\s+)string/mg, '$1str' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
@@ -538,6 +542,9 @@ class Transpiler {
             [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype($1) === 'array' && array_keys($1) === array_keys(array_keys($1))" ],
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
+            // we want to remove type hinting variable lines
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|string|number);\n/mg, '' ],
+            [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number)(\s+=\s+\w+)/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
@@ -913,21 +920,34 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/ ]
-        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory' ]
+        const matchObject = {
+            'Balances': /-> Balances:/,
+            'Currency': /(-> Currency:|: Currency)/,
+            'Greeks': /-> Greeks:/,
+            'Int': /: Int =/,
+            'MarginMode': /-> MarginMode:/,
+            'Market': /(-> Market:|: Market)/,
+            'Order': /-> Order:/,
+            'OrderBook': /-> OrderBook:/,
+            'OrderRequest': /: (?:List\[)?OrderRequest/,
+            'OrderSide': /: OrderSide/,
+            'OrderType': /: OrderType/,
+            'IndexType': /: IndexType/,
+            'FundingHistory': /\[FundingHistory/,
+            'Num': /: Num =/,
+            'Str': /: Str =/,
+            'Bool': /: Bool =/,
+            'Strings': /: Strings =/,
+            'Ticker': /-> Ticker:/,
+            'Tickers': /-> Tickers:/,
+            'Trade': /-> (?:List\[)?Trade/,
+            'Transaction': /-> (?:List\[)?Transaction/,
+        }
         const matches = []
         let match
-        const listRegex = /: List\[(\w+)\]/g
-        const pythonBuiltIns = [ 'int', 'float', 'str', 'bool', 'dict', 'list']
-        while (match = listRegex.exec (bodyAsString)) {
-            if (!pythonBuiltIns.includes (match[1])) {
-                matches.push (match[1])
-            }
-        }
-        for (let i = 0; i < matchAgainst.length; i++) {
-            const regex = matchAgainst[i]
+        for (const [ object, regex ] of Object.entries (matchObject)) {
             if (bodyAsString.match (regex)) {
-                matches.push (objects[i])
+                matches.push (object)
             }
         }
         if (matches.length) {
@@ -1075,6 +1095,9 @@ class Transpiler {
             }
             if (bodyAsString.match (/Promise\\all/)) {
                 libraryImports.push ('use React\\Promise;')
+            }
+            if (bodyAsString.match (/: PromiseInterface/)) {
+                libraryImports.push ('use React\\Promise\\PromiseInterface;')
             }
         }
 
@@ -1550,20 +1573,16 @@ class Transpiler {
             const phpTypes = {
                 'any': 'mixed',
                 'string': 'string',
+                'Str': '?string',
+                'Strings': '?array',
                 'number': 'float',
                 'boolean': 'bool',
-                'Promise<any>': 'mixed',
-                'Balance': 'array',
                 'IndexType': 'int|string',
-                'Int': 'int',
-                'object': 'array',
-                'object[]': 'mixed',
+                'Int': '?int',
                 'OrderType': 'string',
                 'OrderSide': 'string',
-                'OHLCV': 'array',
-                'Order': 'array',
-                'FundingHistory[]': 'array',
             }
+            const phpArrayRegex = /^(?:Market|Currency|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1582,15 +1601,34 @@ class Transpiler {
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
-                    const resolveType = phpType.slice (-2) === '[]' ? 'array' : phpType
-                    return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
+                    const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
+                    const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
+                    return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
                 .replace (/\{\}/g, 'array ()')
             phpArgs = phpArgs.length ? (phpArgs) : ''
-            const phpReturnType = returnType ? ': ' + (phpTypes[returnType] ?? returnType) : ''
-            const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
+            let syncPhpReturnType = ''
+            let asyncPhpReturnType = ''
+            let promiseReturnTypeMatch = null
+            let syncReturnType = null
+            if (returnType) {
+                promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
+                syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
+                if (syncReturnType.match (phpArrayRegex)) {
+                    syncPhpReturnType = ': array'
+                } else {
+                    syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
+                }
+                if (promiseReturnTypeMatch) {
+                    asyncPhpReturnType = ': PromiseInterface'
+                } else {
+                    asyncPhpReturnType = syncPhpReturnType
+                }
+            }
+            const syncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + syncPhpReturnType + ' {'
+            const asyncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + asyncPhpReturnType + ' {'
 
             // remove excessive spacing from argument defaults in Python method signature
             const pythonTypes = {
@@ -1598,11 +1636,17 @@ class Transpiler {
                 'number': 'float',
                 'any': 'Any',
                 'boolean': 'bool',
-                'Int': 'int',
-                'string[]': 'List[str]',
+                'Int': 'Int',
                 'OHLCV': 'list',
-                'Order': 'Order',
-                'FundingHistory[]': 'List[FundingHistory]',
+            }
+            const unwrapLists = (type) => {
+                const output = []
+                let count = 0
+                while (type.slice (-2) == '[]') {
+                    type = type.slice (0, -2)
+                    count++
+                }
+                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
@@ -1611,19 +1655,10 @@ class Transpiler {
                     const type = typeParts[0]
                     typeParts[0] = ''
                     let variable = parts[0]
-                    const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
+                    // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
                     variable = variable.replace (/\?$/, '')
-                    const isList = type.slice (-2) === '[]'
-                    const searchType = isList ? type.slice (0, -2) : type
-                    let rawType = pythonTypes[searchType] ?? searchType
-                    rawType = isList ? 'List[' + rawType + ']' : rawType
-                    let resolvedType
-                    if (nullable) {
-                        resolvedType = 'Optional[' + rawType + ']'
-                    } else {
-                        resolvedType = rawType
-                    }
-                    return variable + ': ' + resolvedType + typeParts.join (' ')
+                    const rawType = unwrapLists (type)
+                    return variable + ': ' + rawType + typeParts.join (' ')
                 } else {
                     return x.replace (' = ', '=')
                 }
@@ -1640,7 +1675,10 @@ class Transpiler {
             let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             // compile the final Python code for the method signature
-            const pythonReturnType = returnType ? ' -> ' + (pythonTypes[returnType] ?? returnType) : ''
+            let pythonReturnType = ''
+            if (syncReturnType) {
+                pythonReturnType = ' -> ' + unwrapLists (syncReturnType)
+            }
             let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
 
             // compile signature + body for Python sync
@@ -1655,12 +1693,12 @@ class Transpiler {
 
             // compile signature + body for PHP
             php.push ('');
-            php.push (phpSignature);
+            php.push (syncPhpSignature);
             php.push (phpBody);
             php.push ('    ' + '}')
 
             phpAsync.push ('');
-            phpAsync.push (phpSignature);
+            phpAsync.push (asyncPhpSignature);
             phpAsync.push (phpAsyncBody);
             phpAsync.push ('    ' + '}')
         }
@@ -2161,7 +2199,33 @@ class Transpiler {
         const commentEndLine = '***** AUTO-TRANSPILER-END *****';
 
         const mainContent = ts.split (commentStartLine)[1].split (commentEndLine)[0];
-        let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
+        // let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
+        const parserConfig = {
+            'verbose': false,
+            'python':{
+                'uncamelcaseIdentifiers': true,
+            },
+            'php':{
+                'uncamelcaseIdentifiers': true,
+            },
+        };
+        const transpiler = new astTranspiler(parserConfig);
+        let fileConfig = [
+            {
+                language: "php",
+                async: true
+            },
+            {
+                language: "php",
+                async: false
+            },
+            {
+                language: "python",
+                async: true
+            }
+        ]
+        const transpilerResult = transpiler.transpileDifferentLanguages(fileConfig, mainContent);
+        let [ phpAsync, php, python3 ] = [ transpilerResult[0].content, transpilerResult[1].content, transpilerResult[2].content  ];
 
         // ########### PYTHON ###########
         python3 = python3.

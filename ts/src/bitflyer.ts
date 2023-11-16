@@ -5,7 +5,7 @@ import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -301,7 +301,7 @@ export default class bitflyer extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -315,7 +315,7 @@ export default class bitflyer extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitflyer#fetchBalance
@@ -348,7 +348,7 @@ export default class bitflyer extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitflyer#fetchOrderBook
@@ -368,7 +368,7 @@ export default class bitflyer extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeString (ticker, 'ltp');
@@ -396,7 +396,7 @@ export default class bitflyer extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitflyer#fetchTicker
@@ -415,7 +415,7 @@ export default class bitflyer extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public) v1
         //
@@ -480,7 +480,7 @@ export default class bitflyer extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitflyer#fetchTrades
@@ -578,7 +578,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#cancelOrder
@@ -589,9 +589,7 @@ export default class bitflyer extends Exchange {
          * @param {object} [params] extra parameters specific to the bitflyer api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const request = {
             'product_code': this.marketId (symbol),
@@ -611,7 +609,7 @@ export default class bitflyer extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         const timestamp = this.parse8601 (this.safeString (order, 'child_order_date'));
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
@@ -658,7 +656,7 @@ export default class bitflyer extends Exchange {
         }, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}) {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitflyer#fetchOrders
@@ -670,9 +668,7 @@ export default class bitflyer extends Exchange {
          * @param {object} [params] extra parameters specific to the bitflyer api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -687,7 +683,7 @@ export default class bitflyer extends Exchange {
         return orders;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitflyer#fetchOpenOrders
@@ -705,7 +701,7 @@ export default class bitflyer extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitflyer#fetchClosedOrders
@@ -723,7 +719,7 @@ export default class bitflyer extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchOrder
@@ -733,9 +729,7 @@ export default class bitflyer extends Exchange {
          * @param {object} [params] extra parameters specific to the bitflyer api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol ('fetchOrder', symbol);
         const orders = await this.fetchOrders (symbol);
         const ordersById = this.indexBy (orders, 'id');
         if (id in ordersById) {
@@ -744,7 +738,7 @@ export default class bitflyer extends Exchange {
         throw new OrderNotFound (this.id + ' No order found with id ' + id);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchMyTrades
@@ -756,9 +750,7 @@ export default class bitflyer extends Exchange {
          * @param {object} [params] extra parameters specific to the bitflyer api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -785,7 +777,7 @@ export default class bitflyer extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchPositions
@@ -857,7 +849,7 @@ export default class bitflyer extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitflyer#fetchDeposits
@@ -896,7 +888,7 @@ export default class bitflyer extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitflyer#fetchWithdrawals
@@ -953,7 +945,7 @@ export default class bitflyer extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1028,6 +1020,7 @@ export default class bitflyer extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
+            'comment': undefined,
             'internal': undefined,
             'fee': fee,
         };

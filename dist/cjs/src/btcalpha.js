@@ -169,68 +169,66 @@ class btcalpha extends btcalpha$1 {
         //        },
         //    ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString(market, 'name');
-            const baseId = this.safeString(market, 'currency1');
-            const quoteId = this.safeString(market, 'currency2');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const pricePrecision = this.safeString(market, 'price_precision');
-            const priceLimit = this.parsePrecision(pricePrecision);
-            const amountLimit = this.safeString(market, 'minimum_order_size');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
-                    'price': this.parseNumber(this.parsePrecision((pricePrecision))),
+        return this.parseMarkets(response);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'name');
+        const baseId = this.safeString(market, 'currency1');
+        const quoteId = this.safeString(market, 'currency2');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const pricePrecision = this.safeString(market, 'price_precision');
+        const priceLimit = this.parsePrecision(pricePrecision);
+        const amountLimit = this.safeString(market, 'minimum_order_size');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
+                'price': this.parseNumber(this.parsePrecision((pricePrecision))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.parseNumber(amountLimit),
-                        'max': this.safeNumber(market, 'maximum_order_size'),
-                    },
-                    'price': {
-                        'min': this.parseNumber(priceLimit),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.parseNumber(Precise["default"].stringMul(priceLimit, amountLimit)),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.parseNumber(amountLimit),
+                    'max': this.safeNumber(market, 'maximum_order_size'),
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': this.parseNumber(priceLimit),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.parseNumber(Precise["default"].stringMul(priceLimit, amountLimit)),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -247,15 +245,15 @@ class btcalpha extends btcalpha$1 {
         //
         //    [
         //        {
-        //            timestamp: '1674658.445272',
-        //            pair: 'BTC_USDT',
-        //            last: '22476.85',
-        //            diff: '458.96',
-        //            vol: '6660.847784',
-        //            high: '23106.08',
-        //            low: '22348.29',
-        //            buy: '22508.46',
-        //            sell: '22521.11'
+        //            "timestamp": "1674658.445272",
+        //            "pair": "BTC_USDT",
+        //            "last": "22476.85",
+        //            "diff": "458.96",
+        //            "vol": "6660.847784",
+        //            "high": "23106.08",
+        //            "low": "22348.29",
+        //            "buy": "22508.46",
+        //            "sell": "22521.11"
         //        },
         //        ...
         //    ]
@@ -280,15 +278,15 @@ class btcalpha extends btcalpha$1 {
         const response = await this.publicGetTicker(this.extend(request, params));
         //
         //    {
-        //        timestamp: '1674658.445272',
-        //        pair: 'BTC_USDT',
-        //        last: '22476.85',
-        //        diff: '458.96',
-        //        vol: '6660.847784',
-        //        high: '23106.08',
-        //        low: '22348.29',
-        //        buy: '22508.46',
-        //        sell: '22521.11'
+        //        "timestamp": "1674658.445272",
+        //        "pair": "BTC_USDT",
+        //        "last": "22476.85",
+        //        "diff": "458.96",
+        //        "vol": "6660.847784",
+        //        "high": "23106.08",
+        //        "low": "22348.29",
+        //        "buy": "22508.46",
+        //        "sell": "22521.11"
         //    }
         //
         return this.parseTicker(response, market);
@@ -296,15 +294,15 @@ class btcalpha extends btcalpha$1 {
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //        timestamp: '1674658.445272',
-        //        pair: 'BTC_USDT',
-        //        last: '22476.85',
-        //        diff: '458.96',
-        //        vol: '6660.847784',
-        //        high: '23106.08',
-        //        low: '22348.29',
-        //        buy: '22508.46',
-        //        sell: '22521.11'
+        //        "timestamp": "1674658.445272",
+        //        "pair": "BTC_USDT",
+        //        "last": "22476.85",
+        //        "diff": "458.96",
+        //        "vol": "6660.847784",
+        //        "high": "23106.08",
+        //        "low": "22348.29",
+        //        "buy": "22508.46",
+        //        "sell": "22521.11"
         //    }
         //
         const timestampStr = this.safeString(ticker, 'timestamp');
@@ -542,6 +540,7 @@ class btcalpha extends btcalpha$1 {
             'type': undefined,
             'status': this.parseTransactionStatus(statusId),
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'updated': undefined,
         };

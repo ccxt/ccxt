@@ -158,80 +158,78 @@ class oceanex extends oceanex$1 {
         const response = await this.publicGetMarkets(this.extend(request, params));
         //
         //    {
-        //        id: 'xtzusdt',
-        //        name: 'XTZ/USDT',
-        //        ask_precision: '8',
-        //        bid_precision: '8',
-        //        enabled: true,
-        //        price_precision: '4',
-        //        amount_precision: '3',
-        //        usd_precision: '4',
-        //        minimum_trading_amount: '1.0'
+        //        "id": "xtzusdt",
+        //        "name": "XTZ/USDT",
+        //        "ask_precision": "8",
+        //        "bid_precision": "8",
+        //        "enabled": true,
+        //        "price_precision": "4",
+        //        "amount_precision": "3",
+        //        "usd_precision": "4",
+        //        "minimum_trading_amount": "1.0"
         //    },
         //
-        const result = [];
         const markets = this.safeValue(response, 'data', []);
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeValue(market, 'id');
-            const name = this.safeValue(market, 'name');
-            let [baseId, quoteId] = name.split('/');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            baseId = baseId.toLowerCase();
-            quoteId = quoteId.toLowerCase();
-            const symbol = base + '/' + quote;
-            result.push({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'price_precision'))),
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeValue(market, 'id');
+        const name = this.safeValue(market, 'name');
+        let [baseId, quoteId] = name.split('/');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        baseId = baseId.toLowerCase();
+        quoteId = quoteId.toLowerCase();
+        const symbol = base + '/' + quote;
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'price_precision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber(market, 'minimum_trading_amount'),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber(market, 'minimum_trading_amount'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -721,13 +719,11 @@ class oceanex extends oceanex$1 {
          * @see https://api.oceanex.pro/doc/v1/#order-status-with-filters-post
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const states = this.safeValue(params, 'states', ['wait', 'done', 'cancel']);

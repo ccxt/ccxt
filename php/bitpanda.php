@@ -303,8 +303,8 @@ class bitpanda extends Exchange {
         $response = $this->publicGetTime ($params);
         //
         //     {
-        //         iso => '2020-07-10T05:17:26.716Z',
-        //         epoch_millis => 1594358246716,
+        //         "iso" => "2020-07-10T05:17:26.716Z",
+        //         "epoch_millis" => 1594358246716,
         //     }
         //
         return $this->safe_integer($response, 'epoch_millis');
@@ -354,83 +354,82 @@ class bitpanda extends Exchange {
         /**
          * retrieves data on all markets for bitpanda
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetInstruments ($params);
         //
         //     array(
         //         {
-        //             $state => 'ACTIVE',
-        //             $base => array( code => 'ETH', precision => 8 ),
-        //             $quote => array( code => 'CHF', precision => 2 ),
-        //             amount_precision => 4,
-        //             market_precision => 2,
-        //             min_size => '10.0'
+        //             "state" => "ACTIVE",
+        //             "base" => array( code => "ETH", precision => 8 ),
+        //             "quote" => array( code => "CHF", precision => 2 ),
+        //             "amount_precision" => 4,
+        //             "market_precision" => 2,
+        //             "min_size" => "10.0"
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            $baseAsset = $this->safe_value($market, 'base', array());
-            $quoteAsset = $this->safe_value($market, 'quote', array());
-            $baseId = $this->safe_string($baseAsset, 'code');
-            $quoteId = $this->safe_string($quoteAsset, 'code');
-            $id = $baseId . '_' . $quoteId;
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $state = $this->safe_string($market, 'state');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => ($state === 'ACTIVE'),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'market_precision'))),
+        return $this->parse_markets($response);
+    }
+
+    public function parse_market($market): array {
+        $baseAsset = $this->safe_value($market, 'base', array());
+        $quoteAsset = $this->safe_value($market, 'quote', array());
+        $baseId = $this->safe_string($baseAsset, 'code');
+        $quoteId = $this->safe_string($quoteAsset, 'code');
+        $id = $baseId . '_' . $quoteId;
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $state = $this->safe_string($market, 'state');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($state === 'ACTIVE'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'market_precision'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'min_size'),
-                        'max' => null,
-                    ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'created' => null,
-                'info' => $market,
-            );
-        }
-        return $result;
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'min_size'),
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -537,7 +536,7 @@ class bitpanda extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers($feeTiers, $market = null) {
+    public function parse_fee_tiers($feeTiers, ?array $market = null) {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -556,7 +555,7 @@ class bitpanda extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -609,7 +608,7 @@ class bitpanda extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -643,7 +642,7 @@ class bitpanda extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
@@ -682,7 +681,7 @@ class bitpanda extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -764,7 +763,7 @@ class bitpanda extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -807,7 +806,7 @@ class bitpanda extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -852,7 +851,7 @@ class bitpanda extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -934,7 +933,7 @@ class bitpanda extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -974,7 +973,7 @@ class bitpanda extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -989,7 +988,7 @@ class bitpanda extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitpanda api endpoint
@@ -1016,7 +1015,7 @@ class bitpanda extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         $code = null;
         if ($currency !== null) {
             $code = $currency['code'];
@@ -1082,7 +1081,7 @@ class bitpanda extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made $to an account
          * @param {string} $code unified $currency $code
@@ -1145,7 +1144,7 @@ class bitpanda extends Exchange {
         return $this->parse_transactions($depositHistory, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -1268,7 +1267,7 @@ class bitpanda extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits, fetchWithdrawals
         //
@@ -1339,6 +1338,8 @@ class bitpanda extends Exchange {
             'type' => null,
             'updated' => null,
             'txid' => $this->safe_string($transaction, 'blockchain_transaction_id'),
+            'comment' => null,
+            'internal' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fee' => $fee,
@@ -1360,7 +1361,7 @@ class bitpanda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1675,7 +1676,7 @@ class bitpanda extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -1794,7 +1795,7 @@ class bitpanda extends Exchange {
         return $this->parse_orders($orderHistory, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in

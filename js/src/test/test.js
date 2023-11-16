@@ -33,7 +33,10 @@ class baseMainTestClass {
     constructor() {
         this.lang = 'JS';
         this.idTests = false;
-        this.staticTestsFailed = false;
+        this.requestTestsFailed = false;
+        this.responseTestsFailed = false;
+        this.requestTests = false;
+        this.responseTests = false;
         this.staticTests = false;
         this.info = false;
         this.verbose = false;
@@ -45,11 +48,15 @@ class baseMainTestClass {
         this.checkedPublicTests = {};
         this.testFiles = {};
         this.publicTests = {};
+        this.rootDir = DIR_NAME + '/../../../';
+        this.rootDirForSkips = DIR_NAME + '/../../../';
+        this.envVars = process.env;
+        this.ext = import.meta.url.split('.')[1];
     }
 }
-const rootDir = DIR_NAME + '/../../../';
-const rootDirForSkips = DIR_NAME + '/../../../';
-const envVars = process.env;
+// const rootDir = DIR_NAME + '/../../../';
+// const rootDirForSkips = DIR_NAME + '/../../../';
+// const envVars = process.env;
 const LOG_CHARS_LENGTH = 10000;
 const ext = import.meta.url.split('.')[1];
 function dump(...args) {
@@ -59,7 +66,7 @@ function jsonParse(elem) {
     return JSON.parse(elem);
 }
 function jsonStringify(elem) {
-    return JSON.stringify(elem);
+    return JSON.stringify(elem, (k, v) => (v === undefined ? null : v)); // preserve undefined values and convert them to null
 }
 function getCliArgValue(arg) {
     return process.argv.includes(arg) || false;
@@ -85,6 +92,10 @@ async function callMethod(testFiles, methodName, exchange, skippedProperties, ar
 async function callExchangeMethodDynamically(exchange, methodName, args) {
     // used for calling actual exchange methods
     return await exchange[methodName](...args);
+}
+async function callOverridenMethod(exchange, methodName, args) {
+    // needed in PHP here is just a bridge
+    return await callExchangeMethodDynamically(exchange, methodName, args);
 }
 function exceptionMessage(exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice(0, LOG_CHARS_LENGTH);
@@ -126,6 +137,13 @@ async function setTestFiles(holderClass, properties) {
         }
     }
 }
+function setFetchResponse(exchange, mockResponse) {
+    exchange.fetch = async (url, method = 'GET', headers = undefined, body = undefined) => mockResponse;
+    return exchange;
+}
+function isNullValue(value) {
+    return value === null;
+}
 async function close(exchange) {
     // stub
 }
@@ -133,8 +151,9 @@ async function close(exchange) {
 // ***** AUTO-TRANSPILER-START *****
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs() {
+        this.responseTests = getCliArgValue('--responseTests');
         this.idTests = getCliArgValue('--idTests');
-        this.staticTests = getCliArgValue('--static');
+        this.requestTests = getCliArgValue('--requestTests');
         this.info = getCliArgValue('--info');
         this.verbose = getCliArgValue('--verbose');
         this.debug = getCliArgValue('--debug');
@@ -144,8 +163,12 @@ export default class testMainClass extends baseMainTestClass {
     }
     async init(exchangeId, symbol) {
         this.parseCliArgs();
-        if (this.staticTests) {
-            await this.runStaticTests(exchangeId, symbol); // symbol here is the testname
+        if (this.responseTests) {
+            await this.runStaticResponseTests(exchangeId, symbol);
+            return;
+        }
+        if (this.requestTests) {
+            await this.runStaticRequestTests(exchangeId, symbol); // symbol here is the testname
             return;
         }
         if (this.idTests) {
@@ -153,7 +176,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         const symbolStr = symbol !== undefined ? symbol : 'all';
-        dump('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
+        dump('\nTESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -174,8 +197,8 @@ export default class testMainClass extends baseMainTestClass {
     }
     expandSettings(exchange, symbol) {
         const exchangeId = exchange.id;
-        const keysGlobal = rootDir + 'keys.json';
-        const keysLocal = rootDir + 'keys.local.json';
+        const keysGlobal = this.rootDir + 'keys.json';
+        const keysLocal = this.rootDir + 'keys.local.json';
         const keysGlobalExists = ioFileExists(keysGlobal);
         const keysLocalExists = ioFileExists(keysLocal);
         const globalSettings = keysGlobalExists ? ioFileRead(keysGlobal) : {};
@@ -208,14 +231,14 @@ export default class testMainClass extends baseMainTestClass {
             if (isRequired && getExchangeProp(exchange, credential) === undefined) {
                 const fullKey = exchangeId + '_' + credential;
                 const credentialEnvName = fullKey.toUpperCase(); // example: KRAKEN_APIKEY
-                const credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
+                const credentialValue = (credentialEnvName in this.envVars) ? this.envVars[credentialEnvName] : undefined;
                 if (credentialValue) {
                     setExchangeProp(exchange, credential, credentialValue);
                 }
             }
         }
         // skipped tests
-        const skippedFile = rootDirForSkips + 'skip-tests.json';
+        const skippedFile = this.rootDirForSkips + 'skip-tests.json';
         const skippedSettings = ioFileRead(skippedFile);
         const skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, {});
         // others
@@ -230,7 +253,8 @@ export default class testMainClass extends baseMainTestClass {
     addPadding(message, size) {
         // has to be transpilable
         let res = '';
-        const missingSpace = size - message.length - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
+        const messageLength = message.length; // avoid php transpilation issue
+        const missingSpace = size - messageLength - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if (missingSpace > 0) {
             for (let i = 0; i < missingSpace; i++) {
                 res += ' ';
@@ -778,12 +802,16 @@ export default class testMainClass extends baseMainTestClass {
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        const filename = rootDir + './ts/src/test/static/markets/' + id + '.json';
+        const filename = this.rootDir + './ts/src/test/static/markets/' + id + '.json';
         const content = ioFileRead(filename);
         return content;
     }
-    loadStaticData(targetExchange = undefined) {
-        const folder = rootDir + './ts/src/test/static/data/';
+    loadCurrenciesFromFile(id) {
+        const filename = this.rootDir + './ts/src/test/static/currencies/' + id + '.json';
+        const content = ioFileRead(filename);
+        return content;
+    }
+    loadStaticData(folder, targetExchange = undefined) {
         const result = {};
         if (targetExchange) {
             // read a single exchange
@@ -827,13 +855,27 @@ export default class testMainClass extends baseMainTestClass {
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
             const keyValue = part.split('=');
+            const keysLength = keyValue.length;
+            if (keysLength !== 2) {
+                continue;
+            }
             const key = keyValue[0];
-            const value = keyValue[1];
+            let value = keyValue[1];
+            if ((value !== undefined) && ((value.startsWith('[')) || (value.startsWith('{')))) {
+                // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
+                value = jsonParse(value);
+            }
             result[key] = value;
         }
         return result;
     }
-    assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput) {
+    assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput, strictTypeCheck = true) {
+        if (isNullValue(newOutput) && isNullValue(storedOutput)) {
+            return;
+        }
+        if (!newOutput && !storedOutput) {
+            return;
+        }
         if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
             const storedOutputKeys = Object.keys(storedOutput);
             const newOutputKeys = Object.keys(newOutput);
@@ -851,7 +893,7 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
-                this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue);
+                this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck);
             }
         }
         else if (Array.isArray(storedOutput) && (Array.isArray(newOutput))) {
@@ -861,16 +903,37 @@ export default class testMainClass extends baseMainTestClass {
             for (let i = 0; i < storedOutput.length; i++) {
                 const storedItem = storedOutput[i];
                 const newItem = newOutput[i];
-                this.assertNewAndStoredOutput(exchange, skipKeys, newItem, storedItem);
+                this.assertNewAndStoredOutput(exchange, skipKeys, newItem, storedItem, strictTypeCheck);
             }
         }
         else {
             // built-in types like strings, numbers, booleans
-            const messageError = 'output value mismatch:' + newOutput.toString() + ' != ' + storedOutput.toString();
-            this.assertStaticError(newOutput === storedOutput, messageError, storedOutput, newOutput);
+            const sanitizedNewOutput = (!newOutput) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
+            const sanitizedStoredOutput = (!storedOutput) ? undefined : storedOutput;
+            const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString() : "undefined";
+            const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString() : "undefined";
+            const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
+            if (strictTypeCheck) {
+                // upon building the request we want strict type check to make sure all the types are correct
+                // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
+                this.assertStaticError(sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput);
+            }
+            else {
+                const isBoolean = (typeof sanitizedNewOutput === 'boolean') || (typeof sanitizedStoredOutput === 'boolean');
+                const isString = (typeof sanitizedNewOutput === 'string') || (typeof sanitizedStoredOutput === 'string');
+                const isUndefined = (sanitizedNewOutput === undefined) || (sanitizedStoredOutput === undefined); // undefined is a perfetly valid value
+                if (isBoolean || isString || isUndefined) {
+                    this.assertStaticError(newOutputString === storedOutputString, messageError, storedOutput, newOutput);
+                }
+                else {
+                    const numericNewOutput = exchange.parseToNumeric(newOutputString);
+                    const numericStoredOutput = exchange.parseToNumeric(storedOutputString);
+                    this.assertStaticError(numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput);
+                }
+            }
         }
     }
-    assertStaticOutput(exchange, type, skipKeys, storedUrl, requestUrl, storedOutput, newOutput) {
+    assertStaticRequestOutput(exchange, type, skipKeys, storedUrl, requestUrl, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
             const firstPath = this.removeHostnamefromUrl(storedUrl);
@@ -883,8 +946,15 @@ export default class testMainClass extends baseMainTestClass {
             if ((storedUrl !== undefined) && (requestUrl !== undefined)) {
                 const storedUrlParts = storedUrl.split('?');
                 const newUrlParts = requestUrl.split('?');
-                const storedUrlParams = this.urlencodedToDict(storedUrlParts[1]);
-                const newUrlParams = this.urlencodedToDict(newUrlParts[1]);
+                const storedUrlQuery = exchange.safeValue(storedUrlParts, 1);
+                const newUrlQuery = exchange.safeValue(newUrlParts, 1);
+                if ((storedUrlQuery === undefined) && (newUrlQuery === undefined)) {
+                    // might be a get request without any query parameters
+                    // example: https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return;
+                }
+                const storedUrlParams = this.urlencodedToDict(storedUrlQuery);
+                const newUrlParams = this.urlencodedToDict(newUrlQuery);
                 this.assertNewAndStoredOutput(exchange, skipKeys, newUrlParams, storedUrlParams);
                 return;
             }
@@ -904,11 +974,31 @@ export default class testMainClass extends baseMainTestClass {
         }
         this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
     }
+    assertStaticResponseOutput(exchange, skipKeys, computedResult, storedResult) {
+        this.assertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false);
+    }
+    sanitizeDataInput(input) {
+        // remove nulls and replace with unefined instead
+        if (input === undefined) {
+            return undefined;
+        }
+        const newInput = [];
+        for (let i = 0; i < input.length; i++) {
+            const current = input[i];
+            if (isNullValue(current)) {
+                newInput.push(undefined);
+            }
+            else {
+                newInput.push(current);
+            }
+        }
+        return newInput;
+    }
     async testMethodStatically(exchange, method, data, type, skipKeys) {
         let output = undefined;
         let requestUrl = undefined;
         try {
-            await callExchangeMethodDynamically(exchange, method, data['input']);
+            await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input']));
         }
         catch (e) {
             if (!(e instanceof NetworkError)) {
@@ -921,19 +1011,36 @@ export default class testMainClass extends baseMainTestClass {
         }
         try {
             const callOutput = exchange.safeValue(data, 'output');
-            this.assertStaticOutput(exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
+            this.assertStaticRequestOutput(exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
         }
         catch (e) {
-            this.staticTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            this.requestTestsFailed = true;
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump(errorMessage);
         }
     }
+    async testResponseStatically(exchange, method, skipKeys, data) {
+        const expectedResult = exchange.safeValue(data, 'parsedResponse');
+        const mockedExchange = setFetchResponse(exchange, data['httpResponse']);
+        try {
+            const unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input']));
+            this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+        }
+        catch (e) {
+            this.requestTestsFailed = true;
+            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            dump(errorMessage);
+        }
+        setFetchResponse(exchange, undefined); // reset state
+    }
     initOfflineExchange(exchangeName) {
         const markets = this.loadMarketsFromFile(exchangeName);
-        return initExchange(exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999 } });
+        const currencies = this.loadCurrenciesFromFile(exchangeName);
+        const exchange = initExchange(exchangeName, { 'markets': markets, 'enableRateLimit': false, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
+        exchange.currencies = currencies; // not working in python if assigned  in the config dict
+        return exchange;
     }
-    async testExchangeStatically(exchangeName, exchangeData, testName = undefined) {
+    async testExchangeRequestStatically(exchangeName, exchangeData, testName = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange(exchangeName);
         const methods = exchange.safeValue(exchangeData, 'methods', {});
@@ -954,6 +1061,27 @@ export default class testMainClass extends baseMainTestClass {
         }
         await close(exchange);
     }
+    async testExchangeResponseStatically(exchangeName, exchangeData, testName = undefined) {
+        const exchange = this.initOfflineExchange(exchangeName);
+        const methods = exchange.safeValue(exchangeData, 'methods', {});
+        const options = exchange.safeValue(exchangeData, 'options', {});
+        exchange.options = exchange.deepExtend(exchange.options, options); // custom options to be used in the tests
+        const methodsNames = Object.keys(methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            for (let j = 0; j < results.length; j++) {
+                const result = results[j];
+                const description = exchange.safeValue(result, 'description');
+                if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
+                const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
+                await this.testResponseStatically(exchange, method, skipKeys, result);
+            }
+        }
+        await close(exchange);
+    }
     getNumberOfTestsFromExchange(exchange, exchangeData) {
         let sum = 0;
         const methods = exchangeData['methods'];
@@ -966,8 +1094,12 @@ export default class testMainClass extends baseMainTestClass {
         }
         return sum;
     }
-    async runStaticTests(targetExchange = undefined, testName = undefined) {
-        const staticData = this.loadStaticData(targetExchange);
+    async runStaticRequestTests(targetExchange = undefined, testName = undefined) {
+        await this.runStaticTests('request', targetExchange, testName);
+    }
+    async runStaticTests(type, targetExchange = undefined, testName = undefined) {
+        const folder = this.rootDir + './ts/src/test/static/' + type + '/';
+        const staticData = this.loadStaticData(folder, targetExchange);
         const exchanges = Object.keys(staticData);
         const exchange = initExchange('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
@@ -983,17 +1115,28 @@ export default class testMainClass extends baseMainTestClass {
             const exchangeData = staticData[exchangeName];
             const numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData);
             sum = exchange.sum(sum, numberOfTests);
-            promises.push(this.testExchangeStatically(exchangeName, exchangeData, testName));
+            if (type === 'request') {
+                promises.push(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
+            }
+            else {
+                promises.push(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
+            }
         }
         await Promise.all(promises);
-        if (this.staticTestsFailed) {
+        if (this.requestTestsFailed || this.responseTestsFailed) {
             exitScript(1);
         }
         else {
-            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString() + ' static tests passed.';
+            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString() + ' static ' + type + ' tests passed.';
             dump(successMessage);
             exitScript(0);
         }
+    }
+    async runStaticResponseTests(exchangeName = undefined, test = undefined) {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of mockResponses tests functions------------------------------------
+        //  -----------------------------------------------------------------------------
+        await this.runStaticTests('response', exchangeName, test);
     }
     async runBrokerIdTests() {
         //  -----------------------------------------------------------------------------
@@ -1009,7 +1152,9 @@ export default class testMainClass extends baseMainTestClass {
             this.testBitget(),
             this.testMexc(),
             this.testHuobi(),
-            this.testWoo()
+            this.testWoo(),
+            this.testBitmart(),
+            this.testCoinex()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1221,6 +1366,36 @@ export default class testMainClass extends baseMainTestClass {
         const clientOrderIdSpot = stopOrderRequest['brokerId'];
         assert(clientOrderIdSpot.startsWith(id), 'brokerId does not start with id');
         await close(woo);
+    }
+    async testBitmart() {
+        const bitmart = this.initOfflineExchange('bitmart');
+        let reqHeaders = undefined;
+        const id = 'CCXTxBitmart000';
+        assert(bitmart.options['brokerId'] === id, 'id not in options');
+        await bitmart.loadMarkets();
+        try {
+            await bitmart.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            reqHeaders = bitmart.last_request_headers;
+        }
+        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'id not in headers');
+        await close(bitmart);
+    }
+    async testCoinex() {
+        const exchange = this.initOfflineExchange('coinex');
+        const id = 'x-167673045';
+        assert(exchange.options['brokerId'] === id, 'id not in options');
+        let spotOrderRequest = undefined;
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            spotOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        const clientOrderId = spotOrderRequest['client_id'];
+        assert(clientOrderId.startsWith(id), 'clientOrderId does not start with id');
+        await close(exchange);
     }
 }
 // ***** AUTO-TRANSPILER-END *****

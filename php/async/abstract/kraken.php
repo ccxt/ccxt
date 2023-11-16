@@ -136,21 +136,6 @@ abstract class kraken extends \ccxt\async\Exchange {
     public function private_post_wallettransfer($params = array()) {
         return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
-    public function private_post_stake($params = array()) {
-        return $this->request('Stake', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function private_post_unstake($params = array()) {
-        return $this->request('Unstake', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function private_post_staking_assets($params = array()) {
-        return $this->request('Staking/Assets', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function private_post_staking_pending($params = array()) {
-        return $this->request('Staking/Pending', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function private_post_staking_transactions($params = array()) {
-        return $this->request('Staking/Transactions', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
     public function private_post_createsubaccount($params = array()) {
         return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
@@ -303,21 +288,6 @@ abstract class kraken extends \ccxt\async\Exchange {
     }
     public function privatePostWalletTransfer($params = array()) {
         return $this->request('WalletTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostStake($params = array()) {
-        return $this->request('Stake', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostUnstake($params = array()) {
-        return $this->request('Unstake', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostStakingAssets($params = array()) {
-        return $this->request('Staking/Assets', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostStakingPending($params = array()) {
-        return $this->request('Staking/Pending', 'private', 'POST', $params, null, null, array("cost" => 3));
-    }
-    public function privatePostStakingTransactions($params = array()) {
-        return $this->request('Staking/Transactions', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostCreateSubaccount($params = array()) {
         return $this->request('CreateSubaccount', 'private', 'POST', $params, null, null, array("cost" => 3));

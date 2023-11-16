@@ -57,7 +57,7 @@ class bingx extends bingx$1 {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
-                'setMagin': true,
+                'setMargin': true,
                 'setMarginMode': true,
                 'transfer': true,
             },
@@ -384,32 +384,32 @@ class bingx extends bingx$1 {
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
         //
         //    {
-        //        'code': 0,
-        //        'timestamp': 1688045966616,
-        //        'data': [
+        //        "code": 0,
+        //        "timestamp": 1688045966616,
+        //        "data": [
         //            {
-        //              coin: 'BTC',
-        //              name: 'BTC',
-        //              networkList: [
+        //              "coin": "BTC",
+        //              "name": "BTC",
+        //              "networkList": [
         //                {
-        //                  name: 'BTC',
-        //                  network: 'BTC',
-        //                  isDefault: true,
-        //                  minConfirm: '2',
-        //                  withdrawEnable: true,
-        //                  withdrawFee: '0.00035',
-        //                  withdrawMax: '1.62842',
-        //                  withdrawMin: '0.0005'
+        //                  "name": "BTC",
+        //                  "network": "BTC",
+        //                  "isDefault": true,
+        //                  "minConfirm": "2",
+        //                  "withdrawEnable": true,
+        //                  "withdrawFee": "0.00035",
+        //                  "withdrawMax": "1.62842",
+        //                  "withdrawMin": "0.0005"
         //                },
         //                {
-        //                  name: 'BTC',
-        //                  network: 'BEP20',
-        //                  isDefault: false,
-        //                  minConfirm: '15',
-        //                  withdrawEnable: true,
-        //                  withdrawFee: '0.00001',
-        //                  withdrawMax: '1.62734',
-        //                  withdrawMin: '0.0001'
+        //                  "name": "BTC",
+        //                  "network": "BEP20",
+        //                  "isDefault": false,
+        //                  "minConfirm": "15",
+        //                  "withdrawEnable": true,
+        //                  "withdrawFee": "0.00001",
+        //                  "withdrawMax": "1.62734",
+        //                  "withdrawMin": "0.0001"
         //                }
         //              ]
         //          },
@@ -496,13 +496,9 @@ class bingx extends bingx$1 {
         //         }
         //    }
         //
-        const result = [];
         const data = this.safeValue(response, 'data');
         const markets = this.safeValue(data, 'symbols', []);
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
-        }
-        return result;
+        return this.parseMarkets(markets);
     }
     async fetchSwapMarkets(params) {
         const response = await this.swapV2PublicGetQuoteContracts(params);
@@ -529,12 +525,8 @@ class bingx extends bingx$1 {
         //        ]
         //    }
         //
-        const result = [];
-        const markets = this.safeValue(response, 'data');
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
-        }
-        return result;
+        const markets = this.safeValue(response, 'data', []);
+        return this.parseMarkets(markets);
     }
     parseMarket(market) {
         const id = this.safeString(market, 'symbol');
@@ -839,15 +831,15 @@ class bingx extends bingx$1 {
         // fetchMyTrades
         //
         //    {
-        //        volume: '0.1',
-        //        price: '106.75',
-        //        amount: '10.6750',
-        //        commission: '-0.0053',
-        //        currency: 'USDT',
-        //        orderId: '1676213270274379776',
-        //        liquidatedPrice: '0.00',
-        //        liquidatedMarginRatio: '0.00',
-        //        filledTime: '2023-07-04T20:56:01.000+0800'
+        //        "volume": "0.1",
+        //        "price": "106.75",
+        //        "amount": "10.6750",
+        //        "commission": "-0.0053",
+        //        "currency": "USDT",
+        //        "orderId": "1676213270274379776",
+        //        "liquidatedPrice": "0.00",
+        //        "liquidatedMarginRatio": "0.00",
+        //        "filledTime": "2023-07-04T20:56:01.000+0800"
         //    }
         //
         //
@@ -856,24 +848,24 @@ class bingx extends bingx$1 {
         // spot
         //
         //    {
-        //        E: 1690214529432,
-        //        T: 1690214529386,
-        //        e: 'trade',
-        //        m: true,
-        //        p: '29110.19',
-        //        q: '0.1868',
-        //        s: 'BTC-USDT',
-        //        t: '57903921'
+        //        "E": 1690214529432,
+        //        "T": 1690214529386,
+        //        "e": "trade",
+        //        "m": true,
+        //        "p": "29110.19",
+        //        "q": "0.1868",
+        //        "s": "BTC-USDT",
+        //        "t": "57903921"
         //    }
         //
         // swap
         //
         //    {
-        //        q: '0.0421',
-        //        p: '29023.5',
-        //        T: 1690221401344,
-        //        m: false,
-        //        s: 'BTC-USDT'
+        //        "q": "0.0421",
+        //        "p": "29023.5",
+        //        "T": 1690221401344,
+        //        "m": false,
+        //        "s": "BTC-USDT"
         //    }
         //
         let time = this.safeIntegerN(trade, ['time', 'filledTm', 'T']);
@@ -1151,7 +1143,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1235,7 +1227,16 @@ class bingx extends bingx$1 {
         //          "quoteVolume": "4151395117.73",
         //          "openPrice": "16832.0",
         //          "openTime": 1672026667803,
-        //          "closeTime": 1672026648425
+        //          "closeTime": 1672026648425,
+        //  added some time ago:
+        //          "firstId": 12345,
+        //          "lastId": 12349,
+        //          "count": 5,
+        //  added 2023-11-10:
+        //          "bidPrice": 16726.0,
+        //          "bidQty": 0.05,
+        //          "askPrice": 16726.0,
+        //          "askQty": 0.05,
         //        }
         //    }
         //
@@ -1286,7 +1287,16 @@ class bingx extends bingx$1 {
         //                "quoteVolume": "4151395117.73",
         //                "openPrice": "16832.0",
         //                "openTime": 1672026667803,
-        //                "closeTime": 1672026648425
+        //                "closeTime": 1672026648425,
+        //  added some time ago:
+        //                "firstId": 12345,
+        //                "lastId": 12349,
+        //                "count": 5,
+        //  added 2023-11-10:
+        //                "bidPrice": 16726.0,
+        //                "bidQty": 0.05,
+        //                "askPrice": 16726.0,
+        //                "askQty": 0.05,
         //            },
         //        ]
         //    }
@@ -1298,15 +1308,24 @@ class bingx extends bingx$1 {
         //
         // spot
         //    {
-        //        symbol: 'BTC-USDT',
-        //        openPrice: '26032.08',
-        //        highPrice: '26178.86',
-        //        lowPrice: '25968.18',
-        //        lastPrice: '26113.60',
-        //        volume: '1161.79',
-        //        quoteVolume: '30288466.44',
-        //        openTime: '1693081020762',
-        //        closeTime: '1693167420762'
+        //        "symbol": "BTC-USDT",
+        //        "openPrice": "26032.08",
+        //        "highPrice": "26178.86",
+        //        "lowPrice": "25968.18",
+        //        "lastPrice": "26113.60",
+        //        "volume": "1161.79",
+        //        "quoteVolume": "30288466.44",
+        //        "openTime": "1693081020762",
+        //        "closeTime": "1693167420762",
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
         //    }
         // swap
         //
@@ -1322,7 +1341,16 @@ class bingx extends bingx$1 {
         //        "quoteVolume": "4151395117.73",
         //        "openPrice": "16832.0",
         //        "openTime": 1672026667803,
-        //        "closeTime": 1672026648425
+        //        "closeTime": 1672026648425,
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
         //    }
         //
         const marketId = this.safeString(ticker, 'symbol');
@@ -1338,16 +1366,20 @@ class bingx extends bingx$1 {
         const percentage = this.safeString(ticker, 'priceChangePercent');
         const ts = this.safeInteger(ticker, 'closeTime');
         const datetime = this.iso8601(ts);
+        const bid = this.safeString(ticker, 'bidPrice');
+        const bidVolume = this.safeString(ticker, 'bidQty');
+        const ask = this.safeString(ticker, 'askPrice');
+        const askVolume = this.safeString(ticker, 'askQty');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': ts,
             'datetime': datetime,
             'high': high,
             'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': open,
             'close': close,
@@ -1909,20 +1941,20 @@ class bingx extends bingx$1 {
         // fetchOrder
         //
         //    {
-        //        symbol: 'ETH-USDT',
-        //        orderId: '1660602123001266176',
-        //        price: '1700',
-        //        origQty: '0.003',
-        //        executedQty: '0',
-        //        cummulativeQuoteQty: '0',
-        //        status: 'PENDING',
-        //        type: 'LIMIT',
-        //        side: 'BUY',
-        //        time: '1684753373276',
-        //        updateTime: '1684753373276',
-        //        origQuoteOrderQty: '0',
-        //        fee: '0',
-        //        feeAsset: 'ETH'
+        //        "symbol": "ETH-USDT",
+        //        "orderId": "1660602123001266176",
+        //        "price": "1700",
+        //        "origQty": "0.003",
+        //        "executedQty": "0",
+        //        "cummulativeQuoteQty": "0",
+        //        "status": "PENDING",
+        //        "type": "LIMIT",
+        //        "side": "BUY",
+        //        "time": "1684753373276",
+        //        "updateTime": "1684753373276",
+        //        "origQuoteOrderQty": "0",
+        //        "fee": "0",
+        //        "feeAsset": "ETH"
         //    }
         //
         // fetchOpenOrders, fetchClosedOrders
@@ -2575,8 +2607,8 @@ class bingx extends bingx$1 {
         const response = await this.spotV3PrivateGetAssetTransfer(this.extend(request, params));
         //
         //     {
-        //         total: 3,
-        //         rows: [
+        //         "total": 3,
+        //         "rows": [
         //             {
         //                 "asset":"USDT",
         //                 "amount":"-100.00000000000000000000",
@@ -2638,19 +2670,19 @@ class bingx extends bingx$1 {
         const response = await this.walletsV1PrivateGetCapitalDepositAddress(this.extend(request, params));
         //
         //     {
-        //         code: '0',
-        //         timestamp: '1695200226859',
-        //         data: {
-        //           data: [
+        //         "code": "0",
+        //         "timestamp": "1695200226859",
+        //         "data": {
+        //           "data": [
         //             {
-        //               coinId: '799',
-        //               coin: 'USDT',
-        //               network: 'BEP20',
-        //               address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-        //               tag: ''
+        //               "coinId": "799",
+        //               "coin": "USDT",
+        //               "network": "BEP20",
+        //               "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        //               "tag": ''
         //             }
         //           ],
-        //           total: '1'
+        //           "total": "1"
         //         }
         //     }
         //
@@ -2661,11 +2693,11 @@ class bingx extends bingx$1 {
     parseDepositAddress(depositAddress, currency = undefined) {
         //
         //     {
-        //         coinId: '799',
-        //         coin: 'USDT',
-        //         network: 'BEP20',
-        //         address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-        //         tag: ''
+        //         "coinId": "799",
+        //         "coin": "USDT",
+        //         "network": "BEP20",
+        //         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        //         "tag": ''
         //     }
         //
         const address = this.safeString(depositAddress, 'address');
@@ -2853,6 +2885,7 @@ class bingx extends bingx$1 {
                 'cost': this.safeNumber(transaction, 'transactionFee'),
                 'rate': undefined,
             },
+            'internal': undefined,
         };
     }
     parseTransactionStatus(status) {
@@ -3031,19 +3064,19 @@ class bingx extends bingx$1 {
         const response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, query));
         //
         //    {
-        //       code: '0',
-        //       msg: '',
-        //       data: { fill_orders: [
+        //       "code": "0",
+        //       "msg": '',
+        //       "data": { fill_orders: [
         //          {
-        //              volume: '0.1',
-        //              price: '106.75',
-        //              amount: '10.6750',
-        //              commission: '-0.0053',
-        //              currency: 'USDT',
-        //              orderId: '1676213270274379776',
-        //              liquidatedPrice: '0.00',
-        //              liquidatedMarginRatio: '0.00',
-        //              filledTime: '2023-07-04T20:56:01.000+0800'
+        //              "volume": "0.1",
+        //              "price": "106.75",
+        //              "amount": "10.6750",
+        //              "commission": "-0.0053",
+        //              "currency": "USDT",
+        //              "orderId": "1676213270274379776",
+        //              "liquidatedPrice": "0.00",
+        //              "liquidatedMarginRatio": "0.00",
+        //              "filledTime": "2023-07-04T20:56:01.000+0800"
         //          }
         //        ]
         //      }
@@ -3056,28 +3089,28 @@ class bingx extends bingx$1 {
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         //    {
-        //        coin: 'BTC',
-        //        name: 'BTC',
-        //        networkList: [
+        //        "coin": "BTC",
+        //        "name": "BTC",
+        //        "networkList": [
         //          {
-        //            name: 'BTC',
-        //            network: 'BTC',
-        //            isDefault: true,
-        //            minConfirm: '2',
-        //            withdrawEnable: true,
-        //            withdrawFee: '0.00035',
-        //            withdrawMax: '1.62842',
-        //            withdrawMin: '0.0005'
+        //            "name": "BTC",
+        //            "network": "BTC",
+        //            "isDefault": true,
+        //            "minConfirm": "2",
+        //            "withdrawEnable": true,
+        //            "withdrawFee": "0.00035",
+        //            "withdrawMax": "1.62842",
+        //            "withdrawMin": "0.0005"
         //          },
         //          {
-        //            name: 'BTC',
-        //            network: 'BEP20',
-        //            isDefault: false,
-        //            minConfirm: '15',
-        //            withdrawEnable: true,
-        //            withdrawFee: '0.00001',
-        //            withdrawMax: '1.62734',
-        //            withdrawMin: '0.0001'
+        //            "name": "BTC",
+        //            "network": "BEP20",
+        //            "isDefault": false,
+        //            "minConfirm": "15",
+        //            "withdrawEnable": true,
+        //            "withdrawFee": "0.00001",
+        //            "withdrawMax": "1.62734",
+        //            "withdrawMin": "0.0001"
         //          }
         //        ]
         //    }
@@ -3353,7 +3386,7 @@ class bingx extends bingx$1 {
         //
         //    {
         //        "code": 80014,
-        //        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for 'Symbol' failed on the 'len=0|endswith=-USDT' tag",
+        //        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for "Symbol" failed on the "len=0|endswith=-USDT" tag",
         //        "data": {
         //        }
         //    }

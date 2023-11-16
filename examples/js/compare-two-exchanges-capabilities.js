@@ -2,8 +2,8 @@ import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 async function example() {
     const prefix = '-';
-    const exchange_1 = new ccxt.lbank();
-    const exchange_2 = new ccxt.lbank2();
+    const exchange_1 = new ccxt.okx();
+    const exchange_2 = new ccxt.htx();
     const keys_1 = Object.keys(exchange_1.has);
     const keys_2 = Object.keys(exchange_2.has);
     // check missing from exchange-1

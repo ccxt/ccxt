@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -397,97 +396,96 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.publicGetV1Symbols(params)
         #
         #     {
-        #         symbols: [
+        #         "symbols": [
         #             {
-        #                 symbol: 'CQT-USDT',
-        #                 base_currency: 'CQT',
-        #                 is_trader_geofenced: False,
-        #                 list_time: '2021-06-15T00:00:00.000Z',
-        #                 type: 'spot',
-        #                 series_code: 'CQT-USDT-SPOT',
-        #                 long_name: 'Covalent',
-        #                 asset_class: 'CRYPTO',
-        #                 minimum_price_increment: '0.0001',
-        #                 minimum_size_increment: '0.0001',
-        #                 quote_currency: 'USDT',
-        #                 index_code: null,
-        #                 price_band_threshold_market: '0.05',
-        #                 price_band_threshold_limit: '0.25',
-        #                 last_price: '0.12160000',
-        #                 fair_price: '0.12300000',
-        #                 index_price: null
+        #                 "symbol": "CQT-USDT",
+        #                 "base_currency": "CQT",
+        #                 "is_trader_geofenced": False,
+        #                 "list_time": "2021-06-15T00:00:00.000Z",
+        #                 "type": "spot",
+        #                 "series_code": "CQT-USDT-SPOT",
+        #                 "long_name": "Covalent",
+        #                 "asset_class": "CRYPTO",
+        #                 "minimum_price_increment": "0.0001",
+        #                 "minimum_size_increment": "0.0001",
+        #                 "quote_currency": "USDT",
+        #                 "index_code": null,
+        #                 "price_band_threshold_market": "0.05",
+        #                 "price_band_threshold_limit": "0.25",
+        #                 "last_price": "0.12160000",
+        #                 "fair_price": "0.12300000",
+        #                 "index_price": null
         #             },
         #         ]
         #     }
         #
         markets = self.safe_value(response, 'symbols', [])
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'symbol')
-            baseId = self.safe_string(market, 'base_currency')
-            quoteId = self.safe_string(market, 'quote_currency')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            amountPrecision = self.safe_string(market, 'minimum_size_increment')
-            pricePrecision = self.safe_string(market, 'minimum_price_increment')
-            created = self.safe_string(market, 'list_time')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': True,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(amountPrecision),
-                    'price': self.parse_number(pricePrecision),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': self.parse8601(created),
-                'info': market,
-            })
-        return result
+        return self.parse_markets(markets)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'symbol')
+        baseId = self.safe_string(market, 'base_currency')
+        quoteId = self.safe_string(market, 'quote_currency')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        amountPrecision = self.safe_string(market, 'minimum_size_increment')
+        pricePrecision = self.safe_string(market, 'minimum_price_increment')
+        created = self.safe_string(market, 'list_time')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': True,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(amountPrecision),
+                'price': self.parse_number(pricePrecision),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': self.parse8601(created),
+            'info': market,
+        }
+
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
-        :param str[]| [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the coinlist api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
@@ -518,7 +516,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbols, params)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-market-summary
@@ -554,7 +552,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "type":"spot",
@@ -607,7 +605,7 @@ class coinlist(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
@@ -644,7 +642,7 @@ class coinlist(Exchange, ImplicitAPI):
         orderbook['nonce'] = None
         return orderbook
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-candles
@@ -702,7 +700,7 @@ class coinlist(Exchange, ImplicitAPI):
         candles = self.safe_value(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         "2023-10-17T15:30:00.000Z",
@@ -723,7 +721,7 @@ class coinlist(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-auctions
@@ -775,7 +773,7 @@ class coinlist(Exchange, ImplicitAPI):
         auctions = self.safe_value(response, 'auctions', [])
         return self.parse_trades(auctions, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades
         #     {
@@ -790,15 +788,15 @@ class coinlist(Exchange, ImplicitAPI):
         #
         # fetchMyTrades
         #     {
-        #         symbol: 'ETH-USDT',
-        #         auction_code: 'ETH-USDT-2023-10-20T13:22:14.000Z',
-        #         order_id: '83ed365f-497d-433b-96c1-9d08c1a12842',
-        #         quantity: '0.0008',
-        #         price: '1615.24000000',
-        #         fee: '0.005815',
-        #         fee_type: 'taker',
-        #         fee_currency: 'USDT',
-        #         logical_time: '2023-10-20T13:22:14.000Z'
+        #         "symbol": "ETH-USDT",
+        #         "auction_code": "ETH-USDT-2023-10-20T13:22:14.000Z",
+        #         "order_id": "83ed365f-497d-433b-96c1-9d08c1a12842",
+        #         "quantity": "0.0008",
+        #         "price": "1615.24000000",
+        #         "fee": "0.005815",
+        #         "fee_type": "taker",
+        #         "fee_currency": "USDT",
+        #         "logical_time": "2023-10-20T13:22:14.000Z"
         #     }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -939,7 +937,7 @@ class coinlist(Exchange, ImplicitAPI):
                 }
         return result
 
-    def parse_fee_tiers(self, feeTiers, market=None):
+    def parse_fee_tiers(self, feeTiers, market: Market = None):
         #
         #     base: {
         #         fees: {maker: '0', taker: '0.0045', liquidation: '0'},
@@ -1056,7 +1054,7 @@ class coinlist(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
@@ -1067,7 +1065,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privateGetV1Balances(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         #     {
         #         "asset_balances": {
@@ -1099,7 +1097,7 @@ class coinlist(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
@@ -1127,28 +1125,28 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privateGetV1Fills(self.extend(request, params))
         #
         #     {
-        #         fills: [
+        #         "fills": [
         #             {
-        #                 symbol: 'ETH-USDT',
-        #                 auction_code: 'ETH-USDT-2023-10-20T13:16:30.000Z',
-        #                 order_id: '39911d5f-c789-4a7d-ad34-820a804d1da6',
-        #                 quantity: '-0.0009',
-        #                 price: '1608.83000000',
-        #                 fee: '0.006516',
-        #                 fee_type: 'taker',
-        #                 fee_currency: 'USDT',
-        #                 logical_time: '2023-10-20T13:16:30.000Z'
+        #                 "symbol": "ETH-USDT",
+        #                 "auction_code": "ETH-USDT-2023-10-20T13:16:30.000Z",
+        #                 "order_id": "39911d5f-c789-4a7d-ad34-820a804d1da6",
+        #                 "quantity": "-0.0009",
+        #                 "price": "1608.83000000",
+        #                 "fee": "0.006516",
+        #                 "fee_type": "taker",
+        #                 "fee_currency": "USDT",
+        #                 "logical_time": "2023-10-20T13:16:30.000Z"
         #             },
         #             {
-        #                 symbol: 'ETH-USDT',
-        #                 auction_code: 'ETH-USDT-2023-10-20T13:22:14.000Z',
-        #                 order_id: '83ed365f-497d-433b-96c1-9d08c1a12842',
-        #                 quantity: '0.0008',
-        #                 price: '1615.24000000',
-        #                 fee: '0.005815',
-        #                 fee_type: 'taker',
-        #                 fee_currency: 'USDT',
-        #                 logical_time: '2023-10-20T13:22:14.000Z'
+        #                 "symbol": "ETH-USDT",
+        #                 "auction_code": "ETH-USDT-2023-10-20T13:22:14.000Z",
+        #                 "order_id": "83ed365f-497d-433b-96c1-9d08c1a12842",
+        #                 "quantity": "0.0008",
+        #                 "price": "1615.24000000",
+        #                 "fee": "0.005815",
+        #                 "fee_type": "taker",
+        #                 "fee_currency": "USDT",
+        #                 "logical_time": "2023-10-20T13:22:14.000Z"
         #             },
         #         ]
         #     }
@@ -1156,7 +1154,7 @@ class coinlist(Exchange, ImplicitAPI):
         fills = self.safe_value(response, 'fills', [])
         return self.parse_trades(fills, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         fetch all the trades made from a single order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
@@ -1172,7 +1170,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1233,7 +1231,7 @@ class coinlist(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-specific-order-by-id
@@ -1273,7 +1271,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1290,7 +1288,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1307,7 +1305,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1324,7 +1322,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel open orders of market
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-orders
@@ -1341,14 +1339,14 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privateDeleteV1Orders(self.extend(request, params))
         #
         #     {
-        #         message: 'Order cancellation request received.',
-        #         timestamp: '2023-10-26T10:29:28.652Z'
+        #         "message": "Order cancellation request received.",
+        #         "timestamp": "2023-10-26T10:29:28.652Z"
         #     }
         #
         orders = [response]
         return self.parse_orders(orders, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-order-by-id
@@ -1364,14 +1362,14 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privateDeleteV1OrdersOrderId(self.extend(request, params))
         #
         #     {
-        #         message: 'Cancel order request received.',
-        #         order_id: 'd36e7588-6525-485c-b768-8ad8b3f745f9',
-        #         timestamp: '2023-10-26T14:36:37.559Z'
+        #         "message": "Cancel order request received.",
+        #         "order_id": "d36e7588-6525-485c-b768-8ad8b3f745f9",
+        #         "timestamp": "2023-10-26T14:36:37.559Z"
         #     }
         #
         return self.parse_order(response)
 
-    async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
@@ -1478,7 +1476,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privatePatchV1OrdersOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOrder
         #     {
@@ -1535,21 +1533,21 @@ class coinlist(Exchange, ImplicitAPI):
         #
         # cancelOrder
         #     {
-        #         message: 'Cancel order request received.',
-        #         order_id: 'd36e7588-6525-485c-b768-8ad8b3f745f9',
-        #         timestamp: '2023-10-26T14:36:37.559Z'
+        #         "message": "Cancel order request received.",
+        #         "order_id": "d36e7588-6525-485c-b768-8ad8b3f745f9",
+        #         "timestamp": "2023-10-26T14:36:37.559Z"
         #     }
         #
         # cancelOrders
         #     {
-        #         message: 'Order cancellation request received.',
-        #         timestamp: '2023-10-26T10:29:28.652Z'
+        #         "message": "Order cancellation request received.",
+        #         "timestamp": "2023-10-26T10:29:28.652Z"
         #     }
         #
         # cancelAllOrders
         #     {
-        #         message: 'Order cancellation request received.',
-        #         timestamp: '2023-10-26T10:29:28.652Z'
+        #         "message": "Order cancellation request received.",
+        #         "timestamp": "2023-10-26T10:29:28.652Z"
         #     }
         #
         id = self.safe_string(order, 'order_id')
@@ -1672,7 +1670,7 @@ class coinlist(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         return transfer
 
-    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-transfers
@@ -1722,7 +1720,7 @@ class coinlist(Exchange, ImplicitAPI):
         transfers = self.safe_value(response, 'transfers', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # fetchTransfers
         #     {
@@ -1783,7 +1781,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger
@@ -1882,7 +1880,7 @@ class coinlist(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         # withdraw
         #
         #     {
@@ -1937,6 +1935,8 @@ class coinlist(Exchange, ImplicitAPI):
             'status': None,
             'updated': None,
             'fee': fee,
+            'comment': self.safe_string(transaction, 'description'),
+            'internal': None,
         }
 
     def parse_transaction_type(self, type):
@@ -1947,7 +1947,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
@@ -1980,65 +1980,65 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privateGetV1AccountsTraderIdLedger(self.extend(request, params))
         #
         #     {
-        #         transactions: [
+        #         "transactions": [
         #             {
-        #                 transaction_id: '0288634e-49bd-494d-b04a-18fd1832d394',
-        #                 transaction_type: 'XFER',
-        #                 type: 'deposit',
-        #                 asset: 'ETH',
-        #                 symbol: null,
-        #                 amount: '0.010000000000000000',
-        #                 details: null,
-        #                 created_at: '2023-10-20T13:15:39.443Z'
+        #                 "transaction_id": "0288634e-49bd-494d-b04a-18fd1832d394",
+        #                 "transaction_type": "XFER",
+        #                 "type": "deposit",
+        #                 "asset": "ETH",
+        #                 "symbol": null,
+        #                 "amount": "0.010000000000000000",
+        #                 "details": null,
+        #                 "created_at": "2023-10-20T13:15:39.443Z"
         #             },
         #             {
-        #                 transaction_id: '47a45928-abcd-4c12-8bd6-587c3028025f',
-        #                 transaction_type: 'SWAP',
-        #                 type: 'atomic token swap',
-        #                 asset: 'USDT',
-        #                 symbol: 'ETH-USDT',
-        #                 amount: '1.447947',
-        #                 details: null,
-        #                 created_at: '2023-10-20T13:16:30.373Z'
+        #                 "transaction_id": "47a45928-abcd-4c12-8bd6-587c3028025f",
+        #                 "transaction_type": "SWAP",
+        #                 "type": "atomic token swap",
+        #                 "asset": "USDT",
+        #                 "symbol": "ETH-USDT",
+        #                 "amount": "1.447947",
+        #                 "details": null,
+        #                 "created_at": "2023-10-20T13:16:30.373Z"
         #             },
         #             {
-        #                 transaction_id: '1ffe3a54-916e-41f0-b957-3a01309eb009',
-        #                 transaction_type: 'FEE',
-        #                 type: 'fee',
-        #                 asset: 'USDT',
-        #                 symbol: 'ETH-USDT',
-        #                 amount: '-0.006516',
-        #                 details: {
-        #                     fee_details: [
+        #                 "transaction_id": "1ffe3a54-916e-41f0-b957-3a01309eb009",
+        #                 "transaction_type": "FEE",
+        #                 "type": "fee",
+        #                 "asset": "USDT",
+        #                 "symbol": "ETH-USDT",
+        #                 "amount": "-0.006516",
+        #                 "details": {
+        #                     "fee_details": [
         #                         {
-        #                             insurance_fee: '0',
-        #                             order_id: '39911d5f-c789-4a7d-ad34-820a804d1da6',
-        #                             fee_type: 'taker',
-        #                             fee_currency: 'USDT'
+        #                             "insurance_fee": "0",
+        #                             "order_id": "39911d5f-c789-4a7d-ad34-820a804d1da6",
+        #                             "fee_type": "taker",
+        #                             "fee_currency": "USDT"
         #                         }
         #                     ]
         #                 },
-        #                 created_at: '2023-10-20T13:16:30.373Z'
+        #                 "created_at": "2023-10-20T13:16:30.373Z"
         #             },
         #             {
-        #                 transaction_id: '3930e8a3-2218-481f-8c3c-2219287e205e',
-        #                 transaction_type: 'SWAP',
-        #                 type: 'atomic token swap',
-        #                 asset: 'ETH',
-        #                 symbol: 'ETH-USDT',
-        #                 amount: '-0.000900000000000000',
-        #                 details: null,
-        #                 created_at: '2023-10-20T13:16:30.373Z'
+        #                 "transaction_id": "3930e8a3-2218-481f-8c3c-2219287e205e",
+        #                 "transaction_type": "SWAP",
+        #                 "type": "atomic token swap",
+        #                 "asset": "ETH",
+        #                 "symbol": "ETH-USDT",
+        #                 "amount": "-0.000900000000000000",
+        #                 "details": null,
+        #                 "created_at": "2023-10-20T13:16:30.373Z"
         #             },
         #             {
-        #                 transaction_id: 'a6c65cb3-95d0-44e2-8202-f70581d6e55c',
-        #                 transaction_type: 'XFER',
-        #                 type: 'withdrawal',
-        #                 asset: 'USD',
-        #                 symbol: null,
-        #                 amount: '-3.00',
-        #                 details: null,
-        #                 created_at: '2023-10-26T14:32:24.887Z'
+        #                 "transaction_id": "a6c65cb3-95d0-44e2-8202-f70581d6e55c",
+        #                 "transaction_type": "XFER",
+        #                 "type": "withdrawal",
+        #                 "asset": "USD",
+        #                 "symbol": null,
+        #                 "amount": "-3.00",
+        #                 "details": null,
+        #                 "created_at": "2023-10-26T14:32:24.887Z"
         #             }
         #         ]
         #     }
@@ -2046,75 +2046,75 @@ class coinlist(Exchange, ImplicitAPI):
         ledger = self.safe_value(response, 'transactions', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         # deposit transaction from wallet(funding) to pro(trading)
         #     {
-        #         transaction_id: '0288634e-49bd-494d-b04a-18fd1832d394',
-        #         transaction_type: 'XFER',
-        #         type: 'deposit',
-        #         asset: 'ETH',
-        #         symbol: null,
-        #         amount: '0.010000000000000000',
-        #         details: null,
-        #         created_at: '2023-10-20T13:15:39.443Z'
+        #         "transaction_id": "0288634e-49bd-494d-b04a-18fd1832d394",
+        #         "transaction_type": "XFER",
+        #         "type": "deposit",
+        #         "asset": "ETH",
+        #         "symbol": null,
+        #         "amount": "0.010000000000000000",
+        #         "details": null,
+        #         "created_at": "2023-10-20T13:15:39.443Z"
         #     }
         #
         # withdrawal transaction from pro(trading) to wallet(funding)
         #     {
-        #         transaction_id: 'a6c65cb3-95d0-44e2-8202-f70581d6e55c',
-        #         transaction_type: 'XFER',
-        #         type: 'withdrawal',
-        #         asset: 'USD',
-        #         symbol: null,
-        #         amount: '-3.00',
-        #         details: null,
-        #         created_at: '2023-10-26T14:32:24.887Z'
+        #         "transaction_id": "a6c65cb3-95d0-44e2-8202-f70581d6e55c",
+        #         "transaction_type": "XFER",
+        #         "type": "withdrawal",
+        #         "asset": "USD",
+        #         "symbol": null,
+        #         "amount": "-3.00",
+        #         "details": null,
+        #         "created_at": "2023-10-26T14:32:24.887Z"
         #     }
         #
         # sell trade
         #     {
-        #         transaction_id: '47a45928-abcd-4c12-8bd6-587c3028025f',
-        #         transaction_type: 'SWAP',
-        #         type: 'atomic token swap',
-        #         asset: 'USDT',
-        #         symbol: 'ETH-USDT',
-        #         amount: '1.447947',
-        #         details: null,
-        #         created_at: '2023-10-20T13:16:30.373Z'
+        #         "transaction_id": "47a45928-abcd-4c12-8bd6-587c3028025f",
+        #         "transaction_type": "SWAP",
+        #         "type": "atomic token swap",
+        #         "asset": "USDT",
+        #         "symbol": "ETH-USDT",
+        #         "amount": "1.447947",
+        #         "details": null,
+        #         "created_at": "2023-10-20T13:16:30.373Z"
         #     }
         #
         # buy trade
         #     {
-        #         transaction_id: '46d20a93-45c4-4441-a238-f89602eb8c8c',
-        #         transaction_type: 'SWAP',
-        #         type: 'atomic token swap',
-        #         asset: 'ETH',
-        #         symbol: 'ETH-USDT',
-        #         amount: '0.000800000000000000',
-        #         details: null,
-        #         created_at: '2023-10-20T13:22:14.256Z'
+        #         "transaction_id": "46d20a93-45c4-4441-a238-f89602eb8c8c",
+        #         "transaction_type": "SWAP",
+        #         "type": "atomic token swap",
+        #         "asset": "ETH",
+        #         "symbol": "ETH-USDT",
+        #         "amount": "0.000800000000000000",
+        #         "details": null,
+        #         "created_at": "2023-10-20T13:22:14.256Z"
         #     },
         #
         #  fee
         #     {
-        #         transaction_id: '57fd526c-36b1-4721-83ce-42aadcb1e953',
-        #         transaction_type: 'FEE',
-        #         type: 'fee',
-        #         asset: 'USDT',
-        #         symbol: 'BTC-USDT',
-        #         amount: '-0.047176',
-        #         details: {
-        #             fee_details: [
+        #         "transaction_id": "57fd526c-36b1-4721-83ce-42aadcb1e953",
+        #         "transaction_type": "FEE",
+        #         "type": "fee",
+        #         "asset": "USDT",
+        #         "symbol": "BTC-USDT",
+        #         "amount": "-0.047176",
+        #         "details": {
+        #             "fee_details": [
         #                 {
-        #                     insurance_fee: '0',
-        #                     order_id: 'c0bc33cd-eeb9-40a0-ab5f-2d99f323ef58',
-        #                     fee_type: 'taker',
-        #                     fee_currency: 'USDT'
+        #                     "insurance_fee": "0",
+        #                     "order_id": "c0bc33cd-eeb9-40a0-ab5f-2d99f323ef58",
+        #                     "fee_type": "taker",
+        #                     "fee_currency": "USDT"
         #                 }
         #             ]
         #         },
-        #         created_at: '2023-10-25T16:46:24.294Z'
+        #         "created_at": "2023-10-25T16:46:24.294Z"
         #     }
         #
         id = self.safe_string(item, 'transaction_id')

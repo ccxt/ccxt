@@ -15,6 +15,7 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class cryptocom extends Exchange {
 
@@ -61,6 +62,7 @@ class cryptocom extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
@@ -343,6 +345,7 @@ class cryptocom extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     '219' => '\\ccxt\\InvalidOrder',
+                    '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )
                     '10001' => '\\ccxt\\ExchangeError',
                     '10002' => '\\ccxt\\PermissionDenied',
                     '10003' => '\\ccxt\\PermissionDenied',
@@ -577,7 +580,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -635,7 +638,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$tickers
@@ -651,7 +654,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -733,7 +736,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get a list of the most recent $trades for a particular $symbol
@@ -793,7 +796,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -857,7 +860,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -902,7 +905,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $responseResult = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($responseResult, 'data', array());
         $positionBalances = $this->safe_value($data[0], 'position_balances', array());
@@ -919,7 +922,7 @@ class cryptocom extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1444,7 +1447,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -1738,7 +1741,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1798,7 +1801,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1936,18 +1939,18 @@ class cryptocom extends Exchange {
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
             //     {
-            //       id => '1641032709328',
-            //       $method => 'private/deriv/get-$transfer-history',
-            //       $code => '0',
-            //       result => {
-            //         transfer_list => array(
+            //       "id" => "1641032709328",
+            //       "method" => "private/deriv/get-$transfer-history",
+            //       "code" => "0",
+            //       "result" => {
+            //         "transfer_list" => array(
             //           {
-            //             direction => 'IN',
-            //             time => '1641025185223',
-            //             amount => '109.56',
-            //             status => 'COMPLETED',
-            //             information => 'From Spot Wallet',
-            //             $currency => 'USDC'
+            //             "direction" => "IN",
+            //             "time" => "1641025185223",
+            //             "amount" => "109.56",
+            //             "status" => "COMPLETED",
+            //             "information" => "From Spot Wallet",
+            //             "currency" => "USDC"
             //           }
             //         )
             //       }
@@ -1969,22 +1972,22 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //   {
-        //     $response => {
-        //       id => '1641032709328',
-        //       $method => 'private/deriv/get-$transfer-history',
-        //       $code => '0',
-        //       $result => {
-        //         transfer_list => array(
+        //     "response" => {
+        //       "id" => "1641032709328",
+        //       "method" => "private/deriv/get-$transfer-history",
+        //       "code" => "0",
+        //       "result" => {
+        //         "transfer_list" => array(
         //           {
-        //             $direction => 'IN',
-        //             time => '1641025185223',
-        //             $amount => '109.56',
-        //             $status => 'COMPLETED',
-        //             $information => 'From Spot Wallet',
-        //             $currency => 'USDC'
+        //             "direction" => "IN",
+        //             "time" => "1641025185223",
+        //             "amount" => "109.56",
+        //             "status" => "COMPLETED",
+        //             "information" => "From Spot Wallet",
+        //             "currency" => "USDC"
         //           }
         //         )
         //       }
@@ -2044,7 +2047,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -2105,7 +2108,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -2164,7 +2167,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "o" => "26949.89",
@@ -2205,7 +2208,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, cancelOrder
         //
@@ -2327,7 +2330,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2410,6 +2413,7 @@ class cryptocom extends Exchange {
             'status' => $status,
             'updated' => $this->safe_integer($transaction, 'update_time'),
             'internal' => null,
+            'comment' => $this->safe_string($transaction, 'client_wid'),
             'fee' => $fee,
         );
     }
@@ -2481,7 +2485,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         // borrowMargin
         //
@@ -2513,7 +2517,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     array(
         //         "loan_id" => "2643528867803765921",
@@ -2591,19 +2595,19 @@ class cryptocom extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
-        //        full_name => 'Alchemix',
-        //        default_network => 'ETH',
-        //        network_list => array(
+        //        "full_name" => "Alchemix",
+        //        "default_network" => "ETH",
+        //        "network_list" => array(
         //          {
-        //            network_id => 'ETH',
-        //            withdrawal_fee => '0.25000000',
-        //            withdraw_enabled => true,
-        //            min_withdrawal_amount => '0.5',
-        //            deposit_enabled => true,
-        //            confirmation_required => '0'
+        //            "network_id" => "ETH",
+        //            "withdrawal_fee" => "0.25000000",
+        //            "withdraw_enabled" => true,
+        //            "min_withdrawal_amount" => "0.5",
+        //            "deposit_enabled" => true,
+        //            "confirmation_required" => "0"
         //          }
         //        )
         //    }
@@ -2723,7 +2727,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //         "account_id" => "ce075cef-1234-4321-bd6e-gf9007351e64",
@@ -3158,7 +3162,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "account_id" => "ce075bef-b600-4277-bd6e-ff9007251e63",
@@ -3184,7 +3188,7 @@ class cryptocom extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'hedged' => null,
             'side' => null,
-            'contracts' => null,
+            'contracts' => $this->safe_number($position, 'quantity'),
             'contractSize' => $market['contractSize'],
             'entryPrice' => null,
             'markPrice' => null,

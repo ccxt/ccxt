@@ -14,6 +14,7 @@ use ccxt\BadSymbol;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class ascendex extends Exchange {
 
@@ -748,7 +749,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
@@ -808,7 +809,7 @@ class ascendex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * $query for balance and get the amount of funds available for trading or funds locked in orders
@@ -845,12 +846,12 @@ class ascendex extends Exchange {
             // cash
             //
             //     {
-            //         'code' => 0,
-            //         'data' => array(
+            //         "code" => 0,
+            //         "data" => array(
             //             array(
-            //                 'asset' => 'BCHSV',
-            //                 'totalBalance' => '64.298000048',
-            //                 'availableBalance' => '64.298000048',
+            //                 "asset" => "BCHSV",
+            //                 "totalBalance" => "64.298000048",
+            //                 "availableBalance" => "64.298000048",
             //             ),
             //         )
             //     }
@@ -858,14 +859,14 @@ class ascendex extends Exchange {
             // margin
             //
             //     {
-            //         'code' => 0,
-            //         'data' => array(
+            //         "code" => 0,
+            //         "data" => array(
             //             array(
-            //                 'asset' => 'BCHSV',
-            //                 'totalBalance' => '64.298000048',
-            //                 'availableBalance' => '64.298000048',
-            //                 'borrowed' => '0',
-            //                 'interest' => '0',
+            //                 "asset" => "BCHSV",
+            //                 "totalBalance" => "64.298000048",
+            //                 "availableBalance" => "64.298000048",
+            //                 "borrowed" => "0",
+            //                 "interest" => "0",
             //             ),
             //         )
             //     }
@@ -894,7 +895,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -941,7 +942,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol":"QTUM/BTC",
@@ -988,7 +989,7 @@ class ascendex extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1023,7 +1024,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1076,7 +1077,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "m":"bar",
@@ -1103,7 +1104,7 @@ class ascendex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1162,7 +1163,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -1197,7 +1198,7 @@ class ascendex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -1249,7 +1250,7 @@ class ascendex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1448,15 +1449,15 @@ class ascendex extends Exchange {
             $response = Async\await($this->v1PrivateAccountGroupGetSpotFee (array_merge($request, $params)));
             //
             //      {
-            //         code => '0',
-            //         $data => {
-            //           domain => 'spot',
-            //           userUID => 'U1479576458',
-            //           vipLevel => '0',
-            //           $fees => array(
-            //             array( $symbol => 'HT/USDT', $fee => array( taker => '0.001', maker => '0.001' ) ),
-            //             array( $symbol => 'LAMB/BTC', $fee => array( taker => '0.002', maker => '0.002' ) ),
-            //             array( $symbol => 'STOS/USDT', $fee => array( taker => '0.002', maker => '0.002' ) ),
+            //         "code" => "0",
+            //         "data" => {
+            //           "domain" => "spot",
+            //           "userUID" => "U1479576458",
+            //           "vipLevel" => "0",
+            //           "fees" => array(
+            //             array( $symbol => 'HT/USDT', $fee => array( taker => '0.001', maker => "0.001" ) ),
+            //             array( $symbol => 'LAMB/BTC', $fee => array( taker => '0.002', maker => "0.002" ) ),
+            //             array( $symbol => 'STOS/USDT', $fee => array( taker => '0.002', maker => "0.002" ) ),
             //             ...
             //           )
             //         }
@@ -1874,7 +1875,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -1996,7 +1997,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -2167,9 +2168,7 @@ class ascendex extends Exchange {
              * @param {array} [$params] extra parameters specific to the ascendex api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
             $market = $this->market($symbol);
@@ -2356,18 +2355,18 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
-        //         $address => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        //         destTag => "",
-        //         tagType => "",
-        //         $tagId => "",
-        //         $chainName => "ERC20",
-        //         numConfirmations => 20,
-        //         withdrawalFee => 1,
-        //         nativeScale => 4,
-        //         tips => array()
+        //         "address" => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        //         "destTag" => "",
+        //         "tagType" => "",
+        //         "tagId" => "",
+        //         "chainName" => "ERC20",
+        //         "numConfirmations" => 20,
+        //         "withdrawalFee" => 1,
+        //         "nativeScale" => 4,
+        //         "tips" => array()
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -2476,7 +2475,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2493,7 +2492,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2510,7 +2509,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -2543,26 +2542,26 @@ class ascendex extends Exchange {
             $response = Async\await($this->v1PrivateGetWalletTransactions (array_merge($request, $params)));
             //
             //     {
-            //         $code => 0,
-            //         $data => {
-            //             $data => array(
+            //         "code" => 0,
+            //         "data" => {
+            //             "data" => array(
             //                 {
-            //                     requestId => "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
-            //                     time => 1591606166000,
-            //                     asset => "USDT",
-            //                     transactionType => "deposit",
-            //                     amount => "25",
-            //                     commission => "0",
-            //                     networkTransactionId => "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-            //                     status => "pending",
-            //                     numConfirmed => 8,
-            //                     numConfirmations => 20,
-            //                     destAddress => array( address => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722" )
+            //                     "requestId" => "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+            //                     "time" => 1591606166000,
+            //                     "asset" => "USDT",
+            //                     "transactionType" => "deposit",
+            //                     "amount" => "25",
+            //                     "commission" => "0",
+            //                     "networkTransactionId" => "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+            //                     "status" => "pending",
+            //                     "numConfirmed" => 8,
+            //                     "numConfirmations" => 20,
+            //                     "destAddress" => array( address => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722" )
             //                 }
             //             ),
-            //             page => 1,
-            //             pageSize => 20,
-            //             hasNext => false
+            //             "page" => 1,
+            //             "pageSize" => 20,
+            //             "hasNext" => false
             //         }
             //     }
             //
@@ -2582,22 +2581,22 @@ class ascendex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
-        //         requestId => "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
-        //         time => 1591606166000,
-        //         asset => "USDT",
-        //         transactionType => "deposit",
-        //         amount => "25",
-        //         commission => "0",
-        //         networkTransactionId => "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        //         status => "pending",
-        //         numConfirmed => 8,
-        //         numConfirmations => 20,
-        //         $destAddress => {
-        //             $address => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        //             destTag => "..." // for currencies that have it
+        //         "requestId" => "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+        //         "time" => 1591606166000,
+        //         "asset" => "USDT",
+        //         "transactionType" => "deposit",
+        //         "amount" => "25",
+        //         "commission" => "0",
+        //         "networkTransactionId" => "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+        //         "status" => "pending",
+        //         "numConfirmed" => 8,
+        //         "numConfirmations" => 20,
+        //         "destAddress" => {
+        //             "address" => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        //             "destTag" => "..." // for currencies that have it
         //         }
         //     }
         //
@@ -2634,6 +2633,7 @@ class ascendex extends Exchange {
                 'cost' => $this->parse_number($feeCostString),
                 'rate' => null,
             ),
+            'internal' => false,
         );
     }
 
@@ -2703,7 +2703,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     array(
         //         "symbol" => "BTC-PERP",
@@ -2768,7 +2768,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //      {
         //          "time" => 1640061364830,
@@ -2879,7 +2879,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
@@ -3028,7 +3028,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @param {array} $info Exchange $market response for 1 $market
          * @param {array} $market CCXT $market
@@ -3076,7 +3076,7 @@ class ascendex extends Exchange {
         return $tiers;
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         // {
         //     "assetCode" =>      "USDT",
@@ -3175,7 +3175,7 @@ class ascendex extends Exchange {
             );
             $response = Async\await($this->v1PrivateAccountGroupPostTransfer (array_merge($request, $params)));
             //
-            //    array( $code => '0' )
+            //    array( "code" => "0" )
             //
             $transferOptions = $this->safe_value($this->options, 'transfer', array());
             $fillResponseFromRequest = $this->safe_value($transferOptions, 'fillResponseFromRequest', true);
@@ -3190,9 +3190,9 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
-        //    array( code => '0' )
+        //    array( "code" => "0" )
         //
         $status = $this->safe_integer($transfer, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -3274,7 +3274,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function parse_income($income, $market = null) {
+    public function parse_income($income, ?array $market = null) {
         //
         //     {
         //         "timestamp" => 1640476800000,
@@ -3365,8 +3365,8 @@ class ascendex extends Exchange {
             return null; // fallback to default $error handler
         }
         //
-        //     array('code' => 6010, 'message' => 'Not enough balance.')
-        //     array('code' => 60060, 'message' => 'The order is already filled or canceled.')
+        //     array("code" => 6010, "message" => "Not enough balance.")
+        //     array("code" => 60060, "message" => "The order is already filled or canceled.")
         //     array("code":2100,"message":"ApiKeyFailure")
         //     array("code":300001,"message":"Price is too low from market price.","reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":array("symbol":"BTC/USDT"))
         //
