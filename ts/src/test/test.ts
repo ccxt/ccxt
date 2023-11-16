@@ -895,6 +895,12 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true) {
+        if (isNullValue (newOutput) && isNullValue (storedOutput)) {
+            return;
+        }
+        if (!newOutput && !storedOutput) {
+            return;
+        }
         if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
             const storedOutputKeys = Object.keys (storedOutput);
             const newOutputKeys = Object.keys (newOutput);
