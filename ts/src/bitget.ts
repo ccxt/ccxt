@@ -1570,7 +1570,7 @@ export default class bitget extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': false,
+            'margin': undefined,
             'swap': swap,
             'future': future,
             'option': false,
