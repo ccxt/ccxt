@@ -168,6 +168,16 @@
                     "LTC/USDT"
                 ],
                 "output": "{\"symbol\":\"LTC_USDT\"}"
+            },
+            {
+                "description": "Fetch swap closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api-cloud.bitmart.com/contract/private/order-history?symbol=LTCUSDT",
+                "input": [
+                  "LTC/USDT:USDT",
+                  null,
+                  1
+                ]
             }
         ],
         "cancelOrder": [
