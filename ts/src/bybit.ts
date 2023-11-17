@@ -46,12 +46,12 @@ export default class bybit extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work
-                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
@@ -65,6 +65,8 @@ export default class bybit extends Exchange {
                 'fetchFundingRates': true,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -6317,10 +6319,10 @@ export default class bybit extends Exchange {
         }, market);
     }
 
-    async fetchBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}) {
         /**
          * @method
-         * @name bybit#fetchBorrowRate
+         * @name bybit#fetchCrossBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
          * @param {string} code unified currency code
@@ -6347,7 +6349,9 @@ export default class bybit extends Exchange {
         //         "time": "1666734490778"
         //     }
         //
+        const timestamp = this.safeInteger (response, 'time');
         const data = this.safeValue (response, 'result', {});
+        data['timestamp'] = timestamp;
         return this.parseBorrowRate (data, currency);
     }
 
@@ -6357,10 +6361,11 @@ export default class bybit extends Exchange {
         //         "coin": "USDT",
         //         "interestRate": "0.000107000000",
         //         "loanAbleAmount": "",
-        //         "maxLoanAmount": "79999.999"
+        //         "maxLoanAmount": "79999.999",
+        //         "timestamp": 1666734490778
         //     }
         //
-        const timestamp = this.milliseconds ();
+        const timestamp = this.safeInteger (info, 'timestamp');
         const currencyId = this.safeString (info, 'coin');
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
