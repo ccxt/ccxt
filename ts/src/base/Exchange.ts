@@ -1793,7 +1793,8 @@ export default class Exchange {
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         const isNumeric = (typeof value === 'number');
         if (isNumeric) {
-            return (value % 1) == 0; // if we use `===` then in php it transpiles into fmod() which will not return true
+            const res = (value % 1);
+            return res === 0; // if we use `===` then in php it transpiles into fmod() which will not return true
         } else {
             return false;
         }
