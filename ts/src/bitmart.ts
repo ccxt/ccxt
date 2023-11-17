@@ -2661,6 +2661,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchClosedOrders
          * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2678,7 +2679,7 @@ export default class bitmart extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         if (type !== 'spot') {
-            throw new NotSupported (this.id + ' fetchClosedOrders() does not support ' + type + ' orders, only spot orders are accepted');
+            this.checkRequiredSymbol ('fetchClosedOrders', symbol);
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
@@ -2690,7 +2691,12 @@ export default class bitmart extends Exchange {
             params = this.omit (params, [ 'endTime' ]);
             request['endTime'] = until;
         }
-        const response = await this.privatePostSpotV4QueryHistoryOrders (this.extend (request, params));
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.privatePostSpotV4QueryHistoryOrders (this.extend (request, params));
+        } else {
+            response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
+        }
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data, market, since, limit);
     }
