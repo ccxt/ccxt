@@ -315,11 +315,6 @@ export default class bitvavo extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets(params);
-        let currencies = this.currencies;
-        if (this.currencies === undefined) {
-            currencies = await this.fetchCurrencies();
-        }
-        const currenciesById = this.indexBy(currencies, 'id');
         //
         //     [
         //         {
@@ -334,6 +329,8 @@ export default class bitvavo extends Exchange {
         //         }
         //     ]
         //
+        const currencies = this.currencies;
+        const currenciesById = this.indexBy(currencies, 'id');
         const result = [];
         const fees = this.fees;
         for (let i = 0; i < response.length; i++) {
@@ -505,6 +502,8 @@ export default class bitvavo extends Exchange {
                 },
             };
         }
+        // set currencies here to avoid calling publicGetAssets twice
+        this.currencies = this.deepExtend(this.currencies, result);
         return result;
     }
     async fetchTicker(symbol, params = {}) {

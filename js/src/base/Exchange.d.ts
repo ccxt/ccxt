@@ -580,6 +580,7 @@ export default class Exchange {
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
     parseToNumeric(number: any): number;
+    isRoundNumber(value: any): boolean;
     afterConstruct(): void;
     createNetworksByIdObject(): void;
     getDefaultOptions(): {

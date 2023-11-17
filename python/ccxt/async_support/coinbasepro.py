@@ -914,7 +914,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 limit = min(300, limit)
             if until is None:
                 parsedTimeframeMilliseconds = parsedTimeframe * 1000
-                if since % parsedTimeframeMilliseconds == 0:
+                if self.is_round_number(since % parsedTimeframeMilliseconds):
                     request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframeMilliseconds, since))
                 else:
                     request['end'] = self.iso8601(self.sum(limit * parsedTimeframeMilliseconds, since))

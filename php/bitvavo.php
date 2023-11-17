@@ -310,11 +310,6 @@ class bitvavo extends Exchange {
          * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetMarkets ($params);
-        $currencies = $this->currencies;
-        if ($this->currencies === null) {
-            $currencies = $this->fetch_currencies();
-        }
-        $currenciesById = $this->index_by($currencies, 'id');
         //
         //     array(
         //         {
@@ -329,6 +324,8 @@ class bitvavo extends Exchange {
         //         }
         //     )
         //
+        $currencies = $this->currencies;
+        $currenciesById = $this->index_by($currencies, 'id');
         $result = array();
         $fees = $this->fees;
         for ($i = 0; $i < count($response); $i++) {
@@ -499,6 +496,8 @@ class bitvavo extends Exchange {
                 ),
             );
         }
+        // set currencies here to avoid calling publicGetAssets twice
+        $this->currencies = $this->deep_extend($this->currencies, $result);
         return $result;
     }
 
