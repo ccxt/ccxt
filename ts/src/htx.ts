@@ -49,14 +49,13 @@ export default class htx extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistories': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRates': true,
-                'fetchBorrowRatesPerSymbol': true,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
@@ -70,6 +69,8 @@ export default class htx extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': true,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
@@ -6167,83 +6168,17 @@ export default class htx extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async fetchBorrowRatesPerSymbol (params = {}) {
+    async fetchIsolatedBorrowRates (params = {}) {
         /**
          * @method
-         * @name huobi#fetchBorrowRatesPerSymbol
-         * @description fetch borrow rates for currencies within individual markets
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a dictionary of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure} indexed by market symbol
-         */
-        await this.loadMarkets ();
-        const response = await this.spotPrivateGetV1MarginLoanInfo (params);
-        //
-        //    {
-        //        "status": "ok",
-        //        "data": [
-        //            {
-        //                "symbol": "1inchusdt",
-        //                "currencies": [
-        //                    {
-        //                        "currency": "1inch",
-        //                        "interest-rate": "0.00098",
-        //                        "min-loan-amt": "90.000000000000000000",
-        //                        "max-loan-amt": "1000.000000000000000000",
-        //                        "loanable-amt": "0.0",
-        //                        "actual-rate": "0.00098"
-        //                    },
-        //                    {
-        //                        "currency": "usdt",
-        //                        "interest-rate": "0.00098",
-        //                        "min-loan-amt": "100.000000000000000000",
-        //                        "max-loan-amt": "1000.000000000000000000",
-        //                        "loanable-amt": "0.0",
-        //                        "actual-rate": "0.00098"
-        //                    }
-        //                ]
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        const timestamp = this.milliseconds ();
-        const data = this.safeValue (response, 'data', []);
-        const rates = {
-            'info': response,
-        };
-        for (let i = 0; i < data.length; i++) {
-            const rate = data[i];
-            const currencies = this.safeValue (rate, 'currencies', []);
-            const symbolRates = {};
-            for (let j = 0; j < currencies.length; j++) {
-                const currency = currencies[j];
-                const currencyId = this.safeString (currency, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                symbolRates[code] = {
-                    'currency': code,
-                    'rate': this.safeNumber (currency, 'actual-rate'),
-                    'span': 86400000,
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                };
-            }
-            const marketId = this.safeString (rate, 'symbol');
-            const symbol = this.safeSymbol (marketId);
-            rates[symbol] = symbolRates;
-        }
-        return rates;
-    }
-
-    async fetchBorrowRates (params = {}) {
-        /**
-         * @method
-         * @name huobi#fetchBorrowRates
+         * @name htx#fetchIsolatedBorrowRates
          * @description fetch the borrow interest rates of all currencies
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         * @param {object} [params] extra parameters specific to the htx api endpoint
+         * @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
          */
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1MarginLoanInfo (params);
+        //
         // {
         //     "status": "ok",
         //     "data": [
@@ -6271,27 +6206,57 @@ export default class htx extends Exchange {
         //         ...
         //     ]
         // }
-        const timestamp = this.milliseconds ();
+        //
         const data = this.safeValue (response, 'data', []);
-        const rates = {};
+        const rates = [];
         for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const currencies = this.safeValue (market, 'currencies', []);
-            for (let j = 0; j < currencies.length; j++) {
-                const currency = currencies[j];
-                const currencyId = this.safeString (currency, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                rates[code] = {
-                    'currency': code,
-                    'rate': this.safeNumber (currency, 'actual-rate'),
-                    'span': 86400000,
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                    'info': undefined,
-                };
-            }
+            rates.push (this.parseIsolatedBorrowRate (data[i]));
         }
         return rates;
+    }
+
+    parseIsolatedBorrowRate (info, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "1inchusdt",
+        //         "currencies": [
+        //             {
+        //                 "currency": "1inch",
+        //                 "interest-rate": "0.00098",
+        //                 "min-loan-amt": "90.000000000000000000",
+        //                 "max-loan-amt": "1000.000000000000000000",
+        //                 "loanable-amt": "0.0",
+        //                 "actual-rate": "0.00098"
+        //             },
+        //             {
+        //                 "currency": "usdt",
+        //                 "interest-rate": "0.00098",
+        //                 "min-loan-amt": "100.000000000000000000",
+        //                 "max-loan-amt": "1000.000000000000000000",
+        //                 "loanable-amt": "0.0",
+        //                 "actual-rate": "0.00098"
+        //             }
+        //         ]
+        //     },
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const currencies = this.safeValue (info, 'currencies', []);
+        const baseData = this.safeValue (currencies, 0);
+        const quoteData = this.safeValue (currencies, 1);
+        const baseId = this.safeString (baseData, 'currency');
+        const quoteId = this.safeString (quoteData, 'currency');
+        return {
+            'symbol': symbol,
+            'base': this.safeCurrencyCode (baseId),
+            'baseRate': this.safeNumber (baseData, 'actual-rate'),
+            'quote': this.safeCurrencyCode (quoteId),
+            'quoteRate': this.safeNumber (quoteData, 'actual-rate'),
+            'period': 86400000,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
