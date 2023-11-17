@@ -394,6 +394,26 @@
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"orderId\":\"1108649821344501761\"}"
             }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "Fetch cross borrow rate",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.bitget.com/api/margin/v1/cross/public/interestRateAndLimit?coin=USDT",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchIsolatedBorrowRate": [
+            {
+                "description": "Fetch isolated borrow rate",
+                "method": "fetchIsolatedBorrowRate",
+                "url": "https://api.bitget.com/api/margin/v1/isolated/public/interestRateAndLimit?symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
         ]
     }
 }
