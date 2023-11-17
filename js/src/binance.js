@@ -7164,7 +7164,7 @@ export default class binance extends Exchange {
         const initialMarginString = this.safeString(position, 'initialMargin');
         const initialMargin = this.parseNumber(initialMarginString);
         let initialMarginPercentageString = Precise.stringDiv('1', leverageString, 8);
-        const rational = (1000 % leverage) === 0;
+        const rational = this.isRoundNumber(1000 % leverage);
         if (!rational) {
             initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
         }
@@ -7450,7 +7450,7 @@ export default class binance extends Exchange {
         const maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
         let initialMarginPercentageString = Precise.stringDiv('1', leverageString, 8);
-        const rational = (1000 % leverage) === 0;
+        const rational = this.isRoundNumber(1000 % leverage);
         if (!rational) {
             initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, '1e-8');
         }

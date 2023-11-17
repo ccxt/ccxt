@@ -947,7 +947,7 @@ export default class coinbasepro extends Exchange {
             }
             if (until === undefined) {
                 const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
-                if (since % parsedTimeframeMilliseconds === 0) {
+                if (this.isRoundNumber(since % parsedTimeframeMilliseconds)) {
                     request['end'] = this.iso8601(this.sum((limit - 1) * parsedTimeframeMilliseconds, since));
                 }
                 else {
