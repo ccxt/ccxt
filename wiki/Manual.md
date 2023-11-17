@@ -1634,6 +1634,10 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchLiquidations (symbol, since, limit, params)`
 - `fetchMyLiquidations (symbol, since, limit, params)`
 - `fetchGreeks (symbol, params)`
+- `fetchCrossBorrowRate (code, params)`
+- `fetchCrossBorrowRates (params)`
+- `fetchIsolatedBorrowRate (symbol, params)`
+- `fetchIsolatedBorrowRates (params)`
 - ...
 
 ```text
@@ -2676,46 +2680,77 @@ When short trading or trading with leverage on a spot market, currency must be b
 
 Data on the borrow rate for a currency can be retrieved using
 
-- `fetchBorrowRate ()` for a single currencies borrow rate
-- `fetchBorrowRates ()` for all currencies borrow rates
+- `fetchCrossBorrowRate ()` for a single currencies borrow rate
+- `fetchCrossBorrowRates ()` for all currencies borrow rates
+- `fetchIsolatedBorrowRate ()` for a trading pairs borrow rate
+- `fetchIsolatedBorrowRates ()` for all trading pairs borrow rates
 - `fetchBorrowRatesPerSymbol ()` for the borrow rates of currencies in individual markets
 
 ```javascript
-fetchBorrowRate (code, params = {})
+fetchCrossBorrowRate (code, params = {})
 ```
 
 Parameters
 
 - **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "USDT"}`)
 
 Returns
 
-- A [transaction structure](#transaction-structure)
+- A [borrow rate structure](#borrow-rate-structure)
 
 ```javascript
-fetchBorrowRates (params = {})
+fetchCrossBorrowRates (params = {})
 ```
 
 Parameters
 
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"startTime": 1610248118000}`)
 
 Returns
 
 - A dictionary of [borrow rate structures](#borrow-rate-structure) with unified currency codes as keys
 
 ```javascript
-fetchBorrowRatesPerSymbol (params = {})
+fetchIsolatedBorrowRate (symbol, params = {})
 ```
 
 Parameters
 
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **symbol** (String) Unified CCXT market symbol, required (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "USDT"}`)
 
 Returns
 
-- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
+- An [isolated borrow rate structure](#isolated-borrow-rate-structure)
+
+```javascript
+fetchIsolatedBorrowRates (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"startTime": 1610248118000}`)
+
+Returns
+
+- A dictionary of [isolated borrow rate structures](#isolated-borrow-rate-structure) with unified market symbols as keys
+
+### Isolated Borrow Rate Structure
+
+```javascript
+{
+  symbol: 'BTC/USDT',  // Unified market symbol
+  base: 'BTC',  // Unified currency code of the base currency
+  baseRate: 0.00025,  // A decimal value rate that interest is accrued at
+  quote: 'USDT',  // Unified currency code of the quote currency
+  quoteRate: 0.00025,  // A decimal value rate that interest is accrued at
+  period: 86400000,  // The amount of time in milliseconds that is required to accrue the interest amount specified by rate
+  timestamp: 1646956800000,  // Timestamp for when the currency had this rate
+  datetime: '2022-03-11T00:00:00.000Z',  // Datetime for when the currency had this rate
+  info: [ ... ]
+}
+```
 
 ### Borrow Rate Structure
 
