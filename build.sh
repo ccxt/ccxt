@@ -84,6 +84,7 @@ build_and_test_all () {
     npm run test-base-ws
     run_tests
   fi
+  exit
 }
 
 ### CHECK IF THIS IS A PR ###
