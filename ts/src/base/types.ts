@@ -34,7 +34,7 @@ export interface MarketInterface {
     baseId: string;
     quoteId: string;
     active: Bool;
-    type: string;
+    type: 'spot' | 'margin' | 'swap' | 'future' | 'option';
     spot: boolean;
     margin: boolean;
     swap: boolean;
@@ -177,9 +177,15 @@ export interface CurrencyInterface {
 }
 
 export interface Balance {
-    free: number | string;
-    used: number | string;
-    total: number | string;
+    free: Num,
+    used: Num,
+    total: Num,
+}
+
+export interface Account {
+    free: Str,
+    used: Str,
+    total: Str,
 }
 
 export interface PartialBalances extends Dictionary<number> {

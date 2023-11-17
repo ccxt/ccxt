@@ -922,6 +922,7 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         const matchObject = {
+            'Account': /-> Account:/,
             'Balances': /-> Balances:/,
             'Currency': /(-> Currency:|: Currency)/,
             'Greeks': /-> Greeks:/,
@@ -1584,7 +1585,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /^(?:Market|Currency|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {

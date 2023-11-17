@@ -53,6 +53,12 @@ class Balance(TypedDict):
     total: Num
 
 
+class Account(TypedDict):
+    free: Str
+    used: Str
+    total: Str
+
+
 class Trade(TypedDict):
     info: Dict[str, Any]
     amount: Num
