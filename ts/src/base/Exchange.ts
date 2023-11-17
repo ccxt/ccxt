@@ -1779,13 +1779,24 @@ export default class Exchange {
     parseToNumeric (number) {
         const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true
+        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is false
-        if (stringVersion.indexOf ('.') > 0) {
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        if (stringVersion.indexOf ('.') >= 0) {
             return parseFloat (stringVersion);
         }
         return parseInt (stringVersion);
+    }
+
+    isRoundNumber (value) {
+        // this method is similar to isInteger, but this is more loyal and does not check for types.
+        // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
+        const isNumeric = (typeof value === 'number');
+        if (isNumeric) {
+            return (value % 1) === 0;
+        } else {
+            return false;
+        }
     }
 
     afterConstruct () {
