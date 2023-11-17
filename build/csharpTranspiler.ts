@@ -623,6 +623,7 @@ class NewTranspiler {
         content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
         content = this.regexAll (content, [
             [/typeof\((\w+)\)/g,'$1'], // tmp fix
+            [/object\s*(\w+)\s=\sgetValue\((\w+),\s*"(bids|asks)".+/g,'var $1 = $2.$3;'], // tmp fix
             [ /object  = functions;/g, '' ], // tmp fix
             [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
             [/assert/g, 'Assert'],
