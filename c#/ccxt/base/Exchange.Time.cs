@@ -56,7 +56,7 @@ public partial class Exchange
         return timestamp;
     }
 
-    public string iso8601(object ts = null)
+    public static string Iso8601(object ts = null)
     {
         if (ts == null)
         {
@@ -78,6 +78,11 @@ public partial class Exchange
         var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
         return date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
+    }
+
+    public string iso8601(object ts = null)
+    {
+        return Iso8601(ts);
     }
 
     public string ymdhms(object ts, object infix = null)

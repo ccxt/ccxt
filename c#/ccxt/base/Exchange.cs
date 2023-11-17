@@ -32,16 +32,16 @@ public partial class Exchange
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
-            this.client = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
         }
         else if (this.httpsProxy != null && this.httpsProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpsProxy.ToString());
-            this.client = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
         }
         else
         {
-            this.client = new HttpClient();
+            this.httpClient = new HttpClient();
         }
     }
 
@@ -147,7 +147,7 @@ public partial class Exchange
             this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.stringifyObject(body) + "\n");
 
         // add headers
-        client.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Clear();
         var headersList = new List<string>(headers.Keys);
 
         var contentType = "";
@@ -156,7 +156,7 @@ public partial class Exchange
 
             if (key.ToLower() != "content-type")
             {
-                client.DefaultRequestHeaders.Add(key, headers[key].ToString());
+                httpClient.DefaultRequestHeaders.Add(key, headers[key].ToString());
             }
             else
             {
@@ -168,7 +168,7 @@ public partial class Exchange
         }
         // user agent
         if (this.userAgent != null && this.userAgent.Length > 0)
-            client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+            httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
 
 
         var result = "";
@@ -177,7 +177,7 @@ public partial class Exchange
 
         if (method == "GET")
         {
-            response = await this.client.GetAsync(url);
+            response = await this.httpClient.GetAsync(url);
             result = await response.Content.ReadAsStringAsync();
         }
         else
@@ -191,15 +191,15 @@ public partial class Exchange
             var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
             if (method == "POST")
             {
-                response = await this.client.PostAsync(url, stringContent);
+                response = await this.httpClient.PostAsync(url, stringContent);
             }
             else if (method == "DELETE")
             {
-                response = await this.client.DeleteAsync(url);
+                response = await this.httpClient.DeleteAsync(url);
             }
             else if (method == "PUT")
             {
-                response = await this.client.PutAsync(url, stringContent);
+                response = await this.httpClient.PutAsync(url, stringContent);
             }
             else if (method == "PATCH")
             {
@@ -211,12 +211,12 @@ public partial class Exchange
                     Content = stringContent
                 };
 
-                response = await client.SendAsync(request);
+                response = await httpClient.SendAsync(request);
             }
             result = await response.Content.ReadAsStringAsync();
         }
 
-        this.client.DefaultRequestHeaders.Clear();
+        this.httpClient.DefaultRequestHeaders.Clear();
 
         var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
         this.last_response_headers = responseHeaders;

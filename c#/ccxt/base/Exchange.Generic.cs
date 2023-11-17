@@ -82,6 +82,11 @@ public partial class Exchange
 
     public object extend(object aa, object bb = null)
     {
+        return Extend(aa, bb);
+    }
+
+    public static object Extend(object aa, object bb = null)
+    {
 
         var a = (dict)aa;
         var outDict = new dict();

@@ -4,7 +4,7 @@ using list = List<object>;
 
 public partial class Exchange
 {
-    public HttpClient client { get; set; }
+    public HttpClient httpClient { get; set; }
     public string id { get; set; } = "Exchange";
 
     public bool alias { get; set; } = false;
