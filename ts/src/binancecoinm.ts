@@ -3,8 +3,6 @@
 
 import binance from './binance.js';
 
-const x=  3;
-
 //  ---------------------------------------------------------------------------
 
 export default class binancecoinm extends binance {
