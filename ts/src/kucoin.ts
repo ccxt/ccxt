@@ -2177,12 +2177,12 @@ export default class kucoin extends Exchange {
                 response = await this.privateDeleteOrderClientOrderClientOid (this.extend (request, params));
             }
         } else {
+            request['orderId'] = id;
             if (stop) {
                 response = await this.privateDeleteStopOrderOrderId (this.extend (request, params));
             } else if (hf) {
                 response = await this.privateDeleteHfOrdersOrderId (this.extend (request, params));
             } else {
-                request['orderId'] = id;
                 response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
             }
         }
