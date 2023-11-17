@@ -73,7 +73,11 @@ build_and_test_all () {
         pyenv install -s 3.10.13
         pyenv install -s 3.11.6
         pyenv global 3.7 3.8 3.9 3.10 3.11
-        cd python && tox run-parallel && cd ..
+        cd python
+        if ! tox run-parallel; then
+          exit 1
+        fi
+        cd ..
       fi
     fi
     npm run test-base
