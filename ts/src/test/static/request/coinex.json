@@ -179,10 +179,8 @@
             {
                 "description": "Fetch isolated borrow rates",
                 "method": "fetchIsolatedBorrowRates",
-                "url": "https://api.coinex.com/v1/margin/config?0=B&1=T&2=C&3=/&4=U&5=S&6=D&7=T&access_id=86AC33D5904F432C9C9DDD4708233F38&tonce=1700201188915",
-                "input": [
-                  "BTC/USDT"
-                ]
+                "url": "https://api.coinex.com/v1/margin/config?access_id=86AC33D5904F432C9C9DDD4708233F38&tonce=1700202207814",
+                "input": []
             }
         ]
     }
