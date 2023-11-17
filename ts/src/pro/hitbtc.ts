@@ -7,7 +7,7 @@ import { Int, OHLCV, OrderSide, OrderType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, Trade } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1043,6 +1043,7 @@ export default class hitbtc extends hitbtcRest {
     }
 
     handleMessage (client: Client, message) {
+        this.handleError (client, message);
         let channel = this.safeString2 (message, 'ch', 'method');
         if (channel !== undefined) {
             const splitChannel = channel.split ('/');
@@ -1093,5 +1094,30 @@ export default class hitbtc extends hitbtcRest {
             }
         }
         return message;
+    }
+
+    handleError (client: Client, message) {
+        //
+        //    {
+        //        jsonrpc: '2.0',
+        //        error: {
+        //          code: 20001,
+        //          message: 'Insufficient funds',
+        //          description: 'Check that the funds are sufficient, given commissions'
+        //        },
+        //        id: 1700228604325
+        //    }
+        //
+        const error = this.safeValue (message, 'error');
+        if (error !== undefined) {
+            const code = this.safeValue (error, 'code');
+            const errorMessage = this.safeString (error, 'message');
+            const description = this.safeString (error, 'description');
+            const feedback = this.id + ' ' + description;
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 }
