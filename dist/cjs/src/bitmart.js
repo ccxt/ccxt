@@ -2118,17 +2118,17 @@ class bitmart extends bitmart$1 {
     parseOrderStatusByType(type, status) {
         const statusesByType = {
             'spot': {
-                '1': 'failed',
+                '1': 'rejected',
                 '2': 'open',
-                '3': 'failed',
+                '3': 'rejected',
                 '4': 'open',
                 '5': 'open',
                 '6': 'closed',
-                '7': 'canceling',
+                '7': 'canceled',
                 '8': 'canceled',
                 'new': 'open',
                 'partially_filled': 'open',
-                'filled': 'filled',
+                'filled': 'closed',
                 'partially_canceled': 'canceled',
             },
             'swap': {
@@ -2662,11 +2662,14 @@ class bitmart extends bitmart$1 {
          * @method
          * @name bitmart#fetchClosedOrders
          * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest entry
+         * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -2679,20 +2682,31 @@ class bitmart extends bitmart$1 {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
         if (type !== 'spot') {
-            throw new errors.NotSupported(this.id + ' fetchClosedOrders() does not support ' + type + ' orders, only spot orders are accepted');
+            this.checkRequiredSymbol('fetchClosedOrders', symbol);
         }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchClosedOrders', params);
         if (marginMode === 'isolated') {
             request['orderMode'] = 'iso_margin';
         }
-        const until = this.safeInteger2(params, 'until', 'endTime');
-        if (until !== undefined) {
-            params = this.omit(params, ['endTime']);
-            request['endTime'] = until;
+        const startTimeKey = (type === 'spot') ? 'startTime' : 'start_time';
+        if (since !== undefined) {
+            request[startTimeKey] = since;
         }
-        const response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const endTimeKey = (type === 'spot') ? 'endTime' : 'end_time';
+        const until = this.safeInteger2(params, 'until', endTimeKey);
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request[endTimeKey] = until;
+        }
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetContractPrivateOrderHistory(this.extend(request, params));
+        }
+        const data = this.safeValue(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
