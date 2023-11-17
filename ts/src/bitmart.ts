@@ -32,7 +32,7 @@ export default class bitmart extends Exchange {
                 'margin': true,
                 'swap': true,
                 'future': false,
-                'option': undefined,
+                'option': false,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
