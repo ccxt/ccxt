@@ -1042,6 +1042,45 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
+    handleOrderRequest (client: Client, message) {
+        //
+        // createOrderWs, cancelOrderWs
+        //
+        //    {
+        //        "jsonrpc": "2.0",
+        //        "result": {
+        //            "id": 1130310696965,
+        //            "client_order_id": "OPC2oyHSkEBqIpPtniLqeW-597hUL3Yo",
+        //            "symbol": "ADAUSDT",
+        //            "side": "buy",
+        //            "status": "new",
+        //            "type": "limit",
+        //            "time_in_force": "GTC",
+        //            "quantity": "4",
+        //            "quantity_cumulative": "0",
+        //            "price": "0.3300000",
+        //            "post_only": false,
+        //            "created_at": "2023-11-17T14:58:15.903Z",
+        //            "updated_at": "2023-11-17T14:58:15.903Z",
+        //            "original_client_order_id": "d6b645556af740b1bd1683400fd9cbce",       // spot_replace_order only
+        //            "report_type": "new"
+        //            "margin_mode": "isolated",                                            // margin and future only
+        //            "reduce_only": false,                                                 // margin and future only
+        //        },
+        //        "id": 1700233093414
+        //    }
+        //
+        const messageHash = this.safeString (message, 'id');
+        const data = this.safeValue (message, 'result', {});
+        const orders = [];
+        for (let i = 0; i < data.length; i++) {
+            const order = data[i];
+            const parsedOrder = this.parseWsOrder (order);
+            orders.push (parsedOrder);
+        }
+        client.resolve (orders, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         this.handleError (client, message);
         let channel = this.safeString2 (message, 'ch', 'method');
@@ -1065,6 +1104,12 @@ export default class hitbtc extends hitbtcRest {
             const method = this.safeValue (methods, channel);
             if (method !== undefined) {
                 method.call (this, client, message);
+            } else {
+                const result = this.safeValue (message, 'result');
+                const clientOrderId = this.safeString (result, 'client_order_id');
+                if (clientOrderId !== undefined) {
+                    this.handleOrderRequest (client, message);
+                }
             }
         } else {
             const success = this.safeValue (message, 'result');
