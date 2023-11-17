@@ -493,6 +493,7 @@ class htx extends Exchange {
                             // Future Market Data interface
                             'api/v1/contract_contract_info' => 1,
                             'api/v1/contract_index' => 1,
+                            'api/v1/contract_query_elements' => 1,
                             'api/v1/contract_price_limit' => 1,
                             'api/v1/contract_open_interest' => 1,
                             'api/v1/contract_delivery_price' => 1,
@@ -522,6 +523,7 @@ class htx extends Exchange {
                             // Swap Market Data interface
                             'swap-api/v1/swap_contract_info' => 1,
                             'swap-api/v1/swap_index' => 1,
+                            'swap-api/v1/swap_query_elements' => 1,
                             'swap-api/v1/swap_price_limit' => 1,
                             'swap-api/v1/swap_open_interest' => 1,
                             'swap-ex/market/depth' => 1,
@@ -554,6 +556,7 @@ class htx extends Exchange {
                             // Swap Market Data interface
                             'linear-swap-api/v1/swap_contract_info' => 1,
                             'linear-swap-api/v1/swap_index' => 1,
+                            'linear-swap-api/v1/swap_query_elements' => 1,
                             'linear-swap-api/v1/swap_price_limit' => 1,
                             'linear-swap-api/v1/swap_open_interest' => 1,
                             'linear-swap-ex/market/depth' => 1,
