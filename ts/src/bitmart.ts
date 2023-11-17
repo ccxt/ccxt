@@ -2695,7 +2695,7 @@ export default class bitmart extends Exchange {
         const endTimeKey = (type === 'spot') ? 'endTime' : 'end_time';
         const until = this.safeInteger2 (params, 'until', endTimeKey);
         if (until !== undefined) {
-            params = this.omit (params, [ endTimeKey ]);
+            params = this.omit (params, [ 'until' ]);
             request[endTimeKey] = until;
         }
         let response = undefined;
@@ -2704,7 +2704,7 @@ export default class bitmart extends Exchange {
         } else {
             response = await this.privateGetContractPrivateOrderHistory (this.extend (request, params));
         }
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
