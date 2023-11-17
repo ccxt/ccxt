@@ -152,14 +152,14 @@ public partial class BaseTest
                 {
                     return false;
                 }
-                if (!isEqual(dict1[key], dict2[key]))
+                if (!equals(dict1[key], dict2[key]))
                 {
                     return false;
                 }
             }
             return true;
         }
-        return a == b;
+        return isEqual(a, b);
 
     }
 
