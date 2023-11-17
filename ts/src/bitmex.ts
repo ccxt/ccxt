@@ -1859,21 +1859,21 @@ export default class bitmex extends Exchange {
         if ((triggerPrice !== undefined) && !customTriggerType) {
             params = this.omit (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
             request['stopPx'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
-            const triggerIf = this.safeString (params, 'triggerIf');
-            this.checkRequiredArgument ('createOrder', triggerIf, 'triggerIf', [ 'above', 'below' ]);
+            const triggerDirection = this.safeString (params, 'triggerDirection');
+            this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
             this.checkRequiredArgument ('createOrder', side, 'side', [ 'buy', 'sell' ]);
             if (type === 'limit') {
                 request['price'] = parseFloat (this.priceToPrecision (symbol, price));
                 if (side === 'buy') {
-                    request['ordType'] = (triggerIf === 'above') ? 'StopLimit' : 'LimitIfTouched';
+                    request['ordType'] = (triggerDirection === 'above') ? 'StopLimit' : 'LimitIfTouched';
                 } else {
-                    request['ordType'] = (triggerIf === 'above') ? 'LimitIfTouched' : 'StopLimit';
+                    request['ordType'] = (triggerDirection === 'above') ? 'LimitIfTouched' : 'StopLimit';
                 }
             } else if (type === 'market') {
                 if (side === 'buy') {
-                    request['ordType'] = (triggerIf === 'above') ? 'Stop' : 'MarketIfTouched';
+                    request['ordType'] = (triggerDirection === 'above') ? 'Stop' : 'MarketIfTouched';
                 } else {
-                    request['ordType'] = (triggerIf === 'above') ? 'MarketIfTouched' : 'Stop';
+                    request['ordType'] = (triggerDirection === 'above') ? 'MarketIfTouched' : 'Stop';
                 }
             }
         } else if (customTriggerType && (triggerPrice === undefined)) {
