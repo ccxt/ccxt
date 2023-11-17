@@ -147,7 +147,7 @@ class btcalpha extends Exchange {
         /**
          * retrieves data on all markets for btcalpha
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetPairs ($params);
         //
@@ -165,70 +165,70 @@ class btcalpha extends Exchange {
         //        ),
         //    )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            $id = $this->safe_string($market, 'name');
-            $baseId = $this->safe_string($market, 'currency1');
-            $quoteId = $this->safe_string($market, 'currency2');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $pricePrecision = $this->safe_string($market, 'price_precision');
-            $priceLimit = $this->parse_precision($pricePrecision);
-            $amountLimit = $this->safe_string($market, 'minimum_order_size');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => true,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
-                    'price' => $this->parse_number($this->parse_precision(($pricePrecision))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->parse_number($amountLimit),
-                        'max' => $this->safe_number($market, 'maximum_order_size'),
-                    ),
-                    'price' => array(
-                        'min' => $this->parse_number($priceLimit),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->parse_number(Precise::string_mul($priceLimit, $amountLimit)),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+        return $this->parse_markets($response);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'name');
+        $baseId = $this->safe_string($market, 'currency1');
+        $quoteId = $this->safe_string($market, 'currency2');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $pricePrecision = $this->safe_string($market, 'price_precision');
+        $priceLimit = $this->parse_precision($pricePrecision);
+        $amountLimit = $this->safe_string($market, 'minimum_order_size');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => true,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                'price' => $this->parse_number($this->parse_precision(($pricePrecision))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->parse_number($amountLimit),
+                    'max' => $this->safe_number($market, 'maximum_order_size'),
+                ),
+                'price' => array(
+                    'min' => $this->parse_number($priceLimit),
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->parse_number(Precise::string_mul($priceLimit, $amountLimit)),
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://btc-alpha.github.io/api-docs/#tickers
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -241,15 +241,15 @@ class btcalpha extends Exchange {
         //
         //    array(
         //        array(
-        //            timestamp => '1674658.445272',
-        //            pair => 'BTC_USDT',
-        //            last => '22476.85',
-        //            diff => '458.96',
-        //            vol => '6660.847784',
-        //            high => '23106.08',
-        //            low => '22348.29',
-        //            buy => '22508.46',
-        //            sell => '22521.11'
+        //            "timestamp" => "1674658.445272",
+        //            "pair" => "BTC_USDT",
+        //            "last" => "22476.85",
+        //            "diff" => "458.96",
+        //            "vol" => "6660.847784",
+        //            "high" => "23106.08",
+        //            "low" => "22348.29",
+        //            "buy" => "22508.46",
+        //            "sell" => "22521.11"
         //        ),
         //        ...
         //    )
@@ -257,7 +257,7 @@ class btcalpha extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://btc-alpha.github.io/api-docs/#tickers
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -273,35 +273,36 @@ class btcalpha extends Exchange {
         $response = $this->publicGetTicker (array_merge($request, $params));
         //
         //    {
-        //        timestamp => '1674658.445272',
-        //        pair => 'BTC_USDT',
-        //        last => '22476.85',
-        //        diff => '458.96',
-        //        vol => '6660.847784',
-        //        high => '23106.08',
-        //        low => '22348.29',
-        //        buy => '22508.46',
-        //        sell => '22521.11'
+        //        "timestamp" => "1674658.445272",
+        //        "pair" => "BTC_USDT",
+        //        "last" => "22476.85",
+        //        "diff" => "458.96",
+        //        "vol" => "6660.847784",
+        //        "high" => "23106.08",
+        //        "low" => "22348.29",
+        //        "buy" => "22508.46",
+        //        "sell" => "22521.11"
         //    }
         //
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //    {
-        //        $timestamp => '1674658.445272',
-        //        pair => 'BTC_USDT',
-        //        $last => '22476.85',
-        //        diff => '458.96',
-        //        vol => '6660.847784',
-        //        high => '23106.08',
-        //        low => '22348.29',
-        //        buy => '22508.46',
-        //        sell => '22521.11'
+        //        "timestamp" => "1674658.445272",
+        //        "pair" => "BTC_USDT",
+        //        "last" => "22476.85",
+        //        "diff" => "458.96",
+        //        "vol" => "6660.847784",
+        //        "high" => "23106.08",
+        //        "low" => "22348.29",
+        //        "buy" => "22508.46",
+        //        "sell" => "22521.11"
         //    }
         //
-        $timestamp = $this->safe_integer_product($ticker, 'timestamp', 1000000);
+        $timestampStr = $this->safe_string($ticker, 'timestamp');
+        $timestamp = intval(Precise::string_mul($timestampStr, '1000000'));
         $marketId = $this->safe_string($ticker, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $last = $this->safe_string($ticker, 'last');
@@ -329,8 +330,9 @@ class btcalpha extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#get-orderbook
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -361,7 +363,7 @@ class btcalpha extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -411,7 +413,7 @@ class btcalpha extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -434,7 +436,7 @@ class btcalpha extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
@@ -462,7 +464,7 @@ class btcalpha extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -493,7 +495,7 @@ class btcalpha extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //  deposit
         //      {
@@ -533,6 +535,7 @@ class btcalpha extends Exchange {
             'type' => null,
             'status' => $this->parse_transaction_status($statusId),
             'comment' => null,
+            'internal' => null,
             'fee' => null,
             'updated' => null,
         );
@@ -549,7 +552,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "time":1591296000,
@@ -570,7 +573,7 @@ class btcalpha extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -603,7 +606,7 @@ class btcalpha extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -617,7 +620,7 @@ class btcalpha extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the btcalpha api endpoint
@@ -637,7 +640,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchClosedOrders / fetchOrder
         //     {
@@ -712,15 +715,19 @@ class btcalpha extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#create-$order
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the btcalpha api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
+        if ($type === 'market') {
+            throw new InvalidOrder($this->id . ' only limits orders are supported');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -736,13 +743,13 @@ class btcalpha extends Exchange {
         $order = $this->parse_order($response, $market);
         $orderAmount = (string) $order['amount'];
         $amount = Precise::string_gt($orderAmount, '0') ? $order['amount'] : $amount;
-        return array_merge($order, array(
-            'amount' => $this->parse_number($amount),
-        ));
+        $order['amount'] = $this->parse_number($amount);
+        return $order;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#cancel-order
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
@@ -758,6 +765,7 @@ class btcalpha extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#retrieve-single-$order
          * fetches information on an $order made by the user
          * @param {string} $symbol not used by btcalpha fetchOrder
          * @param {array} [$params] extra parameters specific to the btcalpha api endpoint
@@ -771,8 +779,9 @@ class btcalpha extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#list-own-$orders
          * fetches information on multiple $orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -794,7 +803,7 @@ class btcalpha extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified market $symbol
@@ -809,7 +818,7 @@ class btcalpha extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in

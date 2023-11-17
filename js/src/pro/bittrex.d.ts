@@ -1,5 +1,5 @@
 import bittrexRest from '../bittrex.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bittrex extends bittrexRest {
     describe(): any;
@@ -33,7 +33,7 @@ export default class bittrex extends bittrexRest {
     createSignalRQuery(params?: {}): any;
     negotiate(params?: {}): Promise<any>;
     start(negotiation: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     subscribeToOrders(authentication: any, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<any>;
@@ -51,7 +51,7 @@ export default class bittrex extends bittrexRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     subscribeToTrades(negotiation: any, symbol: any, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     subscribeToMyTrades(authentication: any, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
@@ -64,5 +64,6 @@ export default class bittrex extends bittrexRest {
     handleSystemStatusHelper(): Promise<void>;
     handleSystemStatus(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
 }

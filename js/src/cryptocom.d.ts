@@ -1,5 +1,5 @@
 import Exchange from './abstract/cryptocom.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 /**
  * @class cryptocom
  * @extends Exchange
@@ -7,48 +7,31 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 export default class cryptocom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<any>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createAdvancedOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseAddress(addressString: any): any[];
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: any;
-        address: any;
-        addressTo: any;
-        addressFrom: any;
-        tag: any;
-        tagTo: any;
-        tagFrom: any;
-        type: any;
-        amount: number;
-        currency: any;
-        status: any;
-        updated: number;
-        internal: any;
-        fee: any;
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     safeNetwork(networkId: any): string;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
@@ -60,9 +43,9 @@ export default class cryptocom extends Exchange {
         toAccount: any;
         status: any;
     }>;
-    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
-    parseTransfer(transfer: any, currency?: any): {
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;
         timestamp: any;
@@ -73,51 +56,30 @@ export default class cryptocom extends Exchange {
         toAccount: any;
         status: any;
     };
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTrade(trade: any, market?: Market): Trade;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseOrder(order: any, market?: Market): Order;
     parseDepositStatus(status: any): string;
     parseWithdrawalStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: any;
-        address: any;
-        addressTo: any;
-        addressFrom: any;
-        tag: any;
-        tagTo: any;
-        tagFrom: any;
-        type: any;
-        amount: number;
-        currency: any;
-        status: any;
-        updated: number;
-        internal: any;
-        fee: any;
-    };
-    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
-    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
-    parseMarginLoan(info: any, currency?: any): {
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
+    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
+    parseMarginLoan(info: any, currency?: Currency): {
         id: number;
-        currency: any;
+        currency: string;
         amount: any;
         symbol: any;
         timestamp: any;
         datetime: any;
         info: any;
     };
-    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: any, market?: any): {
+    parseBorrowInterest(info: any, market?: Market): {
         symbol: any;
         marginMode: any;
-        currency: any;
+        currency: string;
         interest: number;
         interestRate: number;
         amountBorrowed: any;
@@ -125,10 +87,9 @@ export default class cryptocom extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowRates(params?: {}): Promise<any[]>;
     parseBorrowRates(info: any, codeKey: any): any[];
     customHandleMarginModeAndParams(methodName: any, params?: {}): any[];
-    parseDepositWithdrawFee(fee: any, currency?: any): {
+    parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {
             fee: any;
@@ -140,16 +101,16 @@ export default class cryptocom extends Exchange {
         };
         networks: {};
     };
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
-    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntry(item: any, currency?: any): {
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseLedgerEntry(item: any, currency?: Currency): {
         id: string;
         direction: any;
         account: string;
         referenceId: string;
         referenceAccount: string;
         type: string;
-        currency: any;
+        currency: string;
         amount: number;
         timestamp: number;
         datetime: string;
@@ -170,20 +131,21 @@ export default class cryptocom extends Exchange {
         code: any;
         info: any;
     };
-    fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
         info: any;
-        symbol: any;
+        symbol: string;
         price: number;
         timestamp: number;
         datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
-    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     nonce(): number;
+    paramsToString(object: any, level: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

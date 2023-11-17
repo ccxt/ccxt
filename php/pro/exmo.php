@@ -73,18 +73,18 @@ class exmo extends \ccxt\async\exmo {
         //
         //  spot
         //     {
-        //         ts => 1654208766007,
-        //         event => 'snapshot',
-        //         $topic => 'spot/wallet',
-        //         data => {
-        //             balances => array(
-        //                 ADA => '0',
-        //                 ALGO => '0',
+        //         "ts" => 1654208766007,
+        //         "event" => "snapshot",
+        //         "topic" => "spot/wallet",
+        //         "data" => {
+        //             "balances" => array(
+        //                 "ADA" => "0",
+        //                 "ALGO" => "0",
         //                 ...
         //             ),
-        //             reserved => {
-        //                 ADA => '0',
-        //                 ALGO => '0',
+        //             "reserved" => {
+        //                 "ADA" => "0",
+        //                 "ALGO" => "0",
         //                 ...
         //             }
         //         }
@@ -236,19 +236,19 @@ class exmo extends \ccxt\async\exmo {
         //
         //  spot
         //      {
-        //          ts => 1654205085473,
-        //          event => 'update',
-        //          $topic => 'spot/ticker:BTC_USDT',
-        //          data => {
-        //              buy_price => '30285.84',
-        //              sell_price => '30299.97',
-        //              last_trade => '30295.01',
-        //              high => '30386.7',
-        //              low => '29542.76',
-        //              avg => '29974.16178449',
-        //              vol => '118.79538518',
-        //              vol_curr => '3598907.38200826',
-        //              updated => 1654205084
+        //          "ts" => 1654205085473,
+        //          "event" => "update",
+        //          "topic" => "spot/ticker:BTC_USDT",
+        //          "data" => {
+        //              "buy_price" => "30285.84",
+        //              "sell_price" => "30299.97",
+        //              "last_trade" => "30295.01",
+        //              "high" => "30386.7",
+        //              "low" => "29542.76",
+        //              "avg" => "29974.16178449",
+        //              "vol" => "118.79538518",
+        //              "vol_curr" => "3598907.38200826",
+        //              "updated" => 1654205084
         //          }
         //      }
         //
@@ -295,16 +295,16 @@ class exmo extends \ccxt\async\exmo {
     public function handle_trades(Client $client, $message) {
         //
         //      {
-        //          ts => 1654206084001,
-        //          event => 'update',
-        //          $topic => 'spot/trades:BTC_USDT',
-        //          data => [array(
-        //              trade_id => 389704729,
-        //              type => 'sell',
-        //              price => '30310.95',
-        //              quantity => '0.0197',
-        //              amount => '597.125715',
-        //              date => 1654206083
+        //          "ts" => 1654206084001,
+        //          "event" => "update",
+        //          "topic" => "spot/trades:BTC_USDT",
+        //          "data" => [array(
+        //              "trade_id" => 389704729,
+        //              "type" => "sell",
+        //              "price" => "30310.95",
+        //              "quantity" => "0.0197",
+        //              "amount" => "597.125715",
+        //              "date" => 1654206083
         //          )]
         //      }
         //
@@ -369,23 +369,23 @@ class exmo extends \ccxt\async\exmo {
         //
         //  spot
         //     {
-        //         ts => 1654210290219,
-        //         $event => 'update',
-        //         $topic => 'spot/user_trades',
-        //         data => {
-        //             trade_id => 389715807,
-        //             $type => 'buy',
-        //             price => '30527.77',
-        //             quantity => '0.0001',
-        //             amount => '3.052777',
-        //             date => 1654210290,
-        //             order_id => 27352777112,
-        //             client_id => 0,
-        //             pair => 'BTC_USDT',
-        //             exec_type => 'taker',
-        //             commission_amount => '0.0000001',
-        //             commission_currency => 'BTC',
-        //             commission_percent => '0.1'
+        //         "ts" => 1654210290219,
+        //         "event" => "update",
+        //         "topic" => "spot/user_trades",
+        //         "data" => {
+        //             "trade_id" => 389715807,
+        //             "type" => "buy",
+        //             "price" => "30527.77",
+        //             "quantity" => "0.0001",
+        //             "amount" => "3.052777",
+        //             "date" => 1654210290,
+        //             "order_id" => 27352777112,
+        //             "client_id" => 0,
+        //             "pair" => "BTC_USDT",
+        //             "exec_type" => "taker",
+        //             "commission_amount" => "0.0000001",
+        //             "commission_currency" => "BTC",
+        //             "commission_percent" => "0.1"
         //         }
         //     }
         //
@@ -527,7 +527,7 @@ class exmo extends \ccxt\async\exmo {
         $symbol = $this->safe_symbol($marketId);
         $orderBook = $this->safe_value($message, 'data', array());
         $messageHash = 'orderbook:' . $symbol;
-        $timestamp = $this->safe_number($message, 'ts');
+        $timestamp = $this->safe_integer($message, 'ts');
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         if ($storedOrderBook === null) {
             $storedOrderBook = $this->order_book(array());
@@ -562,18 +562,18 @@ class exmo extends \ccxt\async\exmo {
     public function handle_message(Client $client, $message) {
         //
         // {
-        //     ts => 1654206362552,
-        //     $event => 'info',
-        //     code => 1,
-        //     $message => 'connection established',
-        //     session_id => '7548931b-c2a4-45dd-8d71-877881a7251a'
+        //     "ts" => 1654206362552,
+        //     "event" => "info",
+        //     "code" => 1,
+        //     "message" => "connection established",
+        //     "session_id" => "7548931b-c2a4-45dd-8d71-877881a7251a"
         // }
         //
         // {
-        //     ts => 1654206491399,
-        //     $event => 'subscribed',
-        //     id => 1,
-        //     $topic => 'spot/ticker:BTC_USDT'
+        //     "ts" => 1654206491399,
+        //     "event" => "subscribed",
+        //     "id" => 1,
+        //     "topic" => "spot/ticker:BTC_USDT"
         // }
         $event = $this->safe_string($message, 'event');
         $events = array(
@@ -615,9 +615,9 @@ class exmo extends \ccxt\async\exmo {
     public function handle_subscribed(Client $client, $message) {
         //
         // {
-        //     method => 'subscribe',
-        //     id => 2,
-        //     topics => ['spot/orders']
+        //     "method" => "subscribe",
+        //     "id" => 2,
+        //     "topics" => ["spot/orders"]
         // }
         //
         return $message;
@@ -626,11 +626,11 @@ class exmo extends \ccxt\async\exmo {
     public function handle_info(Client $client, $message) {
         //
         // {
-        //     ts => 1654215731659,
-        //     event => 'info',
-        //     code => 1,
-        //     $message => 'connection established',
-        //     session_id => '4c496262-e259-4c27-b805-f20b46209c17'
+        //     "ts" => 1654215731659,
+        //     "event" => "info",
+        //     "code" => 1,
+        //     "message" => "connection established",
+        //     "session_id" => "4c496262-e259-4c27-b805-f20b46209c17"
         // }
         //
         return $message;
@@ -639,11 +639,11 @@ class exmo extends \ccxt\async\exmo {
     public function handle_authentication_message(Client $client, $message) {
         //
         //     {
-        //         method => 'login',
-        //         id => 1,
-        //         api_key => 'K-************************',
-        //         sign => '******************************************************************',
-        //         nonce => 1654215729887
+        //         "method" => "login",
+        //         "id" => 1,
+        //         "api_key" => "K-************************",
+        //         "sign" => "******************************************************************",
+        //         "nonce" => 1654215729887
         //     }
         //
         $messageHash = 'authenticated';

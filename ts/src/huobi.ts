@@ -1,12 +1,12 @@
 
-//  ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
-import Exchange from './abstract/huobi.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import Exchange from './abstract/htx.js';
 
 /* eslint-disable */
 type MappedNetwork = {
@@ -17,10 +17,6 @@ type MappedNetwork = {
 
 //  ---------------------------------------------------------------------------
 
-/**
- * @class huobi
- * @extends Exchange
- */
 export default class huobi extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
@@ -2554,7 +2550,7 @@ export default class huobi extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as any;
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "amount":1.2082,

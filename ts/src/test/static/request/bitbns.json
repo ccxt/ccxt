@@ -1,0 +1,66 @@
+{
+    "exchange": "bitbns",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitbns.com/api/trade/v1/listExecutedOrders/LTCUSDT",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ],
+                "output": "{\"page\":0,\"since\":\"2023-11-08T15:33:58.000Z\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitbns.com/api/trade/v2/getordersnew",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"page\":0,\"side\":\"usdtListOpenOrders\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitbns.com/api/trade/v1/currentCoinBalance/EVERYTHING",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": "{\"type\":\"spot\"}"
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitbns.com/api/trade/v1/currentCoinBalance/EVERYTHING",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{\"type\":\"swap\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.bitbns.com/api/trade/v1/getCoinAddress/USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": "{}"
+            }
+        ]
+    }
+}

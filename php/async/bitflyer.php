@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitflyer extends Exchange {
 
@@ -151,6 +152,7 @@ class bitflyer extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitflyer
+             * @see https://lightning.bitflyer.com/docs?lang=en#$market-list
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -292,6 +294,7 @@ class bitflyer extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -299,7 +302,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -313,10 +316,11 @@ class bitflyer extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://lightning.bitflyer.com/docs?lang=en#get-account-asset-balance
              * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
@@ -345,10 +349,11 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://lightning.bitflyer.com/docs?lang=en#order-book
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
@@ -364,7 +369,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_string($ticker, 'ltp');
@@ -392,10 +397,11 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://lightning.bitflyer.com/docs?lang=en#ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
@@ -410,7 +416,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public) v1
         //
@@ -475,10 +481,11 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://lightning.bitflyer.com/docs?lang=en#list-executions
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -515,6 +522,7 @@ class bitflyer extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             * @see https://lightning.bitflyer.com/docs?lang=en#get-trading-commission
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structure}
@@ -544,6 +552,7 @@ class bitflyer extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://lightning.bitflyer.com/docs?lang=en#send-a-new-order
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -574,14 +583,13 @@ class bitflyer extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://lightning.bitflyer.com/docs?lang=en#cancel-order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
-            }
+            $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
             $request = array(
                 'product_code' => $this->market_id($symbol),
@@ -602,7 +610,7 @@ class bitflyer extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         $timestamp = $this->parse8601($this->safe_string($order, 'child_order_date'));
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'size');
@@ -649,19 +657,18 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
+             * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
-            }
+            $this->check_required_symbol('fetchOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -677,10 +684,11 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -694,10 +702,11 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
@@ -715,13 +724,12 @@ class bitflyer extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a `$symbol` argument');
-            }
+            $this->check_required_symbol('fetchOrder', $symbol);
             $orders = Async\await($this->fetch_orders($symbol));
             $ordersById = $this->index_by($orders, 'id');
             if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
@@ -735,15 +743,14 @@ class bitflyer extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             * @see https://lightning.bitflyer.com/docs?lang=en#list-executions
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
-            }
+            $this->check_required_symbol('fetchMyTrades', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -775,6 +782,7 @@ class bitflyer extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             * @see https://lightning.bitflyer.com/docs?lang=en#get-open-interest-summary
              * @param {string[]} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
@@ -813,6 +821,7 @@ class bitflyer extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -841,10 +850,11 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             * @see https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-deposit-history
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -879,10 +889,11 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             * @see https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-transaction-history
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -935,7 +946,7 @@ class bitflyer extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1010,6 +1021,7 @@ class bitflyer extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => null,
+            'comment' => null,
             'internal' => null,
             'fee' => $fee,
         );

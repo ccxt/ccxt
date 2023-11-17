@@ -114,6 +114,7 @@ export default class coinbasepro extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'address-book',
                         'accounts',
                         'accounts/{id}',
                         'accounts/{id}/holds',
@@ -240,25 +241,25 @@ export default class coinbasepro extends Exchange {
         //
         //     [
         //         {
-        //             id: 'XTZ',
-        //             name: 'Tezos',
-        //             min_size: '0.000001',
-        //             status: 'online',
-        //             message: '',
-        //             max_precision: '0.000001',
-        //             convertible_to: [],
-        //             details: {
-        //                 type: 'crypto',
-        //                 symbol: 'Τ',
-        //                 network_confirmations: 60,
-        //                 sort_order: 53,
-        //                 crypto_address_link: 'https://tzstats.com/{{address}}',
-        //                 crypto_transaction_link: 'https://tzstats.com/{{txId}}',
-        //                 push_payment_methods: [ 'crypto' ],
-        //                 group_types: [],
-        //                 display_name: '',
-        //                 processing_time_seconds: 0,
-        //                 min_withdrawal_amount: 1
+        //             "id": "XTZ",
+        //             "name": "Tezos",
+        //             "min_size": "0.000001",
+        //             "status": "online",
+        //             "message": '',
+        //             "max_precision": "0.000001",
+        //             "convertible_to": [],
+        //             "details": {
+        //                 "type": "crypto",
+        //                 "symbol": "Τ",
+        //                 "network_confirmations": 60,
+        //                 "sort_order": 53,
+        //                 "crypto_address_link": "https://tzstats.com/{{address}}",
+        //                 "crypto_transaction_link": "https://tzstats.com/{{txId}}",
+        //                 "push_payment_methods": [ "crypto" ],
+        //                 "group_types": [],
+        //                 "display_name": '',
+        //                 "processing_time_seconds": 0,
+        //                 "min_withdrawal_amount": 1
         //             }
         //         }
         //     ]
@@ -310,48 +311,48 @@ export default class coinbasepro extends Exchange {
         //
         //     [
         //         {
-        //             id: 'BTCAUCTION-USD',
-        //             base_currency: 'BTC',
-        //             quote_currency: 'USD',
-        //             base_min_size: '0.000016',
-        //             base_max_size: '1500',
-        //             quote_increment: '0.01',
-        //             base_increment: '0.00000001',
-        //             display_name: 'BTCAUCTION/USD',
-        //             min_market_funds: '1',
-        //             max_market_funds: '20000000',
-        //             margin_enabled: false,
-        //             fx_stablecoin: false,
-        //             max_slippage_percentage: '0.02000000',
-        //             post_only: false,
-        //             limit_only: false,
-        //             cancel_only: true,
-        //             trading_disabled: false,
-        //             status: 'online',
-        //             status_message: '',
-        //             auction_mode: false
+        //             "id": "BTCAUCTION-USD",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USD",
+        //             "base_min_size": "0.000016",
+        //             "base_max_size": "1500",
+        //             "quote_increment": "0.01",
+        //             "base_increment": "0.00000001",
+        //             "display_name": "BTCAUCTION/USD",
+        //             "min_market_funds": "1",
+        //             "max_market_funds": "20000000",
+        //             "margin_enabled": false,
+        //             "fx_stablecoin": false,
+        //             "max_slippage_percentage": "0.02000000",
+        //             "post_only": false,
+        //             "limit_only": false,
+        //             "cancel_only": true,
+        //             "trading_disabled": false,
+        //             "status": "online",
+        //             "status_message": '',
+        //             "auction_mode": false
         //         },
         //         {
-        //             id: 'BTC-USD',
-        //             base_currency: 'BTC',
-        //             quote_currency: 'USD',
-        //             base_min_size: '0.000016',
-        //             base_max_size: '1500',
-        //             quote_increment: '0.01',
-        //             base_increment: '0.00000001',
-        //             display_name: 'BTC/USD',
-        //             min_market_funds: '1',
-        //             max_market_funds: '20000000',
-        //             margin_enabled: false,
-        //             fx_stablecoin: false,
-        //             max_slippage_percentage: '0.02000000',
-        //             post_only: false,
-        //             limit_only: false,
-        //             cancel_only: false,
-        //             trading_disabled: false,
-        //             status: 'online',
-        //             status_message: '',
-        //             auction_mode: false
+        //             "id": "BTC-USD",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USD",
+        //             "base_min_size": "0.000016",
+        //             "base_max_size": "1500",
+        //             "quote_increment": "0.01",
+        //             "base_increment": "0.00000001",
+        //             "display_name": "BTC/USD",
+        //             "min_market_funds": "1",
+        //             "max_market_funds": "20000000",
+        //             "margin_enabled": false,
+        //             "fx_stablecoin": false,
+        //             "max_slippage_percentage": "0.02000000",
+        //             "post_only": false,
+        //             "limit_only": false,
+        //             "cancel_only": false,
+        //             "trading_disabled": false,
+        //             "status": "online",
+        //             "status_message": '',
+        //             "auction_mode": false
         //         }
         //     ]
         //
@@ -412,6 +413,7 @@ export default class coinbasepro extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             }));
         }
@@ -430,20 +432,20 @@ export default class coinbasepro extends Exchange {
         //
         //     [
         //         {
-        //             id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
-        //             currency: 'BTC',
-        //             balance: '0.0000000000000000',
-        //             available: '0',
-        //             hold: '0.0000000000000000',
-        //             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //             "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+        //             "currency": "BTC",
+        //             "balance": "0.0000000000000000",
+        //             "available": "0",
+        //             "hold": "0.0000000000000000",
+        //             "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
         //         },
         //         {
-        //             id: 'f75fa69a-1ad1-4a80-bd61-ee7faa6135a3',
-        //             currency: 'USDC',
-        //             balance: '0.0000000000000000',
-        //             available: '0',
-        //             hold: '0.0000000000000000',
-        //             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //             "id": "f75fa69a-1ad1-4a80-bd61-ee7faa6135a3",
+        //             "currency": "USDC",
+        //             "balance": "0.0000000000000000",
+        //             "available": "0",
+        //             "hold": "0.0000000000000000",
+        //             "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
         //         },
         //     ]
         //
@@ -452,12 +454,12 @@ export default class coinbasepro extends Exchange {
     parseAccount(account) {
         //
         //     {
-        //         id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
-        //         currency: 'BTC',
-        //         balance: '0.0000000000000000',
-        //         available: '0',
-        //         hold: '0.0000000000000000',
-        //         profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //         "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+        //         "currency": "BTC",
+        //         "balance": "0.0000000000000000",
+        //         "available": "0",
+        //         "hold": "0.0000000000000000",
+        //         "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
         //     }
         //
         const currencyId = this.safeString(account, 'currency');
@@ -498,6 +500,7 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchOrderBook
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -657,12 +660,13 @@ export default class coinbasepro extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(first, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
          * @method
          * @name coinbasepro#fetchTicker
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
@@ -703,24 +707,24 @@ export default class coinbasepro extends Exchange {
     parseTrade(trade, market = undefined) {
         //
         //     {
-        //         type: 'match',
-        //         trade_id: 82047307,
-        //         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
-        //         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
-        //         order_id: 'd50ec984-77a8-460a-b958-66f114b0de9b',
-        //         side: 'sell',
-        //         size: '0.00513192',
-        //         price: '9314.78',
-        //         product_id: 'BTC-USD',
-        //         profile_id: '6244401d-c078-40d9-b305-7ad3551bc3b0',
-        //         sequence: 12038915443,
-        //         time: '2020-01-31T20:03:41.158814Z'
-        //         created_at: '2014-11-07T22:19:28.578544Z',
-        //         liquidity: 'T',
-        //         fee: '0.00025',
-        //         settled: true,
-        //         usd_volume: '0.0924556000000000',
-        //         user_id: '595eb864313c2b02ddf2937d'
+        //         "type": "match",
+        //         "trade_id": 82047307,
+        //         "maker_order_id": "0f358725-2134-435e-be11-753912a326e0",
+        //         "taker_order_id": "252b7002-87a3-425c-ac73-f5b9e23f3caf",
+        //         "order_id": "d50ec984-77a8-460a-b958-66f114b0de9b",
+        //         "side": "sell",
+        //         "size": "0.00513192",
+        //         "price": "9314.78",
+        //         "product_id": "BTC-USD",
+        //         "profile_id": "6244401d-c078-40d9-b305-7ad3551bc3b0",
+        //         "sequence": 12038915443,
+        //         "time": "2020-01-31T20:03:41.158814Z"
+        //         "created_at": "2014-11-07T22:19:28.578544Z",
+        //         "liquidity": "T",
+        //         "fee": "0.00025",
+        //         "settled": true,
+        //         "usd_volume": "0.0924556000000000",
+        //         "user_id": "595eb864313c2b02ddf2937d"
         //     }
         //
         const timestamp = this.parse8601(this.safeString2(trade, 'time', 'created_at'));
@@ -776,16 +780,21 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchMyTrades
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        // as of 2018-08-23
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params, 100);
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -795,6 +804,14 @@ export default class coinbasepro extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601(since);
+        }
+        const until = this.safeValue2(params, 'until', 'end_date');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['end_date'] = this.iso8601(until);
+        }
         const response = await this.privateGetFills(this.extend(request, params));
         return this.parseTrades(response, market, since, limit);
     }
@@ -802,6 +819,7 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchTrades
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -888,15 +906,23 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchOHLCV
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 300);
+        }
         const market = this.market(symbol);
         const parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
         const request = {
@@ -908,6 +934,8 @@ export default class coinbasepro extends Exchange {
         else {
             request['granularity'] = timeframe;
         }
+        const until = this.safeValue2(params, 'until', 'end');
+        params = this.omit(params, ['until']);
         if (since !== undefined) {
             request['start'] = this.iso8601(since);
             if (limit === undefined) {
@@ -917,12 +945,17 @@ export default class coinbasepro extends Exchange {
             else {
                 limit = Math.min(300, limit);
             }
-            const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
-            if (since % parsedTimeframeMilliseconds === 0) {
-                request['end'] = this.iso8601(this.sum((limit - 1) * parsedTimeframeMilliseconds, since));
+            if (until === undefined) {
+                const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
+                if (since % parsedTimeframeMilliseconds === 0) {
+                    request['end'] = this.iso8601(this.sum((limit - 1) * parsedTimeframeMilliseconds, since));
+                }
+                else {
+                    request['end'] = this.iso8601(this.sum(limit * parsedTimeframeMilliseconds, since));
+                }
             }
             else {
-                request['end'] = this.iso8601(this.sum(limit * parsedTimeframeMilliseconds, since));
+                request['end'] = this.iso8601(until);
             }
         }
         const response = await this.publicGetProductsIdCandles(this.extend(request, params));
@@ -1042,6 +1075,7 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchOrder
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
          * @description fetches information on an order made by the user
          * @param {string} symbol not used by coinbasepro fetchOrder
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
@@ -1090,11 +1124,13 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchOrders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch open orders for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
@@ -1106,14 +1142,22 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchOpenOrders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch open orders for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchOpenOrders', symbol, since, limit, params, 100);
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1123,6 +1167,14 @@ export default class coinbasepro extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601(since);
+        }
+        const until = this.safeValue2(params, 'until', 'end_date');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['end_date'] = this.iso8601(until);
+        }
         const response = await this.privateGetOrders(this.extend(request, params));
         return this.parseOrders(response, market, since, limit);
     }
@@ -1130,11 +1182,13 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchClosedOrders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch open orders for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
@@ -1146,6 +1200,7 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#createOrder
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1181,7 +1236,7 @@ export default class coinbasepro extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_oid'] = clientOrderId;
         }
-        const stopPrice = this.safeNumber2(params, 'stopPrice', 'stop_price');
+        const stopPrice = this.safeNumberN(params, ['stopPrice', 'stop_price', 'triggerPrice']);
         if (stopPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, stopPrice);
         }
@@ -1193,7 +1248,7 @@ export default class coinbasepro extends Exchange {
         if (postOnly) {
             request['post_only'] = true;
         }
-        params = this.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only']);
+        params = this.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice']);
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
             request['size'] = this.amountToPrecision(symbol, amount);
@@ -1241,6 +1296,7 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#cancelOrder
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -1273,6 +1329,7 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#cancelAllOrders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
@@ -1383,27 +1440,27 @@ export default class coinbasepro extends Exchange {
     }
     parseLedgerEntry(item, currency = undefined) {
         //  {
-        //      id: '12087495079',
-        //      amount: '-0.0100000000000000',
-        //      balance: '0.0645419900000000',
-        //      created_at: '2021-10-28T17:14:32.593168Z',
-        //      type: 'transfer',
-        //      details: {
-        //          from: '2f74edf7-1440-4586-86dc-ae58c5693691',
-        //          profile_transfer_id: '3ef093ad-2482-40d1-8ede-2f89cff5099e',
-        //          to: 'dda99503-4980-4b60-9549-0b770ee51336'
+        //      "id": "12087495079",
+        //      "amount": "-0.0100000000000000",
+        //      "balance": "0.0645419900000000",
+        //      "created_at": "2021-10-28T17:14:32.593168Z",
+        //      "type": "transfer",
+        //      "details": {
+        //          "from": "2f74edf7-1440-4586-86dc-ae58c5693691",
+        //          "profile_transfer_id": "3ef093ad-2482-40d1-8ede-2f89cff5099e",
+        //          "to": "dda99503-4980-4b60-9549-0b770ee51336"
         //      }
         //  },
         //  {
-        //     id: '11740725774',
-        //     amount: '-1.7565669701255000',
-        //     balance: '0.0016490047745000',
-        //     created_at: '2021-10-22T03:47:34.764122Z',
-        //     type: 'fee',
-        //     details: {
-        //         order_id: 'ad06abf4-95ab-432a-a1d8-059ef572e296',
-        //         product_id: 'ETH-DAI',
-        //         trade_id: '1740617'
+        //     "id": "11740725774",
+        //     "amount": "-1.7565669701255000",
+        //     "balance": "0.0016490047745000",
+        //     "created_at": "2021-10-22T03:47:34.764122Z",
+        //     "type": "fee",
+        //     "details": {
+        //         "order_id": "ad06abf4-95ab-432a-a1d8-059ef572e296",
+        //         "product_id": "ETH-DAI",
+        //         "trade_id": "1740617"
         //     }
         //  }
         const id = this.safeString(item, 'id');
@@ -1459,11 +1516,13 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchLedger
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
@@ -1492,6 +1551,11 @@ export default class coinbasepro extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
+        }
+        const until = this.safeValue2(params, 'until', 'end_date');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['end_date'] = this.iso8601(until);
         }
         const response = await this.privateGetAccountsIdLedger(this.extend(request, params));
         for (let i = 0; i < response.length; i++) {
@@ -1726,6 +1790,7 @@ export default class coinbasepro extends Exchange {
             'tagTo': undefined,
             'updated': this.parse8601(this.safeString(transaction, 'processed_at')),
             'comment': undefined,
+            'internal': false,
             'fee': fee,
         };
     }

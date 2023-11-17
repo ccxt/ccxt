@@ -22,18 +22,27 @@ class wazirx extends wazirx$1 {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
@@ -45,7 +54,11 @@ class wazirx extends wazirx$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
@@ -55,7 +68,10 @@ class wazirx extends wazirx$1 {
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -68,6 +84,12 @@ class wazirx extends wazirx$1 {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
+                'reduceMargin': false,
+                'repayMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -189,82 +211,81 @@ class wazirx extends wazirx$1 {
         //     },
         //
         const markets = this.safeValue(response, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'symbol');
-            const baseId = this.safeString(market, 'baseAsset');
-            const quoteId = this.safeString(market, 'quoteAsset');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const isSpot = this.safeValue(market, 'isSpotTradingAllowed');
-            const filters = this.safeValue(market, 'filters');
-            let minPrice = undefined;
-            for (let j = 0; j < filters.length; j++) {
-                const filter = filters[j];
-                const filterType = this.safeString(filter, 'filterType');
-                if (filterType === 'PRICE_FILTER') {
-                    minPrice = this.safeNumber(filter, 'minPrice');
-                }
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'symbol');
+        const baseId = this.safeString(market, 'baseAsset');
+        const quoteId = this.safeString(market, 'quoteAsset');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const isSpot = this.safeValue(market, 'isSpotTradingAllowed');
+        const filters = this.safeValue(market, 'filters');
+        let minPrice = undefined;
+        for (let j = 0; j < filters.length; j++) {
+            const filter = filters[j];
+            const filterType = this.safeString(filter, 'filterType');
+            if (filterType === 'PRICE_FILTER') {
+                minPrice = this.safeNumber(filter, 'minPrice');
             }
-            const fee = this.safeValue(this.fees, quote, {});
-            let takerString = this.safeString(fee, 'taker', '0.2');
-            takerString = Precise["default"].stringDiv(takerString, '100');
-            let makerString = this.safeString(fee, 'maker', '0.2');
-            makerString = Precise["default"].stringDiv(makerString, '100');
-            const status = this.safeString(market, 'status');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': isSpot,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'trading'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.parseNumber(takerString),
-                'maker': this.parseNumber(makerString),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quoteAssetPrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
         }
-        return result;
+        const fee = this.safeValue(this.fees, quote, {});
+        let takerString = this.safeString(fee, 'taker', '0.2');
+        takerString = Precise["default"].stringDiv(takerString, '100');
+        let makerString = this.safeString(fee, 'maker', '0.2');
+        makerString = Precise["default"].stringDiv(makerString, '100');
+        const status = this.safeString(market, 'status');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': isSpot,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'trading'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.parseNumber(takerString),
+            'maker': this.parseNumber(makerString),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quoteAssetPrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -424,7 +445,7 @@ class wazirx extends wazirx$1 {
             const symbol = parsedTicker['symbol'];
             result[symbol] = parsedTicker;
         }
-        return result;
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -589,7 +610,7 @@ class wazirx extends wazirx$1 {
         }, market);
     }
     parseBalance(response) {
-        const result = {};
+        const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const id = this.safeString(balance, 'asset');
@@ -631,13 +652,11 @@ class wazirx extends wazirx$1 {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -743,9 +762,7 @@ class wazirx extends wazirx$1 {
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('cancelAllOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -764,9 +781,7 @@ class wazirx extends wazirx$1 {
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {

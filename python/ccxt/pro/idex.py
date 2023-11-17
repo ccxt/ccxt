@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
 
@@ -86,22 +86,22 @@ class idex(ccxt.async_support.idex):
         return await self.subscribe(self.extend(subscribeObject, params), messageHash)
 
     def handle_ticker(self, client: Client, message):
-        # {type: 'tickers',
-        #   data:
-        #    {m: 'DIL-ETH',
-        #      t: 1599213946045,
-        #      o: '0.09699020',
-        #      h: '0.10301548',
-        #      l: '0.09577222',
-        #      c: '0.09907311',
-        #      Q: '1.32723120',
-        #      v: '297.80667468',
-        #      q: '29.52142669',
-        #      P: '2.14',
-        #      n: 197,
-        #      a: '0.09912245',
-        #      b: '0.09686980',
-        #      u: 5870}}
+        # {type: "tickers",
+        #   "data":
+        #    {m: "DIL-ETH",
+        #      "t": 1599213946045,
+        #      "o": "0.09699020",
+        #      "h": "0.10301548",
+        #      "l": "0.09577222",
+        #      "c": "0.09907311",
+        #      "Q": "1.32723120",
+        #      "v": "297.80667468",
+        #      "q": "29.52142669",
+        #      "P": "2.14",
+        #      "n": 197,
+        #      "a": "0.09912245",
+        #      "b": "0.09686980",
+        #      "u": 5870}}
         type = self.safe_string(message, 'type')
         data = self.safe_value(message, 'data')
         marketId = self.safe_string(data, 'm')
@@ -137,7 +137,7 @@ class idex(ccxt.async_support.idex):
         })
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -177,27 +177,27 @@ class idex(ccxt.async_support.idex):
 
     def parse_ws_trade(self, trade, market=None):
         # public trades
-        # {m: 'DIL-ETH',
-        #   i: '897ecae6-4b75-368a-ac00-be555e6ad65f',
-        #   p: '0.09696995',
-        #   q: '2.00000000',
-        #   Q: '0.19393990',
-        #   t: 1599504616247,
-        #   s: 'buy',
-        #   u: 6620}
+        # {m: "DIL-ETH",
+        #   "i": "897ecae6-4b75-368a-ac00-be555e6ad65f",
+        #   "p": "0.09696995",
+        #   "q": "2.00000000",
+        #   "Q": "0.19393990",
+        #   "t": 1599504616247,
+        #   "s": "buy",
+        #   "u": 6620}
         # private trades
-        # {i: 'ee253d78-88be-37ed-a61c-a36395c2ce48',
-        #   p: '0.09925382',
-        #   q: '0.15000000',
-        #   Q: '0.01488807',
-        #   t: 1599499129369,
-        #   s: 'sell',
-        #   u: 6603,
-        #   f: '0.00030000',
-        #   a: 'DIL',
-        #   g: '0.00856110',
-        #   l: 'maker',
-        #   S: 'pending'}
+        # {i: "ee253d78-88be-37ed-a61c-a36395c2ce48",
+        #   "p": "0.09925382",
+        #   "q": "0.15000000",
+        #   "Q": "0.01488807",
+        #   "t": 1599499129369,
+        #   "s": "sell",
+        #   "u": 6603,
+        #   "f": "0.00030000",
+        #   "a": "DIL",
+        #   "g": "0.00856110",
+        #   "l": "maker",
+        #   "S": "pending"}
         marketId = self.safe_string(trade, 'm')
         symbol = self.safe_symbol(marketId)
         id = self.safe_string(trade, 'i')
@@ -227,7 +227,7 @@ class idex(ccxt.async_support.idex):
             'fee': fee,
         })
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -254,20 +254,20 @@ class idex(ccxt.async_support.idex):
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     def handle_ohlcv(self, client: Client, message):
-        # {type: 'candles',
-        #   data:
-        #    {m: 'DIL-ETH',
-        #      t: 1599477340109,
-        #      i: '1m',
-        #      s: 1599477300000,
-        #      e: 1599477360000,
-        #      o: '0.09911040',
-        #      h: '0.09911040',
-        #      l: '0.09911040',
-        #      c: '0.09911040',
-        #      v: '0.15000000',
-        #      n: 1,
-        #      u: 6531}}
+        # {type: "candles",
+        #   "data":
+        #    {m: "DIL-ETH",
+        #      "t": 1599477340109,
+        #      "i": "1m",
+        #      "s": 1599477300000,
+        #      "e": 1599477360000,
+        #      "o": "0.09911040",
+        #      "h": "0.09911040",
+        #      "l": "0.09911040",
+        #      "c": "0.09911040",
+        #      "v": "0.15000000",
+        #      "n": 1,
+        #      "u": 6531}}
         type = self.safe_string(message, 'type')
         data = self.safe_value(message, 'data')
         marketId = self.safe_string(data, 'm')
@@ -379,7 +379,7 @@ class idex(ccxt.async_support.idex):
             subscription['fetchingOrderBookSnapshot'] = False
             client.reject(e, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -474,7 +474,7 @@ class idex(ccxt.async_support.idex):
             self.options['token'] = self.safe_string(response, 'token')
         return self.options['token']
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -598,7 +598,7 @@ class idex(ccxt.async_support.idex):
         client.resolve(orders, symbolSpecificMessageHash)
         client.resolve(orders, type)
 
-    async def watch_transactions(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         name = 'balances'
         subscribeObject = {
@@ -614,14 +614,14 @@ class idex(ccxt.async_support.idex):
 
     def handle_transaction(self, client: Client, message):
         # Update Speed: Real time, updates on any deposit or withdrawal of the wallet
-        # {type: 'balances',
-        #   data:
-        #    {w: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        #      a: 'ETH',
-        #      q: '0.11198667',
-        #      f: '0.11198667',
-        #      l: '0.00000000',
-        #      d: '0.00'}}
+        # {type: "balances",
+        #   "data":
+        #    {w: "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        #      "a": "ETH",
+        #      "q": "0.11198667",
+        #      "f": "0.11198667",
+        #      "l": "0.00000000",
+        #      "d": "0.00"}}
         type = self.safe_string(message, 'type')
         data = self.safe_value(message, 'data')
         currencyId = self.safe_string(data, 'a')

@@ -128,16 +128,7 @@ class zaif extends zaif$1 {
                     },
                 },
             },
-            'options': {
-                // zaif schedule defines several market-specific fees
-                'fees': {
-                    'BTC/JPY': { 'maker': this.parseNumber('0'), 'taker': this.parseNumber('0.001') },
-                    'BCH/JPY': { 'maker': this.parseNumber('0'), 'taker': this.parseNumber('0.003') },
-                    'BCH/BTC': { 'maker': this.parseNumber('0'), 'taker': this.parseNumber('0.003') },
-                    'PEPECASH/JPY': { 'maker': this.parseNumber('0'), 'taker': this.parseNumber('0.0001') },
-                    'PEPECASH/BT': { 'maker': this.parseNumber('0'), 'taker': this.parseNumber('0.0001') },
-                },
-            },
+            'options': {},
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -178,68 +169,64 @@ class zaif extends zaif$1 {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'currency_pair');
-            const name = this.safeString(market, 'name');
-            const [baseId, quoteId] = name.split('/');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
-            const fees = this.safeValue(this.options['fees'], symbol, this.fees['trading']);
-            result.push({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': undefined,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': fees['taker'],
-                'maker': fees['maker'],
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber(market, 'item_unit_step'),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'aux_unit_point'))),
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'currency_pair');
+        const name = this.safeString(market, 'name');
+        const [baseId, quoteId] = name.split('/');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const symbol = base + '/' + quote;
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': undefined,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber(market, 'item_unit_step'),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'aux_unit_point'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(market, 'item_unit_min'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': this.safeNumber(market, 'aux_unit_min'),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber(market, 'item_unit_min'),
+                    'max': undefined,
                 },
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': this.safeNumber(market, 'aux_unit_min'),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     parseBalance(response) {
         const balances = this.safeValue(response, 'return', {});
@@ -683,6 +670,7 @@ class zaif extends zaif$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
             'info': transaction,
         };

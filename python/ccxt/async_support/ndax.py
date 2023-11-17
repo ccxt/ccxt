@@ -7,9 +7,8 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -448,67 +447,67 @@ class ndax(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            id = self.safe_string(market, 'InstrumentId')
-            # lowercaseId = self.safe_string_lower(market, 'symbol')
-            baseId = self.safe_string(market, 'Product1')
-            quoteId = self.safe_string(market, 'Product2')
-            base = self.safe_currency_code(self.safe_string(market, 'Product1Symbol'))
-            quote = self.safe_currency_code(self.safe_string(market, 'Product2Symbol'))
-            sessionStatus = self.safe_string(market, 'SessionStatus')
-            isDisable = self.safe_value(market, 'IsDisable')
-            sessionRunning = (sessionStatus == 'Running')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (sessionRunning and not isDisable),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_number(market, 'QuantityIncrement'),
-                    'price': self.safe_number(market, 'PriceIncrement'),
+        return self.parse_markets(response)
+
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'InstrumentId')
+        # lowercaseId = self.safe_string_lower(market, 'symbol')
+        baseId = self.safe_string(market, 'Product1')
+        quoteId = self.safe_string(market, 'Product2')
+        base = self.safe_currency_code(self.safe_string(market, 'Product1Symbol'))
+        quote = self.safe_currency_code(self.safe_string(market, 'Product2Symbol'))
+        sessionStatus = self.safe_string(market, 'SessionStatus')
+        isDisable = self.safe_value(market, 'IsDisable')
+        sessionRunning = (sessionStatus == 'Running')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (sessionRunning and not isDisable),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.safe_number(market, 'QuantityIncrement'),
+                'price': self.safe_number(market, 'PriceIncrement'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(market, 'MinimumQuantity'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': self.safe_number(market, 'MinimumPrice'),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.safe_number(market, 'MinimumQuantity'),
+                    'max': None,
                 },
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': self.safe_number(market, 'MinimumPrice'),
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=6, amountKey=8):
         nonce = None
@@ -543,7 +542,7 @@ class ndax(Exchange, ImplicitAPI):
         result['nonce'] = nonce
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -585,7 +584,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, symbol)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #
@@ -651,7 +650,7 @@ class ndax(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -698,7 +697,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         1501603632000,  # 0 DateTime
@@ -721,7 +720,7 @@ class ndax(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -761,7 +760,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -926,7 +925,7 @@ class ndax(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -984,7 +983,7 @@ class ndax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1001,7 +1000,7 @@ class ndax(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the ndax api endpoint
@@ -1069,7 +1068,7 @@ class ndax(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #     {
         #         "TransactionId": 2663709493,
@@ -1122,7 +1121,7 @@ class ndax(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
@@ -1178,7 +1177,7 @@ class ndax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1380,7 +1379,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1462,7 +1461,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1493,7 +1492,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return response
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1527,7 +1526,7 @@ class ndax(Exchange, ImplicitAPI):
             'clientOrderId': clientOrderId,
         })
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1602,7 +1601,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1691,7 +1690,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1763,7 +1762,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1877,7 +1876,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         # fetchDepositAddress, createDepositAddress
         #
@@ -1923,10 +1922,10 @@ class ndax(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        see https://apidoc.ndax.io/#getdeposits
+        :see: https://apidoc.ndax.io/#getdeposits
         :param str code: unified currency code
         :param int [since]: not used by ndax fetchDeposits
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1979,7 +1978,7 @@ class ndax(Exchange, ImplicitAPI):
             return self.parse_transactions(json.loads(response), currency, since, limit)
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2076,7 +2075,7 @@ class ndax(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2166,6 +2165,9 @@ class ndax(Exchange, ImplicitAPI):
             'status': self.parse_transaction_status_by_type(transactionStatus, type),
             'updated': updated,
             'fee': fee,
+            'internal': None,
+            'comment': None,
+            'network': None,
         }
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
@@ -2201,10 +2203,10 @@ class ndax(Exchange, ImplicitAPI):
         withdrawTemplateTypesResponse = await self.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)
         #
         #     {
-        #         result: True,
-        #         errormsg: null,
-        #         statuscode: "0",
-        #         TemplateTypes: [
+        #         "result": True,
+        #         "errormsg": null,
+        #         "statuscode": "0",
+        #         "TemplateTypes": [
         #             {AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC"},
         #             {AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC"},
         #             {AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1"}
@@ -2226,10 +2228,10 @@ class ndax(Exchange, ImplicitAPI):
         withdrawTemplateResponse = await self.privateGetGetWithdrawTemplate(withdrawTemplateRequest)
         #
         #     {
-        #         result: True,
-        #         errormsg: null,
-        #         statuscode: "0",
-        #         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        #         "result": True,
+        #         "errormsg": null,
+        #         "statuscode": "0",
+        #         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
         #     }
         #
         template = self.safe_string(withdrawTemplateResponse, 'Template')

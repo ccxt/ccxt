@@ -32,6 +32,9 @@ class bl3p extends bl3p$1 {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -104,7 +107,7 @@ class bl3p extends bl3p$1 {
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true },
+                'BTC/EUR': this.safeMarketStructure({ 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true }),
             },
             'precisionMode': number.TICK_SIZE,
         });
@@ -316,29 +319,29 @@ class bl3p extends bl3p$1 {
         const response = await this.privatePostGENMKTMoneyInfo(params);
         //
         //     {
-        //         result: 'success',
-        //         data: {
-        //             user_id: '13396',
-        //             wallets: {
-        //                 BTC: {
-        //                     balance: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //         "result": "success",
+        //         "data": {
+        //             "user_id": "13396",
+        //             "wallets": {
+        //                 "BTC": {
+        //                     "balance": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     },
-        //                     available: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //                     "available": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     }
         //                 },
         //                 ...
         //             },
-        //             trade_fee: '0.25'
+        //             "trade_fee": "0.25"
         //         }
         //     }
         //
@@ -364,12 +367,17 @@ class bl3p extends bl3p$1 {
          * @method
          * @name bl3p#createOrder
          * @description create a trade order
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.amount_funds] maximal EUR amount to spend (*1e5)
+         * @param {string} [params.fee_currency] 'EUR' or 'BTC'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const market = this.market(symbol);

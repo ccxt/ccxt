@@ -229,6 +229,7 @@ class coinone extends coinone$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': ticker,
             });
         }
@@ -312,7 +313,7 @@ class coinone extends coinone$1 {
             result[symbol] = this.parseTicker(ticker, market);
             result[symbol]['timestamp'] = timestamp;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -533,9 +534,7 @@ class coinone extends coinone$1 {
          * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -623,10 +622,19 @@ class coinone extends coinone$1 {
         const id = this.safeString(order, 'orderId');
         const baseId = this.safeString(order, 'baseCurrency');
         const quoteId = this.safeString(order, 'targetCurrency');
-        const base = this.safeCurrencyCode(baseId, market['base']);
-        const quote = this.safeCurrencyCode(quoteId, market['quote']);
-        const symbol = base + '/' + quote;
-        market = this.safeMarket(symbol, market, '/');
+        let base = undefined;
+        let quote = undefined;
+        if (baseId !== undefined) {
+            base = this.safeCurrencyCode(baseId);
+        }
+        if (quoteId !== undefined) {
+            quote = this.safeCurrencyCode(quoteId);
+        }
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            market = this.safeMarket(symbol, market, '/');
+        }
         const timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
         let side = this.safeString2(order, 'type', 'side');
         if (side === 'ask') {
@@ -736,9 +744,7 @@ class coinone extends coinone$1 {
          * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -819,15 +825,15 @@ class coinone extends coinone$1 {
         const response = await this.privatePostAccountDepositAddress(params);
         //
         //     {
-        //         result: 'success',
-        //         errorCode: '0',
-        //         walletAddress: {
-        //             matic: null,
-        //             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        //             xrp: null,
-        //             xrp_tag: '-1',
-        //             kava: null,
-        //             kava_memo: null,
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "walletAddress": {
+        //             "matic": null,
+        //             "btc": "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        //             "xrp": null,
+        //             "xrp_tag": "-1",
+        //             "kava": null,
+        //             "kava_memo": null,
         //         }
         //     }
         //
@@ -886,7 +892,7 @@ class coinone extends coinone$1 {
             const payload = this.stringToBase64(json);
             body = payload;
             const secret = this.secret.toUpperCase();
-            const signature = this.hmac(payload, this.encode(secret), sha512.sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(secret), sha512.sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

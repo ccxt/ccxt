@@ -1,19 +1,19 @@
 import poloniexRest from '../poloniex.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
     describe(): any;
     authenticate(params?: {}): Promise<any>;
-    subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: string[], params?: {}): Promise<any>;
+    subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: any, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<any>;
-    parseWsOHLCV(ohlcv: any, market?: any): number[];
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     handleOHLCV(client: Client, message: any): any;
     handleTrade(client: Client, message: any): any;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;

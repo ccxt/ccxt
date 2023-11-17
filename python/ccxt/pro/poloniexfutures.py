@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
@@ -18,6 +18,15 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         return self.deep_extend(super(poloniexfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchTicker': True,
@@ -77,18 +86,18 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             response = await self.privatePostBulletPrivate(params)
             #
             #     {
-            #         code: "200000",
-            #         data: {
-            #             instanceServers: [
+            #         "code": "200000",
+            #         "data": {
+            #             "instanceServers": [
             #                 {
-            #                     pingInterval:  50000,
-            #                     endpoint: "wss://push-private.kucoin.com/endpoint",
-            #                     protocol: "websocket",
-            #                     encrypt: True,
-            #                     pingTimeout: 10000
+            #                     "pingInterval":  50000,
+            #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+            #                     "protocol": "websocket",
+            #                     "encrypt": True,
+            #                     "pingTimeout": 10000
             #                 }
             #             ],
-            #             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+            #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
             #         }
             #     }
             #
@@ -114,7 +123,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         self.options['requestId'] = requestId
         return requestId
 
-    async def subscribe(self, name: str, isPrivate: bool, symbol: Optional[str] = None, subscription=None, params={}):
+    async def subscribe(self, name: str, isPrivate: bool, symbol: Str = None, subscription=None, params={}):
         """
          * @ignore
         Connects to a websocket channel
@@ -189,8 +198,8 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         id: '1578090438322',
-        #         type: 'ack'
+        #         "id": "1578090438322",
+        #         "type": "ack"
         #     }
         #
         id = self.safe_string(message, 'id')
@@ -214,7 +223,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
+        :see: https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -224,10 +233,10 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         name = '/contractMarket/ticker'
         return await self.subscribe(name, False, symbol, None, params)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
+        :see: https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -244,10 +253,10 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://futures-docs.poloniex.com/#level-2-market-data
+        :see: https://futures-docs.poloniex.com/#level-2-market-data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniexfutures watchOrderBook
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
@@ -270,10 +279,10 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         orderbook = await self.subscribe(name, False, symbol, subscription, params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
-        see https://futures-docs.poloniex.com/#private-messages
+        :see: https://futures-docs.poloniex.com/#private-messages
         :param str symbol: filter by unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -296,7 +305,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        see https://futures-docs.poloniex.com/#account-balance-events
+        :see: https://futures-docs.poloniex.com/#account-balance-events
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -307,22 +316,22 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_trade(self, client: Client, message):
         #
         #    {
-        #        data: {
-        #            makerUserId: "1410336",
-        #            symbol: "BTCUSDTPERP",
-        #            sequence: 267913,
-        #            side: "buy",
-        #            size: 2,
-        #            price: 28409.5,
-        #            takerOrderId: "6426f9f15782c8000776995f",
-        #            makerOrderId: "6426f9f141406b0008df976e",
-        #            takerUserId: "1410880",
-        #            tradeId: "6426f9f1de029f0001e334dd",
-        #            ts: 1680275953739092500,
+        #        "data": {
+        #            "makerUserId": "1410336",
+        #            "symbol": "BTCUSDTPERP",
+        #            "sequence": 267913,
+        #            "side": "buy",
+        #            "size": 2,
+        #            "price": 28409.5,
+        #            "takerOrderId": "6426f9f15782c8000776995f",
+        #            "makerOrderId": "6426f9f141406b0008df976e",
+        #            "takerUserId": "1410880",
+        #            "tradeId": "6426f9f1de029f0001e334dd",
+        #            "ts": 1680275953739092500,
         #        },
-        #        subject: "match",
-        #        topic: "/contractMarket/execution:BTCUSDTPERP",
-        #        type: "message",
+        #        "subject": "match",
+        #        "topic": "/contractMarket/execution:BTCUSDTPERP",
+        #        "type": "message",
         #    }
         #
         data = self.safe_value(message, 'data', {})
@@ -345,17 +354,17 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         # handleTrade
         #
         #    {
-        #        makerUserId: '1410880',
-        #        symbol: 'BTCUSDTPERP',
-        #        sequence: 731390,
-        #        side: 'sell',
-        #        size: 2,
-        #        price: 29372.4,
-        #        takerOrderId: '644ef0fdd64748000759218a',
-        #        makerOrderId: '644ef0fd25f4a50007f12fc5',
-        #        takerUserId: '1410880',
-        #        tradeId: '644ef0fdde029f0001eec346',
-        #        ts: 1682895101923194000
+        #        "makerUserId": "1410880",
+        #        "symbol": "BTCUSDTPERP",
+        #        "sequence": 731390,
+        #        "side": "sell",
+        #        "size": 2,
+        #        "price": 29372.4,
+        #        "takerOrderId": "644ef0fdd64748000759218a",
+        #        "makerOrderId": "644ef0fd25f4a50007f12fc5",
+        #        "takerUserId": "1410880",
+        #        "tradeId": "644ef0fdde029f0001eec346",
+        #        "ts": 1682895101923194000
         #    }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -431,52 +440,52 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_order(self, client: Client, message):
         #
         #    {
-        #        data: {
-        #          symbol: 'ADAUSDTPERP',
-        #          orderType: 'limit',
-        #          side: 'buy',
-        #          canceledSize: '1',
-        #          orderId: '642b4d4c0494cd0007c76813',
-        #          type: 'canceled',
-        #          orderTime: '1680559436101909048',
-        #          size: '1',
-        #          filledSize: '0',
-        #          marginType: 1,
-        #          price: '0.25',
-        #          remainSize: '0',
-        #          clientOid: '112cbbf1-95a3-4917-957c-d3a87d81f853',
-        #          status: 'done',
-        #          ts: 1680559677560686600
+        #        "data": {
+        #          "symbol": "ADAUSDTPERP",
+        #          "orderType": "limit",
+        #          "side": "buy",
+        #          "canceledSize": "1",
+        #          "orderId": "642b4d4c0494cd0007c76813",
+        #          "type": "canceled",
+        #          "orderTime": "1680559436101909048",
+        #          "size": "1",
+        #          "filledSize": "0",
+        #          "marginType": 1,
+        #          "price": "0.25",
+        #          "remainSize": "0",
+        #          "clientOid": "112cbbf1-95a3-4917-957c-d3a87d81f853",
+        #          "status": "done",
+        #          "ts": 1680559677560686600
         #        },
-        #        subject: 'orderChange',
-        #        topic: '/contractMarket/tradeOrders',
-        #        channelType: 'private',
-        #        type: 'message',
-        #        userId: '1139790'
+        #        "subject": "orderChange",
+        #        "topic": "/contractMarket/tradeOrders",
+        #        "channelType": "private",
+        #        "type": "message",
+        #        "userId": "1139790"
         #    }
         # stop order
         #    {
-        #        data: {
-        #            orderType: 'stop',
-        #            symbol: 'BTCUSDTPERP',
-        #            side: 'buy',
-        #            stopPriceType: 'TP',
-        #            orderId: '64514fe1850d2100074378f6',
-        #            type: 'open',
-        #            createdAt: 1683050465847,
-        #            stopPrice: '29000',
-        #            size: 2,
-        #            stop: 'up',
-        #            marginType: 0,
-        #            orderPrice: '28552.9',
-        #            ts: 1683050465847597300
+        #        "data": {
+        #            "orderType": "stop",
+        #            "symbol": "BTCUSDTPERP",
+        #            "side": "buy",
+        #            "stopPriceType": "TP",
+        #            "orderId": "64514fe1850d2100074378f6",
+        #            "type": "open",
+        #            "createdAt": 1683050465847,
+        #            "stopPrice": "29000",
+        #            "size": 2,
+        #            "stop": "up",
+        #            "marginType": 0,
+        #            "orderPrice": "28552.9",
+        #            "ts": 1683050465847597300
         #        },
-        #        subject: 'stopOrder',
-        #        topic: '/contractMarket/advancedOrders',
-        #        channelType: 'private',
-        #        id: '64514fe1850d2100074378fa',
-        #        type: 'message',
-        #        userId: '1160396'
+        #        "subject": "stopOrder",
+        #        "topic": "/contractMarket/advancedOrders",
+        #        "channelType": "private",
+        #        "id": "64514fe1850d2100074378fa",
+        #        "type": "message",
+        #        "userId": "1160396"
         #    }
         #
         data = self.safe_value(message, 'data', {})
@@ -516,37 +525,37 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def parse_ws_order(self, order, market=None):
         #
         #    {
-        #        symbol: 'ADAUSDTPERP',
-        #        orderType: 'limit',
-        #        side: 'buy',
-        #        canceledSize: '1',
-        #        orderId: '642b4d4c0494cd0007c76813',
-        #        type: 'canceled',
-        #        orderTime: '1680559436101909048',
-        #        size: '1',
-        #        filledSize: '0',
-        #        marginType: 1,
-        #        price: '0.25',
-        #        remainSize: '0',
-        #        clientOid: '112cbbf1-95a3-4917-957c-d3a87d81f853',
-        #        status: 'done',
-        #        ts: 1680559677560686600
+        #        "symbol": "ADAUSDTPERP",
+        #        "orderType": "limit",
+        #        "side": "buy",
+        #        "canceledSize": "1",
+        #        "orderId": "642b4d4c0494cd0007c76813",
+        #        "type": "canceled",
+        #        "orderTime": "1680559436101909048",
+        #        "size": "1",
+        #        "filledSize": "0",
+        #        "marginType": 1,
+        #        "price": "0.25",
+        #        "remainSize": "0",
+        #        "clientOid": "112cbbf1-95a3-4917-957c-d3a87d81f853",
+        #        "status": "done",
+        #        "ts": 1680559677560686600
         #    }
         # stop
         #    {
-        #        orderType: 'stop',
-        #        symbol: 'BTCUSDTPERP',
-        #        side: 'buy',
-        #        stopPriceType: 'TP',
-        #        orderId: '64514fe1850d2100074378f6',
-        #        type: 'open',
-        #        createdAt: 1683050465847,
-        #        stopPrice: '29000',
-        #        size: 2,
-        #        stop: 'up',
-        #        marginType: 0,
-        #        orderPrice: '28552.9',
-        #        ts: 1683050465847597300
+        #        "orderType": "stop",
+        #        "symbol": "BTCUSDTPERP",
+        #        "side": "buy",
+        #        "stopPriceType": "TP",
+        #        "orderId": "64514fe1850d2100074378f6",
+        #        "type": "open",
+        #        "createdAt": 1683050465847,
+        #        "stopPrice": "29000",
+        #        "size": 2,
+        #        "stop": "up",
+        #        "marginType": 0,
+        #        "orderPrice": "28552.9",
+        #        "ts": 1683050465847597300
         #    }
         #
         id = self.safe_string(order, 'orderId')
@@ -625,45 +634,45 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_l3_order_book(self, client: Client, message):
         #
         #    {
-        #        data: {
-        #            symbol: 'BTCUSDTPERP',
-        #            sequence: 1679593048010,
-        #            orderId: '6426fec8586b9500089d64d8',
-        #            clientOid: '14e6ee8e-8757-462c-84db-ed12c2b62f55',
-        #            ts: 1680277192127513900
+        #        "data": {
+        #            "symbol": "BTCUSDTPERP",
+        #            "sequence": 1679593048010,
+        #            "orderId": "6426fec8586b9500089d64d8",
+        #            "clientOid": "14e6ee8e-8757-462c-84db-ed12c2b62f55",
+        #            "ts": 1680277192127513900
         #        },
-        #        subject: 'received',
-        #        topic: '/contractMarket/level3v2:BTCUSDTPERP',
-        #        type: 'message'
+        #        "subject": "received",
+        #        "topic": "/contractMarket/level3v2:BTCUSDTPERP",
+        #        "type": "message"
         #    }
         #
         #    {
-        #        data: {
-        #            symbol: 'BTCUSDTPERP',
-        #            sequence: 1679593047982,
-        #            side: 'sell',
-        #            orderTime: '1680277191900131371',
-        #            size: '1',
-        #            orderId: '6426fec7d32b6e000790268b',
-        #            price: '28376.4',
-        #            ts: 1680277191939042300
+        #        "data": {
+        #            "symbol": "BTCUSDTPERP",
+        #            "sequence": 1679593047982,
+        #            "side": "sell",
+        #            "orderTime": "1680277191900131371",
+        #            "size": "1",
+        #            "orderId": "6426fec7d32b6e000790268b",
+        #            "price": "28376.4",
+        #            "ts": 1680277191939042300
         #        },
-        #        subject: 'open',
-        #        topic: '/contractMarket/level3v2:BTCUSDTPERP',
-        #        type: 'message'
+        #        "subject": "open",
+        #        "topic": "/contractMarket/level3v2:BTCUSDTPERP",
+        #        "type": "message"
         #    }
         #
         #    {
-        #        data: {
-        #            symbol: 'BTCUSDTPERP',
-        #            reason: 'canceled',   # or 'filled'
-        #            sequence: 1679593047983,
-        #            orderId: '6426fec74026fa0008e7046f',
-        #            ts: 1680277191949842000
+        #        "data": {
+        #            "symbol": "BTCUSDTPERP",
+        #            "reason": "canceled",   # or "filled"
+        #            "sequence": 1679593047983,
+        #            "orderId": "6426fec74026fa0008e7046f",
+        #            "ts": 1680277191949842000
         #        },
-        #        subject: 'done',
-        #        topic: '/contractMarket/level3v2:BTCUSDTPERP',
-        #        type: 'message'
+        #        "subject": "done",
+        #        "topic": "/contractMarket/level3v2:BTCUSDTPERP",
+        #        "type": "message"
         #    }
         #
         messageHash = self.safe_string(message, 'topic')
@@ -813,31 +822,31 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_balance(self, client: Client, message):
         #
         #    {
-        #        data: {
-        #          currency: 'USDT',
-        #          availableBalance: '4.0000000000',
-        #          timestamp: '1680557568670'
+        #        "data": {
+        #          "currency": "USDT",
+        #          "availableBalance": "4.0000000000",
+        #          "timestamp": "1680557568670"
         #        },
-        #        subject: 'availableBalance.change',
-        #        topic: '/contractAccount/wallet',
-        #        channelType: 'private',
-        #        id: '642b4600cae86800074b5ab7',
-        #        type: 'message',
-        #        userId: '1139790'
+        #        "subject": "availableBalance.change",
+        #        "topic": "/contractAccount/wallet",
+        #        "channelType": "private",
+        #        "id": "642b4600cae86800074b5ab7",
+        #        "type": "message",
+        #        "userId": "1139790"
         #    }
         #
         #    {
-        #        data: {
-        #          currency: 'USDT',
-        #          orderMargin: '0.0000000000',
-        #          timestamp: '1680558743307'
+        #        "data": {
+        #          "currency": "USDT",
+        #          "orderMargin": "0.0000000000",
+        #          "timestamp": "1680558743307"
         #        },
-        #        subject: 'orderMargin.change',
-        #        topic: '/contractAccount/wallet',
-        #        channelType: 'private',
-        #        id: '642b4a97b58e360007c3a237',
-        #        type: 'message',
-        #        userId: '1139790'
+        #        "subject": "orderMargin.change",
+        #        "topic": "/contractAccount/wallet",
+        #        "channelType": "private",
+        #        "id": "642b4a97b58e360007c3a237",
+        #        "type": "message",
+        #        "userId": "1139790"
         #    }
         #
         data = self.safe_value(message, 'data', [])
@@ -852,15 +861,15 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def parse_ws_balance(self, response):
         #
         #    {
-        #        currency: 'USDT',
-        #        availableBalance: '4.0000000000',
-        #        timestamp: '1680557568670'
+        #        "currency": "USDT",
+        #        "availableBalance": "4.0000000000",
+        #        "timestamp": "1680557568670"
         #    }
         #
         #    {
-        #        currency: 'USDT',
-        #        orderMargin: '0.0000000000',
-        #        timestamp: '1680558743307'
+        #        "currency": "USDT",
+        #        "orderMargin": "0.0000000000",
+        #        "timestamp": "1680558743307"
         #    }
         #
         timestamp = self.safe_integer(response, 'timestamp')
@@ -879,8 +888,8 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_system_status(self, client: Client, message):
         #
         #     {
-        #         id: '1578090234088',  # connectId
-        #         type: 'welcome',
+        #         "id": "1578090234088",  # connectId
+        #         "type": "welcome",
         #     }
         #
         return message
@@ -920,10 +929,10 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_error_message(self, client: Client, message):
         #
         #    {
-        #        code: 404,
-        #        data: 'tunnel stream-0 is not exist',
-        #        id: '3',
-        #        type: 'error'
+        #        "code": 404,
+        #        "data": "tunnel stream-0 is not exist",
+        #        "id": "3",
+        #        "type": "error"
         #    }
         #
         client.reject(message)
@@ -944,10 +953,10 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
     def handle_authenticate(self, client, message):
         #
         #    {
-        #        success: True,
-        #        ret_msg: '',
-        #        op: 'auth',
-        #        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        #        "success": True,
+        #        "ret_msg": '',
+        #        "op": "auth",
+        #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         #    }
         #
         data = self.safe_value(message, 'data')

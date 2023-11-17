@@ -1,5 +1,5 @@
 import bitmartRest from '../bitmart.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmart extends bitmartRest {
     describe(): any;
@@ -7,7 +7,7 @@ export default class bitmart extends bitmartRest {
     subscribePrivate(channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleTrade(client: Client, message: any): any;

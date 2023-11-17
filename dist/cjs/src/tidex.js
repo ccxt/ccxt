@@ -334,6 +334,7 @@ class tidex extends tidex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -467,15 +468,15 @@ class tidex extends tidex$1 {
     parseTicker(ticker, market = undefined) {
         //
         //     {
-        //         high: 0.03497582,
-        //         low: 0.03248474,
-        //         avg: 0.03373028,
-        //         vol: 120.11485715062999,
-        //         vol_cur: 3572.24914074,
-        //         last: 0.0337611,
-        //         buy: 0.0337442,
-        //         sell: 0.03377798,
-        //         updated: 1537522009
+        //         "high": 0.03497582,
+        //         "low": 0.03248474,
+        //         "avg": 0.03373028,
+        //         "vol": 120.11485715062999,
+        //         "vol_cur": 3572.24914074,
+        //         "last": 0.0337611,
+        //         "buy": 0.0337442,
+        //         "sell": 0.03377798,
+        //         "updated": 1537522009
         //     }
         //
         const timestamp = this.safeTimestamp(ticker, 'updated');
@@ -541,7 +542,7 @@ class tidex extends tidex$1 {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(response[id], market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -734,8 +735,8 @@ class tidex extends tidex$1 {
         const timestamp = this.safeTimestamp(order, 'timestamp_created');
         const marketId = this.safeString(order, 'pair');
         const symbol = this.safeSymbol(marketId, market);
-        let remaining = undefined;
-        let amount = undefined;
+        let remaining;
+        let amount;
         const price = this.safeString(order, 'rate');
         if ('start_amount' in order) {
             amount = this.safeString(order, 'start_amount');
@@ -962,6 +963,7 @@ class tidex extends tidex$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

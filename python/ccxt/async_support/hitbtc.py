@@ -6,9 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, MarginMode, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -52,11 +50,13 @@ class hitbtc(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
+                'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': None,
                 'fetchBorrowRateHistories': None,
@@ -72,15 +72,20 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchFundingHistory': None,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': None,
-                'fetchMarketLeverageTiers': None,
+                'fetchLiquidations': False,
+                'fetchMarginMode': True,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMyLiquidations': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -100,6 +105,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': True,
@@ -131,56 +137,79 @@ class hitbtc(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         'public/currency': 10,
+                        'public/currency/{currency}': 10,
                         'public/symbol': 10,
+                        'public/symbol/{symbol}': 10,
                         'public/ticker': 10,
+                        'public/ticker/{symbol}': 10,
                         'public/price/rate': 10,
+                        'public/price/history': 10,
+                        'public/price/ticker': 10,
+                        'public/price/ticker/{symbol}': 10,
                         'public/trades': 10,
+                        'public/trades/{symbol}': 10,
                         'public/orderbook': 10,
+                        'public/orderbook/{symbol}': 10,
                         'public/candles': 10,
+                        'public/candles/{symbol}': 10,
                         'public/futures/info': 10,
+                        'public/futures/info/{symbol}': 10,
                         'public/futures/history/funding': 10,
+                        'public/futures/history/funding/{symbol}': 10,
                         'public/futures/candles/index_price': 10,
+                        'public/futures/candles/index_price/{symbol}': 10,
                         'public/futures/candles/mark_price': 10,
+                        'public/futures/candles/mark_price/{symbol}': 10,
                         'public/futures/candles/premium_index': 10,
+                        'public/futures/candles/premium_index/{symbol}': 10,
                         'public/futures/candles/open_interest': 10,
+                        'public/futures/candles/open_interest/{symbol}': 10,
                     },
                 },
                 'private': {
                     'get': {
                         'spot/balance': 15,
-                        'spot/order': 15,
-                        'spot/order/{client_order_id}': 15,
+                        'spot/balance/{currency}': 15,
+                        'spot/order': 1,
+                        'spot/order/{client_order_id}': 1,
                         'spot/fee': 15,
                         'spot/fee/{symbol}': 15,
                         'spot/history/order': 15,
                         'spot/history/trade': 15,
-                        'margin/account': 15,
-                        'margin/account/isolated/{symbol}': 15,
-                        'margin/order': 15,
-                        'margin/order/{client_order_id}': 15,
-                        'margin/history/clearing': 15,
+                        'margin/account': 1,
+                        'margin/account/isolated/{symbol}': 1,
+                        'margin/account/cross/{currency}': 1,
+                        'margin/order': 1,
+                        'margin/order/{client_order_id}': 1,
+                        'margin/config': 15,
                         'margin/history/order': 15,
-                        'margin/history/positions': 15,
                         'margin/history/trade': 15,
+                        'margin/history/positions': 15,
+                        'margin/history/clearing': 15,
                         'futures/balance': 15,
-                        'futures/account': 15,
-                        'futures/account/isolated/{symbol}': 15,
-                        'futures/order': 15,
-                        'futures/order/{client_order_id}': 15,
+                        'futures/balance/{currency}': 15,
+                        'futures/account': 1,
+                        'futures/account/isolated/{symbol}': 1,
+                        'futures/order': 1,
+                        'futures/order/{client_order_id}': 1,
+                        'futures/config': 15,
                         'futures/fee': 15,
                         'futures/fee/{symbol}': 15,
-                        'futures/history/clearing': 15,
                         'futures/history/order': 15,
-                        'futures/history/positions': 15,
                         'futures/history/trade': 15,
-                        'wallet/balance': 15,
-                        'wallet/crypto/address': 15,
-                        'wallet/crypto/address/recent-deposit': 15,
-                        'wallet/crypto/address/recent-withdraw': 15,
-                        'wallet/crypto/address/check-mine': 15,
-                        'wallet/transactions': 15,
-                        'wallet/crypto/check-offchain-available': 15,
-                        'wallet/crypto/fee/estimate': 15,
+                        'futures/history/positions': 15,
+                        'futures/history/clearing': 15,
+                        'wallet/balance': 30,
+                        'wallet/balance/{currency}': 30,
+                        'wallet/crypto/address': 30,
+                        'wallet/crypto/address/recent-deposit': 30,
+                        'wallet/crypto/address/recent-withdraw': 30,
+                        'wallet/crypto/address/check-mine': 30,
+                        'wallet/transactions': 30,
+                        'wallet/transactions/{tx_id}': 30,
+                        'wallet/crypto/fee/estimate': 30,
+                        'wallet/airdrops': 30,
+                        'wallet/amount-locks': 30,
                         'sub-account': 15,
                         'sub-account/acl': 15,
                         'sub-account/balance/{subAccID}': 15,
@@ -188,12 +217,19 @@ class hitbtc(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'spot/order': 1,
+                        'spot/order/list': 1,
                         'margin/order': 1,
+                        'margin/order/list': 1,
                         'futures/order': 1,
-                        'wallet/convert': 15,
-                        'wallet/crypto/address': 15,
-                        'wallet/crypto/withdraw': 15,
-                        'wallet/transfer': 15,
+                        'futures/order/list': 1,
+                        'wallet/crypto/address': 30,
+                        'wallet/crypto/withdraw': 30,
+                        'wallet/convert': 30,
+                        'wallet/transfer': 30,
+                        'wallet/internal/withdraw': 30,
+                        'wallet/crypto/check-offchain-available': 30,
+                        'wallet/crypto/fees/estimate': 30,
+                        'wallet/airdrops/{id}/claim': 30,
                         'sub-account/freeze': 15,
                         'sub-account/activate': 15,
                         'sub-account/transfer': 15,
@@ -212,15 +248,15 @@ class hitbtc(Exchange, ImplicitAPI):
                         'margin/order': 1,
                         'margin/order/{client_order_id}': 1,
                         'futures/position': 1,
-                        'futures/position/isolated/{symbol}': 1,
+                        'futures/position/{margin_mode}/{symbol}': 1,
                         'futures/order': 1,
                         'futures/order/{client_order_id}': 1,
-                        'wallet/crypto/withdraw/{id}': 1,
+                        'wallet/crypto/withdraw/{id}': 30,
                     },
                     'put': {
                         'margin/account/isolated/{symbol}': 1,
                         'futures/account/isolated/{symbol}': 1,
-                        'wallet/crypto/withdraw/{id}': 1,
+                        'wallet/crypto/withdraw/{id}': 30,
                     },
                 },
             },
@@ -747,6 +783,7 @@ class hitbtc(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -930,7 +967,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             entry = response[i]
@@ -942,7 +979,7 @@ class hitbtc(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
@@ -975,19 +1012,39 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://api.hitbtc.com/#tickers
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
-        response = await self.fetch_tickers([symbol], params)
-        return self.safe_value(response, symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetPublicTickerSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "ask": "0.020572",
+        #         "bid": "0.020566",
+        #         "last": "0.020574",
+        #         "low": "0.020388",
+        #         "high": "0.021084",
+        #         "open": "0.020913",
+        #         "volume": "138444.3666",
+        #         "volume_quote": "2853.6874972480",
+        #         "timestamp": "2021-06-02T17:52:36.731Z"
+        #     }
+        #
+        return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :see: https://api.hitbtc.com/#tickers
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -1023,9 +1080,9 @@ class hitbtc(Exchange, ImplicitAPI):
             symbol = market['symbol']
             entry = response[marketId]
             result[symbol] = self.parse_ticker(entry, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #       "ask": "62756.01",
@@ -1068,9 +1125,10 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://api.hitbtc.com/#trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1080,17 +1138,21 @@ class hitbtc(Exchange, ImplicitAPI):
         await self.load_markets()
         market = None
         request = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            # symbol is optional for hitbtc fetchTrades
-            request['symbols'] = market['id']
         if limit is not None:
             request['limit'] = min(limit, 1000)
         if since is not None:
             request['from'] = since
-        response = await self.publicGetPublicTrades(self.extend(request, params))
-        marketIds = list(response.keys())
+        response = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+            response = await self.publicGetPublicTradesSymbol(self.extend(request, params))
+        else:
+            response = await self.publicGetPublicTrades(self.extend(request, params))
+        if symbol is not None:
+            return self.parse_trades(response, market)
         trades = []
+        marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             marketInner = self.market(marketId)
@@ -1099,7 +1161,7 @@ class hitbtc(Exchange, ImplicitAPI):
             trades = self.array_concat(trades, parsed)
         return trades
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1133,43 +1195,43 @@ class hitbtc(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # createOrder(market)
         #
         #  {
-        #      id: '1569252895',
-        #      position_id: '0',
-        #      quantity: '10',
-        #      price: '0.03919424',
-        #      fee: '0.000979856000',
-        #      timestamp: '2022-01-25T19:38:36.153Z',
-        #      taker: True
+        #      "id": "1569252895",
+        #      "position_id": "0",
+        #      "quantity": "10",
+        #      "price": "0.03919424",
+        #      "fee": "0.000979856000",
+        #      "timestamp": "2022-01-25T19:38:36.153Z",
+        #      "taker": True
         #  }
         #
         # fetchTrades
         #
         #  {
-        #      id: 974786185,
-        #      price: '0.032462',
-        #      qty: '0.3673',
-        #      side: 'buy',
-        #      timestamp: '2020-10-16T12:57:39.846Z'
+        #      "id": 974786185,
+        #      "price": "0.032462",
+        #      "qty": "0.3673",
+        #      "side": "buy",
+        #      "timestamp": "2020-10-16T12:57:39.846Z"
         #  }
         #
         # fetchMyTrades spot
         #
         #  {
-        #      id: 277210397,
-        #      clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
-        #      orderId: 28102855393,
-        #      symbol: 'ETHBTC',
-        #      side: 'sell',
-        #      quantity: '0.002',
-        #      price: '0.073365',
-        #      fee: '0.000000147',
-        #      timestamp: '2018-04-28T18:39:55.345Z',
-        #      taker: True
+        #      "id": 277210397,
+        #      "clientOrderId": "6e102f3e7f3f4e04aeeb1cdc95592f1a",
+        #      "orderId": 28102855393,
+        #      "symbol": "ETHBTC",
+        #      "side": "sell",
+        #      "quantity": "0.002",
+        #      "price": "0.073365",
+        #      "fee": "0.000000147",
+        #      "timestamp": "2018-04-28T18:39:55.345Z",
+        #      "taker": True
         #  }
         #
         # fetchMyTrades swap and margin
@@ -1289,7 +1351,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # transaction
         #
@@ -1337,6 +1399,9 @@ class hitbtc(Exchange, ImplicitAPI):
         sender = self.safe_value(native, 'senders')
         addressFrom = self.safe_string(sender, 0)
         amount = self.safe_number(native, 'amount')
+        subType = self.safe_string(transaction, 'subtype')
+        internal = subType == 'OFFCHAIN'
+        # https://api.hitbtc.com/#check-if-offchain-is-available
         fee = {
             'currency': None,
             'cost': None,
@@ -1351,7 +1416,6 @@ class hitbtc(Exchange, ImplicitAPI):
             'id': id,
             'txid': txhash,
             'type': type,
-            'code': code,  # kept here for backward-compatibility, but will be removed soon
             'currency': code,
             'network': None,
             'amount': amount,
@@ -1366,10 +1430,11 @@ class hitbtc(Exchange, ImplicitAPI):
             'tagTo': tagTo,
             'updated': updated,
             'comment': None,
+            'internal': internal,
             'fee': fee,
         }
 
-    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
@@ -1380,7 +1445,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1391,7 +1456,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1402,9 +1467,10 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
 
-    async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+        :see: https://api.hitbtc.com/#order-books
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
         :param int [limit]: max number of entries per orderbook to return, default is None
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
@@ -1428,18 +1494,27 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp, 'bid', 'ask')
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://api.hitbtc.com/#order-books
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        result = await self.fetch_order_books([symbol], limit, params)
-        return result[symbol]
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        if limit is not None:
+            request['depth'] = limit
+        response = await self.publicGetPublicOrderbookSymbol(self.extend(request, params))
+        timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
+        return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask')
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         #
         #     {
         #         "symbol":"ARVUSDT",  # returned from fetchTradingFees only
@@ -1512,71 +1587,78 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://api.hitbtc.com/#candles
+        :see: https://api.hitbtc.com/#futures-index-price-candles
+        :see: https://api.hitbtc.com/#futures-mark-price-candles
+        :see: https://api.hitbtc.com/#futures-premium-index-candles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
         request = {
-            'symbols': market['id'],
+            'symbol': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
+        request, params = self.handle_until_option('till', request, params)
         if since is not None:
             request['from'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
-        method = 'publicGetPublicCandles'
+        response = None
         if price == 'mark':
-            method = 'publicGetPublicFuturesCandlesMarkPrice'
+            response = await self.publicGetPublicFuturesCandlesMarkPriceSymbol(self.extend(request, params))
         elif price == 'index':
-            method = 'publicGetPublicFuturesCandlesIndexPrice'
+            response = await self.publicGetPublicFuturesCandlesIndexPriceSymbol(self.extend(request, params))
         elif price == 'premiumIndex':
-            method = 'publicGetPublicFuturesCandlesPremiumIndex'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.publicGetPublicFuturesCandlesPremiumIndexSymbol(self.extend(request, params))
+        else:
+            response = await self.publicGetPublicCandlesSymbol(self.extend(request, params))
         #
         # Spot and Swap
         #
-        #     {
-        #         "ETHUSDT": [
-        #             {
-        #                 "timestamp": "2021-10-25T07:38:00.000Z",
-        #                 "open": "4173.391",
-        #                 "close": "4170.923",
-        #                 "min": "4170.923",
-        #                 "max": "4173.986",
-        #                 "volume": "0.1879",
-        #                 "volume_quote": "784.2517846"
-        #             }
-        #         ]
-        #     }
+        #     [
+        #         {
+        #             "timestamp": "2021-10-25T07:38:00.000Z",
+        #             "open": "4173.391",
+        #             "close": "4170.923",
+        #             "min": "4170.923",
+        #             "max": "4173.986",
+        #             "volume": "0.1879",
+        #             "volume_quote": "784.2517846"
+        #         }
+        #     ]
         #
         # Mark, Index and Premium Index
         #
-        #     {
-        #         "BTCUSDT_PERP": [
-        #             {
-        #                 "timestamp": "2022-04-01T01:28:00.000Z",
-        #                 "open": "45146.39",
-        #                 "close": "45219.43",
-        #                 "min": "45146.39",
-        #                 "max": "45219.43"
-        #             },
-        #         ]
-        #     }
+        #     [
+        #         {
+        #             "timestamp": "2022-04-01T01:28:00.000Z",
+        #             "open": "45146.39",
+        #             "close": "45219.43",
+        #             "min": "45146.39",
+        #             "max": "45219.43"
+        #         },
+        #     ]
         #
-        ohlcvs = self.safe_value(response, market['id'])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         # Spot and Swap
         #
@@ -1609,7 +1691,7 @@ class hitbtc(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1644,7 +1726,7 @@ class hitbtc(Exchange, ImplicitAPI):
         parsed = self.parse_orders(response, market, since, limit)
         return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1693,7 +1775,7 @@ class hitbtc(Exchange, ImplicitAPI):
         order = self.safe_value(response, 0)
         return self.parse_order(order, market)
 
-    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1763,7 +1845,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1812,7 +1894,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_open_order(self, id: str, symbol: Str = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1842,7 +1924,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1870,7 +1952,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1929,23 +2011,33 @@ class hitbtc(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://api.hitbtc.com/#create-new-spot-order
-        see https://api.hitbtc.com/#create-margin-order
-        see https://api.hitbtc.com/#create-futures-order
+        :see: https://api.hitbtc.com/#create-new-spot-order
+        :see: https://api.hitbtc.com/#create-margin-order
+        :see: https://api.hitbtc.com/#create-futures-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
-        :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if self is set
+        :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         :param bool [params.margin]: True for creating a margin order
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", "Day", "GTD"
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         isLimit = (type == 'limit')
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        timeInForce = self.safe_string(params, 'timeInForce')
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        isPostOnly = self.is_post_only(type == 'market', None, params)
         request = {
             'type': type,
             'side': side,
@@ -1963,14 +2055,15 @@ class hitbtc(Exchange, ImplicitAPI):
             # 'take_rate': 0.001,  # Optional
             # 'make_rate': 0.001,  # Optional
         }
-        reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
             if (market['type'] != 'swap') and (market['type'] != 'margin'):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only')
         if reduceOnly is True:
             request['reduce_only'] = reduceOnly
-        timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
-        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
+        if isPostOnly:
+            request['post_only'] = True
+        if timeInForce is not None:
+            request['time_in_force'] = timeInForce
         if isLimit or (type == 'stopLimit') or (type == 'takeProfitLimit'):
             if price is None:
                 raise ExchangeError(self.id + ' createOrder() requires a price argument for limit orders')
@@ -1987,18 +2080,19 @@ class hitbtc(Exchange, ImplicitAPI):
                 request['type'] = 'stopMarket'
         elif (type == 'stopLimit') or (type == 'stopMarket') or (type == 'takeProfitLimit') or (type == 'takeProfitMarket'):
             raise ExchangeError(self.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders')
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privatePostSpotOrder',
-            'swap': 'privatePostFuturesOrder',
-            'margin': 'privatePostMarginOrder',
-        })
-        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
-        if marginMode is not None:
-            method = 'privatePostMarginOrder'
-        params = self.omit(params, ['triggerPrice', 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'reduceOnly'])
-        response = await getattr(self, method)(self.extend(request, query))
+        params = self.omit(params, ['triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly'])
+        if marketType == 'swap':
+            # set default margin mode to cross
+            if marginMode is None:
+                marginMode = 'cross'
+            request['margin_mode'] = marginMode
+        response = None
+        if marketType == 'swap':
+            response = await self.privatePostFuturesOrder(self.extend(request, params))
+        elif (marketType == 'margin') or (marginMode is not None):
+            response = await self.privatePostMarginOrder(self.extend(request, params))
+        else:
+            response = await self.privatePostSpotOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
     def parse_order_status(self, status):
@@ -2012,7 +2106,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # limit
         #     {
@@ -2131,6 +2225,77 @@ class hitbtc(Exchange, ImplicitAPI):
             'stopLossPrice': None,
         }, market)
 
+    async def fetch_margin_mode(self, symbol: Str = None, params={}) -> MarginMode:
+        """
+        fetches margin mode of the user
+        :see: https://api.hitbtc.com/#get-margin-position-parameters
+        :see: https://api.hitbtc.com/#get-futures-position-parameters
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :returns dict: Struct of MarginMode
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchMarginMode', market, params)
+        response = None
+        if marketType == 'margin':
+            response = await self.privateGetMarginConfig(params)
+        elif marketType == 'swap':
+            response = await self.privateGetFuturesConfig(params)
+        else:
+            raise BadSymbol(self.id + ' fetchMarginMode() supports swap contracts and margin only')
+        #
+        # margin
+        #     {
+        #         "config": [{
+        #             "symbol": "BTCUSD",
+        #             "margin_call_leverage_mul": "1.50",
+        #             "liquidation_leverage_mul": "2.00",
+        #             "max_initial_leverage": "10.00",
+        #             "margin_mode": "Isolated",
+        #             "force_close_fee": "0.05",
+        #             "enabled": True,
+        #             "active": True,
+        #             "limit_base": "50000.00",
+        #             "limit_power": "2.2",
+        #             "unlimited_threshold": "10.0"
+        #         }]
+        #     }
+        #
+        # swap
+        #     {
+        #         "config": [{
+        #             "symbol": "BTCUSD_PERP",
+        #             "margin_call_leverage_mul": "1.20",
+        #             "liquidation_leverage_mul": "2.00",
+        #             "max_initial_leverage": "100.00",
+        #             "margin_mode": "Isolated",
+        #             "force_close_fee": "0.001",
+        #             "enabled": True,
+        #             "active": False,
+        #             "limit_base": "5000000.000000000000",
+        #             "limit_power": "1.25",
+        #             "unlimited_threshold": "2.00"
+        #         }]
+        #     }
+        #
+        config = self.safe_value(response, 'config', [])
+        marginModes = []
+        for i in range(0, len(config)):
+            data = self.safe_value(config, i)
+            marketId = self.safe_string(data, 'symbol')
+            marketInner = self.safe_market(marketId)
+            marginModes.append({
+                'info': data,
+                'symbol': self.safe_string(marketInner, 'symbol'),
+                'marginMode': self.safe_string_lower(data, 'margin_mode'),
+            })
+        filteredMargin = self.filter_by_symbol(marginModes, symbol)
+        return self.safe_value(filteredMargin, 0)
+
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
@@ -2161,17 +2326,17 @@ class hitbtc(Exchange, ImplicitAPI):
         response = await self.privatePostWalletTransfer(self.extend(request, params))
         #
         #     [
-        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         #     ]
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # transfer
         #
         #     [
-        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         #     ]
         #
         timestamp = self.milliseconds()
@@ -2252,16 +2417,72 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
+        fetches funding rates for multiple markets
+        :see: https://api.hitbtc.com/#futures-info
+        :param str[] symbols: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :returns dict: an array of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = None
+        request = {}
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            market = self.market(symbols[0])
+            queryMarketIds = self.market_ids(symbols)
+            request['symbols'] = ','.join(queryMarketIds)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchFundingRates', market, params)
+        if type != 'swap':
+            raise NotSupported(self.id + ' fetchFundingRates() does not support ' + type + ' markets')
+        response = await self.publicGetPublicFuturesInfo(self.extend(request, params))
+        #
+        #     {
+        #         "BTCUSDT_PERP": {
+        #             "contract_type": "perpetual",
+        #             "mark_price": "30897.68",
+        #             "index_price": "30895.29",
+        #             "funding_rate": "0.0001",
+        #             "open_interest": "93.7128",
+        #             "next_funding_time": "2021-07-21T16:00:00.000Z",
+        #             "indicative_funding_rate": "0.0001",
+        #             "premium_index": "0.000047541807127312",
+        #             "avg_premium_index": "0.000087063368020112",
+        #             "interest_rate": "0.0001",
+        #             "timestamp": "2021-07-21T09:48:37.235Z"
+        #         }
+        #     }
+        #
+        marketIds = list(response.keys())
+        fundingRates = {}
+        for i in range(0, len(marketIds)):
+            marketId = self.safe_string(marketIds, i)
+            rawFundingRate = self.safe_value(response, marketId)
+            marketInner = self.market(marketId)
+            symbol = marketInner['symbol']
+            fundingRate = self.parse_funding_rate(rawFundingRate, marketInner)
+            fundingRates[symbol] = fundingRate
+        return self.filter_by_array(fundingRates, 'symbol', symbols)
+
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://api.hitbtc.com/#funding-history
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000)
         market = None
         request = {
             # all arguments are optional
@@ -2272,6 +2493,7 @@ class hitbtc(Exchange, ImplicitAPI):
             # 'limit': 100,
             # 'offset': 0,
         }
+        request, params = self.handle_until_option('till', request, params)
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -2317,7 +2539,7 @@ class hitbtc(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: not used by hitbtc fetchPositions()
@@ -2433,7 +2655,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     [
         #         {
@@ -2517,9 +2739,70 @@ class hitbtc(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #     {
+        #         "contract_type": "perpetual",
+        #         "mark_price": "42307.43",
+        #         "index_price": "42303.27",
+        #         "funding_rate": "0.0001",
+        #         "open_interest": "30.9826",
+        #         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        #         "indicative_funding_rate": "0.0001",
+        #         "premium_index": "0",
+        #         "avg_premium_index": "0.000029587712038098",
+        #         "interest_rate": "0.0001",
+        #         "timestamp": "2022-03-22T08:08:26.687Z"
+        #     }
+        #
+        datetime = self.safe_string(interest, 'timestamp')
+        value = self.safe_number(interest, 'open_interest')
+        return self.safe_open_interest({
+            'symbol': market['symbol'],
+            'openInterestAmount': None,
+            'openInterestValue': value,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'info': interest,
+        }, market)
+
+    async def fetch_open_interest(self, symbol: str, params={}):
+        """
+        Retrieves the open interest of a derivative trading pair
+        :see: https://api.hitbtc.com/#futures-info
+        :param str symbol: Unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchOpenInterest() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetPublicFuturesInfoSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "contract_type": "perpetual",
+        #         "mark_price": "42307.43",
+        #         "index_price": "42303.27",
+        #         "funding_rate": "0.0001",
+        #         "open_interest": "30.9826",
+        #         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        #         "indicative_funding_rate": "0.0001",
+        #         "premium_index": "0",
+        #         "avg_premium_index": "0.000029587712038098",
+        #         "interest_rate": "0.0001",
+        #         "timestamp": "2022-03-22T08:08:26.687Z"
+        #     }
+        #
+        return self.parse_open_interest(response, market)
+
     async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
+        :see: https://api.hitbtc.com/#futures-info
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
@@ -2528,32 +2811,28 @@ class hitbtc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
-        request = {}
-        if symbol is not None:
-            symbol = market['symbol']
-            request['symbols'] = market['id']
-        response = await self.publicGetPublicFuturesInfo(self.extend(request, params))
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetPublicFuturesInfoSymbol(self.extend(request, params))
         #
         #     {
-        #         "BTCUSDT_PERP": {
-        #             "contract_type": "perpetual",
-        #             "mark_price": "42307.43",
-        #             "index_price": "42303.27",
-        #             "funding_rate": "0.0001",
-        #             "open_interest": "30.9826",
-        #             "next_funding_time": "2022-03-22T16:00:00.000Z",
-        #             "indicative_funding_rate": "0.0001",
-        #             "premium_index": "0",
-        #             "avg_premium_index": "0.000029587712038098",
-        #             "interest_rate": "0.0001",
-        #             "timestamp": "2022-03-22T08:08:26.687Z"
-        #         }
+        #         "contract_type": "perpetual",
+        #         "mark_price": "42307.43",
+        #         "index_price": "42303.27",
+        #         "funding_rate": "0.0001",
+        #         "open_interest": "30.9826",
+        #         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        #         "indicative_funding_rate": "0.0001",
+        #         "premium_index": "0",
+        #         "avg_premium_index": "0.000029587712038098",
+        #         "interest_rate": "0.0001",
+        #         "timestamp": "2022-03-22T08:08:26.687Z"
         #     }
         #
-        data = self.safe_value(response, market['id'], {})
-        return self.parse_funding_rate(data, market)
+        return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         #     {
         #         "contract_type": "perpetual",
@@ -2602,8 +2881,8 @@ class hitbtc(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],  # swap and margin
             'margin_balance': amount,  # swap and margin
-            # 'leverage': '10',  # swap only required
-            # 'strict_validate': False,  # swap and margin
+            # "leverage": "10",  # swap only required
+            # "strict_validate": False,  # swap and margin
         }
         if leverage is not None:
             request['leverage'] = leverage
@@ -2640,7 +2919,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None):
         currencies = self.safe_value(data, 'currencies', [])
         currencyInfo = self.safe_value(currencies, 0)
         return {
@@ -2733,7 +3012,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.safe_number(response, 'leverage')
 
-    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    async def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2741,9 +3020,8 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :returns dict: response from the exchange
         """
+        self.check_required_symbol('setLeverage', symbol)
         await self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if params['margin_balance'] is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair')
         market = self.market(symbol)
@@ -2761,10 +3039,10 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return await self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
-    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://api.hitbtc.com/#currencies
+        :see: https://api.hitbtc.com/#currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :returns dict[]: a list of `fees structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -2798,7 +3076,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes)
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    {
         #         "full_name": "ConnectWealth",
@@ -2856,10 +3134,7 @@ class hitbtc(Exchange, ImplicitAPI):
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
         marginMode, params = super(hitbtc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
-        if marginMode is not None:
-            if marginMode != 'isolated':
-                raise NotSupported(self.id + ' only isolated margin is supported')
-        else:
+        if marginMode is None:
             if (defaultType == 'margin') or (isMargin is True):
                 marginMode = 'isolated'
         return [marginMode, params]

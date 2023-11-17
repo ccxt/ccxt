@@ -61,7 +61,7 @@ export default class coinex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
-                'fetchDepsoitWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFee': 'emulated',
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -286,6 +286,7 @@ export default class coinex extends Exchange {
                 },
             },
             'options': {
+                'brokerId': 'x-167673045',
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot',
                 'defaultSubType': 'linear',
@@ -305,13 +306,33 @@ export default class coinex extends Exchange {
                 'ACM': 'Actinium',
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                    '23': PermissionDenied,
+                    '24': AuthenticationError,
+                    '25': AuthenticationError,
+                    '34': AuthenticationError,
+                    '35': ExchangeNotAvailable,
+                    '36': RequestTimeout,
+                    '213': RateLimitExceeded,
+                    '107': InsufficientFunds,
+                    '600': OrderNotFound,
+                    '601': InvalidOrder,
+                    '602': InvalidOrder,
+                    '606': InvalidOrder,
+                },
+                'broad': {
+                    'ip not allow visit': PermissionDenied,
+                },
+            },
         });
     }
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetCommonAssetConfig(params);
         //     {
-        //         code: 0,
-        //         data: {
+        //         "code": 0,
+        //         "data": {
         //             "USDT-ERC20": {
         //                  "asset": "USDT",
         //                  "chain": "ERC20",
@@ -325,7 +346,7 @@ export default class coinex extends Exchange {
         //             },
         //             ...
         //         },
-        //         message: 'Success',
+        //         "message": "Success",
         //     }
         //
         const data = this.safeValue(response, 'data', []);
@@ -536,6 +557,7 @@ export default class coinex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -632,6 +654,7 @@ export default class coinex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
@@ -872,7 +895,7 @@ export default class coinex extends Exchange {
             ticker['symbol'] = symbol;
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTime(params = {}) {
         /**
@@ -885,12 +908,12 @@ export default class coinex extends Exchange {
         const response = await this.perpetualPublicGetTime(params);
         //
         //     {
-        //         code: '0',
-        //         data: '1653261274414',
-        //         message: 'OK'
+        //         "code": "0",
+        //         "data": "1653261274414",
+        //         "message": "OK"
         //     }
         //
-        return this.safeNumber(response, 'data');
+        return this.safeInteger(response, 'data');
     }
     async fetchOrderBook(symbol, limit = 20, params = {}) {
         /**
@@ -902,9 +925,6 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (limit === undefined) {
@@ -1543,6 +1563,7 @@ export default class coinex extends Exchange {
         //         "status": "done",
         //         "taker_fee_rate": "0.0005",
         //         "type": "sell",
+        //         "client_id": "",
         //     }
         //
         // Spot and Margin createOrder, cancelOrder, fetchOrder
@@ -1570,6 +1591,7 @@ export default class coinex extends Exchange {
         //          "stock_fee":"0",
         //          "taker_fee_rate":"0.002",
         //          "type":"buy"
+        //          "client_id": "",
         //      }
         //
         // Swap createOrder, cancelOrder, fetchOrder
@@ -1752,7 +1774,8 @@ export default class coinex extends Exchange {
         const remainingString = this.safeString(order, 'left');
         const marketId = this.safeString(order, 'market');
         const defaultType = this.safeString(this.options, 'defaultType');
-        market = this.safeMarket(marketId, market, undefined, defaultType);
+        const orderType = ('source' in order) ? 'swap' : defaultType;
+        market = this.safeMarket(marketId, market, undefined, orderType);
         const feeCurrencyId = this.safeString(order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         if (feeCurrency === undefined) {
@@ -1784,9 +1807,13 @@ export default class coinex extends Exchange {
         else {
             type = rawType;
         }
+        let clientOrderId = this.safeString(order, 'client_id');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         return this.safeOrder({
             'id': this.safeString2(order, 'id', 'order_id'),
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'datetime': this.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': this.safeTimestamp(order, 'update_time'),
@@ -1843,6 +1870,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const swap = market['swap'];
+        const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
         const stopPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeValue(params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
@@ -1864,6 +1892,14 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
+        if (clientOrderId === undefined) {
+            const defaultId = 'x-167673045';
+            const brokerId = this.safeString(this.options, 'brokerId', defaultId);
+            request['client_id'] = brokerId + '-' + this.uuid16();
+        }
+        else {
+            request['client_id'] = clientOrderId;
+        }
         if (swap) {
             if (stopLossPrice || takeProfitPrice) {
                 request['stop_type'] = this.safeInteger(params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price
@@ -2302,9 +2338,7 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancellAllOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelAllOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketId = market['id'];
@@ -2352,9 +2386,7 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const swap = market['swap'];
@@ -2731,12 +2763,12 @@ export default class coinex extends Exchange {
         const response = await this.privatePutBalanceDepositAddressCoinType(this.extend(request, params));
         //
         //     {
-        //         code: 0,
-        //         data: {
-        //             coin_address: 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
-        //             is_bitcoin_cash: false
+        //         "code": 0,
+        //         "data": {
+        //             "coin_address": "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
+        //             "is_bitcoin_cash": false
         //         },
-        //         message: 'Success'
+        //         "message": "Success"
         //     }
         const data = this.safeValue(response, 'data', {});
         return this.parseDepositAddress(data, currency);
@@ -2774,13 +2806,13 @@ export default class coinex extends Exchange {
         const response = await this.privateGetBalanceDepositAddressCoinType(this.extend(request, params));
         //
         //      {
-        //          code: 0,
-        //          data: {
-        //            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        //            // coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
-        //            is_bitcoin_cash: false
+        //          "code": 0,
+        //          "data": {
+        //            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //            // coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy", // with embedded tag/memo
+        //            "is_bitcoin_cash": false
         //          },
-        //          message: 'Success'
+        //          "message": "Success"
         //      }
         //
         const data = this.safeValue(response, 'data', {});
@@ -2811,8 +2843,8 @@ export default class coinex extends Exchange {
     parseDepositAddress(depositAddress, currency = undefined) {
         //
         //     {
-        //         coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        //         is_bitcoin_cash: false
+        //         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //         "is_bitcoin_cash": false
         //     }
         //
         const coinAddress = this.safeString(depositAddress, 'coin_address');
@@ -3209,7 +3241,7 @@ export default class coinex extends Exchange {
         const liquidationPrice = this.safeString(position, 'liq_price');
         const entryPrice = this.safeString(position, 'open_price');
         const unrealizedPnl = this.safeString(position, 'profit_unreal');
-        const contractSize = this.safeString(position, 'amount');
+        const contracts = this.safeNumber(position, 'amount');
         const sideInteger = this.safeInteger(position, 'side');
         const side = (sideInteger === 1) ? 'short' : 'long';
         const timestamp = this.safeTimestamp(position, 'update_time');
@@ -3227,8 +3259,8 @@ export default class coinex extends Exchange {
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,
             'percentage': undefined,
-            'contracts': undefined,
-            'contractSize': contractSize,
+            'contracts': contracts,
+            'contractSize': this.safeNumber(market, 'contractSize'),
             'markPrice': undefined,
             'lastPrice': undefined,
             'side': side,
@@ -3257,9 +3289,7 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('setMarginMode', symbol);
         marginMode = marginMode.toLowerCase();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
@@ -3533,9 +3563,7 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchFundingHistory', symbol);
         limit = (limit === undefined) ? 100 : limit;
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3841,23 +3869,32 @@ export default class coinex extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchFundingRateHistory
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the coinex api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000);
+        }
+        if (limit === undefined) {
+            limit = 100;
+        }
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'market': market['id'],
             'limit': limit,
             'offset': 0,
@@ -3866,6 +3903,7 @@ export default class coinex extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
+        [request, params] = this.handleUntilOption('end_time', request, params);
         const response = await this.perpetualPublicGetMarketFundingHistory(this.extend(request, params));
         //
         //     {
@@ -3981,6 +4019,8 @@ export default class coinex extends Exchange {
         const networkId = this.safeString(transaction, 'smart_contract_name');
         const amount = this.safeNumber(transaction, 'actual_amount');
         let feeCost = this.safeString(transaction, 'tx_fee');
+        const transferMethod = this.safeString(transaction, 'transfer_method');
+        const internal = transferMethod === 'local';
         let addressTo = undefined;
         let addressFrom = undefined;
         if (type === 'deposit') {
@@ -4013,6 +4053,8 @@ export default class coinex extends Exchange {
             'status': status,
             'updated': undefined,
             'fee': fee,
+            'comment': undefined,
+            'internal': internal,
         };
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
@@ -4344,7 +4386,7 @@ export default class coinex extends Exchange {
         }
         return this.parseTransactions(data, currency, since, limit);
     }
-    parseBorrowRate(info, currency = undefined) {
+    parseBorrowRate(info, market = undefined) {
         //
         //     {
         //         "market": "BTCUSDT",
@@ -4361,18 +4403,25 @@ export default class coinex extends Exchange {
         //         }
         //     },
         //
-        const timestamp = this.milliseconds();
-        const baseCurrencyData = this.safeValue(info, currency, {});
+        const marketId = this.safeString(info, 'market');
+        market = this.safeMarket(marketId, market, undefined, 'spot');
+        const baseInfo = this.safeValue(info, market['baseId']);
+        const baseRate = this.safeNumber(baseInfo, 'day_rate');
+        const quoteInfo = this.safeValue(info, market['quoteId']);
+        const quoteRate = this.safeNumber(quoteInfo, 'day_rate');
         return {
-            'currency': this.safeCurrencyCode(currency),
-            'rate': this.safeNumber(baseCurrencyData, 'day_rate'),
+            'symbol': market['symbol'],
+            'base': market['base'],
+            'baseRate': baseRate,
+            'quote': market['quote'],
+            'quoteRate': quoteRate,
             'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
-    async fetchBorrowRate(code, params = {}) {
+    async fetchIsolatedBorrowRate(symbol, params = {}) {
         /**
          * @method
          * @name coinex#fetchBorrowRate
@@ -4383,16 +4432,11 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets();
         let market = undefined;
-        if (code in this.markets) {
-            market = this.market(code);
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['market'] = market['id'];
         }
-        else {
-            const defaultSettle = this.safeString(this.options, 'defaultSettle', 'USDT');
-            market = this.market(code + '/' + defaultSettle);
-        }
-        const request = {
-            'market': market['id'],
-        };
         const response = await this.privateGetMarginConfig(this.extend(request, params));
         //
         //     {
@@ -4415,9 +4459,9 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        return this.parseBorrowRate(data, market['base']);
+        return this.parseBorrowRate(data, market);
     }
-    async fetchBorrowRates(params = {}) {
+    async fetchIsolatedBorrowRates(params = {}) {
         /**
          * @method
          * @name coinex#fetchBorrowRates
@@ -4449,22 +4493,10 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const timestamp = this.milliseconds();
         const data = this.safeValue(response, 'data', {});
         const rates = [];
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const symbol = this.safeString(entry, 'market');
-            const market = this.safeMarket(symbol, undefined, undefined, 'spot');
-            const currencyData = this.safeValue(entry, market['base']);
-            rates.push({
-                'currency': market['base'],
-                'rate': this.safeNumber(currencyData, 'day_rate'),
-                'period': 86400000,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-                'info': entry,
-            });
+            rates.push(this.parseBorrowRate(data[i]));
         }
         return rates;
     }
@@ -4567,9 +4599,7 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' borrowMargin() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('borrowMargin', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const currency = this.currency(code);
@@ -4608,9 +4638,7 @@ export default class coinex extends Exchange {
          * @param {string} [params.loan_id] extra parameter that is not required
          * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' repayMargin() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('repayMargin', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const currency = this.currency(code);
@@ -4767,6 +4795,32 @@ export default class coinex extends Exchange {
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit(params, this.extractParams(path));
         const nonce = this.nonce().toString();
+        if (method === 'POST') {
+            const parts = path.split('/');
+            const firstPart = this.safeString(parts, 0, '');
+            const numParts = parts.length;
+            const lastPart = this.safeString(parts, numParts - 1, '');
+            const lastWords = lastPart.split('_');
+            const numWords = lastWords.length;
+            const lastWord = this.safeString(lastWords, numWords - 1, '');
+            if ((firstPart === 'order') && (lastWord === 'limit' || lastWord === 'market')) {
+                // inject in implicit API calls
+                // POST /order/limit - Place limit orders
+                // POST /order/market - Place market orders
+                // POST /order/stop/limit - Place stop limit orders
+                // POST /order/stop/market - Place stop market orders
+                // POST /perpetual/v1/order/put_limit - Place limit orders
+                // POST /perpetual/v1/order/put_market - Place market orders
+                // POST /perpetual/v1/order/put_stop_limit - Place stop limit orders
+                // POST /perpetual/v1/order/put_stop_market - Place stop market orders
+                const clientOrderId = this.safeString(params, 'client_id');
+                if (clientOrderId === undefined) {
+                    const defaultId = 'x-167673045';
+                    const brokerId = this.safeValue(this.options, 'brokerId', defaultId);
+                    query['client_id'] = brokerId + '_' + this.uuid16();
+                }
+            }
+        }
         if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
             this.checkRequiredCredentials();
             query = this.extend({
@@ -4823,23 +4877,10 @@ export default class coinex extends Exchange {
         const data = this.safeValue(response, 'data');
         const message = this.safeString(response, 'message');
         if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
-            const responseCodes = {
-                // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
-                '23': PermissionDenied,
-                '24': AuthenticationError,
-                '25': AuthenticationError,
-                '34': AuthenticationError,
-                '35': ExchangeNotAvailable,
-                '36': RequestTimeout,
-                '213': RateLimitExceeded,
-                '107': InsufficientFunds,
-                '600': OrderNotFound,
-                '601': InvalidOrder,
-                '602': InvalidOrder,
-                '606': InvalidOrder,
-            };
-            const ErrorClass = this.safeValue(responseCodes, code, ExchangeError);
-            throw new ErrorClass(response['message']);
+            const feedback = this.id + ' ' + message;
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            throw new ExchangeError(feedback);
         }
         return undefined;
     }
