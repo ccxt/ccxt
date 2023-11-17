@@ -58,7 +58,7 @@
                 "method": "fetchDepositAddress",
                 "url": "https://api.exmo.com/v1.1/deposit_address",
                 "input": [
-                  "TRX"
+                  "BTC"
                 ],
                 "output": "nonce=1700155247019"
             }
@@ -69,7 +69,7 @@
                 "method": "fetchDepositsWithdrawals",
                 "url": "https://api.exmo.com/v1.1/wallet_history",
                 "input": [
-                  "TRX"
+                  "BTC"
                 ],
                 "output": "nonce=1700155466968"
             }
