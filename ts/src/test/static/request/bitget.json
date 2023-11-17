@@ -256,10 +256,10 @@
                 "url": "https://api.bitget.com/api/spot/v1/trade/fills",
                 "input": [
                     "LTC/USDT",
-                    1699457638000,
+                    null,
                     5
                 ],
-                "output": "{\"symbol\":\"LTCUSDT_SPBL\",\"after\":1699457638000,\"limit\":5}"
+                "output": "{\"symbol\":\"LTCUSDT_SPBL\",\"limit\":5}"
             },
             {
                 "description": "Swap private trades",
