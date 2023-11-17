@@ -1791,13 +1791,8 @@ export default class Exchange {
     isRoundNumber (value) {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        const isNumeric = (typeof value === 'number');
-        if (isNumeric) {
-            const res = (value % 1);
-            return res === 0; // if we use `===` then in php it transpiles into fmod() which will not return true
-        } else {
-            return false;
-        }
+        const res = this.parseToNumeric ((value % 1));
+        return res === 0; // if we use `===` then in php it transpiles into fmod() which will not return true
     }
 
     afterConstruct () {
