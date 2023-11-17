@@ -1897,12 +1897,10 @@ class bittrex extends bittrex$1 {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
             request['marketSymbol'] = market['id'];
         }
         const response = await this.privateGetExecutions(this.extend(request, params));
-        const trades = this.parseTrades(response, market, since, limit);
-        return trades;
+        return this.parseTrades(response, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

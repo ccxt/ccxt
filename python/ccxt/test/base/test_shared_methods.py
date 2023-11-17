@@ -104,7 +104,7 @@ def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=N
     ts = entry[key_name_or_index]
     if ts is not None:
         assert isinstance(ts, numbers.Real), 'timestamp is not numeric' + log_text
-        assert isinstance(ts, numbers.Integral), 'timestamp should be an integer' + log_text
+        assert isinstance(ts, int), 'timestamp should be an integer' + log_text
         min_ts = 1230940800000  # 03 Jan 2009 - first block
         max_ts = 2147483648000  # 03 Jan 2009 - first block
         assert ts > min_ts, 'timestamp is impossible to be before ' + str(min_ts) + ' (03.01.2009)' + log_text  # 03 Jan 2009 - first block
@@ -243,7 +243,7 @@ def assert_in_array(exchange, skipped_properties, method, entry, key, expected_a
 def assert_fee_structure(exchange, skipped_properties, method, entry, key):
     log_text = log_template(exchange, method, entry)
     key_string = string_value(key)
-    if isinstance(key, numbers.Integral):
+    if isinstance(key, int):
         assert isinstance(entry, list), 'fee container is expected to be an array' + log_text
         assert key < len(entry), 'fee key ' + key_string + ' was expected to be present in entry' + log_text
     else:
@@ -277,7 +277,7 @@ def assert_integer(exchange, skipped_properties, method, entry, key):
     if entry is not None:
         value = exchange.safe_value(entry, key)
         if value is not None:
-            is_integer = isinstance(value, numbers.Integral)
+            is_integer = isinstance(value, int)
             assert is_integer, '\"' + string_value(key) + '\" key (value \"' + string_value(value) + '\") is not an integer' + log_text
 
 

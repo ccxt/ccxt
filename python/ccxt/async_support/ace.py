@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ace import ImplicitAPI
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -249,7 +249,7 @@ class ace(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "base_volume":229196.34035399999,
@@ -306,7 +306,7 @@ class ace(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
@@ -393,7 +393,7 @@ class ace(Exchange, ImplicitAPI):
         orderBook = self.safe_value(response, 'attachment')
         return self.parse_order_book(orderBook, market['symbol'], None, 'bids', 'asks')
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "changeRate": 0,
@@ -475,7 +475,7 @@ class ace(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, None)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #         "15697850529570392100421100482693"
@@ -502,17 +502,17 @@ class ace(Exchange, ImplicitAPI):
         #             "type": 1
         #         }
         #
-        id = None
-        timestamp = None
-        symbol = None
-        price = None
-        amount = None
-        side = None
-        type = None
-        status = None
-        filled = None
-        remaining = None
-        average = None
+        id: Str
+        timestamp: Int = None
+        symbol: Str = None
+        price: Str = None
+        amount: Str = None
+        side: Str = None
+        type: Str = None
+        status: Str = None
+        filled: Str = None
+        remaining: Str = None
+        average: Str = None
         if isinstance(order, str):
             id = order
         else:
@@ -600,7 +600,7 @@ class ace(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'attachment')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---cancel-order
@@ -624,7 +624,7 @@ class ace(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_order(self, id: str, symbol: String = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
@@ -662,7 +662,7 @@ class ace(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'attachment')
         return self.parse_order(data, None)
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
@@ -715,7 +715,7 @@ class ace(Exchange, ImplicitAPI):
         #
         return self.parse_orders(orders, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchOrderTrades
         #         {
@@ -762,8 +762,8 @@ class ace(Exchange, ImplicitAPI):
         baseId = self.safe_string(trade, 'baseCurrencyName')
         if quoteId is not None and baseId is not None:
             symbol = baseId + '/' + quoteId
-        side = None
-        tradeSide = self.safe_number(trade, 'buyOrSell')
+        side: Str = None
+        tradeSide = self.safe_integer(trade, 'buyOrSell')
         if tradeSide is not None:
             side = 'buy' if (tradeSide == 1) else 'sell'
         feeString = self.safe_string(trade, 'fee')
@@ -790,7 +790,7 @@ class ace(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }, market)
 
-    async def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-history
@@ -844,7 +844,7 @@ class ace(Exchange, ImplicitAPI):
         trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---trade-list

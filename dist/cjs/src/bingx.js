@@ -57,7 +57,7 @@ class bingx extends bingx$1 {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
-                'setMagin': true,
+                'setMargin': true,
                 'setMarginMode': true,
                 'transfer': true,
             },

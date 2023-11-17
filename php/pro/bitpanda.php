@@ -1313,7 +1313,7 @@ class bitpanda extends \ccxt\async\bitpanda {
         return $message;
     }
 
-    public function watch_multiple($messageHash, $request, $subscriptionHash, array $symbols = [], $params = array ()) {
+    public function watch_multiple($messageHash, $request, $subscriptionHash, ?array $symbols = [], $params = array ()) {
         return Async\async(function () use ($messageHash, $request, $subscriptionHash, $symbols, $params) {
             $marketIds = array();
             $numSymbols = count($symbols);

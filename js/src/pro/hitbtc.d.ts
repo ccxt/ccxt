@@ -1,11 +1,11 @@
 import hitbtcRest from '../hitbtc.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, Trade } from '../base/types';
 export default class hitbtc extends hitbtcRest {
     describe(): any;
     authenticate(): Promise<any>;
-    subscribePublic(name: string, symbols?: string[], params?: {}): Promise<any>;
+    subscribePublic(name: string, symbols?: Strings, params?: {}): Promise<any>;
     subscribePrivate(name: string, symbol?: Str, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;

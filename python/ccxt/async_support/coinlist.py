@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -481,7 +481,7 @@ class coinlist(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
@@ -552,7 +552,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "type":"spot",
@@ -700,7 +700,7 @@ class coinlist(Exchange, ImplicitAPI):
         candles = self.safe_value(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         "2023-10-17T15:30:00.000Z",
@@ -773,7 +773,7 @@ class coinlist(Exchange, ImplicitAPI):
         auctions = self.safe_value(response, 'auctions', [])
         return self.parse_trades(auctions, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades
         #     {
@@ -937,7 +937,7 @@ class coinlist(Exchange, ImplicitAPI):
                 }
         return result
 
-    def parse_fee_tiers(self, feeTiers, market=None):
+    def parse_fee_tiers(self, feeTiers, market: Market = None):
         #
         #     base: {
         #         fees: {maker: '0', taker: '0.0045', liquidation: '0'},
@@ -1097,7 +1097,7 @@ class coinlist(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
@@ -1154,7 +1154,7 @@ class coinlist(Exchange, ImplicitAPI):
         fills = self.safe_value(response, 'fills', [])
         return self.parse_trades(fills, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         fetch all the trades made from a single order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
@@ -1170,7 +1170,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1231,7 +1231,7 @@ class coinlist(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_order(self, id: str, symbol: String = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-specific-order-by-id
@@ -1271,7 +1271,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1288,7 +1288,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1305,7 +1305,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_canceled_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1322,7 +1322,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def cancel_all_orders(self, symbol: String = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel open orders of market
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-orders
@@ -1346,7 +1346,7 @@ class coinlist(Exchange, ImplicitAPI):
         orders = [response]
         return self.parse_orders(orders, market)
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-order-by-id
@@ -1369,7 +1369,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def cancel_orders(self, ids, symbol: String = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
@@ -1476,7 +1476,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = await self.privatePatchV1OrdersOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOrder
         #     {
@@ -1670,7 +1670,7 @@ class coinlist(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         return transfer
 
-    async def fetch_transfers(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-transfers
@@ -1720,7 +1720,7 @@ class coinlist(Exchange, ImplicitAPI):
         transfers = self.safe_value(response, 'transfers', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # fetchTransfers
         #     {
@@ -1781,7 +1781,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger
@@ -1880,7 +1880,7 @@ class coinlist(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         # withdraw
         #
         #     {
@@ -1947,7 +1947,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    async def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
@@ -2046,7 +2046,7 @@ class coinlist(Exchange, ImplicitAPI):
         ledger = self.safe_value(response, 'transactions', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         # deposit transaction from wallet(funding) to pro(trading)
         #     {

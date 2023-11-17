@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import AuthenticationError
 
 
@@ -109,7 +108,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             #
         return future
 
-    async def subscribe_public(self, name: str, symbols: List[str] = None, params={}):
+    async def subscribe_public(self, name: str, symbols: Strings = None, params={}):
         """
          * @ignore
         :param str name: websocket endpoint name
@@ -129,7 +128,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def subscribe_private(self, name: str, symbol: String = None, params={}):
+    async def subscribe_private(self, name: str, symbol: Str = None, params={}):
         """
          * @ignore
         :param str name: websocket endpoint name
@@ -652,7 +651,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://api.hitbtc.com/#subscribe-to-reports
@@ -844,7 +843,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #    }
         #
         timestamp = self.safe_string(order, 'created_at')
-        marketId = self.safe_symbol(order, 'symbol')
+        marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         tradeId = self.safe_string(order, 'trade_id')
         trades = None

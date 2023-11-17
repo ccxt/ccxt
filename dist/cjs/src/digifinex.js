@@ -3023,7 +3023,7 @@ class digifinex extends digifinex$1 {
                 result = entry;
             }
         }
-        const currency = this.safeString(result, 'currency');
+        const currency = this.currency(code);
         return this.parseBorrowRate(result, currency);
     }
     async fetchBorrowRates(params = {}) {
@@ -3090,7 +3090,7 @@ class digifinex extends digifinex$1 {
             const item = info[i];
             const currency = this.safeString(item, codeKey);
             const code = this.safeCurrencyCode(currency);
-            const borrowRate = this.parseBorrowRate(item, currency);
+            const borrowRate = this.parseBorrowRate(item);
             result[code] = borrowRate;
         }
         return result;

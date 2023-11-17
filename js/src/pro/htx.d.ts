@@ -1,5 +1,5 @@
 import htxRest from '../htx.js';
-import { Int, Str } from '../base/types.js';
+import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class htx extends htxRest {
     describe(): any;
@@ -24,7 +24,7 @@ export default class htx extends htxRest {
     handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     parseOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handlePositions(client: any, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;

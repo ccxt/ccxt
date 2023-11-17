@@ -1,8 +1,12 @@
+/// <reference types="node" />
 import { Exchange } from '../../ccxt.js';
 declare class baseMainTestClass {
     lang: string;
     idTests: boolean;
-    staticTestsFailed: boolean;
+    requestTestsFailed: boolean;
+    responseTestsFailed: boolean;
+    requestTests: boolean;
+    responseTests: boolean;
     staticTests: boolean;
     info: boolean;
     verbose: boolean;
@@ -14,13 +18,17 @@ declare class baseMainTestClass {
     checkedPublicTests: {};
     testFiles: {};
     publicTests: {};
+    rootDir: string;
+    rootDirForSkips: string;
+    envVars: NodeJS.ProcessEnv;
+    ext: string;
 }
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs(): void;
     init(exchangeId: any, symbol: any): Promise<void>;
     importFiles(exchange: any): Promise<void>;
     expandSettings(exchange: any, symbol: any): void;
-    addPadding(message: any, size: any): string;
+    addPadding(message: string, size: any): string;
     testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<void>;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;
     runPublicTests(exchange: any, symbol: any): Promise<void>;
@@ -34,17 +42,23 @@ export default class testMainClass extends baseMainTestClass {
     startTest(exchange: any, symbol: any): Promise<void>;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any): void;
     loadMarketsFromFile(id: string): any;
-    loadStaticData(targetExchange?: string): {};
+    loadCurrenciesFromFile(id: string): any;
+    loadStaticData(folder: string, targetExchange?: string): {};
     removeHostnamefromUrl(url: string): string;
     urlencodedToDict(url: string): {};
-    assertNewAndStoredOutput(exchange: any, skipKeys: string[], newOutput: any, storedOutput: any): void;
-    assertStaticOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
+    assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean): void;
+    assertStaticRequestOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
+    assertStaticResponseOutput(exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any): void;
     sanitizeDataInput(input: any): any[];
     testMethodStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
+    testResponseStatically(exchange: any, method: string, skipKeys: string[], data: object): Promise<void>;
     initOfflineExchange(exchangeName: string): Exchange;
-    testExchangeStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<void>;
+    testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<void>;
+    testExchangeResponseStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<void>;
     getNumberOfTestsFromExchange(exchange: any, exchangeData: object): number;
-    runStaticTests(targetExchange?: string, testName?: string): Promise<void>;
+    runStaticRequestTests(targetExchange?: string, testName?: string): Promise<void>;
+    runStaticTests(type: string, targetExchange?: string, testName?: string): Promise<void>;
+    runStaticResponseTests(exchangeName?: any, test?: any): Promise<void>;
     runBrokerIdTests(): Promise<void>;
     testBinance(): Promise<void>;
     testOkx(): Promise<void>;

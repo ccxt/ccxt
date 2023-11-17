@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wazirx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Num, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -229,16 +229,16 @@ class wazirx(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         isSpot = self.safe_value(market, 'isSpotTradingAllowed')
         filters = self.safe_value(market, 'filters')
-        minPrice = None
+        minPrice: Num = None
         for j in range(0, len(filters)):
             filter = filters[j]
             filterType = self.safe_string(filter, 'filterType')
             if filterType == 'PRICE_FILTER':
                 minPrice = self.safe_number(filter, 'minPrice')
         fee = self.safe_value(self.fees, quote, {})
-        takerString = self.safe_string(fee, 'taker', '0.2')
+        takerString: Str = self.safe_string(fee, 'taker', '0.2')
         takerString = Precise.string_div(takerString, '100')
-        makerString = self.safe_string(fee, 'maker', '0.2')
+        makerString: Str = self.safe_string(fee, 'maker', '0.2')
         makerString = Precise.string_div(makerString, '100')
         status = self.safe_string(market, 'status')
         return {
@@ -328,7 +328,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    [1669014300,1402001,1402001,1402001,1402001,0],
         #
@@ -405,7 +405,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         :see: https://docs.wazirx.com/#24hr-tickers-price-change-statistics
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -471,7 +471,7 @@ class wazirx(Exchange, ImplicitAPI):
         # ]
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         #     {
         #         "id":322307791,
@@ -545,7 +545,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #        "symbol":"btcinr",
@@ -627,7 +627,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.wazirx.com/#all-orders-user_data
         fetches information on multiple orders made by the user
@@ -681,7 +681,7 @@ class wazirx(Exchange, ImplicitAPI):
         orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.wazirx.com/#current-open-orders-user_data
         fetch all unfilled currently open orders
@@ -693,7 +693,7 @@ class wazirx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -728,7 +728,7 @@ class wazirx(Exchange, ImplicitAPI):
         orders = self.parse_orders(response, market, since, limit)
         return orders
 
-    async def cancel_all_orders(self, symbol: String = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         :see: https://docs.wazirx.com/#cancel-all-open-orders-on-a-symbol-trade
         cancel all open orders in a market
@@ -744,7 +744,7 @@ class wazirx(Exchange, ImplicitAPI):
         }
         return await self.privateDeleteOpenOrders(self.extend(request, params))
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.wazirx.com/#cancel-order-trade
         cancels an open order
@@ -808,7 +808,7 @@ class wazirx(Exchange, ImplicitAPI):
         # }
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         # {
         #     "id":1949417813,
         #     "symbol":"ltcusdt",
