@@ -10,7 +10,6 @@ else:
     from typing_extensions import Literal
     TypedDict = Dict
 
-
 OrderSide = Literal['buy', 'sell']
 OrderType = Literal['limit', 'market']
 PositionSide = Literal['long', 'short']

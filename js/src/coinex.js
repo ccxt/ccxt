@@ -61,7 +61,7 @@ export default class coinex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
-                'fetchDepsoitWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFee': 'emulated',
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,

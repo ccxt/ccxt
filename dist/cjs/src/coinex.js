@@ -58,7 +58,7 @@ class coinex extends coinex$1 {
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
-                'fetchDepsoitWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFee': 'emulated',
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
