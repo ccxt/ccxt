@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Market } from './base/types.js';
+import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -2176,7 +2176,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (market: Market, marketType: string, marginMode: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (market: object, marketType: string, marginMode: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         const isLimit = (type === 'limit');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const timeInForce = this.safeString (params, 'timeInForce');
