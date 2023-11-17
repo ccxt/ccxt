@@ -1,10 +1,10 @@
 import poloniexRest from '../poloniex.js';
-import { Int, OHLCV, Str } from '../base/types.js';
+import { Int, OHLCV, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
     describe(): any;
     authenticate(params?: {}): Promise<any>;
-    subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: string[], params?: {}): Promise<any>;
+    subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: any, params?: {}): Promise<any>;

@@ -1,18 +1,18 @@
 import Exchange from './abstract/timex.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class timex
  * @extends Exchange
  */
 export default class timex extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     getCurrencyByAddress(address: any): any;
-    parseTransaction(transaction: any, currency?: any): Transaction;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -27,22 +27,22 @@ export default class timex extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseTradingFee(fee: any, market?: any): {
+    parseTradingFee(fee: any, market?: Market): {
         info: any;
-        symbol: any;
+        symbol: string;
         maker: number;
         taker: number;
     };
     fetchTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
-        symbol: any;
+        symbol: string;
         maker: number;
         taker: number;
     }>;
     parseMarket(market: any): Market;
     parseCurrency(currency: any): {
-        id: any;
-        code: any;
+        id: string;
+        code: string;
         info: any;
         type: any;
         name: string;
@@ -63,10 +63,10 @@ export default class timex extends Exchange {
         };
         networks: {};
     };
-    parseTicker(ticker: any, market?: any): Ticker;
-    parseTrade(trade: any, market?: any): Trade;
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
-    parseOrder(order: any, market?: any): Order;
+    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTrade(trade: any, market?: Market): Trade;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
+    parseOrder(order: any, market?: Market): Order;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

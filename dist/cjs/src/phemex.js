@@ -538,7 +538,7 @@ class phemex extends phemex$1 {
         const contractSizeString = this.safeString(market, 'contractSize', ' ');
         let contractSize = undefined;
         if (settle === 'USDT') {
-            contractSize = 1;
+            contractSize = this.parseNumber('1');
         }
         else if (contractSizeString.indexOf(' ')) {
             // "1 USD"
@@ -1083,7 +1083,7 @@ class phemex extends phemex$1 {
         //         48759063370, // quote volume
         //     ]
         //
-        let baseVolume = undefined;
+        let baseVolume;
         if ((market !== undefined) && market['spot']) {
             baseVolume = this.parseNumber(this.fromEv(this.safeString(ohlcv, 7), market));
         }
@@ -1374,7 +1374,7 @@ class phemex extends phemex$1 {
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchTickers', market, params);
         const query = this.omit(params, 'type');
-        let defaultMethod = undefined;
+        let defaultMethod;
         if (type === 'spot') {
             defaultMethod = 'v1GetMdSpotTicker24hrAll';
         }
@@ -1594,9 +1594,9 @@ class phemex extends phemex$1 {
         //         "execStatus": 6
         //     }
         //
-        let priceString = undefined;
-        let amountString = undefined;
-        let timestamp = undefined;
+        let priceString;
+        let amountString;
+        let timestamp;
         let id = undefined;
         let side = undefined;
         let costString = undefined;
@@ -2100,7 +2100,7 @@ class phemex extends phemex$1 {
             };
         }
         const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
-        const stopPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, 'stopPxEp', market))));
+        const stopPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, 'stopPxEp'))));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder({
             'info': order,
@@ -4283,7 +4283,7 @@ class phemex extends phemex$1 {
         const id = this.safeString(transfer, 'linkKey');
         const status = this.safeString(transfer, 'status');
         const amountEv = this.safeString(transfer, 'amountEv');
-        const amountTransfered = this.fromEv(amountEv, currency);
+        const amountTransfered = this.fromEv(amountEv);
         const currencyId = this.safeString(transfer, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
         const side = this.safeInteger(transfer, 'side');

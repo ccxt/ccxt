@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -514,6 +514,7 @@ class htx(Exchange, ImplicitAPI):
                             # Future Market Data interface
                             'api/v1/contract_contract_info': 1,
                             'api/v1/contract_index': 1,
+                            'api/v1/contract_query_elements': 1,
                             'api/v1/contract_price_limit': 1,
                             'api/v1/contract_open_interest': 1,
                             'api/v1/contract_delivery_price': 1,
@@ -543,6 +544,7 @@ class htx(Exchange, ImplicitAPI):
                             # Swap Market Data interface
                             'swap-api/v1/swap_contract_info': 1,
                             'swap-api/v1/swap_index': 1,
+                            'swap-api/v1/swap_query_elements': 1,
                             'swap-api/v1/swap_price_limit': 1,
                             'swap-api/v1/swap_open_interest': 1,
                             'swap-ex/market/depth': 1,
@@ -575,6 +577,7 @@ class htx(Exchange, ImplicitAPI):
                             # Swap Market Data interface
                             'linear-swap-api/v1/swap_contract_info': 1,
                             'linear-swap-api/v1/swap_index': 1,
+                            'linear-swap-api/v1/swap_query_elements': 1,
                             'linear-swap-api/v1/swap_price_limit': 1,
                             'linear-swap-api/v1/swap_open_interest': 1,
                             'linear-swap-ex/market/depth': 1,
@@ -1462,7 +1465,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.safe_integer_2(response, 'data', 'ts')
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         #
         #     {
         #         "symbol":"btcusdt",
@@ -1512,7 +1515,7 @@ class htx(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, {})
         return self.parse_trading_fee(first, market)
 
-    def fetch_trading_limits(self, symbols: List[str] = None, params={}):
+    def fetch_trading_limits(self, symbols: Strings = None, params={}):
         # self method should not be called directly, use loadTradingLimits() instead
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
         #  however if you define symbols = ['ETH/BTC', 'LTC/BTC'] in args it will only load those
@@ -1548,7 +1551,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
-    def parse_trading_limits(self, limits, symbol: String = None, params={}):
+    def parse_trading_limits(self, limits, symbol: Str = None, params={}):
         #
         #   {                               "symbol": "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,
@@ -1884,7 +1887,7 @@ class htx(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # fetchTicker
         #
@@ -2051,7 +2054,7 @@ class htx(Exchange, ImplicitAPI):
         ticker['datetime'] = self.iso8601(timestamp)
         return ticker
 
-    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
@@ -2272,7 +2275,7 @@ class htx(Exchange, ImplicitAPI):
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # spot fetchTrades(public)
         #
@@ -2401,7 +2404,7 @@ class htx(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -2420,7 +2423,7 @@ class htx(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrderTrades() is only supported for spot markets')
         return self.fetch_spot_order_trades(id, symbol, since, limit, params)
 
-    def fetch_spot_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_spot_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         request = {
             'order-id': id,
@@ -2428,7 +2431,7 @@ class htx(Exchange, ImplicitAPI):
         response = self.spotPrivateGetV1OrderOrdersOrderIdMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], None, since, limit)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
@@ -2652,7 +2655,7 @@ class htx(Exchange, ImplicitAPI):
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "amount":1.2082,
@@ -3307,7 +3310,7 @@ class htx(Exchange, ImplicitAPI):
             result = self.safe_balance(result)
         return result
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -3512,7 +3515,7 @@ class htx(Exchange, ImplicitAPI):
             account['used'] = self.safe_string(balance, 'balance')
         return account
 
-    def fetch_spot_orders_by_states(self, states, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_spot_orders_by_states(self, states, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
         if method == 'spot_private_get_v1_order_orders':
             self.check_required_symbol('fetchOrders', symbol)
@@ -3574,13 +3577,13 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_spot_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         return self.fetch_spot_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    def fetch_closed_spot_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_closed_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         return self.fetch_spot_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    def fetch_contract_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.check_required_symbol('fetchContractOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
@@ -3791,13 +3794,13 @@ class htx(Exchange, ImplicitAPI):
             orders = self.safe_value(orders, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_closed_contract_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_closed_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         request = {
             'status': '5,6,7',  # comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         }
         return self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
@@ -3829,7 +3832,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             return self.fetch_spot_orders(symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
@@ -3861,7 +3864,7 @@ class htx(Exchange, ImplicitAPI):
         else:
             return self.fetch_closed_contract_orders(symbol, since, limit, params)
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
@@ -4115,7 +4118,7 @@ class htx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # spot
         #
@@ -4944,7 +4947,7 @@ class htx(Exchange, ImplicitAPI):
             result = self.array_concat(success, errors)
         return self.parse_orders(result, market)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -5056,7 +5059,7 @@ class htx(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    def cancel_orders(self, ids, symbol: String = None, params={}):
+    def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -5202,7 +5205,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return response
 
-    def cancel_all_orders(self, symbol: String = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -5304,7 +5307,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
         #         "currency": "usdt",
@@ -5406,7 +5409,7 @@ class htx(Exchange, ImplicitAPI):
                 addresses.append(address)
         return addresses
 
-    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -5459,7 +5462,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -5510,7 +5513,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -5678,7 +5681,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # transfer
         #
@@ -5901,7 +5904,7 @@ class htx(Exchange, ImplicitAPI):
                 }
         return rates
 
-    def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
         :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
@@ -5972,7 +5975,7 @@ class htx(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         # {
         #      "status": "ok",
@@ -6051,7 +6054,7 @@ class htx(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(result, market)
 
-    def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetch the funding rate for multiple markets
         :param str[]|None symbols: list of unified market symbols
@@ -6095,7 +6098,7 @@ class htx(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_borrow_interest(self, code: String = None, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :param str code: unified currency code
@@ -6153,7 +6156,7 @@ class htx(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(data, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market=None):
+    def parse_borrow_interest(self, info, market: Market = None):
         # isolated
         #    {
         #        "interest-rate":"0.000040830000000000",
@@ -6344,7 +6347,7 @@ class htx(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
         return None
 
-    def fetch_funding_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   # linear swaps
@@ -6427,7 +6430,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    def set_leverage(self, leverage, symbol: String = None, params={}):
+    def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -6490,7 +6493,7 @@ class htx(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return response
 
-    def parse_income(self, income, market=None):
+    def parse_income(self, income, market: Market = None):
         #
         #     {
         #       "id": "1667161118",
@@ -6518,7 +6521,7 @@ class htx(Exchange, ImplicitAPI):
             'amount': amount,
         }
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #    {
         #        "symbol": "BTC",
@@ -6608,7 +6611,7 @@ class htx(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_positions(self, symbols: List[str] = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
@@ -6990,7 +6993,7 @@ class htx(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #     {
         #         "accountId": 10000001,
@@ -7032,7 +7035,7 @@ class htx(Exchange, ImplicitAPI):
             'info': item,
         }
 
-    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
         fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -7105,7 +7108,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ledger(data, currency, since, limit)
 
-    def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+    def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
@@ -7194,7 +7197,7 @@ class htx(Exchange, ImplicitAPI):
         tiers = self.parse_leverage_tiers(data, [symbol], 'contract_code')
         return self.safe_value(tiers, symbol)
 
-    def parse_leverage_tiers(self, response, symbols: List[str] = None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
         result = {}
         for i in range(0, len(response)):
             item = response[i]
@@ -7431,7 +7434,7 @@ class htx(Exchange, ImplicitAPI):
         openInterest['datetime'] = self.iso8601(timestamp)
         return openInterest
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         #
         # fetchOpenInterestHistory
         #
@@ -7498,7 +7501,7 @@ class htx(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def borrow_margin(self, code: str, amount, symbol: String = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         create a loan to borrow margin
         :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
@@ -7547,7 +7550,7 @@ class htx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def repay_margin(self, code: str, amount, symbol: String = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
@@ -7590,7 +7593,7 @@ class htx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def parse_margin_loan(self, info, currency=None):
+    def parse_margin_loan(self, info, currency: Currency = None):
         #
         # borrowMargin cross
         #
@@ -7623,7 +7626,7 @@ class htx(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_settlement_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         Fetches historical settlement records
         :param str symbol: unified symbol of the market to fetch the settlement history for
@@ -7714,7 +7717,7 @@ class htx(Exchange, ImplicitAPI):
         settlements = self.parse_settlements(settlementRecord, market)
         return self.sort_by(settlements, 'timestamp')
 
-    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
@@ -7763,7 +7766,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #            {
         #              "currency": "sxp",
@@ -7976,7 +7979,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_liquidations(data, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market=None):
+    def parse_liquidation(self, liquidation, market: Market = None):
         #
         #     {
         #         "query_id": 452057,

@@ -60,8 +60,8 @@ export default class coinex extends Exchange {
                 'fetchDepositAddressByNetwork': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
-                'fetchDepsoitWithdrawFee': 'emulated',
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -4386,7 +4386,7 @@ export default class coinex extends Exchange {
         }
         return this.parseTransactions(data, currency, since, limit);
     }
-    parseBorrowRate(info, currency = undefined) {
+    parseBorrowRate(info, market = undefined) {
         //
         //     {
         //         "market": "BTCUSDT",
@@ -4403,18 +4403,25 @@ export default class coinex extends Exchange {
         //         }
         //     },
         //
-        const timestamp = this.milliseconds();
-        const baseCurrencyData = this.safeValue(info, currency, {});
+        const marketId = this.safeString(info, 'market');
+        market = this.safeMarket(marketId, market, undefined, 'spot');
+        const baseInfo = this.safeValue(info, market['baseId']);
+        const baseRate = this.safeNumber(baseInfo, 'day_rate');
+        const quoteInfo = this.safeValue(info, market['quoteId']);
+        const quoteRate = this.safeNumber(quoteInfo, 'day_rate');
         return {
-            'currency': this.safeCurrencyCode(currency),
-            'rate': this.safeNumber(baseCurrencyData, 'day_rate'),
+            'symbol': market['symbol'],
+            'base': market['base'],
+            'baseRate': baseRate,
+            'quote': market['quote'],
+            'quoteRate': quoteRate,
             'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
-    async fetchBorrowRate(code, params = {}) {
+    async fetchIsolatedBorrowRate(symbol, params = {}) {
         /**
          * @method
          * @name coinex#fetchBorrowRate
@@ -4425,16 +4432,11 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets();
         let market = undefined;
-        if (code in this.markets) {
-            market = this.market(code);
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['market'] = market['id'];
         }
-        else {
-            const defaultSettle = this.safeString(this.options, 'defaultSettle', 'USDT');
-            market = this.market(code + '/' + defaultSettle);
-        }
-        const request = {
-            'market': market['id'],
-        };
         const response = await this.privateGetMarginConfig(this.extend(request, params));
         //
         //     {
@@ -4457,9 +4459,9 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        return this.parseBorrowRate(data, market['base']);
+        return this.parseBorrowRate(data, market);
     }
-    async fetchBorrowRates(params = {}) {
+    async fetchIsolatedBorrowRates(params = {}) {
         /**
          * @method
          * @name coinex#fetchBorrowRates
@@ -4491,22 +4493,10 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const timestamp = this.milliseconds();
         const data = this.safeValue(response, 'data', {});
         const rates = [];
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const symbol = this.safeString(entry, 'market');
-            const market = this.safeMarket(symbol, undefined, undefined, 'spot');
-            const currencyData = this.safeValue(entry, market['base']);
-            rates.push({
-                'currency': market['base'],
-                'rate': this.safeNumber(currencyData, 'day_rate'),
-                'period': 86400000,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-                'info': entry,
-            });
+            rates.push(this.parseBorrowRate(data[i]));
         }
         return rates;
     }

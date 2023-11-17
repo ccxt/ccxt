@@ -922,7 +922,7 @@ class ascendex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol":"QTUM/BTC",
@@ -1053,7 +1053,7 @@ class ascendex extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "m":"bar",
@@ -1137,7 +1137,7 @@ class ascendex extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -1222,7 +1222,7 @@ class ascendex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1679,7 +1679,6 @@ class ascendex extends Exchange {
                 }
             }
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
-            $orderRequest = $this->omit($orderRequest, 'marginMode');
             $ordersRequests[] = $orderRequest;
         }
         $market = $this->market($symbol);
@@ -2312,7 +2311,7 @@ class ascendex extends Exchange {
         return $response;
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "address" => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
@@ -2530,7 +2529,7 @@ class ascendex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "requestId" => "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
@@ -2650,7 +2649,7 @@ class ascendex extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     array(
         //         "symbol" => "BTC-PERP",
@@ -2715,7 +2714,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //      {
         //          "time" => 1640061364830,
@@ -2822,7 +2821,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         $errorCode = $this->safe_string($data, 'code');
         $status = ($errorCode === '0') ? 'ok' : 'failed';
         return array(
@@ -2961,7 +2960,7 @@ class ascendex extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @param {array} $info Exchange $market response for 1 $market
          * @param {array} $market CCXT $market
@@ -3009,7 +3008,7 @@ class ascendex extends Exchange {
         return $tiers;
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         // {
         //     "assetCode" =>      "USDT",
@@ -3119,7 +3118,7 @@ class ascendex extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //    array( "code" => "0" )
         //
@@ -3201,7 +3200,7 @@ class ascendex extends Exchange {
         return $this->parse_incomes($rows, $market, $since, $limit);
     }
 
-    public function parse_income($income, $market = null) {
+    public function parse_income($income, ?array $market = null) {
         //
         //     {
         //         "timestamp" => 1640476800000,

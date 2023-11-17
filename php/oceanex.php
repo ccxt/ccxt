@@ -309,7 +309,7 @@ class oceanex extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($data, $market = null) {
+    public function parse_ticker($data, ?array $market = null) {
         //
         //         {
         //             "at":1559431729,
@@ -489,7 +489,7 @@ class oceanex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -735,7 +735,7 @@ class oceanex extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // array(
         //    1559232000,
         //    8889.22,
@@ -782,7 +782,7 @@ class oceanex extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "created_at" => "2019-01-18T00:38:18Z",

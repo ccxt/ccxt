@@ -505,6 +505,7 @@ interface Exchange {
     fapiPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteAllOpenOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteListenKey (params?: {}): Promise<implicitReturnType>;
+    fapiPublicV2GetTickerPrice (params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetAccount (params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetBalance (params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetPositionRisk (params?: {}): Promise<implicitReturnType>;

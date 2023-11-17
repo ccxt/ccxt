@@ -181,6 +181,12 @@ abstract class coinbase extends \ccxt\Exchange {
     public function v3_private_post_brokerage_orders_batch_cancel($params = array()) {
         return $this->request('brokerage/orders/batch_cancel', array('v3', 'private'), 'POST', $params, null, null, array());
     }
+    public function v3_private_post_brokerage_orders_edit($params = array()) {
+        return $this->request('brokerage/orders/edit', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3_private_post_brokerage_orders_edit_preview($params = array()) {
+        return $this->request('brokerage/orders/edit_preview', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
     public function v2PublicGetCurrencies($params = array()) {
         return $this->request('currencies', array('v2', 'public'), 'GET', $params, null, null, array());
     }
@@ -354,5 +360,11 @@ abstract class coinbase extends \ccxt\Exchange {
     }
     public function v3PrivatePostBrokerageOrdersBatchCancel($params = array()) {
         return $this->request('brokerage/orders/batch_cancel', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3PrivatePostBrokerageOrdersEdit($params = array()) {
+        return $this->request('brokerage/orders/edit', array('v3', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v3PrivatePostBrokerageOrdersEditPreview($params = array()) {
+        return $this->request('brokerage/orders/edit_preview', array('v3', 'private'), 'POST', $params, null, null, array());
     }
 }

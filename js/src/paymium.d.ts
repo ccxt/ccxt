@@ -1,5 +1,5 @@
 import Exchange from './abstract/paymium.js';
-import { Balances, Int, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import { Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 /**
  * @class paymium
  * @extends Exchange
@@ -9,28 +9,28 @@ export default class paymium extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: any): Ticker;
+    parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     createDepositAddress(code: string, params?: {}): Promise<{
         info: any;
-        currency: any;
+        currency: string;
         address: string;
         tag: any;
         network: any;
     }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
-        currency: any;
+        currency: string;
         address: string;
         tag: any;
         network: any;
     }>;
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
-    parseDepositAddress(depositAddress: any, currency?: any): {
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
         info: any;
-        currency: any;
+        currency: string;
         address: string;
         tag: any;
         network: any;
@@ -42,18 +42,18 @@ export default class paymium extends Exchange {
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: any;
         toAccount: string;
         status: string;
     }>;
-    parseTransfer(transfer: any, currency?: any): {
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: any;
         toAccount: string;

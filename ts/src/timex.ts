@@ -2,7 +2,7 @@ import Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class timex
@@ -421,7 +421,7 @@ export default class timex extends Exchange {
         return undefined;
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -459,7 +459,7 @@ export default class timex extends Exchange {
         };
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name timex#fetchTickers
@@ -971,7 +971,7 @@ export default class timex extends Exchange {
             // page: 0, // results page you want to retrieve (0 .. N)
             'sort': sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1028,7 +1028,7 @@ export default class timex extends Exchange {
             'side': 'BUY', // or 'SELL'
             // 'till': this.iso8601 (this.milliseconds ()),
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1094,7 +1094,7 @@ export default class timex extends Exchange {
             // 'takerOrderId': '1234',
             // 'till': this.iso8601 (this.milliseconds ()),
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1128,7 +1128,7 @@ export default class timex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         //
         //     {
         //         "fee": 0.0075,
@@ -1339,7 +1339,7 @@ export default class timex extends Exchange {
         };
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "ask": 0.017,
@@ -1384,7 +1384,7 @@ export default class timex extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1423,7 +1423,7 @@ export default class timex extends Exchange {
         const id = this.safeString (trade, 'id');
         const side = this.safeStringLower2 (trade, 'direction', 'side');
         const takerOrMaker = this.safeStringLower (trade, 'makerOrTaker');
-        let orderId = undefined;
+        let orderId: Str = undefined;
         if (takerOrMaker !== undefined) {
             orderId = this.safeString (trade, takerOrMaker + 'OrderId');
         }
@@ -1453,7 +1453,7 @@ export default class timex extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "timestamp":"2019-12-04T23:00:00",
@@ -1475,7 +1475,7 @@ export default class timex extends Exchange {
         ];
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1506,7 +1506,7 @@ export default class timex extends Exchange {
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filledQuantity');
         const canceledQuantity = this.omitZero (this.safeString (order, 'cancelledQuantity'));
-        let status = undefined;
+        let status: string;
         if (Precise.stringEquals (filled, amount)) {
             status = 'closed';
         } else if (canceledQuantity !== undefined) {

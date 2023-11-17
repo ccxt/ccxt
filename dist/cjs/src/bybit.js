@@ -312,6 +312,7 @@ class bybit extends bybit$1 {
                         // user
                         'v5/user/query-sub-members': 5,
                         'v5/user/query-api': 5,
+                        'v5/user/sub-apikeys': 5,
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
@@ -436,6 +437,7 @@ class bybit extends bybit$1 {
                         // account
                         'v5/account/upgrade-to-uta': 5,
                         'v5/account/set-margin-mode': 5,
+                        'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
                         // asset

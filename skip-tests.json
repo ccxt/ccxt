@@ -1237,6 +1237,13 @@
             "fetchOrderBooks": "fetchOrderBooks returned 0 length"
         }
     },
+    "p2b": {
+        "httpsProxy": "http://51.83.140.52:11230",
+        "skipMethods": {
+            "loadMarkets": "invalid URL",
+            "fetchTrades": "requires order id"
+        }
+    },
     "paymium": {
         "skipMethods": {
             "loadMarkets": {

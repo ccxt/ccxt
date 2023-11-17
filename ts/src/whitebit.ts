@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -313,17 +313,17 @@ export default class whitebit extends Exchange {
         const active = this.safeValue (market, 'tradesEnabled');
         const isCollateral = this.safeValue (market, 'isCollateral');
         const typeId = this.safeString (market, 'type');
-        let type = undefined;
-        let settle = undefined;
-        let settleId = undefined;
+        let type: string;
+        let settle: Str = undefined;
+        let settleId: Str = undefined;
         let symbol = base + '/' + quote;
         const swap = typeId === 'futures';
         const margin = isCollateral && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec')));
         const contractSize = amountPrecision;
-        let linear = undefined;
-        let inverse = undefined;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
         if (swap) {
             settleId = quoteId;
             settle = this.safeCurrencyCode (settleId);
@@ -507,7 +507,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchDepositWithdrawFees
@@ -741,7 +741,7 @@ export default class whitebit extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //  FetchTicker (v1)
         //
@@ -795,7 +795,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name whitebit#fetchTickers
@@ -917,7 +917,7 @@ export default class whitebit extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -978,7 +978,7 @@ export default class whitebit extends Exchange {
         }
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTradesV4
         //
@@ -1030,7 +1030,7 @@ export default class whitebit extends Exchange {
         const side = this.safeString2 (trade, 'type', 'side');
         const symbol = market['symbol'];
         const role = this.safeInteger (trade, 'role');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (role !== undefined) {
             takerOrMaker = (role === 1) ? 'maker' : 'taker';
         }
@@ -1105,7 +1105,7 @@ export default class whitebit extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1591488000,
@@ -1208,7 +1208,7 @@ export default class whitebit extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        let method = undefined;
+        let method: string;
         if (marginMode !== undefined && marginMode !== 'cross') {
             throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
         }
@@ -1452,7 +1452,7 @@ export default class whitebit extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder, fetchOpenOrders
         //
@@ -1725,7 +1725,7 @@ export default class whitebit extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //    []
         //
@@ -1786,7 +1786,7 @@ export default class whitebit extends Exchange {
         return this.extend ({ 'id': uniqueId }, this.parseTransaction (response, currency));
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
@@ -2049,7 +2049,7 @@ export default class whitebit extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         //
         //     {
         //         "positionId": 191823,
@@ -2101,7 +2101,7 @@ export default class whitebit extends Exchange {
         return this.safeValue (response, symbol);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchFundingRates
@@ -2163,7 +2163,7 @@ export default class whitebit extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         // {
         //     "ticker_id":"ADA_PERP",

@@ -58,7 +58,7 @@ class bingx extends Exchange {
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
-                'setMagin' => true,
+                'setMargin' => true,
                 'setMarginMode' => true,
                 'transfer' => true,
             ),
@@ -698,7 +698,7 @@ class bingx extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    {
         //        "open" => "19394.4",
@@ -804,7 +804,7 @@ class bingx extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // spot
         // fetchTrades
@@ -1033,7 +1033,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rate($data, $market);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1163,7 +1163,7 @@ class bingx extends Exchange {
         return $this->parse_open_interest($data, $market);
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //    {
         //        "openInterest" => "3289641547.10",
@@ -1223,7 +1223,16 @@ class bingx extends Exchange {
         //          "quoteVolume" => "4151395117.73",
         //          "openPrice" => "16832.0",
         //          "openTime" => 1672026667803,
-        //          "closeTime" => 1672026648425
+        //          "closeTime" => 1672026648425,
+        //  added some time ago:
+        //          "firstId" => 12345,
+        //          "lastId" => 12349,
+        //          "count" => 5,
+        //  added 2023-11-10:
+        //          "bidPrice" => 16726.0,
+        //          "bidQty" => 0.05,
+        //          "askPrice" => 16726.0,
+        //          "askQty" => 0.05,
         //        }
         //    }
         //
@@ -1272,7 +1281,16 @@ class bingx extends Exchange {
         //                "quoteVolume" => "4151395117.73",
         //                "openPrice" => "16832.0",
         //                "openTime" => 1672026667803,
-        //                "closeTime" => 1672026648425
+        //                "closeTime" => 1672026648425,
+        //  added some time ago:
+        //                "firstId" => 12345,
+        //                "lastId" => 12349,
+        //                "count" => 5,
+        //  added 2023-11-10:
+        //                "bidPrice" => 16726.0,
+        //                "bidQty" => 0.05,
+        //                "askPrice" => 16726.0,
+        //                "askQty" => 0.05,
         //            ),
         //        )
         //    }
@@ -1281,7 +1299,7 @@ class bingx extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot
         //    {
@@ -1293,7 +1311,16 @@ class bingx extends Exchange {
         //        "volume" => "1161.79",
         //        "quoteVolume" => "30288466.44",
         //        "openTime" => "1693081020762",
-        //        "closeTime" => "1693167420762"
+        //        "closeTime" => "1693167420762",
+        //  added some time ago:
+        //        "firstId" => 12345,
+        //        "lastId" => 12349,
+        //        "count" => 5,
+        //  added 2023-11-10:
+        //        "bidPrice" => 16726.0,
+        //        "bidQty" => 0.05,
+        //        "askPrice" => 16726.0,
+        //        "askQty" => 0.05,
         //    }
         // swap
         //
@@ -1309,7 +1336,16 @@ class bingx extends Exchange {
         //        "quoteVolume" => "4151395117.73",
         //        "openPrice" => "16832.0",
         //        "openTime" => 1672026667803,
-        //        "closeTime" => 1672026648425
+        //        "closeTime" => 1672026648425,
+        //  added some time ago:
+        //        "firstId" => 12345,
+        //        "lastId" => 12349,
+        //        "count" => 5,
+        //  added 2023-11-10:
+        //        "bidPrice" => 16726.0,
+        //        "bidQty" => 0.05,
+        //        "askPrice" => 16726.0,
+        //        "askQty" => 0.05,
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -1325,16 +1361,20 @@ class bingx extends Exchange {
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
         $ts = $this->safe_integer($ticker, 'closeTime');
         $datetime = $this->iso8601($ts);
+        $bid = $this->safe_string($ticker, 'bidPrice');
+        $bidVolume = $this->safe_string($ticker, 'bidQty');
+        $ask = $this->safe_string($ticker, 'askPrice');
+        $askVolume = $this->safe_string($ticker, 'askQty');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $ts,
             'datetime' => $datetime,
             'high' => $high,
             'low' => $low,
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'bid' => $bid,
+            'bidVolume' => $bidVolume,
+            'ask' => $ask,
+            'askVolume' => $askVolume,
             'vwap' => null,
             'open' => $open,
             'close' => $close,
@@ -1509,7 +1549,7 @@ class bingx extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1855,7 +1895,7 @@ class bingx extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot
         // createOrder, createOrders, cancelOrder
@@ -2546,7 +2586,7 @@ class bingx extends Exchange {
         return $this->parse_transfers($rows, $currency, $since, $limit);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         $tranId = $this->safe_string($transfer, 'tranId');
         $timestamp = $this->safe_integer($transfer, 'timestamp');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -2613,7 +2653,7 @@ class bingx extends Exchange {
         return $this->index_by($parsed, 'network');
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "coinId" => "799",
@@ -2731,7 +2771,7 @@ class bingx extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -3007,7 +3047,7 @@ class bingx extends Exchange {
         return $this->parse_trades($fillOrders, $market, $since, $limit, $query);
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "coin" => "BTC",
@@ -3212,7 +3252,7 @@ class bingx extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         //
         //     {
         //         "time" => "int64",

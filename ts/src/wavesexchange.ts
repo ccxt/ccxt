@@ -5,7 +5,7 @@ import Exchange from './abstract/wavesexchange.js';
 import { AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -774,7 +774,7 @@ export default class wavesexchange extends Exchange {
         return undefined;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //       {
         //           "symbol": "WAVES/BTC",
@@ -893,7 +893,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTicker (dataTicker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name wavesexchange#fetchTickers
@@ -1028,7 +1028,7 @@ export default class wavesexchange extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "__type": "candle",
@@ -1702,7 +1702,7 @@ export default class wavesexchange extends Exchange {
         return this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2185,7 +2185,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // { __type: "transaction",
         //   "data":
@@ -2277,7 +2277,7 @@ export default class wavesexchange extends Exchange {
         }, market);
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
+    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey = undefined): any {
         const depositWithdrawFees = {};
         codes = this.marketCodes (codes);
         for (let i = 0; i < response.length; i++) {
@@ -2348,7 +2348,7 @@ export default class wavesexchange extends Exchange {
         return depositWithdrawFees;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchDepositWithdrawFees
@@ -2584,7 +2584,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //

@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -175,6 +175,7 @@ class binance(Exchange, ImplicitAPI):
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivateV2': 'https://testnet.binancefuture.com/dapi/v2',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
+                    'fapiPublicV2': 'https://testnet.binancefuture.com/fapi/v2',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
                     'public': 'https://testnet.binance.vision/api/v3',
@@ -193,6 +194,7 @@ class binance(Exchange, ImplicitAPI):
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
+                    'fapiPublicV2': 'https://fapi.binance.com/fapi/v2',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'fapiData': 'https://fapi.binance.com/futures/data',
                     'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
@@ -808,6 +810,11 @@ class binance(Exchange, ImplicitAPI):
                         'order': 1,
                         'allOpenOrders': 1,
                         'listenKey': 1,
+                    },
+                },
+                'fapiPublicV2': {
+                    'get': {
+                        'ticker/price': 0,
                     },
                 },
                 'fapiPrivateV2': {
@@ -2776,7 +2783,7 @@ class binance(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer_2(response, 'lastUpdateId', 'u')
         return orderbook
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "symbol": "ETHBTC",
@@ -2981,7 +2988,7 @@ class binance(Exchange, ImplicitAPI):
             return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
-    async def fetch_bids_asks(self, symbols: List[str] = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
         :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker        # spot
@@ -3010,7 +3017,7 @@ class binance(Exchange, ImplicitAPI):
             response = await self.publicGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
-    async def fetch_last_prices(self, symbols: List[str] = None, params={}):
+    async def fetch_last_prices(self, symbols: Strings = None, params={}):
         """
         fetches the last price for multiple markets
         :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-price-ticker         # spot
@@ -3029,7 +3036,7 @@ class binance(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchLastPrices', market, params)
         response = None
         if self.is_linear(type, subType):
-            response = await self.fapiPublicGetTickerPrice(params)
+            response = await self.fapiPublicV2GetTickerPrice(params)
             #
             #     [
             #         {
@@ -3067,7 +3074,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, info, market=None):
+    def parse_last_price(self, info, market: Market = None):
         #
         # spot
         #
@@ -3108,7 +3115,7 @@ class binance(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
@@ -3143,7 +3150,7 @@ class binance(Exchange, ImplicitAPI):
         response = await getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
@@ -3309,7 +3316,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         if 'isDustTrade' in trade:
             return self.parse_dust_trade(trade, market)
         #
@@ -3917,7 +3924,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # spot
         #
@@ -4463,7 +4470,7 @@ class binance(Exchange, ImplicitAPI):
         requestParams = self.omit(params, ['quoteOrderQty', 'cost', 'stopPrice', 'test', 'type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         return self.extend(request, requestParams)
 
-    async def fetch_order(self, id: str, symbol: String = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#query-order-user_data
@@ -4508,7 +4515,7 @@ class binance(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
@@ -4634,7 +4641,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
@@ -4697,7 +4704,7 @@ class binance(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
@@ -4715,7 +4722,7 @@ class binance(Exchange, ImplicitAPI):
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')
 
-    async def fetch_canceled_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
@@ -4738,7 +4745,7 @@ class binance(Exchange, ImplicitAPI):
         filteredOrders = self.filter_by(orders, 'status', 'canceled')
         return self.filter_by_limit(filteredOrders, limit)
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-order-trade
@@ -4785,7 +4792,7 @@ class binance(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    async def cancel_all_orders(self, symbol: String = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-all-open-orders-on-a-symbol-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-all-open-orders-trade
@@ -4824,7 +4831,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             return response
 
-    async def cancel_orders(self, ids: List[Int], symbol: String = None, params={}):
+    async def cancel_orders(self, ids: List[Int], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
@@ -4889,7 +4896,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market)
 
-    async def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
@@ -4915,7 +4922,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#account-trade-list-user_data
@@ -5048,7 +5055,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_my_dust_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_dust_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all dust trades made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#dustlog-user_data
@@ -5110,7 +5117,7 @@ class binance(Exchange, ImplicitAPI):
         trades = self.parse_trades(data, None, since, limit)
         return self.filter_by_since_limit(trades, since, limit)
 
-    def parse_dust_trade(self, trade, market=None):
+    def parse_dust_trade(self, trade, market: Market = None):
         #
         #     {
         #       "fromAsset": "USDT",
@@ -5177,7 +5184,7 @@ class binance(Exchange, ImplicitAPI):
             'info': trade,
         }
 
-    async def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
         fetch all deposits made to an account
@@ -5278,7 +5285,7 @@ class binance(Exchange, ImplicitAPI):
             response[i]['type'] = 'deposit'
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
         :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
@@ -5437,7 +5444,7 @@ class binance(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -5565,7 +5572,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # transfer
         #
@@ -5612,7 +5619,7 @@ class binance(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    def parse_income(self, income, market=None):
+    def parse_income(self, income, market: Market = None):
         #
         #     {
         #       "symbol": "ETHUSDT",
@@ -5721,7 +5728,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    async def fetch_transfers(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
         fetch a history of internal transfers made on an account
@@ -5966,7 +5973,7 @@ class binance(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
@@ -6020,7 +6027,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'coin')
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    {
         #        "coin": "BAT",
@@ -6121,7 +6128,7 @@ class binance(Exchange, ImplicitAPI):
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return self.parse_transaction(response, currency)
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         #
         # spot
         #     [
@@ -6432,7 +6439,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    async def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
         :see: https://binance-docs.github.io/apidocs/futures/en/#get-funding-rate-history
@@ -6499,7 +6506,7 @@ class binance(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_funding_rates(self, symbols: List[str] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetch the funding rate for multiple markets
         :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
@@ -6530,7 +6537,7 @@ class binance(Exchange, ImplicitAPI):
             result.append(parsed)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
         #
         #   {
@@ -6602,7 +6609,7 @@ class binance(Exchange, ImplicitAPI):
                 result.append(parsed)
         return result
 
-    def parse_account_position(self, position, market=None):
+    def parse_account_position(self, position, market: Market = None):
         #
         # usdm
         #    {
@@ -6786,7 +6793,7 @@ class binance(Exchange, ImplicitAPI):
             'percentage': percentage,
         }
 
-    def parse_position_risk(self, position, market=None):
+    def parse_position_risk(self, position, market: Market = None):
         #
         # usdm
         #
@@ -6981,7 +6988,7 @@ class binance(Exchange, ImplicitAPI):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :see: https://binance-docs.github.io/apidocs/futures/en/#notional-and-leverage-brackets-user_data
@@ -7042,7 +7049,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_leverage_tiers(response, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         """
          * @ignore
         :param dict info: Exchange response for 1 market
@@ -7122,7 +7129,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_position(response[0], market)
 
-    async def fetch_option_positions(self, symbols: List[str] = None, params={}):
+    async def fetch_option_positions(self, symbols: Strings = None, params={}):
         """
         :see: https://binance-docs.github.io/apidocs/voptions/en/#option-position-information-user_data
         fetch data on open options positions
@@ -7174,7 +7181,7 @@ class binance(Exchange, ImplicitAPI):
             result.append(self.parse_position(response[i], market))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     {
         #         "entryPrice": "27.70000000",
@@ -7230,7 +7237,7 @@ class binance(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    async def fetch_positions(self, symbols: List[str] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
@@ -7247,7 +7254,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + '.options["fetchPositions"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"')
 
-    async def fetch_account_positions(self, symbols: List[str] = None, params={}):
+    async def fetch_account_positions(self, symbols: Strings = None, params={}):
         """
         fetch account positions
         :see: https://binance-docs.github.io/apidocs/futures/en/#account-information-v2-user_data
@@ -7278,7 +7285,7 @@ class binance(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    async def fetch_positions_risk(self, symbols: List[str] = None, params={}):
+    async def fetch_positions_risk(self, symbols: Strings = None, params={}):
         """
         fetch positions risk
         :see: https://binance-docs.github.io/apidocs/futures/en/#position-information-v2-user_data
@@ -7368,7 +7375,7 @@ class binance(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    async def fetch_funding_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :see: https://binance-docs.github.io/apidocs/futures/en/#get-income-history-user_data
@@ -7408,7 +7415,7 @@ class binance(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_incomes(response, market, since, limit)
 
-    async def set_leverage(self, leverage, symbol: String = None, params={}):
+    async def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://binance-docs.github.io/apidocs/futures/en/#change-initial-leverage-trade
@@ -7438,7 +7445,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return await getattr(self, method)(self.extend(request, params))
 
-    async def set_margin_mode(self, marginMode: str, symbol: String = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://binance-docs.github.io/apidocs/futures/en/#change-margin-type-trade
@@ -7493,7 +7500,7 @@ class binance(Exchange, ImplicitAPI):
                 raise e
         return response
 
-    async def set_position_mode(self, hedged, symbol: String = None, params={}):
+    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://binance-docs.github.io/apidocs/futures/en/#change-position-mode-trade
@@ -7528,7 +7535,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return await getattr(self, method)(self.extend(request, params))
 
-    async def fetch_settlement_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
         :see: https://binance-docs.github.io/apidocs/voptions/en/#historical-exercise-records
@@ -7568,7 +7575,7 @@ class binance(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_my_settlement_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records of the user
         :see: https://binance-docs.github.io/apidocs/voptions/en/#user-exercise-record-user_data
@@ -7697,7 +7704,7 @@ class binance(Exchange, ImplicitAPI):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    async def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://binance-docs.github.io/apidocs/voptions/en/#account-funding-flow-user_data
@@ -7774,7 +7781,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         # options(eapi)
         #
@@ -8069,7 +8076,7 @@ class binance(Exchange, ImplicitAPI):
             'code': code,
         })
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None):
         rawType = self.safe_integer(data, 'type')
         resultType = 'add' if (rawType == 1) else 'reduce'
         resultAmount = self.safe_number(data, 'amount')
@@ -8184,7 +8191,7 @@ class binance(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_currency_since_limit(sorted, code, since, limit)
 
-    def parse_borrow_rate(self, info, currency=None):
+    def parse_borrow_rate(self, info, currency: Currency = None):
         #
         #    {
         #        "asset": "USDT",
@@ -8194,9 +8201,9 @@ class binance(Exchange, ImplicitAPI):
         #    }
         #
         timestamp = self.safe_number(info, 'timestamp')
-        currency = self.safe_string(info, 'asset')
+        currencyId = self.safe_string(info, 'asset')
         return {
-            'currency': self.safe_currency_code(currency),
+            'currency': self.safe_currency_code(currencyId, currency),
             'rate': self.safe_number(info, 'dailyInterestRate'),
             'period': 86400000,
             'timestamp': timestamp,
@@ -8287,7 +8294,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_borrow_interest(self, code: String = None, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://binance-docs.github.io/apidocs/spot/en/#get-interest-history-user_data
@@ -8332,7 +8339,7 @@ class binance(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market=None):
+    def parse_borrow_interest(self, info, market: Market = None):
         symbol = self.safe_string(info, 'isolatedSymbol')
         timestamp = self.safe_number(info, 'interestAccuredTime')
         marginMode = 'cross' if (symbol is None) else 'isolated'
@@ -8349,7 +8356,7 @@ class binance(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def repay_margin(self, code: str, amount, symbol: String = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
@@ -8380,7 +8387,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    async def borrow_margin(self, code: str, amount, symbol: String = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         create a loan to borrow margin
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
@@ -8411,7 +8418,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def parse_margin_loan(self, info, currency=None):
+    def parse_margin_loan(self, info, currency: Currency = None):
         #
         #     {
         #         "tranId": 108988250265,
@@ -8550,7 +8557,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         timestamp = self.safe_integer_2(interest, 'timestamp', 'time')
         id = self.safe_string(interest, 'symbol')
         amount = self.safe_number_2(interest, 'sumOpenInterest', 'openInterest')
@@ -8568,7 +8575,7 @@ class binance(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def fetch_my_liquidations(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the users liquidated positions
         :see: https://binance-docs.github.io/apidocs/spot/en/#get-force-liquidation-record-user_data
@@ -8697,7 +8704,7 @@ class binance(Exchange, ImplicitAPI):
         liquidations = self.safe_value(response, 'rows', response)
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market=None):
+    def parse_liquidation(self, liquidation, market: Market = None):
         #
         # margin
         #
@@ -8813,7 +8820,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_greeks(response[0], market)
 
-    def parse_greeks(self, greeks, market=None):
+    def parse_greeks(self, greeks, market: Market = None):
         #
         #     {
         #         "symbol": "BTC-231229-40000-C",
