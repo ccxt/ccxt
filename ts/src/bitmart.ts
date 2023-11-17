@@ -30,7 +30,7 @@ export default class bitmart extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
-                'swap': undefined, // has but unimplemented
+                'swap': true,
                 'future': false,
                 'option': undefined,
                 'borrowMargin': true,
