@@ -4998,9 +4998,6 @@ export default class bitget extends Exchange {
                 }
             } else {
                 [ request, params ] = this.handleUntilOption ('before', request, params);
-                if (since !== undefined) {
-                    request['after'] = since;
-                }
                 if (limit !== undefined) {
                     request['limit'] = limit;
                 }
