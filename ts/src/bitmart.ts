@@ -2130,17 +2130,17 @@ export default class bitmart extends Exchange {
     parseOrderStatusByType (type, status) {
         const statusesByType = {
             'spot': {
-                '1': 'failed', // Order failure
+                '1': 'rejected', // Order failure
                 '2': 'open', // Placing order
-                '3': 'failed', // Order failure, Freeze failure
+                '3': 'rejected', // Order failure, Freeze failure
                 '4': 'open', // Order success, Pending for fulfilment
                 '5': 'open', // Partially filled
                 '6': 'closed', // Fully filled
-                '7': 'canceling', // Canceling
+                '7': 'canceled', // Canceling
                 '8': 'canceled', // Canceled
                 'new': 'open',
                 'partially_filled': 'open',
-                'filled': 'filled',
+                'filled': 'closed',
                 'partially_canceled': 'canceled',
             },
             'swap': {
