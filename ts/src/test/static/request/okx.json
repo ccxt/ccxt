@@ -655,6 +655,24 @@
             ],
             "output": "{\"instId\":\"BTC-USD-SWAP\",\"amt\":0.0001,\"type\":\"reduce\",\"posSide\":\"long\"}"
           }
+        ],
+        "fetchCrossBorrowRate": [
+          {
+            "description": "Fetch cross borrow rate",
+            "method": "fetchCrossBorrowRate",
+            "url": "https://www.okx.com/api/v5/account/interest-rate?ccy=USDT",
+            "input": [
+              "USDT"
+            ]
+          }
+        ],
+        "fetchCrossBorrowRates": [
+          {
+            "description": "Fetch cross borrow rates",
+            "method": "fetchCrossBorrowRates",
+            "url": "https://www.okx.com/api/v5/account/interest-rate",
+            "input": []
+          }
         ]
     }
 }
