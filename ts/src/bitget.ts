@@ -4956,7 +4956,7 @@ export default class bitget extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {int} [params.until] *swap only* the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
@@ -4998,9 +4998,6 @@ export default class bitget extends Exchange {
                 }
             } else {
                 [ request, params ] = this.handleUntilOption ('before', request, params);
-                if (since !== undefined) {
-                    request['after'] = since;
-                }
                 if (limit !== undefined) {
                     request['limit'] = limit;
                 }
