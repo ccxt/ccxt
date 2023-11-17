@@ -31,31 +31,6 @@
               "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Buy\",\"orderQty\":1000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":35000}"
             },
             {
-              "description": "spot market buy",
-              "method": "createOrder",
-              "url": "https://www.bitmex.com/api/v1/order",
-              "input": [
-                "BTC/USDT",
-                "market",
-                "buy",
-                0.0001,
-                null
-              ],
-              "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
-            },
-            {
-                "description": "Swap market buy",
-                "method": "createOrder",
-                "url": "https://testnet.bitmex.com/api/v1/order",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "market",
-                    "buy",
-                    1000
-                ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Buy\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
-            },
-            {
                 "description": "spot limit sell",
                 "method": "createOrder",
                 "url": "https://www.bitmex.com/api/v1/order",
@@ -69,7 +44,7 @@
                 "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000}"    
             },
             {
-                "description": "spot market buy with undefined price",
+                "description": "spot market buy",
                 "method": "createOrder",
                 "url": "https://www.bitmex.com/api/v1/order",
                 "input": [
@@ -82,17 +57,16 @@
                 "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
             },
             {
-                "description": "spot market sell with undefined price",
+                "description": "swap market buy",
                 "method": "createOrder",
-                "url": "https://www.bitmex.com/api/v1/order",
+                "url": "https://testnet.bitmex.com/api/v1/order",
                 "input": [
-                  "BTC/USDT",
-                  "market",
-                  "sell",
-                  0.0001,
-                  null
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1000
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Buy\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
             },
             {
                 "description": "spot market buy with defined price",
@@ -106,6 +80,19 @@
                   37000
                 ],
                 "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
+            },
+            {
+                "description": "spot market sell",
+                "method": "createOrder",
+                "url": "https://www.bitmex.com/api/v1/order",
+                "input": [
+                  "BTC/USDT",
+                  "market",
+                  "sell",
+                  0.0001,
+                  null
+                ],
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Sell\",\"orderQty\":10000,\"ordType\":\"Market\",\"text\":\"CCXT\"}"
             },
             {
                 "description": "spot market sell with defined price",
