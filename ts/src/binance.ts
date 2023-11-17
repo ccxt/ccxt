@@ -54,7 +54,6 @@ export default class binance extends Exchange {
                 'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': true,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
