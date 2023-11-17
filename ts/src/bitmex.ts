@@ -1827,12 +1827,15 @@ export default class bitmex extends Exchange {
          * @method
          * @name bitmex#createOrder
          * @description create a trade order
+         * @see https://www.bitmex.com/api/explorer/#!/Order/Order_new
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
+         * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -1876,7 +1879,7 @@ export default class bitmex extends Exchange {
                     request['ordType'] = (triggerDirection === 'above') ? 'MarketIfTouched' : 'Stop';
                 }
             }
-        } else if (customTriggerType && (triggerPrice === undefined)) {
+        } else if ((triggerPrice === undefined) && customTriggerType) {
             // if exchange specific trigger types were provided
             throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the ' + orderType + ' order type');
         }
