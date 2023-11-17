@@ -7373,7 +7373,7 @@ export default class binance extends Exchange {
         if (!rational) {
             initialMarginPercentageString = Precise.stringAdd (initialMarginPercentageString, '1e-8');
         }
-        let initialMarginString = this.safeString (position, 'isolatedWallet');
+        let initialMarginString = this.omitZero (this.safeString (position, 'isolatedWallet')); // set in isolated position
         if (initialMarginString === undefined) {
             initialMarginString = Precise.stringDiv (Precise.stringMul (notionalStringAbs, initialMarginPercentageString), '1', 8);
         }
