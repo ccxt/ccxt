@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -257,7 +256,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -273,7 +272,7 @@ class bit2c(Exchange, ImplicitAPI):
         orderbook = self.publicGetExchangesPairOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
         averagePrice = self.safe_string(ticker, 'av')
@@ -317,7 +316,7 @@ class bit2c(Exchange, ImplicitAPI):
         response = self.publicGetExchangesPairTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -422,7 +421,7 @@ class bit2c(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -435,7 +434,7 @@ class bit2c(Exchange, ImplicitAPI):
         }
         return self.privatePostOrderCancelOrder(self.extend(request, params))
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -456,7 +455,7 @@ class bit2c(Exchange, ImplicitAPI):
         bids = self.safe_value(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified market symbol
@@ -485,7 +484,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #      createOrder
         #      {
@@ -592,7 +591,7 @@ class bit2c(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -661,7 +660,7 @@ class bit2c(Exchange, ImplicitAPI):
             newString += strParts[i]
         return newString
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -781,7 +780,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
         #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",

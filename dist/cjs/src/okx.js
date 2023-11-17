@@ -181,6 +181,7 @@ class okx extends okx$1 {
                         'market/open-oracle': 50,
                         'market/exchange-rate': 20,
                         'market/index-components': 1,
+                        'public/economic-calendar': 50,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
                         'public/block-trades': 1,
@@ -312,7 +313,6 @@ class okx extends okx$1 {
                         'asset/subaccount/bills': 5 / 3,
                         'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/entrust-subaccount-list': 10,
-                        'users/partner/if-rebate': 1,
                         'account/subaccount/interest-limits': 4,
                         // grid trading
                         'tradingBot/grid/orders-algo-pending': 1,
@@ -359,6 +359,9 @@ class okx extends okx$1 {
                         'finance/sfp/dcd/orders': 2,
                         'broker/fd/rebate-per-orders': 300,
                         'broker/fd/if-rebate': 5,
+                        // affiliate
+                        'affiliate/invitee/detail': 1,
+                        'users/partner/if-rebate': 1,
                     },
                     'post': {
                         // rfq
@@ -1288,13 +1291,6 @@ class okx extends okx$1 {
         promises = await Promise.all(promises);
         for (let i = 0; i < promises.length; i++) {
             result = this.arrayConcat(result, promises[i]);
-        }
-        return result;
-    }
-    parseMarkets(markets) {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
         }
         return result;
     }
@@ -2622,7 +2618,7 @@ class okx extends okx$1 {
         else if (fok) {
             request['ordType'] = 'fok';
         }
-        else if (stopLossDefined || takeProfitDefined) {
+        if (stopLossDefined || takeProfitDefined) {
             if (stopLossDefined) {
                 const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
@@ -4889,6 +4885,8 @@ class okx extends okx$1 {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'internal': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,

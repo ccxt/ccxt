@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -467,7 +467,7 @@ export default class yobit extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOrderBooks
@@ -509,7 +509,7 @@ export default class yobit extends Exchange {
         return result as Dictionary<OrderBook>;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "high": 0.03497582,
@@ -549,7 +549,7 @@ export default class yobit extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name yobit#fetchTickers
@@ -609,7 +609,7 @@ export default class yobit extends Exchange {
         return tickers[symbol] as Ticker;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -836,7 +836,7 @@ export default class yobit extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name yobit#cancelOrder
@@ -885,7 +885,7 @@ export default class yobit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder (private)
         //
@@ -989,7 +989,7 @@ export default class yobit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchOrder
@@ -1025,7 +1025,7 @@ export default class yobit extends Exchange {
         return this.parseOrder (this.extend ({ 'id': id }, orders[id]));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name yobit#fetchOpenOrders
@@ -1073,7 +1073,7 @@ export default class yobit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name yobit#fetchMyTrades

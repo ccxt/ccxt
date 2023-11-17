@@ -5,7 +5,7 @@ import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -585,7 +585,7 @@ export default class latoken extends Exchange {
         return this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 'price', 'quantity');
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //    {
         //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
@@ -672,7 +672,7 @@ export default class latoken extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name latoken#fetchTickers
@@ -708,7 +708,7 @@ export default class latoken extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -893,7 +893,7 @@ export default class latoken extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchMyTrades
@@ -970,7 +970,7 @@ export default class latoken extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1077,7 +1077,7 @@ export default class latoken extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name latoken#fetchOpenOrders
@@ -1133,7 +1133,7 @@ export default class latoken extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name latoken#fetchOrders
@@ -1204,7 +1204,7 @@ export default class latoken extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchOrder
@@ -1313,7 +1313,7 @@ export default class latoken extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name latoken#cancelOrder
@@ -1350,7 +1350,7 @@ export default class latoken extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name latoken#cancelAllOrders
@@ -1396,7 +1396,7 @@ export default class latoken extends Exchange {
         return response;
     }
 
-    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchTransactions
@@ -1448,7 +1448,7 @@ export default class latoken extends Exchange {
         return this.parseTransactions (content, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",
@@ -1507,6 +1507,7 @@ export default class latoken extends Exchange {
             'status': status,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -1528,7 +1529,7 @@ export default class latoken extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name latoken#fetchTransfers
@@ -1630,7 +1631,7 @@ export default class latoken extends Exchange {
         return this.parseTransfer (response);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //     {
         //         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",

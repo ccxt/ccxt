@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Trade, Transaction, Ticker, Tickers } from './base/types.js';
+import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1457,7 +1457,7 @@ export default class mexc extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         let id = undefined;
         let timestamp = undefined;
         let orderId = undefined;
@@ -1732,7 +1732,7 @@ export default class mexc extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1743,7 +1743,7 @@ export default class mexc extends Exchange {
         ];
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name mexc3#fetchTickers
@@ -1904,7 +1904,7 @@ export default class mexc extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         let timestamp = undefined;
@@ -2021,7 +2021,7 @@ export default class mexc extends Exchange {
         }, market);
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchBidsAsks
@@ -2335,7 +2335,7 @@ export default class mexc extends Exchange {
         return this.parseOrders (response);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchOrder
@@ -2453,7 +2453,7 @@ export default class mexc extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name mexc3#fetchOrders
@@ -2629,7 +2629,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async fetchOrdersByIds (ids, symbol: string = undefined, params = {}) {
+    async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2682,7 +2682,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name mexc3#fetchOpenOrders
@@ -2771,7 +2771,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name mexc3#fetchClosedOrders
@@ -2785,7 +2785,7 @@ export default class mexc extends Exchange {
         return await this.fetchOrdersByState (3, symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchCanceledOrders
@@ -2799,7 +2799,7 @@ export default class mexc extends Exchange {
         return await this.fetchOrdersByState (4, symbol, since, limit, params);
     }
 
-    async fetchOrdersByState (state, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2815,7 +2815,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#cancelOrder
@@ -2921,7 +2921,7 @@ export default class mexc extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#cancelOrders
@@ -2956,7 +2956,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#cancelAllOrders
@@ -3042,7 +3042,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // spot: createOrder
         //
@@ -3662,7 +3662,7 @@ export default class mexc extends Exchange {
         return this.customParseBalance (response, marketType);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchMyTrades
@@ -3750,7 +3750,7 @@ export default class mexc extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchOrderTrades
@@ -3875,7 +3875,7 @@ export default class mexc extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#setLeverage
@@ -3907,7 +3907,7 @@ export default class mexc extends Exchange {
         return await this.contractPrivatePostPositionChangeLeverage (this.extend (request, params));
     }
 
-    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchFundingHistory
@@ -3985,7 +3985,7 @@ export default class mexc extends Exchange {
         return result as FundingHistory[];
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -4058,7 +4058,7 @@ export default class mexc extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc#fetchFundingRateHistory
@@ -4125,7 +4125,7 @@ export default class mexc extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchLeverageTiers
@@ -4186,7 +4186,7 @@ export default class mexc extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         /**
             @param info {object} Exchange response for 1 market
             @param market {object} CCXT market
@@ -4218,7 +4218,7 @@ export default class mexc extends Exchange {
         return tiers;
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
         //     {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
@@ -4352,7 +4352,7 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name mexc3#fetchDeposits
@@ -4413,7 +4413,7 @@ export default class mexc extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name mexc3#fetchWithdrawals
@@ -4470,7 +4470,7 @@ export default class mexc extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -4559,6 +4559,8 @@ export default class mexc extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -4609,7 +4611,7 @@ export default class mexc extends Exchange {
         return this.safeValue (response, 0) as Position;
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchPositions
@@ -4654,7 +4656,7 @@ export default class mexc extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "positionId": 1394650,
@@ -4751,7 +4753,7 @@ export default class mexc extends Exchange {
         return undefined;
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchTransfers
@@ -4898,7 +4900,7 @@ export default class mexc extends Exchange {
         });
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // spot: fetchTransfer
         //
@@ -5015,7 +5017,7 @@ export default class mexc extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async setPositionMode (hedged, symbol: string = undefined, params = {}) {
+    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
         const request = {
             'positionMode': hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         };
@@ -5029,7 +5031,7 @@ export default class mexc extends Exchange {
         return response;
     }
 
-    async fetchPositionMode (symbol: string = undefined, params = {}) {
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
         const response = await this.contractPrivateGetPositionPositionMode (params);
         //
         //     {
@@ -5045,7 +5047,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#borrowMargin
@@ -5079,7 +5081,7 @@ export default class mexc extends Exchange {
         });
     }
 
-    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#repayMargin
@@ -5181,7 +5183,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
+    parseTransactionFee (transaction, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "AGLD",
@@ -5220,7 +5222,7 @@ export default class mexc extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#fetchDepositWithdrawFees
@@ -5264,7 +5266,7 @@ export default class mexc extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "AGLD",
@@ -5311,7 +5313,7 @@ export default class mexc extends Exchange {
         return this.assignDefaultDepositWithdrawFees (result);
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         //     {
         //         "tranId": "762407666453712896"

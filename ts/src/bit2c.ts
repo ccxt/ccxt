@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, Not
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -277,7 +277,7 @@ export default class bit2c extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
         const averagePrice = this.safeString (ticker, 'av');
@@ -444,7 +444,7 @@ export default class bit2c extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#cancelOrder
@@ -460,7 +460,7 @@ export default class bit2c extends Exchange {
         return await this.privatePostOrderCancelOrder (this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bit2c#fetchOpenOrders
@@ -484,7 +484,7 @@ export default class bit2c extends Exchange {
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchOrder
@@ -516,7 +516,7 @@ export default class bit2c extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //      createOrder
         //      {
@@ -631,7 +631,7 @@ export default class bit2c extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bit2c#fetchMyTrades
@@ -708,7 +708,7 @@ export default class bit2c extends Exchange {
         return newString;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -839,7 +839,7 @@ export default class bit2c extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",

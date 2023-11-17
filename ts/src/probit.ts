@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -275,73 +275,71 @@ export default class probit extends Exchange {
         //     }
         //
         const markets = this.safeValue (response, 'data', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'id');
-            const baseId = this.safeString (market, 'base_currency_id');
-            const quoteId = this.safeString (market, 'quote_currency_id');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const closed = this.safeValue (market, 'closed', false);
-            const takerFeeRate = this.safeString (market, 'taker_fee_rate');
-            const taker = Precise.stringDiv (takerFeeRate, '100');
-            const makerFeeRate = this.safeString (market, 'maker_fee_rate');
-            const maker = Precise.stringDiv (makerFeeRate, '100');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': !closed,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.parseNumber (taker),
-                'maker': this.parseNumber (maker),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_precision'))),
-                    'price': this.safeNumber (market, 'price_increment'),
-                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'cost_precision'))),
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'id');
+        const baseId = this.safeString (market, 'base_currency_id');
+        const quoteId = this.safeString (market, 'quote_currency_id');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const closed = this.safeValue (market, 'closed', false);
+        const takerFeeRate = this.safeString (market, 'taker_fee_rate');
+        const taker = Precise.stringDiv (takerFeeRate, '100');
+        const makerFeeRate = this.safeString (market, 'maker_fee_rate');
+        const maker = Precise.stringDiv (makerFeeRate, '100');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': !closed,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.parseNumber (taker),
+            'maker': this.parseNumber (maker),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_precision'))),
+                'price': this.safeNumber (market, 'price_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'min_quantity'),
-                        'max': this.safeNumber (market, 'max_quantity'),
-                    },
-                    'price': {
-                        'min': this.safeNumber (market, 'min_price'),
-                        'max': this.safeNumber (market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'min_cost'),
-                        'max': this.safeNumber (market, 'max_cost'),
-                    },
+                'amount': {
+                    'min': this.safeNumber (market, 'min_quantity'),
+                    'max': this.safeNumber (market, 'max_quantity'),
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': this.safeNumber (market, 'min_price'),
+                    'max': this.safeNumber (market, 'max_price'),
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_cost'),
+                    'max': this.safeNumber (market, 'max_cost'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     async fetchCurrencies (params = {}) {
@@ -586,7 +584,7 @@ export default class probit extends Exchange {
         return this.parseOrderBook (dataBySide, market['symbol'], undefined, 'buy', 'sell', 'price', 'quantity');
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name probit#fetchTickers
@@ -663,7 +661,7 @@ export default class probit extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "last":"0.022902",
@@ -707,7 +705,7 @@ export default class probit extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchMyTrades
@@ -720,7 +718,7 @@ export default class probit extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const now = this.milliseconds ();
         const request = {
             'limit': 100,
@@ -815,7 +813,7 @@ export default class probit extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -846,7 +844,7 @@ export default class probit extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const id = this.safeString (trade, 'id');
-        let marketId = undefined;
+        let marketId: Str = undefined;
         if (id !== undefined) {
             const parts = id.split (':');
             marketId = this.safeString (parts, 0);
@@ -908,7 +906,7 @@ export default class probit extends Exchange {
             const parts = iso8601.split ('-');
             const year = this.safeString (parts, 0);
             const month = this.safeInteger (parts, 1);
-            let monthString = undefined;
+            let monthString: Str = undefined;
             if (after) {
                 monthString = this.sum (month, 1).toString ();
             }
@@ -1003,7 +1001,7 @@ export default class probit extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1027,7 +1025,7 @@ export default class probit extends Exchange {
         ];
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name probit#fetchOpenOrders
@@ -1042,7 +1040,7 @@ export default class probit extends Exchange {
         await this.loadMarkets ();
         since = this.parse8601 (since);
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market_id'] = market['id'];
@@ -1052,7 +1050,7 @@ export default class probit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name probit#fetchClosedOrders
@@ -1070,7 +1068,7 @@ export default class probit extends Exchange {
             'end_time': this.iso8601 (this.milliseconds ()),
             'limit': 100,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market_id'] = market['id'];
@@ -1086,7 +1084,7 @@ export default class probit extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchOrder
@@ -1124,7 +1122,7 @@ export default class probit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         id,
@@ -1286,7 +1284,7 @@ export default class probit extends Exchange {
         return order;
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name probit#cancelOrder
@@ -1309,7 +1307,7 @@ export default class probit extends Exchange {
         return this.parseOrder (data);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'destination_tag');
         const currencyId = this.safeString (depositAddress, 'currency_id');
@@ -1454,7 +1452,7 @@ export default class probit extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name probit#fetchDeposits
@@ -1472,7 +1470,7 @@ export default class probit extends Exchange {
         return result;
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name probit#fetchWithdrawals
@@ -1490,7 +1488,7 @@ export default class probit extends Exchange {
         return result;
     }
 
-    async fetchTransactions (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchTransactions
@@ -1505,7 +1503,7 @@ export default class probit extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
-        let currency = undefined;
+        let currency: Currency = undefined;
         const request = {};
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1557,7 +1555,7 @@ export default class probit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1615,6 +1613,8 @@ export default class probit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
             'info': transaction,
         };
@@ -1634,7 +1634,7 @@ export default class probit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name probit#fetchDepositWithdrawFees
@@ -1705,7 +1705,7 @@ export default class probit extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'id');
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         // {
         //     "id": "USDT",

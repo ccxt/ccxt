@@ -282,7 +282,7 @@ class bitopro extends Exchange {
              * retrieves data on all $markets for bitopro
              * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->publicGetProvisioningTradingPairs ());
             $markets = $this->safe_value($response, 'data', array());
@@ -306,75 +306,73 @@ class bitopro extends Exchange {
             //         )
             //     }
             //
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $active = !$this->safe_value($market, 'maintain');
-                $id = $this->safe_string($market, 'pair');
-                $uppercaseId = strtoupper($id);
-                $baseId = $this->safe_string($market, 'base');
-                $quoteId = $this->safe_string($market, 'quote');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-                $limits = array(
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'minLimitBaseAmount'),
-                        'max' => $this->safe_number($market, 'maxLimitBaseAmount'),
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                );
-                $result[] = array(
-                    'id' => $id,
-                    'uppercaseId' => $uppercaseId,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'baseId' => $base,
-                    'quoteId' => $quote,
-                    'settle' => null,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'derivative' => false,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'limits' => $limits,
-                    'precision' => array(
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
-                    ),
-                    'active' => $active,
-                    'created' => null,
-                    'info' => $market,
-                );
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_market($market): array {
+        $active = !$this->safe_value($market, 'maintain');
+        $id = $this->safe_string($market, 'pair');
+        $uppercaseId = strtoupper($id);
+        $baseId = $this->safe_string($market, 'base');
+        $quoteId = $this->safe_string($market, 'quote');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $symbol = $base . '/' . $quote;
+        $limits = array(
+            'amount' => array(
+                'min' => $this->safe_number($market, 'minLimitBaseAmount'),
+                'max' => $this->safe_number($market, 'maxLimitBaseAmount'),
+            ),
+            'price' => array(
+                'min' => null,
+                'max' => null,
+            ),
+            'cost' => array(
+                'min' => null,
+                'max' => null,
+            ),
+            'leverage' => array(
+                'min' => null,
+                'max' => null,
+            ),
+        );
+        return array(
+            'id' => $id,
+            'uppercaseId' => $uppercaseId,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'baseId' => $base,
+            'quoteId' => $quote,
+            'settle' => null,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'limits' => $limits,
+            'precision' => array(
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
+            ),
+            'active' => $active,
+            'created' => null,
+            'info' => $market,
+        );
+    }
+
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "pair":"btc_twd",
@@ -520,7 +518,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //         {
@@ -732,7 +730,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -907,7 +905,7 @@ class bitopro extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //         {
@@ -1342,7 +1340,7 @@ class bitopro extends Exchange {
         return $this->safe_string($states, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1416,6 +1414,7 @@ class bitopro extends Exchange {
             'tagTo' => $tag,
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->safe_number($transaction, 'fee'),
@@ -1623,7 +1622,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //    {
         //        "currency":"eth",
         //        "withdrawFee":"0.007",

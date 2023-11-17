@@ -1788,7 +1788,7 @@ class gate extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //    {
         //        "name" => "BTC_USDT",
@@ -2024,7 +2024,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($info, $market = null) {
+    public function parse_trading_fee($info, ?array $market = null) {
         //
         //    {
         //        "user_id" => 1486602,
@@ -2142,7 +2142,7 @@ class gate extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'currency');
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "currency" => "MTN",
@@ -2250,7 +2250,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_funding_history($info, $market = null) {
+    public function parse_funding_history($info, ?array $market = null) {
         //
         //    {
         //        "time" => 1646899200,
@@ -2427,7 +2427,7 @@ class gate extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // SPOT
         //
@@ -2934,7 +2934,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         // Spot $market candles
         //
@@ -3259,7 +3259,7 @@ class gate extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public
         //
@@ -3545,7 +3545,7 @@ class gate extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // deposits
         //
@@ -3620,6 +3620,8 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'updated' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCostString),
@@ -4125,7 +4127,7 @@ class gate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // SPOT
         // createOrder/cancelOrder/fetchOrder/editOrder
@@ -4892,7 +4894,7 @@ class gate extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         $timestamp = $this->milliseconds();
         return array(
             'id' => $this->safe_string($transfer, 'tx_id'),
@@ -4974,7 +4976,7 @@ class gate extends Exchange {
         return $response;
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         // swap and future
         //
@@ -5378,7 +5380,7 @@ class gate extends Exchange {
         return $this->parse_leverage_tiers($response, $symbols, 'name');
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @ignore
          * https://www.gate.io/help/futures/perpetual/22162/instrctions-of-risk-limit
@@ -5656,7 +5658,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         // Cross
         //
@@ -5796,7 +5798,7 @@ class gate extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         //
         //     {
         //         "value" => "11.9257",
@@ -5920,7 +5922,7 @@ class gate extends Exchange {
         return $this->parse_open_interests($response, $market, $since, $limit);
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //    {
         //        "long_liq_size" => "0",
@@ -6238,7 +6240,7 @@ class gate extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // spot
         //
@@ -6537,7 +6539,7 @@ class gate extends Exchange {
         return $this->parse_liquidations($response, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         //
         // fetchLiquidations
         //
@@ -6648,7 +6650,7 @@ class gate extends Exchange {
         }
     }
 
-    public function parse_greeks($greeks, $market = null) {
+    public function parse_greeks($greeks, ?array $market = null) {
         //
         //     {
         //         "vega" => "1.78992",

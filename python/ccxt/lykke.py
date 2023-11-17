@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lykke import ImplicitAPI
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -349,7 +348,7 @@ class lykke(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #
@@ -468,7 +467,7 @@ class lykke(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(self.safe_value(ticker, 0, {}), market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -497,7 +496,7 @@ class lykke(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -541,7 +540,7 @@ class lykke(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v')
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         #  public fetchTrades
         #
@@ -597,7 +596,7 @@ class lykke(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -695,7 +694,7 @@ class lykke(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -817,7 +816,7 @@ class lykke(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -836,7 +835,7 @@ class lykke(Exchange, ImplicitAPI):
         #
         return self.privateDeleteOrdersOrderId(self.extend(request, params))
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -859,7 +858,7 @@ class lykke(Exchange, ImplicitAPI):
         #
         return self.privateDeleteOrders(self.extend(request, params))
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: not used by lykke fetchOrder
@@ -893,7 +892,7 @@ class lykke(Exchange, ImplicitAPI):
         #
         return self.parse_order(payload)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -937,7 +936,7 @@ class lykke(Exchange, ImplicitAPI):
         #
         return self.parse_orders(payload, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -981,7 +980,7 @@ class lykke(Exchange, ImplicitAPI):
         #
         return self.parse_orders(payload, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1069,7 +1068,7 @@ class lykke(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #     "3035b1ad-2005-4587-a986-1f7966be78e0"
@@ -1123,10 +1122,12 @@ class lykke(Exchange, ImplicitAPI):
             'currency': code,
             'status': None,
             'updated': None,
+            'internal': None,
+            'comment': None,
             'fee': fee,
         }
 
-    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None

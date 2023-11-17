@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSym
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class coinsph
@@ -600,7 +600,7 @@ export default class coinsph extends Exchange {
         return result;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinsph#fetchTickers
@@ -648,7 +648,7 @@ export default class coinsph extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
@@ -819,7 +819,7 @@ export default class coinsph extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -871,7 +871,7 @@ export default class coinsph extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchMyTrades
@@ -899,7 +899,7 @@ export default class coinsph extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOrderTrades
@@ -918,7 +918,7 @@ export default class coinsph extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -1161,7 +1161,7 @@ export default class coinsph extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#fetchOrder
@@ -1184,7 +1184,7 @@ export default class coinsph extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinsph#fetchOpenOrders
@@ -1206,7 +1206,7 @@ export default class coinsph extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinsph#fetchClosedOrders
@@ -1234,7 +1234,7 @@ export default class coinsph extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#cancelOrder
@@ -1257,7 +1257,7 @@ export default class coinsph extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinsph#cancelAllOrders
@@ -1278,7 +1278,7 @@ export default class coinsph extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder POST /openapi/v1/order
         //     {
@@ -1506,7 +1506,7 @@ export default class coinsph extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1594,7 +1594,7 @@ export default class coinsph extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinsph#fetchDeposits
@@ -1652,7 +1652,7 @@ export default class coinsph extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinsph#fetchWithdrawals
@@ -1716,7 +1716,7 @@ export default class coinsph extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //     {
@@ -1782,11 +1782,8 @@ export default class coinsph extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let internal = this.safeInteger (transaction, 'transferType') as any;
-        if (internal !== undefined) {
-            internal = internal ? true : false;
-        }
         const network = this.safeString (transaction, 'network');
+        const internal = network === 'Internal';
         return {
             'info': transaction,
             'id': id,
@@ -1806,6 +1803,7 @@ export default class coinsph extends Exchange {
             'status': status,
             'updated': updated,
             'internal': internal,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -1854,7 +1852,7 @@ export default class coinsph extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "coin": "ETH",

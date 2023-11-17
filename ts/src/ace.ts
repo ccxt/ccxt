@@ -5,7 +5,7 @@ import { BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -190,70 +190,68 @@ export default class ace extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const base = this.safeString (market, 'base');
-            const baseCode = this.safeCurrencyCode (base);
-            const quote = this.safeString (market, 'quote');
-            const quoteCode = this.safeCurrencyCode (quote);
-            const symbol = base + '/' + quote;
-            result.push ({
-                'id': this.safeString (market, 'symbol'),
-                'uppercaseId': undefined,
-                'symbol': symbol,
-                'base': baseCode,
-                'baseId': this.safeInteger (market, 'baseCurrencyId'),
-                'quote': quoteCode,
-                'quoteId': this.safeInteger (market, 'quoteCurrencyId'),
-                'settle': undefined,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'derivative': false,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (market, 'minLimitBaseAmount'),
-                        'max': this.safeNumber (market, 'maxLimitBaseAmount'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'precision': {
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
-                },
-                'active': undefined,
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+        return this.parseMarkets (response);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseMarket (market): Market {
+        const baseId = this.safeString (market, 'base');
+        const base = this.safeCurrencyCode (baseId);
+        const quoteId = this.safeString (market, 'quote');
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        return {
+            'id': this.safeString (market, 'symbol'),
+            'uppercaseId': undefined,
+            'symbol': symbol,
+            'base': base,
+            'baseId': baseId,
+            'quote': quote,
+            'quoteId': quoteId,
+            'settle': undefined,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (market, 'minLimitBaseAmount'),
+                    'max': this.safeNumber (market, 'maxLimitBaseAmount'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'precision': {
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
+            },
+            'active': undefined,
+            'created': undefined,
+            'info': market,
+        };
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -314,7 +312,7 @@ export default class ace extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name ace#fetchTickers
@@ -409,7 +407,7 @@ export default class ace extends Exchange {
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "changeRate": 0,
@@ -499,7 +497,7 @@ export default class ace extends Exchange {
         return this.safeString (statuses, status, undefined);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -526,17 +524,17 @@ export default class ace extends Exchange {
         //             "type": 1
         //         }
         //
-        let id = undefined;
-        let timestamp = undefined;
-        let symbol = undefined;
-        let price = undefined;
-        let amount = undefined;
-        let side = undefined;
-        let type = undefined;
-        let status = undefined;
-        let filled = undefined;
-        let remaining = undefined;
-        let average = undefined;
+        let id: Str;
+        let timestamp: Int = undefined;
+        let symbol: Str = undefined;
+        let price: Str = undefined;
+        let amount: Str = undefined;
+        let side: Str = undefined;
+        let type: Str = undefined;
+        let status: Str = undefined;
+        let filled: Str = undefined;
+        let remaining: Str = undefined;
+        let average: Str = undefined;
         if (typeof order === 'string') {
             id = order;
         } else {
@@ -635,7 +633,7 @@ export default class ace extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ace#cancelOrder
@@ -662,7 +660,7 @@ export default class ace extends Exchange {
         return response;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ace#fetchOrder
@@ -703,7 +701,7 @@ export default class ace extends Exchange {
         return this.parseOrder (data, undefined);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name ace#fetchOpenOrders
@@ -760,7 +758,7 @@ export default class ace extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchOrderTrades
         //         {
@@ -809,8 +807,8 @@ export default class ace extends Exchange {
         if (quoteId !== undefined && baseId !== undefined) {
             symbol = baseId + '/' + quoteId;
         }
-        let side = undefined;
-        const tradeSide = this.safeNumber (trade, 'buyOrSell');
+        let side: Str = undefined;
+        const tradeSide = this.safeInteger (trade, 'buyOrSell');
         if (tradeSide !== undefined) {
             side = (tradeSide === 1) ? 'buy' : 'sell';
         }
@@ -840,7 +838,7 @@ export default class ace extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ace#fetchOrderTrades
@@ -897,7 +895,7 @@ export default class ace extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ace#fetchMyTrades

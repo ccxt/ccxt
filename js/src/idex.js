@@ -1490,7 +1490,7 @@ export default class idex extends Exchange {
             'depositId': id,
         };
         const response = await this.privateGetDeposits(this.extend(request, params));
-        return this.parseTransaction(response, code);
+        return this.parseTransaction(response);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1540,7 +1540,7 @@ export default class idex extends Exchange {
             'withdrawalId': id,
         };
         const response = await this.privateGetWithdrawals(this.extend(request, params));
-        return this.parseTransaction(response, code);
+        return this.parseTransaction(response);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1677,6 +1677,8 @@ export default class idex extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

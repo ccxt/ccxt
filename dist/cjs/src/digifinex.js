@@ -1633,7 +1633,7 @@ class digifinex extends digifinex$1 {
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeValue(rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams('createOrders', params);
+            const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {
@@ -2809,6 +2809,8 @@ class digifinex extends digifinex$1 {
             'currency': code,
             'status': status,
             'updated': updated,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -3021,7 +3023,7 @@ class digifinex extends digifinex$1 {
                 result = entry;
             }
         }
-        const currency = this.safeString(result, 'currency');
+        const currency = this.currency(code);
         return this.parseBorrowRate(result, currency);
     }
     async fetchBorrowRates(params = {}) {
@@ -3088,7 +3090,7 @@ class digifinex extends digifinex$1 {
             const item = info[i];
             const currency = this.safeString(item, codeKey);
             const code = this.safeCurrencyCode(currency);
-            const borrowRate = this.parseBorrowRate(item, currency);
+            const borrowRate = this.parseBorrowRate(item);
             result[code] = borrowRate;
         }
         return result;
@@ -4129,7 +4131,13 @@ class digifinex extends digifinex$1 {
         const payload = pathPart + request;
         let url = this.urls['api']['rest'] + payload;
         const query = this.omit(params, this.extractParams(path));
-        let urlencoded = this.urlencode(this.keysort(query));
+        let urlencoded = undefined;
+        if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {
+            urlencoded = JSON.stringify(params);
+        }
+        else {
+            urlencoded = this.urlencode(this.keysort(query));
+        }
         if (signed) {
             let auth = undefined;
             let nonce = undefined;
@@ -4142,9 +4150,7 @@ class digifinex extends digifinex$1 {
                     }
                 }
                 else if (method === 'POST') {
-                    const swapPostParams = JSON.stringify(params);
-                    urlencoded = swapPostParams;
-                    auth += swapPostParams;
+                    auth += urlencoded;
                 }
             }
             else {

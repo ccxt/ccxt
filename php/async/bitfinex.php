@@ -459,7 +459,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    '0.0004'
         //
@@ -792,7 +792,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //     {
         //         "status" => "success",
@@ -893,7 +893,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'pair');
         $market = $this->safe_market($marketId, $market);
@@ -923,7 +923,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public) v1
         //
@@ -1156,7 +1156,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //           "id" => 57334010955,
@@ -1296,7 +1296,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1457539800000,
@@ -1462,7 +1462,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // crypto
         //
@@ -1532,6 +1532,7 @@ class bitfinex extends Exchange {
             'tagTo' => null,
             'updated' => $this->safe_timestamp($transaction, 'timestamp'),
             'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),

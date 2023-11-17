@@ -504,6 +504,7 @@ class htx extends Exchange {
                             // Future Market Data interface
                             'api/v1/contract_contract_info' => 1,
                             'api/v1/contract_index' => 1,
+                            'api/v1/contract_query_elements' => 1,
                             'api/v1/contract_price_limit' => 1,
                             'api/v1/contract_open_interest' => 1,
                             'api/v1/contract_delivery_price' => 1,
@@ -533,6 +534,7 @@ class htx extends Exchange {
                             // Swap Market Data interface
                             'swap-api/v1/swap_contract_info' => 1,
                             'swap-api/v1/swap_index' => 1,
+                            'swap-api/v1/swap_query_elements' => 1,
                             'swap-api/v1/swap_price_limit' => 1,
                             'swap-api/v1/swap_open_interest' => 1,
                             'swap-ex/market/depth' => 1,
@@ -565,6 +567,7 @@ class htx extends Exchange {
                             // Swap Market Data interface
                             'linear-swap-api/v1/swap_contract_info' => 1,
                             'linear-swap-api/v1/swap_index' => 1,
+                            'linear-swap-api/v1/swap_query_elements' => 1,
                             'linear-swap-api/v1/swap_price_limit' => 1,
                             'linear-swap-api/v1/swap_open_interest' => 1,
                             'linear-swap-ex/market/depth' => 1,
@@ -1465,7 +1468,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "symbol":"btcusdt",
@@ -1928,7 +1931,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -2348,7 +2351,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // spot fetchTrades (public)
         //
@@ -2766,7 +2769,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -4371,7 +4374,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot
         //
@@ -5667,7 +5670,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "currency" => "usdt",
@@ -5899,7 +5902,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -5965,6 +5968,8 @@ class htx extends Exchange {
         if ($networkId === 'ETH' && mb_strpos($txHash, '0x') === false) {
             $txHash = '0x' . $txHash;
         }
+        $subType = $this->safe_string($transaction, 'sub-type');
+        $internal = $subType === 'FAST';
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'data'),
@@ -5983,6 +5988,8 @@ class htx extends Exchange {
             'currency' => $code,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'state')),
             'updated' => $this->safe_integer($transaction, 'updated-at'),
+            'comment' => null,
+            'internal' => $internal,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),
@@ -6076,7 +6083,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -6395,7 +6402,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         // {
         //      "status" => "ok",
@@ -6592,7 +6599,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -6965,7 +6972,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_income($income, $market = null) {
+    public function parse_income($income, ?array $market = null) {
         //
         //     {
         //       "id" => "1667161118",
@@ -6994,7 +7001,7 @@ class htx extends Exchange {
         );
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //    {
         //        "symbol" => "BTC",
@@ -7486,7 +7493,7 @@ class htx extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //         "accountId" => 10000001,
@@ -7960,7 +7967,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         // fetchOpenInterestHistory
         //
@@ -8127,7 +8134,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         // borrowMargin cross
         //
@@ -8313,7 +8320,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //            {
         //              "currency" => "sxp",
@@ -8540,7 +8547,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         //
         //     {
         //         "query_id" => 452057,

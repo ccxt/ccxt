@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
@@ -124,7 +123,7 @@ class poloniex(ccxt.async_support.poloniex):
             client.subscriptions[messageHash] = future
         return future
 
-    async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: Optional[List[str]] = None, params={}):
+    async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: Strings = None, params={}):
         """
          * @ignore
         Connects to a websocket channel
@@ -153,7 +152,7 @@ class poloniex(ccxt.async_support.poloniex):
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.poloniex.com/#public-channels-market-data-candlesticks
@@ -203,7 +202,7 @@ class poloniex(ccxt.async_support.poloniex):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.poloniex.com/#public-channels-market-data-trades
@@ -221,7 +220,7 @@ class poloniex(ccxt.async_support.poloniex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.poloniex.com/#public-channels-market-data-book-level-2
@@ -237,7 +236,7 @@ class poloniex(ccxt.async_support.poloniex):
         orderbook = await self.subscribe(name, name, False, [symbol], params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders
@@ -258,7 +257,7 @@ class poloniex(ccxt.async_support.poloniex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user using orders stream
         :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders

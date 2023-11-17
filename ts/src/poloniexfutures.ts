@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, FundingHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, FundingHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -274,82 +274,80 @@ export default class poloniexfutures extends Exchange {
         //   ]
         // }
         //
-        const result = [];
         const data = this.safeValue (response, 'data', []);
-        const dataLength = data.length;
-        for (let i = 0; i < dataLength; i++) {
-            const market = data[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
-            const settleId = this.safeString (market, 'rootSymbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
-            const symbol = base + '/' + quote + ':' + settle;
-            const inverse = this.safeValue (market, 'isInverse');
-            const status = this.safeString (market, 'status');
-            const multiplier = this.safeString (market, 'multiplier');
-            const tickSize = this.safeNumber (market, 'indexPriceTickSize');
-            const lotSize = this.safeNumber (market, 'lotSize');
-            const limitAmountMax = this.safeNumber (market, 'maxOrderQty');
-            const limitPriceMax = this.safeNumber (market, 'maxPrice');
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'swap',
-                'spot': false,
-                'margin': false,
-                'swap': true,
-                'future': false,
-                'option': false,
-                'active': (status === 'Open'),
-                'contract': true,
-                'linear': !inverse,
-                'inverse': inverse,
-                'taker': this.safeNumber (market, 'takerFeeRate'),
-                'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': lotSize,
-                    'price': tickSize,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.safeNumber (market, 'maxLeverage'),
-                    },
-                    'amount': {
-                        'min': lotSize,
-                        'max': limitAmountMax,
-                    },
-                    'price': {
-                        'min': tickSize,
-                        'max': limitPriceMax,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeInteger (market, 'firstOpenDate'),
-                'info': market,
-            });
-        }
-        return result;
+        return this.parseMarkets (data);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseCurrency');
+        const quoteId = this.safeString (market, 'quoteCurrency');
+        const settleId = this.safeString (market, 'rootSymbol');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        const symbol = base + '/' + quote + ':' + settle;
+        const inverse = this.safeValue (market, 'isInverse');
+        const status = this.safeString (market, 'status');
+        const multiplier = this.safeString (market, 'multiplier');
+        const tickSize = this.safeNumber (market, 'indexPriceTickSize');
+        const lotSize = this.safeNumber (market, 'lotSize');
+        const limitAmountMax = this.safeNumber (market, 'maxOrderQty');
+        const limitPriceMax = this.safeNumber (market, 'maxPrice');
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'active': (status === 'Open'),
+            'contract': true,
+            'linear': !inverse,
+            'inverse': inverse,
+            'taker': this.safeNumber (market, 'takerFeeRate'),
+            'maker': this.safeNumber (market, 'makerFeeRate'),
+            'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': lotSize,
+                'price': tickSize,
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.parseNumber ('1'),
+                    'max': this.safeNumber (market, 'maxLeverage'),
+                },
+                'amount': {
+                    'min': lotSize,
+                    'max': limitAmountMax,
+                },
+                'price': {
+                    'min': tickSize,
+                    'max': limitPriceMax,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.safeInteger (market, 'firstOpenDate'),
+            'info': market,
+        };
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //    {
         //        "symbol": "BTCUSDTPERP",                   // Market of the symbol
@@ -439,7 +437,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseTicker (this.safeValue (response, 'data', {}), market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name poloniexfutures#fetchTickers
@@ -556,7 +554,7 @@ export default class poloniexfutures extends Exchange {
         return this.fetchOrderBook (market['id'], undefined, { 'level': 3 });
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -920,7 +918,7 @@ export default class poloniexfutures extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#cancelOrder
@@ -961,7 +959,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchPositions
@@ -1023,7 +1021,7 @@ export default class poloniexfutures extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //    {
         //        "code": "200000",
@@ -1074,7 +1072,7 @@ export default class poloniexfutures extends Exchange {
         market = this.safeMarket (symbol, market);
         const timestamp = this.safeInteger (position, 'currentTimestamp');
         const size = this.safeString (position, 'currentQty');
-        let side = undefined;
+        let side: Str;
         if (Precise.stringGt (size, '0')) {
             side = 'long';
         } else if (Precise.stringLt (size, '0')) {
@@ -1116,7 +1114,7 @@ export default class poloniexfutures extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchFundingHistory
@@ -1188,7 +1186,7 @@ export default class poloniexfutures extends Exchange {
         return fees as FundingHistory[];
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#cancelAllOrders
@@ -1249,7 +1247,7 @@ export default class poloniexfutures extends Exchange {
         return result;
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOrdersByStatus
@@ -1280,7 +1278,7 @@ export default class poloniexfutures extends Exchange {
         } else if (status !== 'open') {
             throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1354,7 +1352,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniexfutures#fetchOpenOrders
@@ -1373,7 +1371,7 @@ export default class poloniexfutures extends Exchange {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniexfutures#fetchClosedOrders
@@ -1392,7 +1390,7 @@ export default class poloniexfutures extends Exchange {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchOrder (id = undefined, symbol: string = undefined, params = {}) {
+    async fetchOrder (id = undefined, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchOrder
@@ -1468,7 +1466,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1544,7 +1542,7 @@ export default class poloniexfutures extends Exchange {
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
         const filled = this.safeString (order, 'dealSize');
         const rawCost = this.safeString2 (order, 'dealFunds', 'filledValue');
-        let average = undefined;
+        let average: Str = undefined;
         if (Precise.stringGt (filled, '0')) {
             const contractSize = this.safeString (market, 'contractSize');
             if (market['linear']) {
@@ -1641,7 +1639,7 @@ export default class poloniexfutures extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#fetchMyTrades

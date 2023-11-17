@@ -1,5 +1,5 @@
 import Exchange from './abstract/upbit.js';
-import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Dictionary, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class upbit
  * @extends Exchange
@@ -9,8 +9,8 @@ export default class upbit extends Exchange {
     fetchCurrency(code: string, params?: {}): Promise<{
         info: any;
         id: string;
-        code: any;
-        name: any;
+        code: string;
+        name: string;
         active: boolean;
         fee: number;
         precision: any;
@@ -24,8 +24,8 @@ export default class upbit extends Exchange {
     fetchCurrencyById(id: string, params?: {}): Promise<{
         info: any;
         id: string;
-        code: any;
-        name: any;
+        code: string;
+        name: string;
         active: boolean;
         fee: number;
         precision: any;
@@ -39,8 +39,8 @@ export default class upbit extends Exchange {
     fetchMarket(symbol: string, params?: {}): Promise<{
         id: string;
         symbol: string;
-        base: any;
-        quote: any;
+        base: string;
+        quote: string;
         settle: any;
         baseId: string;
         quoteId: string;
@@ -89,8 +89,8 @@ export default class upbit extends Exchange {
     fetchMarketById(id: string, params?: {}): Promise<{
         id: string;
         symbol: string;
-        base: any;
-        quote: any;
+        base: string;
+        quote: string;
         settle: any;
         baseId: string;
         quoteId: string;
@@ -136,15 +136,16 @@ export default class upbit extends Exchange {
             info: any;
         };
     }>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    parseMarket(market: any): Market;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
+    fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    parseTicker(ticker: any, market?: Market): Ticker;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
@@ -154,38 +155,38 @@ export default class upbit extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     }>;
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): Transaction;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): Order;
-    fetchOrdersByState(state: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    parseOrder(order: any, market?: Market): Order;
+    fetchOrdersByState(state: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
-    parseDepositAddress(depositAddress: any, currency?: any): {
-        currency: any;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        currency: string;
         address: string;
         tag: string;
         network: any;
         info: any;
     };
     fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
+        currency: string;
         address: string;
         tag: string;
         network: any;
         info: any;
     }>;
     createDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
+        currency: string;
         address: string;
         tag: string;
         network: any;

@@ -1,5 +1,5 @@
 import Exchange from './abstract/yobit.js';
-import { Balances, Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Dictionary, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class yobit
  * @extends Exchange
@@ -10,20 +10,20 @@ export default class yobit extends Exchange {
     fetchBalance(params?: {}): Promise<Balances>;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
-    parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
+    parseTicker(ticker: any, market?: Market): Ticker;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTrade(trade: any, market?: any): Trade;
+    parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): Order;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseOrder(order: any, market?: Market): Order;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;

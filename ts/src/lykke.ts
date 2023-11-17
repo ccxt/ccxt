@@ -5,7 +5,7 @@ import Exchange from './abstract/lykke.js';
 import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -352,7 +352,7 @@ export default class lykke extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTickers
         //
@@ -475,7 +475,7 @@ export default class lykke extends Exchange {
         return this.parseTicker (this.safeValue (ticker, 0, {}), market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name lykke#fetchTickers
@@ -555,7 +555,7 @@ export default class lykke extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp, 'bids', 'asks', 'p', 'v');
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         //  public fetchTrades
         //
@@ -721,7 +721,7 @@ export default class lykke extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -849,7 +849,7 @@ export default class lykke extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name lykke#cancelOrder
@@ -871,7 +871,7 @@ export default class lykke extends Exchange {
         return await this.privateDeleteOrdersOrderId (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name lykke#cancelAllOrders
@@ -898,7 +898,7 @@ export default class lykke extends Exchange {
         return await this.privateDeleteOrders (this.extend (request, params));
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchOrder
@@ -935,7 +935,7 @@ export default class lykke extends Exchange {
         return this.parseOrder (payload);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lykke#fetchOpenOrders
@@ -984,7 +984,7 @@ export default class lykke extends Exchange {
         return this.parseOrders (payload, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lykke#fetchClosedOrders
@@ -1033,7 +1033,7 @@ export default class lykke extends Exchange {
         return this.parseOrders (payload, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name lykke#fetchMyTrades
@@ -1131,7 +1131,7 @@ export default class lykke extends Exchange {
         };
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
@@ -1186,11 +1186,13 @@ export default class lykke extends Exchange {
             'currency': code,
             'status': undefined,
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name lykke#fetchDepositsWithdrawals

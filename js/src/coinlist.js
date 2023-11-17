@@ -415,68 +415,66 @@ export default class coinlist extends Exchange {
         //     }
         //
         const markets = this.safeValue(response, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'symbol');
-            const baseId = this.safeString(market, 'base_currency');
-            const quoteId = this.safeString(market, 'quote_currency');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const amountPrecision = this.safeString(market, 'minimum_size_increment');
-            const pricePrecision = this.safeString(market, 'minimum_price_increment');
-            const created = this.safeString(market, 'list_time');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(amountPrecision),
-                    'price': this.parseNumber(pricePrecision),
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'symbol');
+        const baseId = this.safeString(market, 'base_currency');
+        const quoteId = this.safeString(market, 'quote_currency');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const amountPrecision = this.safeString(market, 'minimum_size_increment');
+        const pricePrecision = this.safeString(market, 'minimum_price_increment');
+        const created = this.safeString(market, 'list_time');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(amountPrecision),
+                'price': this.parseNumber(pricePrecision),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'created': this.parse8601(created),
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.parse8601(created),
+            'info': market,
+        };
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -2039,6 +2037,8 @@ export default class coinlist extends Exchange {
             'status': undefined,
             'updated': undefined,
             'fee': fee,
+            'comment': this.safeString(transaction, 'description'),
+            'internal': undefined,
         };
     }
     parseTransactionType(type) {

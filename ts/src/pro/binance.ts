@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { Int, OrderSide, OrderType, Trade } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str, Strings, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -977,7 +977,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchTickers
@@ -1877,7 +1877,7 @@ export default class binance extends binanceRest {
         client.resolve (order, messageHash);
     }
 
-    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#cancelOrderWs
@@ -1921,7 +1921,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#cancelAllOrdersWs
@@ -1952,7 +1952,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async fetchOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOrderWs
@@ -1993,7 +1993,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async fetchOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOrdersWs
@@ -2035,7 +2035,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    async fetchOpenOrdersWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOpenOrdersWs
@@ -2072,7 +2072,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOrders
@@ -2359,7 +2359,7 @@ export default class binance extends binanceRest {
         this.handleOrder (client, message);
     }
 
-    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchPositions
@@ -2377,8 +2377,10 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
-        const defaultType = this.safeString2 (this.options, 'watchPositions', 'defaultType', 'future');
-        let type = this.safeString (params, 'type', defaultType);
+        let type = this.handleMarketTypeAndParams ('watchPositions', market, params);
+        if (type === 'spot' || type === 'margin') {
+            type = 'future';
+        }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchPositions', market, params);
         if (this.isLinear (type, subType)) {
@@ -2405,7 +2407,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: string[] = undefined) {
+    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -2525,7 +2527,7 @@ export default class binance extends binanceRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol (marketId),
+            'symbol': this.safeSymbol (marketId, undefined, undefined, 'future'),
             'notional': undefined,
             'marginMode': this.safeString (position, 'mt'),
             'liquidationPrice': undefined,
@@ -2549,7 +2551,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchMyTradesWs
@@ -2629,7 +2631,7 @@ export default class binance extends binanceRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchMyTrades

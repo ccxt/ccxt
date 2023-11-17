@@ -3,7 +3,7 @@ import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, PermissionDeni
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 /**
  * @class wazirx
@@ -211,83 +211,82 @@ export default class wazirx extends Exchange {
         //     },
         //
         const markets = this.safeValue (response, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const isSpot = this.safeValue (market, 'isSpotTradingAllowed');
-            const filters = this.safeValue (market, 'filters');
-            let minPrice = undefined;
-            for (let j = 0; j < filters.length; j++) {
-                const filter = filters[j];
-                const filterType = this.safeString (filter, 'filterType');
-                if (filterType === 'PRICE_FILTER') {
-                    minPrice = this.safeNumber (filter, 'minPrice');
-                }
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const isSpot = this.safeValue (market, 'isSpotTradingAllowed');
+        const filters = this.safeValue (market, 'filters');
+        let minPrice: Num = undefined;
+        for (let j = 0; j < filters.length; j++) {
+            const filter = filters[j];
+            const filterType = this.safeString (filter, 'filterType');
+            if (filterType === 'PRICE_FILTER') {
+                minPrice = this.safeNumber (filter, 'minPrice');
             }
-            const fee = this.safeValue (this.fees, quote, {});
-            let takerString = this.safeString (fee, 'taker', '0.2');
-            takerString = Precise.stringDiv (takerString, '100');
-            let makerString = this.safeString (fee, 'maker', '0.2');
-            makerString = Precise.stringDiv (makerString, '100');
-            const status = this.safeString (market, 'status');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': isSpot,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'trading'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.parseNumber (takerString),
-                'maker': this.parseNumber (makerString),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteAssetPrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
         }
-        return result;
+        const fee = this.safeValue (this.fees, quote, {});
+        let takerString: Str = this.safeString (fee, 'taker', '0.2');
+        takerString = Precise.stringDiv (takerString, '100');
+        let makerString: Str = this.safeString (fee, 'maker', '0.2');
+        makerString = Precise.stringDiv (makerString, '100');
+        const status = this.safeString (market, 'status');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': isSpot,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'trading'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.parseNumber (takerString),
+            'maker': this.parseNumber (makerString),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteAssetPrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -331,7 +330,7 @@ export default class wazirx extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    [1669014300,1402001,1402001,1402001,1402001,0],
         //
@@ -416,7 +415,7 @@ export default class wazirx extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name wazirx#fetchTickers
@@ -490,7 +489,7 @@ export default class wazirx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         //     {
         //         "id":322307791,
@@ -571,7 +570,7 @@ export default class wazirx extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //        "symbol":"btcinr",
@@ -659,7 +658,7 @@ export default class wazirx extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wazirx#fetchOrders
@@ -718,7 +717,7 @@ export default class wazirx extends Exchange {
         return orders;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wazirx#fetchOpenOrders
@@ -732,7 +731,7 @@ export default class wazirx extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -769,7 +768,7 @@ export default class wazirx extends Exchange {
         return orders;
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#cancelAllOrders
@@ -788,7 +787,7 @@ export default class wazirx extends Exchange {
         return await this.privateDeleteOpenOrders (this.extend (request, params));
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#cancelOrder
@@ -861,7 +860,7 @@ export default class wazirx extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         // {
         //     "id":1949417813,
         //     "symbol":"ltcusdt",

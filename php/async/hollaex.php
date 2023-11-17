@@ -547,7 +547,7 @@ class hollaex extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -637,7 +637,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -807,7 +807,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -1071,7 +1071,7 @@ class hollaex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
         //
@@ -1325,7 +1325,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "currency":"usdt",
@@ -1587,7 +1587,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchWithdrawals, fetchDeposits
         //
@@ -1680,6 +1680,8 @@ class hollaex extends Exchange {
             'currency' => $currency['code'],
             'status' => $status,
             'updated' => $updated,
+            'comment' => $this->safe_string($transaction, 'message'),
+            'internal' => null,
             'fee' => $fee,
         );
     }
@@ -1728,7 +1730,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    "bch":{
         //        "id":4,

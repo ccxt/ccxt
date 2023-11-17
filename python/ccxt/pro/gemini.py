@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 
 
@@ -37,7 +37,7 @@ class gemini(ccxt.async_support.gemini):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         watch the list of most recent trades for a particular symbol
         :see: https://docs.gemini.com/websocket-api/#market-data-version-2
@@ -181,7 +181,7 @@ class gemini(ccxt.async_support.gemini):
             messageHash = 'trades:' + symbol
             client.resolve(stored, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.gemini.com/websocket-api/#candles-data-feed
@@ -266,7 +266,7 @@ class gemini(ccxt.async_support.gemini):
         client.resolve(stored, messageHash)
         return message
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.gemini.com/websocket-api/#market-data-version-2
@@ -357,7 +357,7 @@ class gemini(ccxt.async_support.gemini):
         self.handle_order_book(client, message)
         self.handle_trades(client, message)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://docs.gemini.com/websocket-api/#order-events

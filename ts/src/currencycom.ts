@@ -6,7 +6,7 @@ import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, Insu
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -798,7 +798,7 @@ export default class currencycom extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -915,7 +915,7 @@ export default class currencycom extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name currencycom#fetchTickers
@@ -947,7 +947,7 @@ export default class currencycom extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1590971040000,
@@ -1003,7 +1003,7 @@ export default class currencycom extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1119,7 +1119,7 @@ export default class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1366,7 +1366,7 @@ export default class currencycom extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchOrder
@@ -1409,7 +1409,7 @@ export default class currencycom extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name currencycom#fetchOpenOrders
@@ -1455,7 +1455,7 @@ export default class currencycom extends Exchange {
         return this.parseOrders (response, market, since, limit, params);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#cancelOrder
@@ -1496,7 +1496,7 @@ export default class currencycom extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchMyTrades
@@ -1538,7 +1538,7 @@ export default class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name currencycom#fetchDeposits
@@ -1552,7 +1552,7 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name currencycom#fetchWithdrawals
@@ -1566,7 +1566,7 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Withdrawals', code, since, limit, params);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name currencycom#fetchDepositsWithdrawals
@@ -1580,7 +1580,7 @@ export default class currencycom extends Exchange {
         return await this.fetchTransactionsByMethod ('privateGetV2Transactions', code, since, limit, params);
     }
 
-    async fetchTransactionsByMethod (method, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsByMethod (method, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -1613,7 +1613,7 @@ export default class currencycom extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "id": "616769213",
@@ -1641,7 +1641,7 @@ export default class currencycom extends Exchange {
             fee['currency'] = code;
             fee['cost'] = feeCost;
         }
-        const result = {
+        return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'blockchainTransactionHash'),
@@ -1659,10 +1659,10 @@ export default class currencycom extends Exchange {
             'tagFrom': undefined,
             'tagTo': undefined,
             'updated': undefined,
+            'internal': undefined,
             'comment': undefined,
             'fee': fee,
         };
-        return result;
     }
 
     parseTransactionStatus (status) {
@@ -1681,7 +1681,7 @@ export default class currencycom extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchLedger
@@ -1735,7 +1735,7 @@ export default class currencycom extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         const id = this.safeString (item, 'id');
         const amountString = this.safeString (item, 'amount');
         const amount = Precise.stringAbs (amountString);
@@ -1831,7 +1831,7 @@ export default class currencycom extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         currency = this.safeCurrency (undefined, currency);
@@ -1877,7 +1877,7 @@ export default class currencycom extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name currencycom#fetchPositions
@@ -1924,7 +1924,7 @@ export default class currencycom extends Exchange {
         return this.parsePositions (data, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //    {
         //        "accountId": "109698017416453793",

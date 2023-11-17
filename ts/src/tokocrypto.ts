@@ -5,7 +5,7 @@ import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -842,7 +842,7 @@ export default class tokocrypto extends Exchange {
         return orderbook;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -944,10 +944,10 @@ export default class tokocrypto extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'id', 'tradeId', id);
-        let side = undefined;
+        let side: Str = undefined;
         const orderId = this.safeString (trade, 'orderId');
         const buyerMaker = this.safeValue2 (trade, 'm', 'isBuyerMaker');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
             takerOrMaker = 'taker';
@@ -1071,7 +1071,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "ETHBTC",
@@ -1156,7 +1156,7 @@ export default class tokocrypto extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name tokocrypto#fetchTickers
@@ -1203,7 +1203,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchBidsAsks
@@ -1218,7 +1218,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     [
         //         1591478520000, // open time
@@ -1409,7 +1409,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // spot
         //
@@ -1745,7 +1745,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrder (rawOrder, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchOrder
@@ -1795,7 +1795,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrder (rawOrder);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name tokocrypto#fetchOrders
@@ -1865,7 +1865,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name tokocrypto#fetchOpenOrders
@@ -1881,7 +1881,7 @@ export default class tokocrypto extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name tokocrypto#fetchClosedOrders
@@ -1897,7 +1897,7 @@ export default class tokocrypto extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#cancelOrder
@@ -1943,7 +1943,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrder (rawOrder);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#fetchMyTrades
@@ -2060,7 +2060,7 @@ export default class tokocrypto extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name tokocrypto#fetchDeposits
@@ -2122,7 +2122,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name tokocrypto#fetchWithdrawals
@@ -2200,7 +2200,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //

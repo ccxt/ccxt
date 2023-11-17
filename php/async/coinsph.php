@@ -656,7 +656,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
@@ -827,7 +827,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -926,7 +926,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //     array(
@@ -1286,7 +1286,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder POST /openapi/v1/order
         //     {
@@ -1514,7 +1514,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1724,7 +1724,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //     {
@@ -1790,11 +1790,8 @@ class coinsph extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $internal = $this->safe_integer($transaction, 'transferType');
-        if ($internal !== null) {
-            $internal = $internal ? true : false;
-        }
         $network = $this->safe_string($transaction, 'network');
+        $internal = $network === 'Internal';
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1814,6 +1811,7 @@ class coinsph extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'internal' => $internal,
+            'comment' => null,
             'fee' => $fee,
         );
     }
@@ -1862,7 +1860,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "coin" => "ETH",

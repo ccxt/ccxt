@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -267,7 +266,7 @@ class exmo(Exchange, ImplicitAPI):
             margin['amount'] = amount
         return margin
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None):
         #
         #      {}
         #
@@ -485,7 +484,7 @@ class exmo(Exchange, ImplicitAPI):
         self.options['transactionFees'] = result
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
@@ -519,7 +518,7 @@ class exmo(Exchange, ImplicitAPI):
         self.options['transactionFees'] = result
         return result
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    [
         #        {
@@ -800,7 +799,7 @@ class exmo(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -849,7 +848,7 @@ class exmo(Exchange, ImplicitAPI):
         candles = self.safe_value(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "t":1584057600000,
@@ -940,7 +939,7 @@ class exmo(Exchange, ImplicitAPI):
             #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -959,7 +958,7 @@ class exmo(Exchange, ImplicitAPI):
         result = self.safe_value(response, market['id'])
         return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
-    def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
@@ -992,7 +991,7 @@ class exmo(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
         return result
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "buy_price":"0.00002996",
@@ -1032,7 +1031,7 @@ class exmo(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1079,7 +1078,7 @@ class exmo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.parse_ticker(response[market['id']], market)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1166,7 +1165,7 @@ class exmo(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1206,7 +1205,7 @@ class exmo(Exchange, ImplicitAPI):
         data = self.safe_value(response, market['id'], [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#b8d8d9af-4f46-46a1-939b-ad261d79f452  # spot
@@ -1388,7 +1387,7 @@ class exmo(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#1f710d4b-75bc-4b65-ad68-006f863a3f26
@@ -1434,7 +1433,7 @@ class exmo(Exchange, ImplicitAPI):
                 #
         return self.parse_order(response)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         *spot only* fetches information on an order made by the user
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  # spot
@@ -1472,7 +1471,7 @@ class exmo(Exchange, ImplicitAPI):
         order['id'] = str(id)
         return order
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  # spot
@@ -1544,7 +1543,7 @@ class exmo(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#0e135370-daa4-4689-8acd-b6876dee9ba1  # spot open orders
@@ -1659,7 +1658,7 @@ class exmo(Exchange, ImplicitAPI):
         }
         return self.safe_string(side, orderType, orderType)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
@@ -1793,7 +1792,7 @@ class exmo(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#1d2524dd-ae6d-403a-a067-77b50d13fbe5  # margin
@@ -2000,7 +1999,7 @@ class exmo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDepositsWithdrawals
         #
@@ -2120,10 +2119,11 @@ class exmo(Exchange, ImplicitAPI):
             'tagTo': None,
             'updated': self.safe_timestamp(transaction, 'updated'),
             'comment': comment,
+            'internal': None,
             'fee': fee,
         }
 
-    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
@@ -2172,7 +2172,7 @@ class exmo(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response['history'], currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2221,7 +2221,7 @@ class exmo(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items', [])
         return self.parse_transactions(items, currency, since, limit)
 
-    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -2269,7 +2269,7 @@ class exmo(Exchange, ImplicitAPI):
         first = self.safe_value(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposit(self, id=None, code: Optional[str] = None, params={}):
+    def fetch_deposit(self, id=None, code: Str = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -2317,7 +2317,7 @@ class exmo(Exchange, ImplicitAPI):
         first = self.safe_value(items, 0, {})
         return self.parse_transaction(first, currency)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code

@@ -12,14 +12,23 @@ class coinbase extends coinbase$1 {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'cancelAllOrdersWs': false,
+                'cancelOrdersWs': false,
+                'cancelOrderWs': false,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchBalanceWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'fetchTradesWs': false,
+                'watchBalance': false,
+                'watchMyTrades': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
-                'watchBalance': false,
-                'watchOrders': true,
-                'watchMyTrades': false,
             },
             'urls': {
                 'api': {

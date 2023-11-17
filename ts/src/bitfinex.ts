@@ -6,7 +6,7 @@ import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied,
 import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -434,7 +434,7 @@ export default class bitfinex extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchDepositWithdrawFees
@@ -458,7 +458,7 @@ export default class bitfinex extends Exchange {
         return this.parseDepositWithdrawFees (withdraw, codes);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    '0.0004'
         //
@@ -791,7 +791,7 @@ export default class bitfinex extends Exchange {
         });
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //     {
         //         "status": "success",
@@ -853,7 +853,7 @@ export default class bitfinex extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitfinex#fetchTickers
@@ -892,7 +892,7 @@ export default class bitfinex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'pair');
         market = this.safeMarket (marketId, market);
@@ -922,7 +922,7 @@ export default class bitfinex extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public) v1
         //
@@ -1029,7 +1029,7 @@ export default class bitfinex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchMyTrades
@@ -1124,7 +1124,7 @@ export default class bitfinex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#cancelOrder
@@ -1141,7 +1141,7 @@ export default class bitfinex extends Exchange {
         return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#cancelAllOrders
@@ -1153,7 +1153,7 @@ export default class bitfinex extends Exchange {
         return await this.privatePostOrderCancelAll (params);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //           "id": 57334010955,
@@ -1225,7 +1225,7 @@ export default class bitfinex extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitfinex#fetchOpenOrders
@@ -1250,7 +1250,7 @@ export default class bitfinex extends Exchange {
         return orders;
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitfinex#fetchClosedOrders
@@ -1276,7 +1276,7 @@ export default class bitfinex extends Exchange {
         return orders;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchOrder
@@ -1293,7 +1293,7 @@ export default class bitfinex extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1457539800000,
@@ -1410,7 +1410,7 @@ export default class bitfinex extends Exchange {
         };
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitfinex#fetchDepositsWithdrawals
@@ -1459,7 +1459,7 @@ export default class bitfinex extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // crypto
         //
@@ -1529,6 +1529,7 @@ export default class bitfinex extends Exchange {
             'tagTo': undefined,
             'updated': this.safeTimestamp (transaction, 'timestamp'),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),
@@ -1598,7 +1599,7 @@ export default class bitfinex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#fetchPositions

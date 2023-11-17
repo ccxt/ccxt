@@ -341,6 +341,7 @@ export default class cryptocom extends Exchange {
             'exceptions': {
                 'exact': {
                     '219': InvalidOrder,
+                    '314': InvalidOrder,
                     '10001': ExchangeError,
                     '10002': PermissionDenied,
                     '10003': PermissionDenied,
@@ -2413,6 +2414,7 @@ export default class cryptocom extends Exchange {
             'status': status,
             'updated': this.safeInteger(transaction, 'update_time'),
             'internal': undefined,
+            'comment': this.safeString(transaction, 'client_wid'),
             'fee': fee,
         };
     }

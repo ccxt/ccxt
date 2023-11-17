@@ -153,7 +153,7 @@ class oceanex extends Exchange {
              * retrieves data on all $markets for oceanex
              * @see https://api.oceanex.pro/doc/v1/#$markets-post
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $request = array( 'show_details' => true );
             $response = Async\await($this->publicGetMarkets (array_merge($request, $params)));
@@ -170,70 +170,69 @@ class oceanex extends Exchange {
             //        "minimum_trading_amount" => "1.0"
             //    ),
             //
-            $result = array();
             $markets = $this->safe_value($response, 'data', array());
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_value($market, 'id');
-                $name = $this->safe_value($market, 'name');
-                list($baseId, $quoteId) = explode('/', $name);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $baseId = strtolower($baseId);
-                $quoteId = strtolower($quoteId);
-                $symbol = $base . '/' . $quote;
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => null,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => $this->safe_number($market, 'minimum_trading_amount'),
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                );
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_value($market, 'id');
+        $name = $this->safe_value($market, 'name');
+        list($baseId, $quoteId) = explode('/', $name);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $baseId = strtolower($baseId);
+        $quoteId = strtolower($quoteId);
+        $symbol = $base . '/' . $quote;
+        return array(
+            'id' => $id,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => null,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'minimum_trading_amount'),
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
@@ -320,7 +319,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($data, $market = null) {
+    public function parse_ticker($data, ?array $market = null) {
         //
         //         {
         //             "at":1559431729,
@@ -506,7 +505,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -770,7 +769,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // array(
         //    1559232000,
         //    8889.22,
@@ -819,7 +818,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "created_at" => "2019-01-18T00:38:18Z",

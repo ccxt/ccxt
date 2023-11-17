@@ -17,6 +17,15 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'cancelAllOrdersWs': false,
+                'cancelOrdersWs': false,
+                'cancelOrderWs': false,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchBalanceWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'fetchTradesWs': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchTicker': true,
@@ -615,6 +624,25 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "reason": "cancelled_by_user"
         //    }
         //
+        //     {
+        //         "feed": 'open_orders',
+        //         "order": {
+        //         "instrument": 'PF_XBTUSD',
+        //         "time": 1698159920097,
+        //         "last_update_time": 1699835622988,
+        //         "qty": 1.1,
+        //         "filled": 0,
+        //         "limit_price": 20000,
+        //         "stop_price": 0,
+        //         "type": 'limit',
+        //         "order_id": '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
+        //         "direction": 0,
+        //         "reduce_only": false
+        //         },
+        //         "is_cancel": false,
+        //         "reason": 'edited_by_user'
+        //     }
+        //
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit');
@@ -629,7 +657,8 @@ export default class krakenfutures extends krakenfuturesRest {
             const orderId = this.safeString(order, 'order_id');
             const previousOrders = this.safeValue(orders.hashmap, symbol, {});
             const previousOrder = this.safeValue(previousOrders, orderId);
-            if (previousOrder === undefined) {
+            const reason = this.safeString(message, 'reason');
+            if ((previousOrder === undefined) || (reason === 'edited_by_user')) {
                 const parsed = this.parseWsOrder(order);
                 orders.append(parsed);
                 client.resolve(orders, messageHash);
@@ -655,9 +684,10 @@ export default class krakenfutures extends krakenfuturesRest {
                 }
                 previousOrder['cost'] = totalCost;
                 if (previousOrder['filled'] !== undefined) {
-                    previousOrder['filled'] = Precise.stringAdd(previousOrder['filled'], this.numberToString(trade['amount']));
+                    const stringOrderFilled = this.numberToString(previousOrder['filled']);
+                    previousOrder['filled'] = Precise.stringAdd(stringOrderFilled, this.numberToString(trade['amount']));
                     if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise.stringSub(previousOrder['amount'], previousOrder['filled']);
+                        previousOrder['remaining'] = Precise.stringSub(this.numberToString(previousOrder['amount']), stringOrderFilled);
                     }
                 }
                 if (previousOrder['fee'] === undefined) {

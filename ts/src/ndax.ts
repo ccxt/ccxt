@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -457,69 +457,68 @@ export default class ndax extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString (market, 'InstrumentId');
-            // const lowercaseId = this.safeStringLower (market, 'symbol');
-            const baseId = this.safeString (market, 'Product1');
-            const quoteId = this.safeString (market, 'Product2');
-            const base = this.safeCurrencyCode (this.safeString (market, 'Product1Symbol'));
-            const quote = this.safeCurrencyCode (this.safeString (market, 'Product2Symbol'));
-            const sessionStatus = this.safeString (market, 'SessionStatus');
-            const isDisable = this.safeValue (market, 'IsDisable');
-            const sessionRunning = (sessionStatus === 'Running');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (sessionRunning && !isDisable),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'QuantityIncrement'),
-                    'price': this.safeNumber (market, 'PriceIncrement'),
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'InstrumentId');
+        // const lowercaseId = this.safeStringLower (market, 'symbol');
+        const baseId = this.safeString (market, 'Product1');
+        const quoteId = this.safeString (market, 'Product2');
+        const base = this.safeCurrencyCode (this.safeString (market, 'Product1Symbol'));
+        const quote = this.safeCurrencyCode (this.safeString (market, 'Product2Symbol'));
+        const sessionStatus = this.safeString (market, 'SessionStatus');
+        const isDisable = this.safeValue (market, 'IsDisable');
+        const sessionRunning = (sessionStatus === 'Running');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (sessionRunning && !isDisable),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'QuantityIncrement'),
+                'price': this.safeNumber (market, 'PriceIncrement'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'MinimumQuantity'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': this.safeNumber (market, 'MinimumPrice'),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber (market, 'MinimumQuantity'),
+                    'max': undefined,
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': this.safeNumber (market, 'MinimumPrice'),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
@@ -604,7 +603,7 @@ export default class ndax extends Exchange {
         return this.parseOrderBook (response, symbol);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -721,7 +720,7 @@ export default class ndax extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1501603632000, // 0 DateTime
@@ -791,7 +790,7 @@ export default class ndax extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1118,7 +1117,7 @@ export default class ndax extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "TransactionId": 2663709493,
@@ -1174,7 +1173,7 @@ export default class ndax extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchLedger
@@ -1236,7 +1235,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1450,7 +1449,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchMyTrades
@@ -1538,7 +1537,7 @@ export default class ndax extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ndax#cancelAllOrders
@@ -1573,7 +1572,7 @@ export default class ndax extends Exchange {
         return response;
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ndax#cancelOrder
@@ -1612,7 +1611,7 @@ export default class ndax extends Exchange {
         });
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name ndax#fetchOpenOrders
@@ -1691,7 +1690,7 @@ export default class ndax extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name ndax#fetchOrders
@@ -1786,7 +1785,7 @@ export default class ndax extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrder
@@ -1862,7 +1861,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrderTrades
@@ -1983,7 +1982,7 @@ export default class ndax extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         // fetchDepositAddress, createDepositAddress
         //
@@ -2034,7 +2033,7 @@ export default class ndax extends Exchange {
         return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name ndax#fetchDeposits
@@ -2095,7 +2094,7 @@ export default class ndax extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name ndax#fetchWithdrawals
@@ -2197,7 +2196,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2290,6 +2289,8 @@ export default class ndax extends Exchange {
             'status': this.parseTransactionStatusByType (transactionStatus, type),
             'updated': updated,
             'fee': fee,
+            'internal': undefined,
+            'comment': undefined,
             'network': undefined,
         };
     }

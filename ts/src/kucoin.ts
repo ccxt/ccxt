@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1305,7 +1305,7 @@ export default class kucoin extends Exchange {
         return this.parseDepositWithdrawFee (data, currency);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //        "currency": "USDT",
@@ -1371,7 +1371,7 @@ export default class kucoin extends Exchange {
         return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "BTC-USDT",   // symbol
@@ -1463,7 +1463,7 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name kucoin#fetchTickers
@@ -1561,7 +1561,7 @@ export default class kucoin extends Exchange {
         return this.parseTicker (response['data'], market);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1545904980",             // Start time of the candle cycle
@@ -1707,7 +1707,7 @@ export default class kucoin extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         let address = this.safeString (depositAddress, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if (address !== undefined) {
@@ -1776,8 +1776,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.kucoin.com/#get-part-order-book-aggregated
-         * @see https://docs.kucoin.com/#get-full-order-book-aggregated
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
@@ -1787,7 +1787,6 @@ export default class kucoin extends Exchange {
         const market = this.market (symbol);
         const level = this.safeInteger (params, 'level', 2);
         const request = { 'symbol': market['id'] };
-        let method = 'publicGetMarketOrderbookLevelLevelLimit';
         const isAuthenticated = this.checkRequiredCredentials (false);
         let response = undefined;
         if (!isAuthenticated || limit !== undefined) {
@@ -1802,10 +1801,10 @@ export default class kucoin extends Exchange {
                 }
                 request['limit'] = limit ? limit : 100;
             }
+            response = await this.publicGetMarketOrderbookLevelLevelLimit (this.extend (request, params));
         } else {
-            method = 'privateGetMarketOrderbookLevel2'; // recommended (v3)
+            response = await this.privateGetMarketOrderbookLevel2 (this.extend (request, params));
         }
-        response = await this[method] (this.extend (request, params));
         //
         // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //
@@ -2136,7 +2135,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#cancelOrder
@@ -2157,7 +2156,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const stop = this.safeValue (params, 'stop', false);
+        const stop = this.safeValue2 (params, 'stop', 'trigger', false);
         const hf = this.safeValue (params, 'hf', false);
         if (hf) {
             if (symbol === undefined) {
@@ -2166,29 +2165,31 @@ export default class kucoin extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let method = 'privateDeleteOrdersOrderId';
+        let response = undefined;
+        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'hf', 'trigger' ]);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (stop) {
-                method = 'privateDeleteStopOrderCancelOrderByClientOid';
+                response = await this.privateDeleteStopOrderCancelOrderByClientOid (this.extend (request, params));
             } else if (hf) {
-                method = 'privateDeleteHfOrdersClientOrderClientOid';
+                response = await this.privateDeleteHfOrdersClientOrderClientOid (this.extend (request, params));
             } else {
-                method = 'privateDeleteOrderClientOrderClientOid';
+                response = await this.privateDeleteOrderClientOrderClientOid (this.extend (request, params));
             }
         } else {
-            if (stop) {
-                method = 'privateDeleteStopOrderOrderId';
-            } else if (hf) {
-                method = 'privateDeleteHfOrdersOrderId';
-            }
             request['orderId'] = id;
+            if (stop) {
+                response = await this.privateDeleteStopOrderOrderId (this.extend (request, params));
+            } else if (hf) {
+                response = await this.privateDeleteHfOrdersOrderId (this.extend (request, params));
+            } else {
+                response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+            }
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'hf' ]);
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#cancelAllOrders
@@ -2232,7 +2233,7 @@ export default class kucoin extends Exchange {
         return await this[method] (this.extend (request, query));
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrdersByStatus
@@ -2346,7 +2347,7 @@ export default class kucoin extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kucoin#fetchClosedOrders
@@ -2377,7 +2378,7 @@ export default class kucoin extends Exchange {
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kucoin#fetchOpenOrders
@@ -2411,7 +2412,7 @@ export default class kucoin extends Exchange {
         return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrder
@@ -2482,7 +2483,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2664,7 +2665,7 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrderTrades
@@ -2684,7 +2685,7 @@ export default class kucoin extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchMyTrades
@@ -2839,7 +2840,7 @@ export default class kucoin extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -3075,7 +3076,7 @@ export default class kucoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -3163,6 +3164,7 @@ export default class kucoin extends Exchange {
                 updated = updated * 1000;
             }
         }
+        const internal = this.safeValue (transaction, 'isInner');
         const tag = this.safeString (transaction, 'memo');
         return {
             'info': transaction,
@@ -3182,12 +3184,13 @@ export default class kucoin extends Exchange {
             'type': type,
             'status': this.parseTransactionStatus (rawStatus),
             'comment': this.safeString (transaction, 'remark'),
+            'internal': internal,
             'fee': fee,
             'updated': updated,
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kucoin#fetchDeposits
@@ -3273,7 +3276,7 @@ export default class kucoin extends Exchange {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kucoin#fetchWithdrawals
@@ -3607,7 +3610,7 @@ export default class kucoin extends Exchange {
         }
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer (spot)
         //
@@ -3715,7 +3718,7 @@ export default class kucoin extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
@@ -3798,7 +3801,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchLedger
@@ -3907,7 +3910,7 @@ export default class kucoin extends Exchange {
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
     }
 
-    parseBorrowRate (info, currency = undefined) {
+    parseBorrowRate (info, currency: Currency = undefined) {
         //
         //     {
         //         "tradeId": "62db2dcaff219600012b56cd",
@@ -3931,7 +3934,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchBorrowInterest
@@ -4034,7 +4037,7 @@ export default class kucoin extends Exchange {
         return this.parseBorrowInterests (assets, undefined);
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         //
         // Cross
         //
@@ -4108,7 +4111,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#borrowMargin
@@ -4160,7 +4163,7 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#repayMargin
@@ -4208,7 +4211,7 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         //     {
         //         "orderNo": "5da6dba0f943c0c81f5d5db5",
@@ -4228,7 +4231,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchDepositWithdrawFees

@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Greeks, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -315,7 +315,7 @@ export default class delta extends Exchange {
                 },
             },
             'info': undefined,
-        };
+        } as MarketInterface;
     }
 
     market (symbol) {
@@ -832,7 +832,7 @@ export default class delta extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -1121,7 +1121,7 @@ export default class delta extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name delta#fetchTickers
@@ -1316,7 +1316,7 @@ export default class delta extends Exchange {
         return this.parseOrderBook (result, market['symbol'], undefined, 'buy', 'sell', 'price', 'size');
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1453,7 +1453,7 @@ export default class delta extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "time":1605393120,
@@ -1609,7 +1609,7 @@ export default class delta extends Exchange {
         return this.parsePosition (result, market);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchPositions
@@ -1646,7 +1646,7 @@ export default class delta extends Exchange {
         return this.parsePositions (result, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         // fetchPosition
         //
@@ -1726,7 +1726,7 @@ export default class delta extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -1947,7 +1947,7 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name delta#cancelOrder
@@ -2006,7 +2006,7 @@ export default class delta extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name delta#cancelAllOrders
@@ -2034,7 +2034,7 @@ export default class delta extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name delta#fetchOpenOrders
@@ -2049,7 +2049,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrders', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name delta#fetchClosedOrders
@@ -2064,7 +2064,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersWithMethod (method, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'product_ids': market['id'], // comma-separated
@@ -2115,7 +2115,7 @@ export default class delta extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchMyTrades
@@ -2198,7 +2198,7 @@ export default class delta extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchLedger
@@ -2268,7 +2268,7 @@ export default class delta extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "amount":"29.889184",
@@ -2367,7 +2367,7 @@ export default class delta extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //    {
         //        "id": 1915615,
@@ -2463,7 +2463,7 @@ export default class delta extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchFundingRates
@@ -2531,7 +2531,7 @@ export default class delta extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //     {
         //         "close": 30600.5,
@@ -2666,7 +2666,7 @@ export default class delta extends Exchange {
         return this.parseMarginModification (result, market);
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market: Market = undefined) {
         //
         //     {
         //         "auto_topup": false,
@@ -2775,7 +2775,7 @@ export default class delta extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    parseOpenInterest (interest, market = undefined) {
+    parseOpenInterest (interest, market: Market = undefined) {
         //
         //     {
         //         "close": 894.0,
@@ -2870,7 +2870,7 @@ export default class delta extends Exchange {
         return await this.privateGetProductsProductIdOrdersLeverage (this.extend (request, params));
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name delta#setLeverage
@@ -2902,7 +2902,7 @@ export default class delta extends Exchange {
         return await this.privatePostProductsProductIdOrdersLeverage (this.extend (request, params));
     }
 
-    async fetchSettlementHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name delta#fetchSettlementHistory
@@ -3135,7 +3135,7 @@ export default class delta extends Exchange {
         return this.parseGreeks (result, market);
     }
 
-    parseGreeks (greeks, market = undefined) {
+    parseGreeks (greeks, market: Market = undefined) {
         //
         //     {
         //         "close": 6793.0,

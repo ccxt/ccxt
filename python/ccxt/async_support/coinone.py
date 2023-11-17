@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -267,7 +266,7 @@ class coinone(Exchange, ImplicitAPI):
         response = await self.privatePostAccountBalance(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -285,7 +284,7 @@ class coinone(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty')
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -327,7 +326,7 @@ class coinone(Exchange, ImplicitAPI):
         response = await self.publicGetTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "currency":"xec",
@@ -371,7 +370,7 @@ class coinone(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -439,7 +438,7 @@ class coinone(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -507,7 +506,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -555,7 +554,7 @@ class coinone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -605,9 +604,9 @@ class coinone(Exchange, ImplicitAPI):
         base = None
         quote = None
         if baseId is not None:
-            base = self.safe_currency_code(baseId, self.safe_string(market, 'base'))
+            base = self.safe_currency_code(baseId)
         if quoteId is not None:
-            quote = self.safe_currency_code(quoteId, self.safe_string(market, 'quote'))
+            quote = self.safe_currency_code(quoteId)
         symbol = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
@@ -662,7 +661,7 @@ class coinone(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -701,7 +700,7 @@ class coinone(Exchange, ImplicitAPI):
         limitOrders = self.safe_value(response, 'limitOrders', [])
         return self.parse_orders(limitOrders, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -740,7 +739,7 @@ class coinone(Exchange, ImplicitAPI):
         completeOrders = self.safe_value(response, 'completeOrders', [])
         return self.parse_trades(completeOrders, market, since, limit)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id

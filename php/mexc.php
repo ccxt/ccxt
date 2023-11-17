@@ -1440,7 +1440,7 @@ class mexc extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         $id = null;
         $timestamp = null;
         $orderId = null;
@@ -1713,7 +1713,7 @@ class mexc extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1881,7 +1881,7 @@ class mexc extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = null;
@@ -2997,7 +2997,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot => createOrder
         //
@@ -3922,7 +3922,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -4117,7 +4117,7 @@ class mexc extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
             @param $info {object} Exchange response for 1 $market
             @param $market {object} CCXT $market
@@ -4149,7 +4149,7 @@ class mexc extends Exchange {
         return $tiers;
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     array("chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"),
         //     array("chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"),
@@ -4391,7 +4391,7 @@ class mexc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -4480,6 +4480,8 @@ class mexc extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => null,
+            'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
     }
@@ -4571,7 +4573,7 @@ class mexc extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "positionId" => 1394650,
@@ -4811,7 +4813,7 @@ class mexc extends Exchange {
         ));
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // spot => fetchTransfer
         //
@@ -5086,7 +5088,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function parse_transaction_fee($transaction, $currency = null) {
+    public function parse_transaction_fee($transaction, ?array $currency = null) {
         //
         //    {
         //        "coin" => "AGLD",
@@ -5167,7 +5169,7 @@ class mexc extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'coin');
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "coin" => "AGLD",
@@ -5214,7 +5216,7 @@ class mexc extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result);
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         //     {
         //         "tranId" => "762407666453712896"

@@ -5,7 +5,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -375,7 +375,7 @@ export default class indodax extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buy', 'sell');
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "high":"0.01951",
@@ -450,7 +450,7 @@ export default class indodax extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name indodax#fetchTickers
@@ -482,7 +482,7 @@ export default class indodax extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         const timestamp = this.safeTimestamp (trade, 'date');
         return this.safeTrade ({
             'id': this.safeString (trade, 'tid'),
@@ -530,7 +530,7 @@ export default class indodax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "order_id": "12345",
@@ -609,7 +609,7 @@ export default class indodax extends Exchange {
         });
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name indodax#fetchOrder
@@ -632,7 +632,7 @@ export default class indodax extends Exchange {
         return order;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name indodax#fetchOpenOrders
@@ -673,7 +673,7 @@ export default class indodax extends Exchange {
         return exchangeOrders as Order[];
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name indodax#fetchClosedOrders
@@ -738,7 +738,7 @@ export default class indodax extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name indodax#cancelOrder
@@ -797,7 +797,7 @@ export default class indodax extends Exchange {
         };
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name indodax#fetchDepositsWithdrawals
@@ -949,7 +949,7 @@ export default class indodax extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -1021,6 +1021,7 @@ export default class indodax extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString (transaction, 'withdraw_memo'),
+            'internal': undefined,
             'fee': fee,
             'info': transaction,
         };

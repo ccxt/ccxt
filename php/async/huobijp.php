@@ -534,7 +534,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -740,7 +740,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -929,7 +929,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -1312,7 +1312,7 @@ class huobijp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {                  $id =>  13997833014,
         //                    "symbol" => "ethbtc",
@@ -1606,7 +1606,7 @@ class huobijp extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "currency" => "usdt",
@@ -1703,7 +1703,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1774,6 +1774,8 @@ class huobijp extends Exchange {
             'currency' => $code,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'state')),
             'updated' => $this->safe_integer($transaction, 'updated-at'),
+            'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),

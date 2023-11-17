@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Greeks
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -807,7 +806,7 @@ class delta(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -1092,7 +1091,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://docs.delta.exchange/#get-tickers-for-products
@@ -1241,7 +1240,7 @@ class delta(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.delta.exchange/#get-l2-orderbook
@@ -1279,7 +1278,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order_book(result, market['symbol'], None, 'buy', 'sell', 'price', 'size')
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1374,7 +1373,7 @@ class delta(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.delta.exchange/#get-public-trades
@@ -1408,7 +1407,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "time":1605393120,
@@ -1428,7 +1427,7 @@ class delta(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.delta.exchange/#get-ohlc-candles
@@ -1550,7 +1549,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_position(result, market)
 
-    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :see: https://docs.delta.exchange/#get-margined-positions
@@ -1584,7 +1583,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_positions(result, symbols)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         # fetchPosition
         #
@@ -1660,7 +1659,7 @@ class delta(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         #
@@ -1867,7 +1866,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result')
         return self.parse_order(result, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://docs.delta.exchange/#cancel-order
@@ -1923,7 +1922,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result')
         return self.parse_order(result, market)
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
         :see: https://docs.delta.exchange/#cancel-all-open-orders
@@ -1948,7 +1947,7 @@ class delta(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://docs.delta.exchange/#get-active-orders
@@ -1960,7 +1959,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_with_method('privateGetOrders', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://docs.delta.exchange/#get-order-history-cancelled-and-closed
@@ -1972,7 +1971,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_with_method('privateGetOrdersHistory', symbol, since, limit, params)
 
-    async def fetch_orders_with_method(self, method, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders_with_method(self, method, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         request = {
             # 'product_ids': market['id'],  # comma-separated
@@ -2019,7 +2018,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://docs.delta.exchange/#get-user-fills-by-filters
@@ -2096,7 +2095,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
-    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://docs.delta.exchange/#get-wallet-transactions
@@ -2160,7 +2159,7 @@ class delta(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #     {
         #         "amount":"29.889184",
@@ -2253,7 +2252,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #    {
         #        "id": 1915615,
@@ -2344,7 +2343,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetch the funding rate for multiple markets
         :see: https://docs.delta.exchange/#get-tickers-for-products
@@ -2409,7 +2408,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(rates)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         #     {
         #         "close": 30600.5,
@@ -2535,7 +2534,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_margin_modification(result, market)
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None):
         #
         #     {
         #         "auto_topup": False,
@@ -2639,7 +2638,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         #
         #     {
         #         "close": 894.0,
@@ -2730,7 +2729,7 @@ class delta(Exchange, ImplicitAPI):
         #
         return await self.privateGetProductsProductIdOrdersLeverage(self.extend(request, params))
 
-    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    async def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://docs.delta.exchange/#change-order-leverage
@@ -2759,7 +2758,7 @@ class delta(Exchange, ImplicitAPI):
         #
         return await self.privatePostProductsProductIdOrdersLeverage(self.extend(request, params))
 
-    async def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
         :see: https://docs.delta.exchange/#get-product-settlement-prices
@@ -2981,7 +2980,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_greeks(result, market)
 
-    def parse_greeks(self, greeks, market=None):
+    def parse_greeks(self, greeks, market: Market = None):
         #
         #     {
         #         "close": 6793.0,

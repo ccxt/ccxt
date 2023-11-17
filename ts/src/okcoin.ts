@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -586,16 +586,7 @@ export default class okcoin extends Exchange {
         };
         const response = await this.publicGetPublicInstruments (this.extend (request, params));
         const markets = this.safeValue (response, 'data', []);
-        const result = this.parseMarkets (markets);
-        return result;
-    }
-
-    parseMarkets (markets) {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market): Market {
@@ -830,7 +821,7 @@ export default class okcoin extends Exchange {
         return this.parseOrderBook (first, symbol, timestamp);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "instType": "SPOT",
@@ -933,7 +924,7 @@ export default class okcoin extends Exchange {
         return this.parseTicker (first, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name okcoin#fetchTickers
@@ -952,7 +943,7 @@ export default class okcoin extends Exchange {
         return this.parseTickers (data, symbols, params);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1061,7 +1052,7 @@ export default class okcoin extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1678928760000", // timestamp
@@ -1544,7 +1535,7 @@ export default class okcoin extends Exchange {
         return this.extend (request, params);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#cancelOrder
@@ -1602,7 +1593,7 @@ export default class okcoin extends Exchange {
         }
     }
 
-    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#cancelOrders
@@ -1694,7 +1685,7 @@ export default class okcoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1891,7 +1882,7 @@ export default class okcoin extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOrder
@@ -1937,7 +1928,7 @@ export default class okcoin extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okcoin#fetchOpenOrders
@@ -1985,7 +1976,7 @@ export default class okcoin extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okcoin#fetchClosedOrders
@@ -2073,7 +2064,7 @@ export default class okcoin extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "addr": "okbtothemoon",
@@ -2292,7 +2283,7 @@ export default class okcoin extends Exchange {
         return this.parseTransfer (rawTransfer, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
@@ -2438,7 +2429,7 @@ export default class okcoin extends Exchange {
         return this.parseTransaction (transaction, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name okcoin#fetchDeposits
@@ -2513,7 +2504,7 @@ export default class okcoin extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name okcoin#fetchWithdrawals
@@ -2618,7 +2609,7 @@ export default class okcoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -2705,6 +2696,8 @@ export default class okcoin extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
@@ -2712,7 +2705,7 @@ export default class okcoin extends Exchange {
         };
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchMyTrades
@@ -2749,7 +2742,7 @@ export default class okcoin extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchOrderTrades
@@ -2771,7 +2764,7 @@ export default class okcoin extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okcoin#fetchLedger
@@ -2879,7 +2872,7 @@ export default class okcoin extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //

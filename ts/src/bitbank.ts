@@ -5,7 +5,7 @@ import Exchange from './abstract/bitbank.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -105,6 +105,7 @@ export default class bitbank extends Exchange {
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
                         '{pair}/candlestick/{candletype}/{yyyymmdd}',
+                        '{pair}/circuit_break_info',
                     ],
                 },
                 'private': {
@@ -193,70 +194,69 @@ export default class bitbank extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const pairs = this.safeValue (data, 'pairs', []);
-        const result = [];
-        for (let i = 0; i < pairs.length; i++) {
-            const entry = pairs[i];
-            const id = this.safeString (entry, 'name');
-            const baseId = this.safeString (entry, 'base_asset');
-            const quoteId = this.safeString (entry, 'quote_asset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': this.safeValue (entry, 'is_enabled'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.safeNumber (entry, 'taker_fee_rate_quote'),
-                'maker': this.safeNumber (entry, 'maker_fee_rate_quote'),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'amount_digits'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'price_digits'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (entry, 'unit_amount'),
-                        'max': this.safeNumber (entry, 'limit_max_amount'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': entry,
-            });
-        }
-        return result;
+        return this.parseMarkets (pairs);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseMarket (entry): Market {
+        const id = this.safeString (entry, 'name');
+        const baseId = this.safeString (entry, 'base_asset');
+        const quoteId = this.safeString (entry, 'quote_asset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': this.safeValue (entry, 'is_enabled'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber (entry, 'taker_fee_rate_quote'),
+            'maker': this.safeNumber (entry, 'maker_fee_rate_quote'),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (entry, 'amount_digits'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (entry, 'price_digits'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (entry, 'unit_amount'),
+                    'max': this.safeNumber (entry, 'limit_max_amount'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': entry,
+        };
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
@@ -326,7 +326,7 @@ export default class bitbank extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -454,7 +454,7 @@ export default class bitbank extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         "0.02501786",
@@ -607,7 +607,7 @@ export default class bitbank extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
@@ -676,7 +676,7 @@ export default class bitbank extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#cancelOrder
@@ -698,7 +698,7 @@ export default class bitbank extends Exchange {
         return data;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#fetchOrder
@@ -719,7 +719,7 @@ export default class bitbank extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitbank#fetchOpenOrders
@@ -748,7 +748,7 @@ export default class bitbank extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#fetchMyTrades
@@ -854,7 +854,7 @@ export default class bitbank extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -891,6 +891,7 @@ export default class bitbank extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

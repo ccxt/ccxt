@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Transaction, Ticker, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -50,8 +50,8 @@ export default class bitmex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDepositsWithdrawals': 'emulated',
-                'fetchDepositWithdrawalFee': 'emulated',
-                'fetchDepositWithdrawalFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -550,127 +550,122 @@ export default class bitmex extends Exchange {
         //    }
         //  ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'underlying');
-            const quoteId = this.safeString (market, 'quoteCurrency');
-            const settleId = this.safeString (market, 'settlCurrency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
-            // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
-            // so let's take the settlCurrency first and then adjust if needed
-            const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-            const types = {
-                'FFWCSX': 'swap',
-                'FFWCSF': 'swap',
-                'IFXXXP': 'spot',
-                'FFCCSX': 'future',
-                'MRBXXX': 'index',
-                'MRCXXX': 'index',
-                'MRFXXX': 'index',
-                'MRRXXX': 'index',
-                'MRIXXX': 'index',
-            };
-            const type = this.safeString (types, typ, typ);
-            const swap = type === 'swap';
-            const future = type === 'future';
-            const spot = type === 'spot';
-            const contract = swap || future;
-            let contractSize = undefined;
-            const index = type === 'index';
-            const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-            const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-            const linear = contract ? (!isInverse && !isQuanto) : undefined;
-            const status = this.safeString (market, 'state');
-            const active = status !== 'Unlisted';
-            let expiry = undefined;
-            let expiryDatetime = undefined;
-            let symbol = undefined;
-            if (spot) {
-                symbol = base + '/' + quote;
-            } else if (contract) {
-                symbol = base + '/' + quote + ':' + settle;
-                const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
-                if (linear) {
-                    contractSize = this.parseNumber (Precise.stringDiv ('1', market['underlyingToPositionMultiplier']));
-                } else {
-                    contractSize = this.parseNumber (multiplierString);
-                }
-                if (future) {
-                    expiryDatetime = this.safeString (market, 'expiry');
-                    expiry = this.parse8601 (expiryDatetime);
-                    symbol = symbol + '-' + this.yymmdd (expiry);
-                }
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'underlying');
+        const quoteId = this.safeString (market, 'quoteCurrency');
+        const settleId = this.safeString (market, 'settlCurrency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
+        // so let's take the settlCurrency first and then adjust if needed
+        const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
+        const types = {
+            'FFWCSX': 'swap',
+            'FFWCSF': 'swap',
+            'IFXXXP': 'spot',
+            'FFCCSX': 'future',
+            'MRBXXX': 'index',
+            'MRCXXX': 'index',
+            'MRFXXX': 'index',
+            'MRRXXX': 'index',
+            'MRIXXX': 'index',
+        };
+        const type = this.safeString (types, typ, typ);
+        const swap = type === 'swap';
+        const future = type === 'future';
+        const spot = type === 'spot';
+        const contract = swap || future;
+        let contractSize = undefined;
+        const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+        const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+        const linear = contract ? (!isInverse && !isQuanto) : undefined;
+        const status = this.safeString (market, 'state');
+        const active = status !== 'Unlisted';
+        let expiry = undefined;
+        let expiryDatetime = undefined;
+        let symbol = undefined;
+        if (spot) {
+            symbol = base + '/' + quote;
+        } else if (contract) {
+            symbol = base + '/' + quote + ':' + settle;
+            const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
+            if (linear) {
+                contractSize = this.parseNumber (Precise.stringDiv ('1', market['underlyingToPositionMultiplier']));
             } else {
-                // for index/exotic markets, default to id
-                symbol = id;
+                contractSize = this.parseNumber (multiplierString);
             }
-            const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
-            const position = this.safeCurrencyCode (positionId);
-            const positionIsQuote = (position === quote);
-            const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
-            const initMargin = this.safeString (market, 'initMargin', '1');
-            const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': spot,
-                'margin': false,
-                'swap': swap,
-                'future': future,
-                'option': false,
-                'index': index,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': isInverse,
-                'quanto': isQuanto,
-                'taker': this.safeNumber (market, 'takerFee'),
-                'maker': this.safeNumber (market, 'makerFee'),
-                'contractSize': contractSize,
-                'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
-                'strike': this.safeNumber (market, 'optionStrikePrice'),
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'lotSize'),
-                    'price': this.safeNumber (market, 'tickSize'),
-                    'quote': this.safeNumber (market, 'tickSize'),
-                    'base': this.safeNumber (market, 'tickSize'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': contract ? this.parseNumber ('1') : undefined,
-                        'max': contract ? maxLeverage : undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': positionIsQuote ? undefined : maxOrderQty,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': this.safeNumber (market, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': positionIsQuote ? maxOrderQty : undefined,
-                    },
-                },
-                'created': this.parse8601 (this.safeString (market, 'listing')),
-                'info': market,
-            });
+            if (future) {
+                expiryDatetime = this.safeString (market, 'expiry');
+                expiry = this.parse8601 (expiryDatetime);
+                symbol = symbol + '-' + this.yymmdd (expiry);
+            }
+        } else {
+            // for index/exotic markets, default to id
+            symbol = id;
         }
-        return result;
+        const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
+        const position = this.safeCurrencyCode (positionId);
+        const positionIsQuote = (position === quote);
+        const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
+        const initMargin = this.safeString (market, 'initMargin', '1');
+        const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': spot,
+            'margin': false,
+            'swap': swap,
+            'future': future,
+            'option': false,
+            'active': active,
+            'contract': contract,
+            'linear': linear,
+            'inverse': isInverse,
+            'quanto': isQuanto,
+            'taker': this.safeNumber (market, 'takerFee'),
+            'maker': this.safeNumber (market, 'makerFee'),
+            'contractSize': contractSize,
+            'expiry': expiry,
+            'expiryDatetime': expiryDatetime,
+            'strike': this.safeNumber (market, 'optionStrikePrice'),
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'lotSize'),
+                'price': this.safeNumber (market, 'tickSize'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': contract ? this.parseNumber ('1') : undefined,
+                    'max': contract ? maxLeverage : undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': positionIsQuote ? undefined : maxOrderQty,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': this.safeNumber (market, 'maxPrice'),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': positionIsQuote ? maxOrderQty : undefined,
+                },
+            },
+            'created': this.parse8601 (this.safeString (market, 'listing')),
+            'info': market,
+        };
     }
 
     parseBalance (response): Balances {
@@ -843,7 +838,7 @@ export default class bitmex extends Exchange {
         return result as OrderBook;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchOrder
@@ -865,7 +860,7 @@ export default class bitmex extends Exchange {
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#fetchOrders
@@ -913,7 +908,7 @@ export default class bitmex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#fetchOpenOrders
@@ -932,7 +927,7 @@ export default class bitmex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.deepExtend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#fetchClosedOrders
@@ -948,7 +943,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false) as Order[];
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchMyTrades
@@ -1061,7 +1056,7 @@ export default class bitmex extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1159,7 +1154,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchLedger
@@ -1211,7 +1206,7 @@ export default class bitmex extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitmex#fetchDepositsWithdrawals
@@ -1255,7 +1250,7 @@ export default class bitmex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
@@ -1321,6 +1316,7 @@ export default class bitmex extends Exchange {
             'tagFrom': undefined,
             'tagTo': undefined,
             'updated': timestamp,
+            'internal': undefined,
             'comment': undefined,
             'fee': {
                 'currency': currency['code'],
@@ -1352,7 +1348,7 @@ export default class bitmex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitmex#fetchTickers
@@ -1376,7 +1372,7 @@ export default class bitmex extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1407,7 +1403,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1516,7 +1512,7 @@ export default class bitmex extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1659,7 +1655,7 @@ export default class bitmex extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -1905,7 +1901,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#cancelOrder
@@ -1936,7 +1932,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (order);
     }
 
-    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#cancelOrders
@@ -1961,7 +1957,7 @@ export default class bitmex extends Exchange {
         return this.parseOrders (response);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#cancelAllOrders
@@ -2020,7 +2016,7 @@ export default class bitmex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchPositions
@@ -2132,7 +2128,7 @@ export default class bitmex extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "account": 9371654,
@@ -2327,7 +2323,7 @@ export default class bitmex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchFundingRates
@@ -2354,7 +2350,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');
@@ -2380,7 +2376,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchFundingRateHistory
@@ -2442,7 +2438,7 @@ export default class bitmex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit);
     }
 
-    parseFundingRateHistory (info, market = undefined) {
+    parseFundingRateHistory (info, market: Market = undefined) {
         //
         //    {
         //        "timestamp": "2016-05-07T12:00:00.000Z",
@@ -2463,7 +2459,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#setLeverage
@@ -2489,7 +2485,7 @@ export default class bitmex extends Exchange {
         return await this.privatePostPositionLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#setMarginMode
@@ -2556,7 +2552,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "XBT",
@@ -2620,7 +2616,7 @@ export default class bitmex extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchDepositWithdrawFees
@@ -2723,7 +2719,7 @@ export default class bitmex extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "orderID": "string",

@@ -307,7 +307,7 @@ class woo extends Exchange {
             /**
              * retrieves $data on all markets for woo
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market $data
+             * @return {array[]} an array of objects representing market $data
              */
             $response = Async\await($this->v1PublicGetInfo ($params));
             //
@@ -331,87 +331,86 @@ class woo extends Exchange {
             //     "success" => true
             // }
             //
-            $result = array();
             $data = $this->safe_value($response, 'rows', array());
-            for ($i = 0; $i < count($data); $i++) {
-                $market = $data[$i];
-                $marketId = $this->safe_string($market, 'symbol');
-                $parts = explode('_', $marketId);
-                $marketType = $this->safe_string_lower($parts, 0);
-                $isSpot = $marketType === 'spot';
-                $isSwap = $marketType === 'perp';
-                $baseId = $this->safe_string($parts, 1);
-                $quoteId = $this->safe_string($parts, 2);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $settleId = null;
-                $settle = null;
-                $symbol = $base . '/' . $quote;
-                $contractSize = null;
-                $linear = null;
-                $margin = true;
-                $contract = $isSwap;
-                if ($contract) {
-                    $margin = false;
-                    $settleId = $this->safe_string($parts, 2);
-                    $settle = $this->safe_currency_code($settleId);
-                    $symbol = $base . '/' . $quote . ':' . $settle;
-                    $contractSize = $this->parse_number('1');
-                    $marketType = 'swap';
-                    $linear = true;
-                }
-                $result[] = array(
-                    'id' => $marketId,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => $settle,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => $settleId,
-                    'type' => $marketType,
-                    'spot' => $isSpot,
-                    'margin' => $margin,
-                    'swap' => $isSwap,
-                    'future' => false,
-                    'option' => false,
-                    'active' => null,
-                    'contract' => $contract,
-                    'linear' => $linear,
-                    'inverse' => null,
-                    'contractSize' => $contractSize,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->safe_number($market, 'base_tick'),
-                        'price' => $this->safe_number($market, 'quote_tick'),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $this->safe_number($market, 'base_min'),
-                            'max' => $this->safe_number($market, 'base_max'),
-                        ),
-                        'price' => array(
-                            'min' => $this->safe_number($market, 'quote_min'),
-                            'max' => $this->safe_number($market, 'quote_max'),
-                        ),
-                        'cost' => array(
-                            'min' => $this->safe_number($market, 'min_notional'),
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => $this->safe_timestamp($market, 'created_time'),
-                    'info' => $market,
-                );
-            }
-            return $result;
+            return $this->parse_markets($data);
         }) ();
+    }
+
+    public function parse_market($market): array {
+        $marketId = $this->safe_string($market, 'symbol');
+        $parts = explode('_', $marketId);
+        $marketType = $this->safe_string_lower($parts, 0);
+        $isSpot = $marketType === 'spot';
+        $isSwap = $marketType === 'perp';
+        $baseId = $this->safe_string($parts, 1);
+        $quoteId = $this->safe_string($parts, 2);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $settleId = null;
+        $settle = null;
+        $symbol = $base . '/' . $quote;
+        $contractSize = null;
+        $linear = null;
+        $margin = true;
+        $contract = $isSwap;
+        if ($contract) {
+            $margin = false;
+            $settleId = $this->safe_string($parts, 2);
+            $settle = $this->safe_currency_code($settleId);
+            $symbol = $base . '/' . $quote . ':' . $settle;
+            $contractSize = $this->parse_number('1');
+            $marketType = 'swap';
+            $linear = true;
+        }
+        return array(
+            'id' => $marketId,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => $settleId,
+            'type' => $marketType,
+            'spot' => $isSpot,
+            'margin' => $margin,
+            'swap' => $isSwap,
+            'future' => false,
+            'option' => false,
+            'active' => null,
+            'contract' => $contract,
+            'linear' => $linear,
+            'inverse' => null,
+            'contractSize' => $contractSize,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->safe_number($market, 'base_tick'),
+                'price' => $this->safe_number($market, 'quote_tick'),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'base_min'),
+                    'max' => $this->safe_number($market, 'base_max'),
+                ),
+                'price' => array(
+                    'min' => $this->safe_number($market, 'quote_min'),
+                    'max' => $this->safe_number($market, 'quote_max'),
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'min_notional'),
+                    'max' => null,
+                ),
+            ),
+            'created' => $this->safe_timestamp($market, 'created_time'),
+            'info' => $market,
+        );
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -467,7 +466,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public/market_trades
         //
@@ -1223,7 +1222,7 @@ class woo extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, null);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // Possible input functions:
         // * createOrder
@@ -1450,7 +1449,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // example response in fetchOHLCV
         return array(
             $this->safe_integer($ohlcv, 'start_timestamp'),
@@ -1766,7 +1765,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         $networkizedCode = $this->safe_string($item, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
         $code = $currencyDefined['code'];
@@ -1881,7 +1880,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         // example in fetchLedger
         $networkizedCode = $this->safe_string($transaction, 'token');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
@@ -1912,6 +1911,7 @@ class woo extends Exchange {
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'updated' => $this->safe_timestamp($transaction, 'updated_time'),
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
             'network' => null,
         );
@@ -1984,7 +1984,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //    getAssetHistoryRows
         //        {
@@ -2137,7 +2137,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         //     {
         //         "success" => true,
@@ -2239,7 +2239,7 @@ class woo extends Exchange {
         return null;
     }
 
-    public function parse_income($income, $market = null) {
+    public function parse_income($income, ?array $market = null) {
         //
         //     {
         //         "id":666666,
@@ -2313,7 +2313,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($fundingRate, $market = null) {
+    public function parse_funding_rate($fundingRate, ?array $market = null) {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -2584,7 +2584,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "0_symbol",

@@ -365,7 +365,7 @@ class bitpanda extends Exchange {
             /**
              * retrieves data on all markets for bitpanda
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->publicGetInstruments ($params));
             //
@@ -380,69 +380,68 @@ class bitpanda extends Exchange {
             //         }
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $market = $response[$i];
-                $baseAsset = $this->safe_value($market, 'base', array());
-                $quoteAsset = $this->safe_value($market, 'quote', array());
-                $baseId = $this->safe_string($baseAsset, 'code');
-                $quoteId = $this->safe_string($quoteAsset, 'code');
-                $id = $baseId . '_' . $quoteId;
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $state = $this->safe_string($market, 'state');
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => ($state === 'ACTIVE'),
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'market_precision'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => $this->safe_number($market, 'min_size'),
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                );
-            }
-            return $result;
+            return $this->parse_markets($response);
         }) ();
+    }
+
+    public function parse_market($market): array {
+        $baseAsset = $this->safe_value($market, 'base', array());
+        $quoteAsset = $this->safe_value($market, 'quote', array());
+        $baseId = $this->safe_string($baseAsset, 'code');
+        $quoteId = $this->safe_string($quoteAsset, 'code');
+        $id = $baseId . '_' . $quoteId;
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $state = $this->safe_string($market, 'state');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($state === 'ACTIVE'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'market_precision'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'min_size'),
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -555,7 +554,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_fee_tiers($feeTiers, $market = null) {
+    public function parse_fee_tiers($feeTiers, ?array $market = null) {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
@@ -574,7 +573,7 @@ class bitpanda extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -788,7 +787,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -878,7 +877,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1046,7 +1045,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         $code = null;
         if ($currency !== null) {
             $code = $currency['code'];
@@ -1308,7 +1307,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits, fetchWithdrawals
         //
@@ -1379,6 +1378,8 @@ class bitpanda extends Exchange {
             'type' => null,
             'updated' => null,
             'txid' => $this->safe_string($transaction, 'blockchain_transaction_id'),
+            'comment' => null,
+            'internal' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fee' => $fee,
@@ -1400,7 +1401,7 @@ class bitpanda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //

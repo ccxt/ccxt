@@ -5,7 +5,7 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 import { Precise } from './base/Precise.js';
 
@@ -663,7 +663,7 @@ export default class kuna extends Exchange {
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //    {
         //        "pair": "BTC_USDT",                                   // Traded pair
@@ -702,7 +702,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name kuna#fetchTickers
@@ -839,7 +839,7 @@ export default class kuna extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1007,7 +1007,7 @@ export default class kuna extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#cancelOrder
@@ -1039,7 +1039,7 @@ export default class kuna extends Exchange {
         return order;
     }
 
-    async cancelOrders (ids: string[], symbol: string = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#cancelOrder
@@ -1082,7 +1082,7 @@ export default class kuna extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         //
@@ -1160,7 +1160,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOrder
@@ -1217,7 +1217,7 @@ export default class kuna extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kuna#fetchOpenOrders
@@ -1278,7 +1278,7 @@ export default class kuna extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kuna#fetchClosedOrders
@@ -1297,7 +1297,7 @@ export default class kuna extends Exchange {
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchOrdersByStatus
@@ -1364,7 +1364,7 @@ export default class kuna extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchMyTrades
@@ -1464,7 +1464,7 @@ export default class kuna extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kuna#fetchWithdrawals
@@ -1488,7 +1488,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let currency = undefined;
-        if (currency !== undefined) {
+        if (code !== undefined) {
             currency = this.currency (code);
         }
         const request = {};
@@ -1533,7 +1533,7 @@ export default class kuna extends Exchange {
         return this.parseTransactions (data, currency);
     }
 
-    async fetchWithdrawal (id: string, code: string = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchWithdrawal
@@ -1632,7 +1632,7 @@ export default class kuna extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //    {
         //        "id": "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
@@ -1664,7 +1664,7 @@ export default class kuna extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kuna#fetchDeposits
@@ -1688,7 +1688,7 @@ export default class kuna extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let currency = undefined;
-        if (currency !== undefined) {
+        if (code !== undefined) {
             currency = this.currency (code);
         }
         const request = {};
@@ -1733,7 +1733,7 @@ export default class kuna extends Exchange {
         return this.parseTransactions (data, currency);
     }
 
-    async fetchDeposit (id: string, code: string = undefined, params = {}) {
+    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
         /**
          * @method
          * @name kuna#fetchDeposit
@@ -1778,7 +1778,7 @@ export default class kuna extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
@@ -1805,6 +1805,7 @@ export default class kuna extends Exchange {
         const type = this.safeStringLower (transaction, 'type');
         const address = this.safeString (transaction, 'address');
         const isDeposit = (type === 'deposit');
+        const parsedType = isDeposit ? type : 'withdrawal';
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
@@ -1817,13 +1818,14 @@ export default class kuna extends Exchange {
             'address': address,
             'addressTo': address,
             'amount': this.safeNumber (transaction, 'amount'),
-            'type': !isDeposit ? 'withdrawal' : type,
+            'type': parsedType,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'updated': this.parse8601 (this.safeString (transaction, 'updatedAt')),
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString (transaction, 'memo'),
+            'internal': undefined,
             'fee': {
                 'cost': this.safeNumber (transaction, 'fee'),
                 'currency': code,

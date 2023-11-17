@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Transaction, Ticker, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -374,7 +374,7 @@ export default class poloniex extends Exchange {
         });
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         [
@@ -505,65 +505,64 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = this.safeValue (markets, i);
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseCurrencyName');
-            const quoteId = this.safeString (market, 'quoteCurrencyName');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const state = this.safeString (market, 'state');
-            const active = state === 'NORMAL';
-            const symbolTradeLimit = this.safeValue (market, 'symbolTradeLimit');
-            // these are known defaults
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'quantityScale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'priceScale'))),
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseCurrencyName');
+        const quoteId = this.safeString (market, 'quoteCurrencyName');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const state = this.safeString (market, 'state');
+        const active = state === 'NORMAL';
+        const symbolTradeLimit = this.safeValue (market, 'symbolTradeLimit');
+        // these are known defaults
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'quantityScale'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'priceScale'))),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (symbolTradeLimit, 'minQuantity'),
+                    'max': undefined,
                 },
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (symbolTradeLimit, 'minQuantity'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (symbolTradeLimit, 'minAmount'),
-                        'max': undefined,
-                    },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'created': this.safeInteger (market, 'tradableStartTime'),
-                'info': market,
-            });
-        }
-        return result;
+                'cost': {
+                    'min': this.safeNumber (symbolTradeLimit, 'minAmount'),
+                    'max': undefined,
+                },
+            },
+            'created': this.safeInteger (market, 'tradableStartTime'),
+            'info': market,
+        };
     }
 
     async fetchTime (params = {}) {
@@ -579,7 +578,7 @@ export default class poloniex extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol" : "BTC_USDT",
@@ -635,7 +634,7 @@ export default class poloniex extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name poloniex#fetchTickers
@@ -850,7 +849,7 @@ export default class poloniex extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -979,7 +978,7 @@ export default class poloniex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchMyTrades
@@ -999,7 +998,7 @@ export default class poloniex extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1053,7 +1052,7 @@ export default class poloniex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // fetchOpenOrder
         //
@@ -1125,8 +1124,8 @@ export default class poloniex extends Exchange {
         const id = this.safeStringN (order, [ 'orderNumber', 'id', 'orderId' ]);
         let fee = undefined;
         const feeCurrency = this.safeString (order, 'tokenFeeCurrency');
-        let feeCost = undefined;
-        let feeCurrencyCode = undefined;
+        let feeCost: Str = undefined;
+        let feeCurrencyCode: Str = undefined;
         const rate = this.safeString (order, 'fee');
         if (feeCurrency === undefined) {
             feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
@@ -1194,7 +1193,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniex#fetchOpenOrders
@@ -1209,7 +1208,7 @@ export default class poloniex extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1380,7 +1379,7 @@ export default class poloniex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         //
         // @method
         // @name poloniex#cancelOrder
@@ -1420,7 +1419,7 @@ export default class poloniex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
         * @method
         * @name poloniex#cancelAllOrders
@@ -1437,7 +1436,7 @@ export default class poloniex extends Exchange {
             // 'accountTypes': 'SPOT',
             'symbols': [ ],
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbols'] = [
@@ -1472,7 +1471,7 @@ export default class poloniex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
         * @method
         * @name poloniex#fetchOrder
@@ -1525,14 +1524,14 @@ export default class poloniex extends Exchange {
         return order;
     }
 
-    async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const orders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         const indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOrderTrades
@@ -1754,7 +1753,7 @@ export default class poloniex extends Exchange {
         //     }
         //
         let address = this.safeString (response, 'address');
-        let tag = undefined;
+        let tag: Str = undefined;
         this.checkAddress (address);
         if (currency !== undefined) {
             const depositAddress = this.safeString (currency['info'], 'depositAddress');
@@ -1805,7 +1804,7 @@ export default class poloniex extends Exchange {
         //     }
         //
         let address = this.safeString (response, request['currency']);
-        let tag = undefined;
+        let tag: Str = undefined;
         this.checkAddress (address);
         if (currency !== undefined) {
             const depositAddress = this.safeString (currency['info'], 'depositAddress');
@@ -1857,7 +1856,7 @@ export default class poloniex extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //    {
         //        "transferId" : "168041074"
@@ -1919,7 +1918,7 @@ export default class poloniex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchTransactionsHelper (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
@@ -2003,7 +2002,7 @@ export default class poloniex extends Exchange {
         return response;
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name poloniex#fetchDepositsWithdrawals
@@ -2017,7 +2016,7 @@ export default class poloniex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2029,7 +2028,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name poloniex#fetchWithdrawals
@@ -2042,7 +2041,7 @@ export default class poloniex extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         const response = await this.fetchTransactionsHelper (code, since, limit, params);
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -2051,7 +2050,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchDepositWithdrawFees
@@ -2126,7 +2125,8 @@ export default class poloniex extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const feeInfo = response[currencyId];
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, code);
+                const currency = this.currency (code);
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
                 const childChains = this.safeValue (feeInfo, 'childChains');
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
@@ -2155,9 +2155,9 @@ export default class poloniex extends Exchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         const depositWithdrawFee = this.depositWithdrawFee ({});
-        depositWithdrawFee['info'][currency] = fee;
+        depositWithdrawFee['info'][currency['code']] = fee;
         const networkId = this.safeString (fee, 'blockchain');
         const withdrawFee = this.safeNumber (fee, 'withdrawalFee');
         const withdrawResult = {
@@ -2178,7 +2178,7 @@ export default class poloniex extends Exchange {
         return depositWithdrawFee;
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name poloniex#fetchDeposits
@@ -2214,7 +2214,7 @@ export default class poloniex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // deposits
         //
@@ -2284,6 +2284,7 @@ export default class poloniex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCostString),

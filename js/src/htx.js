@@ -499,6 +499,7 @@ export default class htx extends Exchange {
                             // Future Market Data interface
                             'api/v1/contract_contract_info': 1,
                             'api/v1/contract_index': 1,
+                            'api/v1/contract_query_elements': 1,
                             'api/v1/contract_price_limit': 1,
                             'api/v1/contract_open_interest': 1,
                             'api/v1/contract_delivery_price': 1,
@@ -528,6 +529,7 @@ export default class htx extends Exchange {
                             // Swap Market Data interface
                             'swap-api/v1/swap_contract_info': 1,
                             'swap-api/v1/swap_index': 1,
+                            'swap-api/v1/swap_query_elements': 1,
                             'swap-api/v1/swap_price_limit': 1,
                             'swap-api/v1/swap_open_interest': 1,
                             'swap-ex/market/depth': 1,
@@ -560,6 +562,7 @@ export default class htx extends Exchange {
                             // Swap Market Data interface
                             'linear-swap-api/v1/swap_contract_info': 1,
                             'linear-swap-api/v1/swap_index': 1,
+                            'linear-swap-api/v1/swap_query_elements': 1,
                             'linear-swap-api/v1/swap_price_limit': 1,
                             'linear-swap-api/v1/swap_open_interest': 1,
                             'linear-swap-ex/market/depth': 1,
@@ -6072,6 +6075,8 @@ export default class htx extends Exchange {
         if (networkId === 'ETH' && txHash.indexOf('0x') < 0) {
             txHash = '0x' + txHash;
         }
+        const subType = this.safeString(transaction, 'sub-type');
+        const internal = subType === 'FAST';
         return {
             'info': transaction,
             'id': this.safeString2(transaction, 'id', 'data'),
@@ -6090,6 +6095,8 @@ export default class htx extends Exchange {
             'currency': code,
             'status': this.parseTransactionStatus(this.safeString(transaction, 'state')),
             'updated': this.safeInteger(transaction, 'updated-at'),
+            'comment': undefined,
+            'internal': internal,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCost),

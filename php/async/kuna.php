@@ -663,7 +663,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //    {
         //        "pair" => "BTC_USDT",                                   // Traded pair
@@ -839,7 +839,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1082,7 +1082,7 @@ class kuna extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         //
@@ -1487,7 +1487,7 @@ class kuna extends Exchange {
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');
             $currency = null;
-            if ($currency !== null) {
+            if ($code !== null) {
                 $currency = $this->currency($code);
             }
             $request = array();
@@ -1632,7 +1632,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //    {
         //        "id" => "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
@@ -1687,7 +1687,7 @@ class kuna extends Exchange {
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');
             $currency = null;
-            if ($currency !== null) {
+            if ($code !== null) {
                 $currency = $this->currency($code);
             }
             $request = array();
@@ -1778,7 +1778,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //    {
         //        "id" => "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
@@ -1805,6 +1805,7 @@ class kuna extends Exchange {
         $type = $this->safe_string_lower($transaction, 'type');
         $address = $this->safe_string($transaction, 'address');
         $isDeposit = ($type === 'deposit');
+        $parsedType = $isDeposit ? $type : 'withdrawal';
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
@@ -1817,13 +1818,14 @@ class kuna extends Exchange {
             'address' => $address,
             'addressTo' => $address,
             'amount' => $this->safe_number($transaction, 'amount'),
-            'type' => !$isDeposit ? 'withdrawal' : $type,
+            'type' => $parsedType,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'updated' => $this->parse8601($this->safe_string($transaction, 'updatedAt')),
             'tagFrom' => null,
             'tag' => null,
             'tagTo' => null,
             'comment' => $this->safe_string($transaction, 'memo'),
+            'internal' => null,
             'fee' => array(
                 'cost' => $this->safe_number($transaction, 'fee'),
                 'currency' => $code,

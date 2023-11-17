@@ -3,7 +3,7 @@
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, OHLCV, OrderSide, OrderType } from '../base/types.js';
+import { Int, OHLCV, OrderSide, OrderType, Str, Strings } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -131,7 +131,7 @@ export default class poloniex extends poloniexRest {
         return future;
     }
 
-    async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: string[] = undefined, params = {}) {
+    async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: Strings = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -421,7 +421,7 @@ export default class poloniex extends poloniexRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#watchOrders
@@ -447,7 +447,7 @@ export default class poloniex extends poloniexRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#watchMyTrades

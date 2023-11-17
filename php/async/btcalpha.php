@@ -155,7 +155,7 @@ class btcalpha extends Exchange {
             /**
              * retrieves data on all markets for btcalpha
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->publicGetPairs ($params));
             //
@@ -173,69 +173,68 @@ class btcalpha extends Exchange {
             //        ),
             //    )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $market = $response[$i];
-                $id = $this->safe_string($market, 'name');
-                $baseId = $this->safe_string($market, 'currency1');
-                $quoteId = $this->safe_string($market, 'currency2');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $pricePrecision = $this->safe_string($market, 'price_precision');
-                $priceLimit = $this->parse_precision($pricePrecision);
-                $amountLimit = $this->safe_string($market, 'minimum_order_size');
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => true,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
-                        'price' => $this->parse_number($this->parse_precision(($pricePrecision))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $this->parse_number($amountLimit),
-                            'max' => $this->safe_number($market, 'maximum_order_size'),
-                        ),
-                        'price' => array(
-                            'min' => $this->parse_number($priceLimit),
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => $this->parse_number(Precise::string_mul($priceLimit, $amountLimit)),
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                );
-            }
-            return $result;
+            return $this->parse_markets($response);
         }) ();
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'name');
+        $baseId = $this->safe_string($market, 'currency1');
+        $quoteId = $this->safe_string($market, 'currency2');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $pricePrecision = $this->safe_string($market, 'price_precision');
+        $priceLimit = $this->parse_precision($pricePrecision);
+        $amountLimit = $this->safe_string($market, 'minimum_order_size');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => true,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                'price' => $this->parse_number($this->parse_precision(($pricePrecision))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->parse_number($amountLimit),
+                    'max' => $this->safe_number($market, 'maximum_order_size'),
+                ),
+                'price' => array(
+                    'min' => $this->parse_number($priceLimit),
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->parse_number(Precise::string_mul($priceLimit, $amountLimit)),
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
@@ -301,7 +300,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //    {
         //        "timestamp" => "1674658.445272",
@@ -379,7 +378,7 @@ class btcalpha extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -517,7 +516,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //  deposit
         //      {
@@ -557,6 +556,7 @@ class btcalpha extends Exchange {
             'type' => null,
             'status' => $this->parse_transaction_status($statusId),
             'comment' => null,
+            'internal' => null,
             'fee' => null,
             'updated' => null,
         );
@@ -573,7 +573,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "time":1591296000,
@@ -665,7 +665,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchClosedOrders / fetchOrder
         //     {

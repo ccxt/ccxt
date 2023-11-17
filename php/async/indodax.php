@@ -375,7 +375,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"0.01951",
@@ -482,7 +482,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'date');
         return $this->safe_trade(array(
             'id' => $this->safe_string($trade, 'tid'),
@@ -530,7 +530,7 @@ class indodax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "order_id" => "12345",
@@ -949,7 +949,7 @@ class indodax extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1021,6 +1021,7 @@ class indodax extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => $this->safe_string($transaction, 'withdraw_memo'),
+            'internal' => null,
             'fee' => $fee,
             'info' => $transaction,
         );

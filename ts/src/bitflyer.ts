@@ -5,7 +5,7 @@ import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -368,7 +368,7 @@ export default class bitflyer extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const last = this.safeString (ticker, 'ltp');
@@ -415,7 +415,7 @@ export default class bitflyer extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public) v1
         //
@@ -578,7 +578,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#cancelOrder
@@ -609,7 +609,7 @@ export default class bitflyer extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         const timestamp = this.parse8601 (this.safeString (order, 'child_order_date'));
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
@@ -656,7 +656,7 @@ export default class bitflyer extends Exchange {
         }, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitflyer#fetchOrders
@@ -683,7 +683,7 @@ export default class bitflyer extends Exchange {
         return orders;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitflyer#fetchOpenOrders
@@ -701,7 +701,7 @@ export default class bitflyer extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitflyer#fetchClosedOrders
@@ -719,7 +719,7 @@ export default class bitflyer extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchOrder
@@ -738,7 +738,7 @@ export default class bitflyer extends Exchange {
         throw new OrderNotFound (this.id + ' No order found with id ' + id);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchMyTrades
@@ -777,7 +777,7 @@ export default class bitflyer extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitflyer#fetchPositions
@@ -849,7 +849,7 @@ export default class bitflyer extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitflyer#fetchDeposits
@@ -888,7 +888,7 @@ export default class bitflyer extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitflyer#fetchWithdrawals
@@ -945,7 +945,7 @@ export default class bitflyer extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1020,6 +1020,7 @@ export default class bitflyer extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
+            'comment': undefined,
             'internal': undefined,
             'fee': fee,
         };

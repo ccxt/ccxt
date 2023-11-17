@@ -483,7 +483,7 @@ class bigone extends Exchange {
             /**
              * retrieves data on all $markets for bigone
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->publicGetAssetPairs ($params));
             //
@@ -512,92 +512,70 @@ class bigone extends Exchange {
             //     }
             //
             $markets = $this->safe_value($response, 'data', array());
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'name');
-                $uuid = $this->safe_string($market, 'id');
-                $baseAsset = $this->safe_value($market, 'base_asset', array());
-                $quoteAsset = $this->safe_value($market, 'quote_asset', array());
-                $baseId = $this->safe_string($baseAsset, 'symbol');
-                $quoteId = $this->safe_string($quoteAsset, 'symbol');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $entry = array(
-                    'id' => $id,
-                    'uuid' => $uuid,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => true,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_scale'))),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_scale'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => $this->safe_number($market, 'min_quote_value'),
-                            'max' => $this->safe_number($market, 'max_quote_value'),
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                );
-                $result[] = $entry;
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
     }
 
-    public function load_markets($reload = false, $params = array ()) {
-        return Async\async(function () use ($reload, $params) {
-            $markets = Async\await(parent::load_markets($reload, $params));
-            $marketsByUuid = $this->safe_value($this->options, 'marketsByUuid');
-            if (($marketsByUuid === null) || $reload) {
-                $marketsByUuid = array();
-                for ($i = 0; $i < count($this->symbols); $i++) {
-                    $symbol = $this->symbols[$i];
-                    $market = $this->markets[$symbol];
-                    $uuid = $this->safe_string($market, 'uuid');
-                    $marketsByUuid[$uuid] = $market;
-                }
-                $this->options['marketsByUuid'] = $marketsByUuid;
-            }
-            return $markets;
-        }) ();
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'name');
+        $baseAsset = $this->safe_value($market, 'base_asset', array());
+        $quoteAsset = $this->safe_value($market, 'quote_asset', array());
+        $baseId = $this->safe_string($baseAsset, 'symbol');
+        $quoteId = $this->safe_string($quoteAsset, 'symbol');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => true,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_scale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quote_scale'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'min_quote_value'),
+                    'max' => $this->safe_number($market, 'max_quote_value'),
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "asset_pair_name":"ETH-BTC",
@@ -790,7 +768,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -858,11 +836,7 @@ class bigone extends Exchange {
         $takerOrderId = $this->safe_string($trade, 'taker_order_id');
         $orderId = null;
         if ($makerOrderId !== null) {
-            if ($takerOrderId !== null) {
-                $orderId = array( $makerOrderId, $takerOrderId );
-            } else {
-                $orderId = $makerOrderId;
-            }
+            $orderId = $makerOrderId;
         } elseif ($takerOrderId !== null) {
             $orderId = $takerOrderId;
         }
@@ -971,7 +945,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "close" => "0.021562",
@@ -1107,7 +1081,7 @@ class bigone extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //    {
         //        "id" => "42154072251",
@@ -1607,7 +1581,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1670,6 +1644,7 @@ class bigone extends Exchange {
         $address = $this->safe_string($transaction, 'target_address');
         $tag = $this->safe_string($transaction, 'memo');
         $type = (is_array($transaction) && array_key_exists('customer_id', $transaction)) ? 'withdrawal' : 'deposit';
+        $internal = $this->safe_value($transaction, 'is_internal');
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -1689,6 +1664,8 @@ class bigone extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'fee' => null,
+            'comment' => null,
+            'internal' => $internal,
         );
     }
 
@@ -1843,7 +1820,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //     {
         //         "code" => 0,

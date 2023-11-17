@@ -399,7 +399,14 @@ export default class bitmart extends Exchange {
                     '40032': InvalidOrder,
                     '40033': InvalidOrder,
                     '40034': BadSymbol,
-                    '53002': PermissionDenied, // 403, Your account has not yet completed the kyc advanced certification, please complete first
+                    '53002': PermissionDenied,
+                    '53003': PermissionDenied,
+                    '53005': PermissionDenied,
+                    '53006': PermissionDenied,
+                    '53007': PermissionDenied,
+                    '53008': PermissionDenied,
+                    '53009': PermissionDenied,
+                    '53010': PermissionDenied, // 403 This account is restricted from borrowing
                 },
                 'broad': {},
             },
@@ -2114,17 +2121,17 @@ export default class bitmart extends Exchange {
     parseOrderStatusByType(type, status) {
         const statusesByType = {
             'spot': {
-                '1': 'failed',
+                '1': 'rejected',
                 '2': 'open',
-                '3': 'failed',
+                '3': 'rejected',
                 '4': 'open',
                 '5': 'open',
                 '6': 'closed',
-                '7': 'canceling',
+                '7': 'canceled',
                 '8': 'canceled',
                 'new': 'open',
                 'partially_filled': 'open',
-                'filled': 'filled',
+                'filled': 'closed',
                 'partially_canceled': 'canceled',
             },
             'swap': {
@@ -2658,11 +2665,14 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchClosedOrders
          * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest entry
+         * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -2675,20 +2685,31 @@ export default class bitmart extends Exchange {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
         if (type !== 'spot') {
-            throw new NotSupported(this.id + ' fetchClosedOrders() does not support ' + type + ' orders, only spot orders are accepted');
+            this.checkRequiredSymbol('fetchClosedOrders', symbol);
         }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchClosedOrders', params);
         if (marginMode === 'isolated') {
             request['orderMode'] = 'iso_margin';
         }
-        const until = this.safeInteger2(params, 'until', 'endTime');
-        if (until !== undefined) {
-            params = this.omit(params, ['endTime']);
-            request['endTime'] = until;
+        const startTimeKey = (type === 'spot') ? 'startTime' : 'start_time';
+        if (since !== undefined) {
+            request[startTimeKey] = since;
         }
-        const response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const endTimeKey = (type === 'spot') ? 'endTime' : 'end_time';
+        const until = this.safeInteger2(params, 'until', endTimeKey);
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request[endTimeKey] = until;
+        }
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetContractPrivateOrderHistory(this.extend(request, params));
+        }
+        const data = this.safeValue(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3158,6 +3179,8 @@ export default class bitmart extends Exchange {
             'type': type,
             'updated': undefined,
             'txid': txid,
+            'internal': undefined,
+            'comment': undefined,
             'timestamp': (timestamp !== 0) ? timestamp : undefined,
             'datetime': (timestamp !== 0) ? this.iso8601(timestamp) : undefined,
             'fee': fee,
@@ -3270,7 +3293,7 @@ export default class bitmart extends Exchange {
             'info': info,
         };
     }
-    async fetchBorrowRate(code, params = {}) {
+    async fetchIsolatedBorrowRate(symbol, params = {}) {
         /**
          * @method
          * @name bitmart#fetchBorrowRate
@@ -3282,17 +3305,8 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets();
         let market = undefined;
-        if (code in this.markets) {
-            market = this.market(code);
-        }
-        else {
-            const defaultSettle = this.safeString(this.options, 'defaultSettle', 'USDT');
-            if (code === 'USDT') {
-                market = this.market('BTC' + '/' + defaultSettle);
-            }
-            else {
-                market = this.market(code + '/' + defaultSettle);
-            }
+        if (symbol !== undefined) {
+            market = this.market(symbol);
         }
         const request = {
             'symbol': market['id'],
@@ -3332,10 +3346,10 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue(response, 'data', {});
         const symbols = this.safeValue(data, 'symbols', []);
-        const currency = (code === 'USDT') ? market['quote'] : market['base'];
-        return this.parseBorrowRate(symbols, currency);
+        const borrowRate = this.safeValue(symbols, 0);
+        return this.parseIsolatedBorrowRate(borrowRate, market);
     }
-    parseBorrowRate(info, currency = undefined) {
+    parseIsolatedBorrowRate(info, market = undefined) {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -3359,18 +3373,29 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const timestamp = this.milliseconds();
-        const currencyData = (currency === 'USDT') ? this.safeValue(info[0], 'quote', {}) : this.safeValue(info[0], 'base', {});
+        const marketId = this.safeString(info, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        const baseData = this.safeValue(info, 'base');
+        const quoteData = this.safeValue(info, 'quote');
+        const baseId = this.safeString(baseData, 'currency');
+        const quoteId = this.safeString(quoteData, 'currency');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const baseRate = this.safeNumber(baseData, 'hourly_interest');
+        const quoteRate = this.safeNumber(quoteData, 'hourly_interest');
         return {
-            'currency': this.safeCurrencyCode(currency),
-            'rate': this.safeNumber(currencyData, 'hourly_interest'),
+            'symbol': symbol,
+            'base': base,
+            'baseRate': baseRate,
+            'quote': quote,
+            'quoteRate': quoteRate,
             'period': 3600000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
-    async fetchBorrowRates(params = {}) {
+    async fetchIsolatedBorrowRates(params = {}) {
         /**
          * @method
          * @name bitmart#fetchBorrowRates
@@ -3415,47 +3440,12 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue(response, 'data', {});
         const symbols = this.safeValue(data, 'symbols', []);
-        return this.parseBorrowRates(symbols, undefined);
-    }
-    parseBorrowRates(info, codeKey) {
-        //
-        //     {
-        //         "symbol": "BTC_USDT",
-        //         "max_leverage": "5",
-        //         "symbol_enabled": true,
-        //         "base": {
-        //             "currency": "BTC",
-        //             "daily_interest": "0.00055000",
-        //             "hourly_interest": "0.00002291",
-        //             "max_borrow_amount": "2.00000000",
-        //             "min_borrow_amount": "0.00000001",
-        //             "borrowable_amount": "0.00670810"
-        //         },
-        //         "quote": {
-        //             "currency": "USDT",
-        //             "daily_interest": "0.00055000",
-        //             "hourly_interest": "0.00002291",
-        //             "max_borrow_amount": "50000.00000000",
-        //             "min_borrow_amount": "0.00000001",
-        //             "borrowable_amount": "135.12575038"
-        //         }
-        //     }
-        //
-        const timestamp = this.milliseconds();
-        const rates = [];
-        for (let i = 0; i < info.length; i++) {
-            const entry = info[i];
-            const base = this.safeValue(entry, 'base', {});
-            rates.push({
-                'currency': this.safeCurrencyCode(this.safeString(base, 'currency')),
-                'rate': this.safeNumber(base, 'hourly_interest'),
-                'period': 3600000,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-                'info': entry,
-            });
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = this.safeValue(symbols, i);
+            result.push(this.parseIsolatedBorrowRate(symbol));
         }
-        return rates;
+        return result;
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**

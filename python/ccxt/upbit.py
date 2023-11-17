@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.upbit import ImplicitAPI
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -415,65 +414,64 @@ class upbit(Exchange, ImplicitAPI):
         #        ...,
         #    ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            id = self.safe_string(market, 'market')
-            quoteId, baseId = id.split('-')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': True,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'taker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['taker']),
-                'maker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['maker']),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'price': self.parse_number('1e-8'),
-                    'amount': self.parse_number('1e-8'),
+        return self.parse_markets(response)
+
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'market')
+        quoteId, baseId = id.split('-')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': True,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['taker']),
+            'maker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['maker']),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'price': self.parse_number('1e-8'),
+                'amount': self.parse_number('1e-8'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     def parse_balance(self, response) -> Balances:
         result = {
@@ -514,7 +512,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         """
         :see: https://docs.upbit.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
@@ -582,7 +580,7 @@ class upbit(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://docs.upbit.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -594,7 +592,7 @@ class upbit(Exchange, ImplicitAPI):
         orderbooks = self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #       {               market: "BTC-ETH",
         #                    "trade_date": "20181122",
@@ -650,7 +648,7 @@ class upbit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         :see: https://docs.upbit.com/reference/ticker%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -720,7 +718,7 @@ class upbit(Exchange, ImplicitAPI):
         tickers = self.fetch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades
         #
@@ -788,7 +786,7 @@ class upbit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://docs.upbit.com/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
         get the list of most recent trades for a particular symbol
@@ -894,7 +892,7 @@ class upbit(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "market": "BTC-ETH",
@@ -919,7 +917,7 @@ class upbit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'candle_acc_trade_volume'),  # base volume
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://docs.upbit.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-1
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1054,7 +1052,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C
         cancels an open order
@@ -1089,7 +1087,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://docs.upbit.com/reference/%EC%9E%85%EA%B8%88-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetch all deposits made to an account
@@ -1129,7 +1127,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%B6%9C%EA%B8%88-%EC%A1%B0%ED%9A%8C
         fetch all withdrawals made from an account
@@ -1182,7 +1180,7 @@ class upbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1246,6 +1244,8 @@ class upbit(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'internal': None,
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
@@ -1260,7 +1260,7 @@ class upbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1381,7 +1381,7 @@ class upbit(Exchange, ImplicitAPI):
             'trades': trades,
         })
 
-    def fetch_orders_by_state(self, state, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders_by_state(self, state, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         request = {
             # 'market': self.market_id(symbol),
@@ -1417,7 +1417,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetch all unfilled currently open orders
@@ -1429,7 +1429,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state('wait', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetches information on multiple closed orders made by the user
@@ -1441,7 +1441,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state('done', symbol, since, limit, params)
 
-    def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetches information on multiple canceled orders made by the user
@@ -1453,7 +1453,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state('cancel', symbol, since, limit, params)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.upbit.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
         fetches information on an order made by the user
@@ -1542,7 +1542,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
         #         "currency": "BTC",

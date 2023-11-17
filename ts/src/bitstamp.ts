@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -672,7 +672,7 @@ export default class bitstamp extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // {
         //     "timestamp": "1686068944",
@@ -753,7 +753,7 @@ export default class bitstamp extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitstamp#fetchTickers
@@ -851,7 +851,7 @@ export default class bitstamp extends Exchange {
         return undefined;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1021,7 +1021,7 @@ export default class bitstamp extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "high": "9064.77",
@@ -1166,7 +1166,7 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFee (response, market);
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         market = this.safeMarket (undefined, market);
         const feeString = this.safeString (fee, market['id'] + '_fee');
         const dividedFeeString = Precise.stringDiv (feeString, '100');
@@ -1269,7 +1269,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchDepositWithdrawFees
@@ -1382,7 +1382,7 @@ export default class bitstamp extends Exchange {
         return order;
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#cancelOrder
@@ -1399,7 +1399,7 @@ export default class bitstamp extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#cancelAllOrders
@@ -1430,7 +1430,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrderStatus (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         const request = {};
@@ -1444,7 +1444,7 @@ export default class bitstamp extends Exchange {
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOrder
@@ -1488,7 +1488,7 @@ export default class bitstamp extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchMyTrades
@@ -1516,7 +1516,7 @@ export default class bitstamp extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitstamp#fetchDepositsWithdrawals
@@ -1567,7 +1567,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitstamp#fetchWithdrawals
@@ -1613,7 +1613,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (response, undefined, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDepositsWithdrawals
         //
@@ -1731,6 +1731,7 @@ export default class bitstamp extends Exchange {
             'tagTo': tag,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -1750,7 +1751,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //   from fetch order:
         //     { status: "Finished",
@@ -1840,7 +1841,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     [
         //         {
@@ -1933,7 +1934,7 @@ export default class bitstamp extends Exchange {
         }
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchLedger
@@ -1957,7 +1958,7 @@ export default class bitstamp extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitstamp#fetchOpenOrders

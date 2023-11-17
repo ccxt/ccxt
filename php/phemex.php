@@ -537,7 +537,7 @@ class phemex extends Exchange {
         $contractSizeString = $this->safe_string($market, 'contractSize', ' ');
         $contractSize = null;
         if ($settle === 'USDT') {
-            $contractSize = 1;
+            $contractSize = $this->parse_number('1');
         } elseif (mb_strpos($contractSizeString, ' ')) {
             // "1 USD"
             // "0.005 ETH"
@@ -930,7 +930,7 @@ class phemex extends Exchange {
         return $result;
     }
 
-    public function custom_parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
+    public function custom_parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, ?array $market = null) {
         if ($market === null) {
             throw new ArgumentsRequired($this->id . ' customParseBidAsk() requires a $market argument');
         }
@@ -944,7 +944,7 @@ class phemex extends Exchange {
         );
     }
 
-    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, $market = null) {
+    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 0, $amountKey = 1, ?array $market = null) {
         $result = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1028,14 +1028,14 @@ class phemex extends Exchange {
         return $this->parse_to_int($preciseString);
     }
 
-    public function to_ev($amount, $market = null) {
+    public function to_ev($amount, ?array $market = null) {
         if (($amount === null) || ($market === null)) {
             return $amount;
         }
         return $this->to_en($amount, $market['valueScale']);
     }
 
-    public function to_ep($price, $market = null) {
+    public function to_ep($price, ?array $market = null) {
         if (($price === null) || ($market === null)) {
             return $price;
         }
@@ -1052,28 +1052,28 @@ class phemex extends Exchange {
         return (string) $precise;
     }
 
-    public function from_ep($ep, $market = null) {
+    public function from_ep($ep, ?array $market = null) {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
         return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_ev($ev, $market = null) {
+    public function from_ev($ev, ?array $market = null) {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
         return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
     }
 
-    public function from_er($er, $market = null) {
+    public function from_er($er, ?array $market = null) {
         if (($er === null) || ($market === null)) {
             return $er;
         }
         return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1592467200, // timestamp
@@ -1087,7 +1087,6 @@ class phemex extends Exchange {
         //         48759063370, // quote volume
         //     )
         //
-        $baseVolume = null;
         if (($market !== null) && $market['spot']) {
             $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ohlcv, 7), $market));
         } else {
@@ -1189,7 +1188,7 @@ class phemex extends Exchange {
         return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $userLimit);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot
         //
@@ -1370,7 +1369,6 @@ class phemex extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
         $query = $this->omit($params, 'type');
-        $defaultMethod = null;
         if ($type === 'spot') {
             $defaultMethod = 'v1GetMdSpotTicker24hrAll';
         } elseif ($subType === 'inverse') {
@@ -1426,7 +1424,7 @@ class phemex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public) spot & contract
         //
@@ -1588,9 +1586,6 @@ class phemex extends Exchange {
         //         "execStatus" => 6
         //     }
         //
-        $priceString = null;
-        $amountString = null;
-        $timestamp = null;
         $id = null;
         $side = null;
         $costString = null;
@@ -2007,7 +2002,7 @@ class phemex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_spot_order($order, $market = null) {
+    public function parse_spot_order($order, ?array $market = null) {
         //
         // spot
         //
@@ -2091,7 +2086,7 @@ class phemex extends Exchange {
             );
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp', $market))));
+        $stopPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'))));
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
@@ -2127,7 +2122,7 @@ class phemex extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_swap_order($order, $market = null) {
+    public function parse_swap_order($order, ?array $market = null) {
         //
         //     {
         //         "bizError":0,
@@ -2294,7 +2289,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         $isSwap = $this->safe_value($market, 'swap', false);
         $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order));
         if ($isSwap || $hasPnl) {
@@ -3199,7 +3194,7 @@ class phemex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -3273,6 +3268,8 @@ class phemex extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => null,
+            'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
     }
@@ -3401,7 +3398,7 @@ class phemex extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //    {
         //        "userID" => "811370",
@@ -3663,7 +3660,7 @@ class phemex extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "askEp" => 2332500,
@@ -3760,7 +3757,7 @@ class phemex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         //
         //     {
         //         "code" => 0,
@@ -3939,7 +3936,7 @@ class phemex extends Exchange {
         return $this->parse_leverage_tiers($riskLimits, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @param {array} $info Exchange $market response for 1 $market
          * @param {array} $market CCXT $market
@@ -4187,7 +4184,7 @@ class phemex extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -4216,7 +4213,7 @@ class phemex extends Exchange {
         $id = $this->safe_string($transfer, 'linkKey');
         $status = $this->safe_string($transfer, 'status');
         $amountEv = $this->safe_string($transfer, 'amountEv');
-        $amountTransfered = $this->from_ev($amountEv, $currency);
+        $amountTransfered = $this->from_ev($amountEv);
         $currencyId = $this->safe_string($transfer, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $side = $this->safe_integer($transfer, 'side');

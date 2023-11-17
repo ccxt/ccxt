@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Dictionary, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -418,66 +418,65 @@ export default class upbit extends Exchange {
         //        ...,
         //    ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString (market, 'market');
-            const [ quoteId, baseId ] = id.split ('-');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
-                'maker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'price': this.parseNumber ('1e-8'),
-                    'amount': this.parseNumber ('1e-8'),
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'market');
+        const [ quoteId, baseId ] = id.split ('-');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
+            'maker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'price': this.parseNumber ('1e-8'),
+                'amount': this.parseNumber ('1e-8'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     parseBalance (response): Balances {
@@ -524,7 +523,7 @@ export default class upbit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrderBooks
@@ -613,7 +612,7 @@ export default class upbit extends Exchange {
         return this.safeValue (orderbooks, symbol) as OrderBook;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //       {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
@@ -670,7 +669,7 @@ export default class upbit extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name upbit#fetchTickers
@@ -749,7 +748,7 @@ export default class upbit extends Exchange {
         return this.safeValue (tickers, symbol) as Ticker;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -934,7 +933,7 @@ export default class upbit extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "market": "BTC-ETH",
@@ -1112,7 +1111,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name upbit#cancelOrder
@@ -1150,7 +1149,7 @@ export default class upbit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name upbit#fetchDeposits
@@ -1195,7 +1194,7 @@ export default class upbit extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name upbit#fetchWithdrawals
@@ -1254,7 +1253,7 @@ export default class upbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1319,6 +1318,8 @@ export default class upbit extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'internal': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
@@ -1335,7 +1336,7 @@ export default class upbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1465,7 +1466,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    async fetchOrdersByState (state, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             // 'market': this.marketId (symbol),
@@ -1503,7 +1504,7 @@ export default class upbit extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name upbit#fetchOpenOrders
@@ -1518,7 +1519,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('wait', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name upbit#fetchClosedOrders
@@ -1533,7 +1534,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('done', symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchCanceledOrders
@@ -1548,7 +1549,7 @@ export default class upbit extends Exchange {
         return await this.fetchOrdersByState ('cancel', symbol, since, limit, params);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name upbit#fetchOrder
@@ -1643,7 +1644,7 @@ export default class upbit extends Exchange {
         return this.parseDepositAddresses (response, codes);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "BTC",

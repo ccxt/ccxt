@@ -6,7 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -293,7 +293,7 @@ export default class coinone extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinone#fetchTickers
@@ -342,7 +342,7 @@ export default class coinone extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "currency":"xec",
@@ -387,7 +387,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -535,7 +535,7 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOrder
@@ -587,7 +587,7 @@ export default class coinone extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -637,10 +637,10 @@ export default class coinone extends Exchange {
         let base = undefined;
         let quote = undefined;
         if (baseId !== undefined) {
-            base = this.safeCurrencyCode (baseId, this.safeString (market, 'base'));
+            base = this.safeCurrencyCode (baseId);
         }
         if (quoteId !== undefined) {
-            quote = this.safeCurrencyCode (quoteId, this.safeString (market, 'quote'));
+            quote = this.safeCurrencyCode (quoteId);
         }
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
@@ -703,7 +703,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinone#fetchOpenOrders
@@ -746,7 +746,7 @@ export default class coinone extends Exchange {
         return this.parseOrders (limitOrders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchMyTrades
@@ -788,7 +788,7 @@ export default class coinone extends Exchange {
         return this.parseTrades (completeOrders, market, since, limit);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name coinone#cancelOrder

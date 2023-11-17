@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -300,98 +300,96 @@ export default class whitebit extends Exchange {
         //        }
         //    ]
         //
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'name');
-            const baseId = this.safeString (market, 'stock');
-            let quoteId = this.safeString (market, 'money');
-            quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const active = this.safeValue (market, 'tradesEnabled');
-            const isCollateral = this.safeValue (market, 'isCollateral');
-            const typeId = this.safeString (market, 'type');
-            let type = undefined;
-            let settle = undefined;
-            let settleId = undefined;
-            let symbol = base + '/' + quote;
-            const swap = typeId === 'futures';
-            const margin = isCollateral && !swap;
-            let contract = false;
-            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec')));
-            const contractSize = amountPrecision;
-            let linear = undefined;
-            let inverse = undefined;
-            if (swap) {
-                settleId = quoteId;
-                settle = this.safeCurrencyCode (settleId);
-                symbol = symbol + ':' + settle;
-                type = 'swap';
-                contract = true;
-                linear = true;
-                inverse = false;
-            } else {
-                type = 'spot';
-            }
-            const takerFeeRate = this.safeString (market, 'takerFee');
-            const taker = Precise.stringDiv (takerFeeRate, '100');
-            const makerFeeRate = this.safeString (market, 'makerFee');
-            const maker = Precise.stringDiv (makerFeeRate, '100');
-            const entry = {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': !swap,
-                'margin': margin,
-                'swap': swap,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': this.parseNumber (taker),
-                'maker': this.parseNumber (maker),
-                'contractSize': contractSize,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'moneyPrec'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minAmount'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'minTotal'),
-                        'max': this.safeNumber (market, 'maxTotal'),
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            };
-            result.push (entry);
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'name');
+        const baseId = this.safeString (market, 'stock');
+        let quoteId = this.safeString (market, 'money');
+        quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const active = this.safeValue (market, 'tradesEnabled');
+        const isCollateral = this.safeValue (market, 'isCollateral');
+        const typeId = this.safeString (market, 'type');
+        let type: string;
+        let settle: Str = undefined;
+        let settleId: Str = undefined;
+        let symbol = base + '/' + quote;
+        const swap = typeId === 'futures';
+        const margin = isCollateral && !swap;
+        let contract = false;
+        const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec')));
+        const contractSize = amountPrecision;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
+        if (swap) {
+            settleId = quoteId;
+            settle = this.safeCurrencyCode (settleId);
+            symbol = symbol + ':' + settle;
+            type = 'swap';
+            contract = true;
+            linear = true;
+            inverse = false;
+        } else {
+            type = 'spot';
         }
-        return result;
+        const takerFeeRate = this.safeString (market, 'takerFee');
+        const taker = Precise.stringDiv (takerFeeRate, '100');
+        const makerFeeRate = this.safeString (market, 'makerFee');
+        const maker = Precise.stringDiv (makerFeeRate, '100');
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': !swap,
+            'margin': margin,
+            'swap': swap,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': this.parseNumber (taker),
+            'maker': this.parseNumber (maker),
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amountPrecision,
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'moneyPrec'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'minAmount'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'minTotal'),
+                    'max': this.safeNumber (market, 'maxTotal'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     async fetchCurrencies (params = {}) {
@@ -509,7 +507,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchDepositWithdrawFees
@@ -743,7 +741,7 @@ export default class whitebit extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //  FetchTicker (v1)
         //
@@ -797,7 +795,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name whitebit#fetchTickers
@@ -907,7 +905,7 @@ export default class whitebit extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchMyTrades
@@ -919,7 +917,7 @@ export default class whitebit extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -980,7 +978,7 @@ export default class whitebit extends Exchange {
         }
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTradesV4
         //
@@ -1032,7 +1030,7 @@ export default class whitebit extends Exchange {
         const side = this.safeString2 (trade, 'type', 'side');
         const symbol = market['symbol'];
         const role = this.safeInteger (trade, 'role');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (role !== undefined) {
             takerOrMaker = (role === 1) ? 'maker' : 'taker';
         }
@@ -1107,7 +1105,7 @@ export default class whitebit extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1591488000,
@@ -1210,7 +1208,7 @@ export default class whitebit extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        let method = undefined;
+        let method: string;
         if (marginMode !== undefined && marginMode !== 'cross') {
             throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
         }
@@ -1249,7 +1247,7 @@ export default class whitebit extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#cancelOrder
@@ -1341,7 +1339,7 @@ export default class whitebit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name whitebit#fetchOpenOrders
@@ -1385,7 +1383,7 @@ export default class whitebit extends Exchange {
         return this.parseOrders (response, market, since, limit, { 'status': 'open' });
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name whitebit#fetchClosedOrders
@@ -1454,7 +1452,7 @@ export default class whitebit extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder, fetchOpenOrders
         //
@@ -1548,7 +1546,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOrderTrades
@@ -1669,7 +1667,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#setLeverage
@@ -1727,7 +1725,7 @@ export default class whitebit extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //    []
         //
@@ -1788,7 +1786,7 @@ export default class whitebit extends Exchange {
         return this.extend ({ 'id': uniqueId }, this.parseTransaction (response, currency));
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
@@ -1842,6 +1840,7 @@ export default class whitebit extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString (transaction, 'description'),
+            'internal': undefined,
             'fee': {
                 'cost': this.safeNumber (transaction, 'fee'),
                 'currency': this.safeCurrencyCode (currencyId, currency),
@@ -1872,7 +1871,7 @@ export default class whitebit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDeposit (id: string, code: string = undefined, params = {}) {
+    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchDeposit
@@ -1937,7 +1936,7 @@ export default class whitebit extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name whitebit#fetchDeposits
@@ -2004,7 +2003,7 @@ export default class whitebit extends Exchange {
         return this.parseTransactions (records, currency, since, limit);
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchBorrowInterest
@@ -2050,7 +2049,7 @@ export default class whitebit extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         //
         //     {
         //         "positionId": 191823,
@@ -2102,7 +2101,7 @@ export default class whitebit extends Exchange {
         return this.safeValue (response, symbol);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchFundingRates
@@ -2164,7 +2163,7 @@ export default class whitebit extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         // {
         //     "ticker_id":"ADA_PERP",

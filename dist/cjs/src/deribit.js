@@ -2312,6 +2312,8 @@ class deribit extends deribit$1 {
             'status': status,
             'updated': updated,
             'network': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

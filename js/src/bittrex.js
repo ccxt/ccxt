@@ -315,65 +315,63 @@ export default class bittrex extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const baseId = this.safeString(market, 'baseCurrencySymbol');
-            const quoteId = this.safeString(market, 'quoteCurrencySymbol');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const status = this.safeString(market, 'status');
-            result.push({
-                'id': this.safeString(market, 'symbol'),
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'ONLINE'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber('1e-8'),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'precision'))),
+        return this.parseMarkets(response);
+    }
+    parseMarket(market) {
+        const baseId = this.safeString(market, 'baseCurrencySymbol');
+        const quoteId = this.safeString(market, 'quoteCurrencySymbol');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const status = this.safeString(market, 'status');
+        return {
+            'id': this.safeString(market, 'symbol'),
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'ONLINE'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber('1e-8'),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'precision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(market, 'minTradeSize'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber(market, 'minTradeSize'),
+                    'max': undefined,
                 },
-                'created': this.parse8601(this.safeString(market, 'createdAt')),
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.parse8601(this.safeString(market, 'createdAt')),
+            'info': market,
+        };
     }
     parseBalance(response) {
         const result = { 'info': response };
@@ -1673,6 +1671,8 @@ export default class bittrex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
@@ -1900,12 +1900,10 @@ export default class bittrex extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
             request['marketSymbol'] = market['id'];
         }
         const response = await this.privateGetExecutions(this.extend(request, params));
-        const trades = this.parseTrades(response, market, since, limit);
-        return trades;
+        return this.parseTrades(response, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

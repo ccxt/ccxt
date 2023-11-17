@@ -743,7 +743,7 @@ class gemini extends Exchange {
         return $this->fetch_ticker_v1_and_v2($symbol, $params);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -863,7 +863,7 @@ class gemini extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -1047,7 +1047,7 @@ class gemini extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder (private)
         //
@@ -1532,7 +1532,7 @@ class gemini extends Exchange {
         return $this->parse_transactions($response);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1584,6 +1584,8 @@ class gemini extends Exchange {
             'currency' => $code,
             'status' => $this->parse_transaction_status($statusRaw),
             'updated' => null,
+            'internal' => null,
+            'comment' => $this->safe_string($transaction, 'message'),
             'fee' => $fee,
         );
     }
@@ -1596,7 +1598,7 @@ class gemini extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //      {
         //          "address" => "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",

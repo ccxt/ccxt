@@ -1,3 +1,6 @@
+image:
+  - Visual Studio 2019
+
 environment:
   matrix:
     - nodejs_version: '16'

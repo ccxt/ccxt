@@ -1003,6 +1003,7 @@ class bithumb extends bithumb$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

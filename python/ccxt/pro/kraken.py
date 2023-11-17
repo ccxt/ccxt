@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import OrderSide, OrderType
+from ccxt.base.types import Int, OrderSide, OrderType, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -122,7 +121,7 @@ class kraken(ccxt.async_support.kraken):
             },
         })
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://docs.kraken.com/websockets/#message-addOrder
         create a trade order
@@ -176,7 +175,7 @@ class kraken(ccxt.async_support.kraken):
         messageHash = self.safe_value(message, 'reqid')
         client.resolve(order, messageHash)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         edit a trade order
         :see: https://docs.kraken.com/websockets/#message-editOrder
@@ -206,7 +205,7 @@ class kraken(ccxt.async_support.kraken):
         request, params = self.orderRequest('editOrderWs()', symbol, type, request, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: Optional[str] = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
         :see: https://docs.kraken.com/websockets/#message-cancelOrder
         cancel multiple orders
@@ -228,7 +227,7 @@ class kraken(ccxt.async_support.kraken):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.kraken.com/websockets/#message-cancelOrder
         cancels an open order
@@ -264,7 +263,7 @@ class kraken(ccxt.async_support.kraken):
         reqId = self.safe_value(message, 'reqid')
         client.resolve(message, reqId)
 
-    async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         :see: https://docs.kraken.com/websockets/#message-cancelAll
         cancel all open orders
@@ -471,7 +470,7 @@ class kraken(ccxt.async_support.kraken):
         """
         return await self.watch_public('ticker', symbol, params)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -488,7 +487,7 @@ class kraken(ccxt.async_support.kraken):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -508,7 +507,7 @@ class kraken(ccxt.async_support.kraken):
         orderbook = await self.watch_public(name, symbol, self.extend(request, params))
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -762,7 +761,7 @@ class kraken(ccxt.async_support.kraken):
             client.subscriptions[authenticated] = subscription
         return self.safe_string(subscription, 'token')
 
-    async def watch_private(self, name, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_private(self, name, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         token = await self.authenticate()
         subscriptionHash = name
@@ -786,7 +785,7 @@ class kraken(ccxt.async_support.kraken):
             limit = result.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -935,7 +934,7 @@ class kraken(ccxt.async_support.kraken):
             'fee': fee,
         }
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.kraken.com/websockets/#message-openOrders
         watches information on multiple orders made by the user

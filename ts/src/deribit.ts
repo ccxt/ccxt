@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import { Balances, FundingRateHistory, Greeks, Int, Liquidation, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, FundingRateHistory, Greeks, Int, Liquidation, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -582,7 +582,7 @@ export default class deribit extends Exchange {
         return this.parseAccounts (result);
     }
 
-    parseAccount (account, currency = undefined) {
+    parseAccount (account, currency: Currency = undefined) {
         //
         //      {
         //          "username": "someusername_1",
@@ -983,7 +983,7 @@ export default class deribit extends Exchange {
         };
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTicker /public/ticker
         //
@@ -1106,7 +1106,7 @@ export default class deribit extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name deribit#fetchTickers
@@ -1222,7 +1222,7 @@ export default class deribit extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1581,7 +1581,7 @@ export default class deribit extends Exchange {
         return this.safeString (orderTypes, orderType, orderType);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1680,7 +1680,7 @@ export default class deribit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOrder
@@ -1922,7 +1922,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (order);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name deribit#cancelOrder
@@ -1941,7 +1941,7 @@ export default class deribit extends Exchange {
         return this.parseOrder (result);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name deribit#cancelAllOrders
@@ -1964,7 +1964,7 @@ export default class deribit extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name deribit#fetchOpenOrders
@@ -1994,7 +1994,7 @@ export default class deribit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name deribit#fetchClosedOrders
@@ -2024,7 +2024,7 @@ export default class deribit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchOrderTrades
@@ -2078,7 +2078,7 @@ export default class deribit extends Exchange {
         return this.parseTrades (result, undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchMyTrades
@@ -2157,7 +2157,7 @@ export default class deribit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name deribit#fetchDeposits
@@ -2205,7 +2205,7 @@ export default class deribit extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name deribit#fetchWithdrawals
@@ -2265,7 +2265,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchWithdrawals
         //
@@ -2329,11 +2329,13 @@ export default class deribit extends Exchange {
             'status': status,
             'updated': updated,
             'network': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2445,7 +2447,7 @@ export default class deribit extends Exchange {
         return this.parsePosition (result);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchPositions
@@ -2573,7 +2575,7 @@ export default class deribit extends Exchange {
         return result;
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchTransfers
@@ -2681,7 +2683,7 @@ export default class deribit extends Exchange {
         return this.parseTransfer (result, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         //     {
         //         "updated_timestamp": 1550232862350,
@@ -2753,7 +2755,7 @@ export default class deribit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //      "withdrawal_priorities": [],
@@ -2780,7 +2782,7 @@ export default class deribit extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchDepositWithdrawFees
@@ -2852,7 +2854,7 @@ export default class deribit extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchFundingRateHistory
@@ -2907,7 +2909,7 @@ export default class deribit extends Exchange {
         return this.filterBySymbolSinceLimit (rates, symbol, since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //   {
         //       "jsonrpc":"2.0",
@@ -3030,7 +3032,7 @@ export default class deribit extends Exchange {
         return data;
     }
 
-    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#fetchMyLiquidations
@@ -3088,7 +3090,7 @@ export default class deribit extends Exchange {
         return this.parseLiquidations (settlements, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "type": "bankruptcy",
@@ -3181,7 +3183,7 @@ export default class deribit extends Exchange {
         return this.parseGreeks (result, market);
     }
 
-    parseGreeks (greeks, market = undefined) {
+    parseGreeks (greeks, market: Market = undefined) {
         //
         //     {
         //         "estimated_delivery_price": 36552.72,

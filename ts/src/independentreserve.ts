@@ -5,7 +5,7 @@ import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -270,7 +270,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -350,7 +350,7 @@ export default class independentreserve extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // fetchOrder
         //
@@ -463,7 +463,7 @@ export default class independentreserve extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchOrder
@@ -483,7 +483,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name independentreserve#fetchOpenOrders
@@ -512,7 +512,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name independentreserve#fetchClosedOrders
@@ -541,7 +541,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit = 50, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit = 50, params = {}) {
         /**
          * @method
          * @name independentreserve#fetchMyTrades
@@ -569,7 +569,7 @@ export default class independentreserve extends Exchange {
         return this.parseTrades (response['Data'], market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         const timestamp = this.parse8601 (trade['TradeTimestampUtc']);
         const id = this.safeString (trade, 'TradeGuid');
         const orderId = this.safeString (trade, 'OrderGuid');
@@ -714,7 +714,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name independentreserve#cancelOrder

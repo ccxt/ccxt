@@ -405,7 +405,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //     "symbol" => "BTC-USD",
@@ -487,7 +487,7 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "clOrdId" => "00001",
@@ -748,7 +748,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         //     {
         //         "exOrdId":281685751028507,
@@ -862,7 +862,7 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // deposit
         //
@@ -909,7 +909,7 @@ class blockchaincom extends Exchange {
         }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'txhash');
-        $result = array(
+        return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
@@ -928,9 +928,9 @@ class blockchaincom extends Exchange {
             'status' => $this->parse_transaction_state($state), // 'status' =>   'pending',   // 'ok', 'failed', 'canceled', string
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function fetch_withdrawal_whitelist($params = array ()) {

@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -335,7 +334,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://lightning.bitflyer.com/docs?lang=en#order-book
@@ -352,7 +351,7 @@ class bitflyer(Exchange, ImplicitAPI):
         orderbook = self.publicGetGetboard(self.extend(request, params))
         return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         last = self.safe_string(ticker, 'ltp')
@@ -395,7 +394,7 @@ class bitflyer(Exchange, ImplicitAPI):
         response = self.publicGetGetticker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public) v1
         #
@@ -454,7 +453,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://lightning.bitflyer.com/docs?lang=en#list-executions
@@ -542,7 +541,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'info': result,
         })
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://lightning.bitflyer.com/docs?lang=en#cancel-order
@@ -569,7 +568,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         timestamp = self.parse8601(self.safe_string(order, 'child_order_date'))
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'size')
@@ -614,7 +613,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -637,7 +636,7 @@ class bitflyer(Exchange, ImplicitAPI):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -652,7 +651,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit=100, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -667,7 +666,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -682,7 +681,7 @@ class bitflyer(Exchange, ImplicitAPI):
             return ordersById[id]
         raise OrderNotFound(self.id + ' No order found with id ' + id)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-executions
@@ -717,7 +716,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :see: https://lightning.bitflyer.com/docs?lang=en#get-open-interest-summary
@@ -781,7 +780,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-deposit-history
@@ -815,7 +814,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-transaction-history
@@ -865,7 +864,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -939,6 +938,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'currency': code,
             'status': status,
             'updated': None,
+            'comment': None,
             'internal': None,
             'fee': fee,
         }
