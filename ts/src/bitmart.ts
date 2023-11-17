@@ -134,7 +134,7 @@ export default class bitmart extends Exchange {
                         'spot/quotation/v3/books': 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
                         'spot/quotation/v3/trades': 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
                         'spot/v1/ticker': 5,
-                        'spot/v2/ticker': 5,
+                        'spot/v2/ticker': 30,
                         'spot/v1/ticker_detail': 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v1/steps': 30,
                         'spot/v1/symbols/kline': 5,
@@ -179,10 +179,10 @@ export default class bitmart extends Exchange {
                         // margin
                         'spot/v1/margin/isolated/borrow_record': 1,
                         'spot/v1/margin/isolated/repay_record': 1,
-                        'spot/v1/margin/isolated/pairs': 1,
-                        'spot/v1/margin/isolated/account': 6,
-                        'spot/v1/trade_fee': 6,
-                        'spot/v1/user_fee': 6,
+                        'spot/v1/margin/isolated/pairs': 30,
+                        'spot/v1/margin/isolated/account': 5,
+                        'spot/v1/trade_fee': 30,
+                        'spot/v1/user_fee': 30,
                         // broker
                         'spot/v1/broker/rebate': 1,
                         // contract
@@ -222,9 +222,9 @@ export default class bitmart extends Exchange {
                         'spot/v2/submit_order': 1,
                         // margin
                         'spot/v1/margin/submit_order': 1,
-                        'spot/v1/margin/isolated/borrow': 6,
-                        'spot/v1/margin/isolated/repay': 6,
-                        'spot/v1/margin/isolated/transfer': 6,
+                        'spot/v1/margin/isolated/borrow': 30,
+                        'spot/v1/margin/isolated/repay': 30,
+                        'spot/v1/margin/isolated/transfer': 30,
                         // contract
                         'account/v1/transfer-contract-list': 60,
                         'account/v1/transfer-contract': 60,
