@@ -104,7 +104,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.kucoin.com/api/v1/order/client-order/myorderid",
                 "input": [
-                  null,
+                  "random",
                   "LTC/USDT",
                   {
                     "clientOrderId": "myorderid"
