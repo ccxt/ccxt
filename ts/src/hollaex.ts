@@ -1849,7 +1849,7 @@ export default class hollaex extends Exchange {
     }
 
     normalizeNumberIfNeeded (number) {
-        if (number % 1 === 0) {
+        if (this.isRoundNumber (number)) {
             number = parseInt (number);
         }
         return number;
