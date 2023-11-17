@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
@@ -29,6 +29,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 # 'watchStatus': True,  # https://docs.futures.kraken.com/#websocket-api-public-feeds-heartbeat
                 'watchOrders': True,
                 'watchMyTrades': True,
+                'watchPositions': True,
             },
             'urls': {
                 'api': {
@@ -151,7 +152,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         params = self.omit(params, ['method'])
         return await self.subscribe_public(name, [symbol], params)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
@@ -165,7 +166,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         symbols = self.market_symbols(symbols, None, False)
         return await self.subscribe_public(name, symbols, params)
 
-    async def watch_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
@@ -182,7 +183,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-book
@@ -194,7 +195,126 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         orderbook = await self.subscribe_public('book', [symbol], params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+        watch all open positions
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the krakenfutures api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        messageHash = ''
+        symbols = self.market_symbols(symbols)
+        if not self.is_empty(symbols):
+            messageHash = '::' + ','.join(symbols)
+        messageHash = 'positions' + messageHash
+        newPositions = await self.subscribe_private('open_positions', messageHash, params)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        feed: 'open_positions',
+        #        account: '3b111acc-4fcc-45be-a622-57e611fe9f7f',
+        #        positions: [
+        #            {
+        #                instrument: 'PF_LTCUSD',
+        #                balance: 0.5,
+        #                pnl: -0.8628305877699987,
+        #                entry_price: 70.53,
+        #                mark_price: 68.80433882446,
+        #                index_price: 68.8091,
+        #                liquidation_threshold: 0,
+        #                effective_leverage: 0.007028866753648637,
+        #                return_on_equity: -1.2233525985679834,
+        #                unrealized_funding: 0.0000690610530935388,
+        #                initial_margin: 0.7053,
+        #                initial_margin_with_orders: 0.7053,
+        #                maintenance_margin: 0.35265,
+        #                pnl_currency: 'USD'
+        #            }
+        #        ],
+        #        seq: 0,
+        #        timestamp: 1698608414910
+        #    }
+        #
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolById()
+        cache = self.positions
+        rawPositions = self.safe_value(message, 'positions', [])
+        newPositions = []
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_ws_position(rawPosition)
+            timestamp = self.safe_integer(message, 'timestamp')
+            position['timestamp'] = timestamp
+            position['datetime'] = self.iso8601(timestamp)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, 'positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, 'positions')
+
+    def parse_ws_position(self, position, market=None):
+        #
+        #        {
+        #            instrument: 'PF_LTCUSD',
+        #            balance: 0.5,
+        #            pnl: -0.8628305877699987,
+        #            entry_price: 70.53,
+        #            mark_price: 68.80433882446,
+        #            index_price: 68.8091,
+        #            liquidation_threshold: 0,
+        #            effective_leverage: 0.007028866753648637,
+        #            return_on_equity: -1.2233525985679834,
+        #            unrealized_funding: 0.0000690610530935388,
+        #            initial_margin: 0.7053,
+        #            initial_margin_with_orders: 0.7053,
+        #            maintenance_margin: 0.35265,
+        #            pnl_currency: 'USD'
+        #        }
+        #
+        marketId = self.safe_string(position, 'instrument')
+        hedged = 'both'
+        balance = self.safe_number(position, 'balance')
+        side = 'long' if (balance > 0) else 'short'
+        return self.safe_position({
+            'info': position,
+            'id': None,
+            'symbol': self.safe_symbol(marketId),
+            'notional': None,
+            'marginMode': None,
+            'liquidationPrice': self.safe_number(position, 'liquidation_threshold'),
+            'entryPrice': self.safe_number(position, 'entry_price'),
+            'unrealizedPnl': self.safe_number(position, 'pnl'),
+            'percentage': self.safe_number(position, 'return_on_equity'),
+            'contracts': self.parse_number(Precise.string_abs(self.number_to_string(balance))),
+            'contractSize': None,
+            'markPrice': self.safe_number(position, 'mark_price'),
+            'side': side,
+            'hedged': hedged,
+            'timestamp': None,
+            'datetime': None,
+            'maintenanceMargin': self.safe_number(position, 'maintenance_margin'),
+            'maintenanceMarginPercentage': None,
+            'collateral': None,
+            'initialMargin': self.safe_number(position, 'initial_margin'),
+            'initialMarginPercentage': None,
+            'leverage': None,
+            'marginRatio': None,
+        })
+
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
@@ -216,7 +336,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
@@ -451,11 +571,30 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        "reason": "new_placed_order_by_user"
         #    }
         #    {
-        #        feed: 'open_orders',
-        #        order_id: 'ea8a7144-37db-449b-bb4a-b53c814a0f43',
-        #        is_cancel: True,
-        #        reason: 'cancelled_by_user'
+        #        "feed": "open_orders",
+        #        "order_id": "ea8a7144-37db-449b-bb4a-b53c814a0f43",
+        #        "is_cancel": True,
+        #        "reason": "cancelled_by_user"
         #    }
+        #
+        #     {
+        #         "feed": 'open_orders',
+        #         "order": {
+        #         "instrument": 'PF_XBTUSD',
+        #         "time": 1698159920097,
+        #         "last_update_time": 1699835622988,
+        #         "qty": 1.1,
+        #         "filled": 0,
+        #         "limit_price": 20000,
+        #         "stop_price": 0,
+        #         "type": 'limit',
+        #         "order_id": '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
+        #         "direction": 0,
+        #         "reduce_only": False
+        #         },
+        #         "is_cancel": False,
+        #         "reason": 'edited_by_user'
+        #     }
         #
         orders = self.orders
         if orders is None:
@@ -470,7 +609,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             orderId = self.safe_string(order, 'order_id')
             previousOrders = self.safe_value(orders.hashmap, symbol, {})
             previousOrder = self.safe_value(previousOrders, orderId)
-            if previousOrder is None:
+            reason = self.safe_string(message, 'reason')
+            if (previousOrder is None) or (reason == 'edited_by_user'):
                 parsed = self.parse_ws_order(order)
                 orders.append(parsed)
                 client.resolve(orders, messageHash)
@@ -492,9 +632,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                     previousOrder['average'] = Precise.string_div(totalCost, totalAmount)
                 previousOrder['cost'] = totalCost
                 if previousOrder['filled'] is not None:
-                    previousOrder['filled'] = Precise.string_add(previousOrder['filled'], self.number_to_string(trade['amount']))
+                    stringOrderFilled = self.number_to_string(previousOrder['filled'])
+                    previousOrder['filled'] = Precise.string_add(stringOrderFilled, self.number_to_string(trade['amount']))
                     if previousOrder['amount'] is not None:
-                        previousOrder['remaining'] = Precise.string_sub(previousOrder['amount'], previousOrder['filled'])
+                        previousOrder['remaining'] = Precise.string_sub(self.number_to_string(previousOrder['amount']), stringOrderFilled)
                 if previousOrder['fee'] is None:
                     previousOrder['fee'] = {
                         'rate': None,
@@ -673,33 +814,33 @@ class krakenfutures(ccxt.async_support.krakenfutures):
     def handle_ticker(self, client: Client, message):
         #
         #    {
-        #        time: 1680811086487,
-        #        product_id: 'PI_XBTUSD',
-        #        funding_rate: 7.792297e-12,
-        #        funding_rate_prediction: -4.2671095e-11,
-        #        relative_funding_rate: 2.18013888889e-7,
-        #        relative_funding_rate_prediction: -0.0000011974,
-        #        next_funding_rate_time: 1680811200000,
-        #        feed: 'ticker',
-        #        bid: 28060,
-        #        ask: 28070,
-        #        bid_size: 2844,
-        #        ask_size: 1902,
-        #        volume: 19628180,
-        #        dtm: 0,
-        #        leverage: '50x',
-        #        index: 28062.14,
-        #        premium: 0,
-        #        last: 28053.5,
-        #        change: -0.7710945651981715,
-        #        suspended: False,
-        #        tag: 'perpetual',
-        #        pair: 'XBT:USD',
-        #        openInterest: 28875946,
-        #        markPrice: 28064.92082724592,
-        #        maturityTime: 0,
-        #        post_only: False,
-        #        volumeQuote: 19628180
+        #        "time": 1680811086487,
+        #        "product_id": "PI_XBTUSD",
+        #        "funding_rate": 7.792297e-12,
+        #        "funding_rate_prediction": -4.2671095e-11,
+        #        "relative_funding_rate": 2.18013888889e-7,
+        #        "relative_funding_rate_prediction": -0.0000011974,
+        #        "next_funding_rate_time": 1680811200000,
+        #        "feed": "ticker",
+        #        "bid": 28060,
+        #        "ask": 28070,
+        #        "bid_size": 2844,
+        #        "ask_size": 1902,
+        #        "volume": 19628180,
+        #        "dtm": 0,
+        #        "leverage": "50x",
+        #        "index": 28062.14,
+        #        "premium": 0,
+        #        "last": 28053.5,
+        #        "change": -0.7710945651981715,
+        #        "suspended": False,
+        #        "tag": "perpetual",
+        #        "pair": "XBT:USD",
+        #        "openInterest": 28875946,
+        #        "markPrice": 28064.92082724592,
+        #        "maturityTime": 0,
+        #        "post_only": False,
+        #        "volumeQuote": 19628180
         #    }
         #
         # ticker_lite
@@ -733,33 +874,33 @@ class krakenfutures(ccxt.async_support.krakenfutures):
     def parse_ws_ticker(self, ticker, market=None):
         #
         #    {
-        #        time: 1680811086487,
-        #        product_id: 'PI_XBTUSD',
-        #        funding_rate: 7.792297e-12,
-        #        funding_rate_prediction: -4.2671095e-11,
-        #        relative_funding_rate: 2.18013888889e-7,
-        #        relative_funding_rate_prediction: -0.0000011974,
-        #        next_funding_rate_time: 1680811200000,
-        #        feed: 'ticker',
-        #        bid: 28060,
-        #        ask: 28070,
-        #        bid_size: 2844,
-        #        ask_size: 1902,
-        #        volume: 19628180,
-        #        dtm: 0,
-        #        leverage: '50x',
-        #        index: 28062.14,
-        #        premium: 0,
-        #        last: 28053.5,
-        #        change: -0.7710945651981715,
-        #        suspended: False,
-        #        tag: 'perpetual',
-        #        pair: 'XBT:USD',
-        #        openInterest: 28875946,
-        #        markPrice: 28064.92082724592,
-        #        maturityTime: 0,
-        #        post_only: False,
-        #        volumeQuote: 19628180
+        #        "time": 1680811086487,
+        #        "product_id": "PI_XBTUSD",
+        #        "funding_rate": 7.792297e-12,
+        #        "funding_rate_prediction": -4.2671095e-11,
+        #        "relative_funding_rate": 2.18013888889e-7,
+        #        "relative_funding_rate_prediction": -0.0000011974,
+        #        "next_funding_rate_time": 1680811200000,
+        #        "feed": "ticker",
+        #        "bid": 28060,
+        #        "ask": 28070,
+        #        "bid_size": 2844,
+        #        "ask_size": 1902,
+        #        "volume": 19628180,
+        #        "dtm": 0,
+        #        "leverage": "50x",
+        #        "index": 28062.14,
+        #        "premium": 0,
+        #        "last": 28053.5,
+        #        "change": -0.7710945651981715,
+        #        "suspended": False,
+        #        "tag": "perpetual",
+        #        "pair": "XBT:USD",
+        #        "openInterest": 28875946,
+        #        "markPrice": 28064.92082724592,
+        #        "maturityTime": 0,
+        #        "post_only": False,
+        #        "volumeQuote": 19628180
         #    }
         #
         # ticker_lite
@@ -1216,6 +1357,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 'open_orders_snapshot': self.handle_order_snapshot,
                 'balances': self.handle_balance,
                 'balances_snapshot': self.handle_balance,
+                'open_positions': self.handle_positions,
             }
             method = self.safe_value(methods, feed)
             if method is not None:

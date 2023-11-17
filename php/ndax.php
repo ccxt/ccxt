@@ -393,7 +393,7 @@ class ndax extends Exchange {
         /**
          * retrieves data on all markets for ndax
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
         $request = array(
@@ -446,69 +446,68 @@ class ndax extends Exchange {
         //         ),
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            $id = $this->safe_string($market, 'InstrumentId');
-            // $lowercaseId = $this->safe_string_lower($market, 'symbol');
-            $baseId = $this->safe_string($market, 'Product1');
-            $quoteId = $this->safe_string($market, 'Product2');
-            $base = $this->safe_currency_code($this->safe_string($market, 'Product1Symbol'));
-            $quote = $this->safe_currency_code($this->safe_string($market, 'Product2Symbol'));
-            $sessionStatus = $this->safe_string($market, 'SessionStatus');
-            $isDisable = $this->safe_value($market, 'IsDisable');
-            $sessionRunning = ($sessionStatus === 'Running');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => ($sessionRunning && !$isDisable),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->safe_number($market, 'QuantityIncrement'),
-                    'price' => $this->safe_number($market, 'PriceIncrement'),
+        return $this->parse_markets($response);
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'InstrumentId');
+        // $lowercaseId = $this->safe_string_lower($market, 'symbol');
+        $baseId = $this->safe_string($market, 'Product1');
+        $quoteId = $this->safe_string($market, 'Product2');
+        $base = $this->safe_currency_code($this->safe_string($market, 'Product1Symbol'));
+        $quote = $this->safe_currency_code($this->safe_string($market, 'Product2Symbol'));
+        $sessionStatus = $this->safe_string($market, 'SessionStatus');
+        $isDisable = $this->safe_value($market, 'IsDisable');
+        $sessionRunning = ($sessionStatus === 'Running');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($sessionRunning && !$isDisable),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->safe_number($market, 'QuantityIncrement'),
+                'price' => $this->safe_number($market, 'PriceIncrement'),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'MinimumQuantity'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => $this->safe_number($market, 'MinimumPrice'),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'MinimumQuantity'),
+                    'max' => null,
                 ),
-                'created' => null,
-                'info' => $market,
-            );
-        }
-        return $result;
+                'price' => array(
+                    'min' => $this->safe_number($market, 'MinimumPrice'),
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', $priceKey = 6, $amountKey = 8) {
@@ -548,7 +547,7 @@ class ndax extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -591,7 +590,7 @@ class ndax extends Exchange {
         return $this->parse_order_book($response, $symbol);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -658,7 +657,7 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -706,7 +705,7 @@ class ndax extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1501603632000, // 0 DateTime
@@ -730,7 +729,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -774,7 +773,7 @@ class ndax extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -942,7 +941,7 @@ class ndax extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -1005,7 +1004,7 @@ class ndax extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1025,7 +1024,7 @@ class ndax extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the ndax api endpoint
@@ -1095,7 +1094,7 @@ class ndax extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //         "TransactionId" => 2663709493,
@@ -1211,7 +1210,7 @@ class ndax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1579,7 +1578,7 @@ class ndax extends Exchange {
         ));
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -1656,7 +1655,7 @@ class ndax extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
@@ -1940,7 +1939,7 @@ class ndax extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         // fetchDepositAddress, createDepositAddress
         //
@@ -1989,7 +1988,7 @@ class ndax extends Exchange {
         return $this->fetch_deposit_address($code, array_merge($request, $params));
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @see https://apidoc.ndax.io/#getdeposits
@@ -2048,7 +2047,7 @@ class ndax extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -2148,7 +2147,7 @@ class ndax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2241,6 +2240,9 @@ class ndax extends Exchange {
             'status' => $this->parse_transaction_status_by_type($transactionStatus, $type),
             'updated' => $updated,
             'fee' => $fee,
+            'internal' => null,
+            'comment' => null,
+            'network' => null,
         );
     }
 
@@ -2279,10 +2281,10 @@ class ndax extends Exchange {
         $withdrawTemplateTypesResponse = $this->privateGetGetWithdrawTemplateTypes ($withdrawTemplateTypesRequest);
         //
         //     {
-        //         result => true,
-        //         errormsg => null,
-        //         statuscode => "0",
-        //         TemplateTypes => array(
+        //         "result" => true,
+        //         "errormsg" => null,
+        //         "statuscode" => "0",
+        //         "TemplateTypes" => array(
         //             array( AccountProviderId => "14", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "BitgoRPC-BTC" ),
         //             array( AccountProviderId => "20", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "TrezorBTC" ),
         //             array( AccountProviderId => "31", TemplateName => "BTC", AccountProviderName => "BTC Fireblocks 1" )
@@ -2305,10 +2307,10 @@ class ndax extends Exchange {
         $withdrawTemplateResponse = $this->privateGetGetWithdrawTemplate ($withdrawTemplateRequest);
         //
         //     {
-        //         result => true,
-        //         errormsg => null,
-        //         statuscode => "0",
-        //         Template => "array(\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\")"
+        //         "result" => true,
+        //         "errormsg" => null,
+        //         "statuscode" => "0",
+        //         "Template" => "array(\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\")"
         //     }
         //
         $template = $this->safe_string($withdrawTemplateResponse, 'Template');

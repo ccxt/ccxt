@@ -6,8 +6,8 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
@@ -196,68 +196,67 @@ class bitbank(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data')
         pairs = self.safe_value(data, 'pairs', [])
-        result = []
-        for i in range(0, len(pairs)):
-            entry = pairs[i]
-            id = self.safe_string(entry, 'name')
-            baseId = self.safe_string(entry, 'base_asset')
-            quoteId = self.safe_string(entry, 'quote_asset')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': self.safe_value(entry, 'is_enabled'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'taker': self.safe_number(entry, 'taker_fee_rate_quote'),
-                'maker': self.safe_number(entry, 'maker_fee_rate_quote'),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amount_digits'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'price_digits'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(entry, 'unit_amount'),
-                        'max': self.safe_number(entry, 'limit_max_amount'),
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': None,
-                'info': entry,
-            })
-        return result
+        return self.parse_markets(pairs)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_market(self, entry) -> Market:
+        id = self.safe_string(entry, 'name')
+        baseId = self.safe_string(entry, 'base_asset')
+        quoteId = self.safe_string(entry, 'quote_asset')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': self.safe_value(entry, 'is_enabled'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.safe_number(entry, 'taker_fee_rate_quote'),
+            'maker': self.safe_number(entry, 'maker_fee_rate_quote'),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amount_digits'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'price_digits'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.safe_number(entry, 'unit_amount'),
+                    'max': self.safe_number(entry, 'limit_max_amount'),
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': entry,
+        }
+
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
@@ -284,7 +283,7 @@ class bitbank(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#ticker
@@ -301,7 +300,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#depth
@@ -320,7 +319,7 @@ class bitbank(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades
         #
@@ -364,7 +363,7 @@ class bitbank(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#transactions
@@ -395,26 +394,26 @@ class bitbank(Exchange, ImplicitAPI):
         response = await self.marketsGetSpotPairs(params)
         #
         #     {
-        #         success: '1',
-        #         data: {
-        #           pairs: [
+        #         "success": "1",
+        #         "data": {
+        #           "pairs": [
         #             {
-        #               name: 'btc_jpy',
-        #               base_asset: 'btc',
-        #               quote_asset: 'jpy',
-        #               maker_fee_rate_base: '0',
-        #               taker_fee_rate_base: '0',
-        #               maker_fee_rate_quote: '-0.0002',
-        #               taker_fee_rate_quote: '0.0012',
-        #               unit_amount: '0.0001',
-        #               limit_max_amount: '1000',
-        #               market_max_amount: '10',
-        #               market_allowance_rate: '0.2',
-        #               price_digits: '0',
-        #               amount_digits: '4',
-        #               is_enabled: True,
-        #               stop_order: False,
-        #               stop_order_and_cancel: False
+        #               "name": "btc_jpy",
+        #               "base_asset": "btc",
+        #               "quote_asset": "jpy",
+        #               "maker_fee_rate_base": "0",
+        #               "taker_fee_rate_base": "0",
+        #               "maker_fee_rate_quote": "-0.0002",
+        #               "taker_fee_rate_quote": "0.0012",
+        #               "unit_amount": "0.0001",
+        #               "limit_max_amount": "1000",
+        #               "market_max_amount": "10",
+        #               "market_allowance_rate": "0.2",
+        #               "price_digits": "0",
+        #               "amount_digits": "4",
+        #               "is_enabled": True,
+        #               "stop_order": False,
+        #               "stop_order_and_cancel": False
         #             },
         #             ...
         #           ]
@@ -439,7 +438,7 @@ class bitbank(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         "0.02501786",
@@ -459,7 +458,7 @@ class bitbank(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 4),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#candlestick
@@ -507,7 +506,7 @@ class bitbank(Exchange, ImplicitAPI):
         ohlcv = self.safe_value(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -526,7 +525,7 @@ class bitbank(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#assets
@@ -580,7 +579,7 @@ class bitbank(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
         market = self.safe_market(marketId, market)
@@ -644,7 +643,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#cancel-order
@@ -663,7 +662,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return data
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-order-information
@@ -681,7 +680,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-active-orders
@@ -705,7 +704,7 @@ class bitbank(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-trade-history
@@ -798,7 +797,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -835,6 +834,7 @@ class bitbank(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': None,
+            'internal': None,
             'fee': None,
             'info': transaction,
         }

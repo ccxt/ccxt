@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -621,58 +621,58 @@ export default class bitfinex2 extends Exchange {
         //         // sym
         //         // maps symbols to their API symbols, BAB > BCH
         //         [
-        //             [ 'BAB', 'BCH' ],
-        //             [ 'CNHT', 'CNHt' ],
-        //             [ 'DSH', 'DASH' ],
-        //             [ 'IOT', 'IOTA' ],
-        //             [ 'LES', 'LEO-EOS' ],
-        //             [ 'LET', 'LEO-ERC20' ],
-        //             [ 'STJ', 'STORJ' ],
-        //             [ 'TSD', 'TUSD' ],
-        //             [ 'UDC', 'USDC' ],
-        //             [ 'USK', 'USDK' ],
-        //             [ 'UST', 'USDt' ],
-        //             [ 'USTF0', 'USDt0' ],
-        //             [ 'XCH', 'XCHF' ],
-        //             [ 'YYW', 'YOYOW' ],
+        //             [ "BAB", "BCH" ],
+        //             [ "CNHT", "CNHt" ],
+        //             [ "DSH", "DASH" ],
+        //             [ "IOT", "IOTA" ],
+        //             [ "LES", "LEO-EOS" ],
+        //             [ "LET", "LEO-ERC20" ],
+        //             [ "STJ", "STORJ" ],
+        //             [ "TSD", "TUSD" ],
+        //             [ "UDC", "USDC" ],
+        //             [ "USK", "USDK" ],
+        //             [ "UST", "USDt" ],
+        //             [ "USTF0", "USDt0" ],
+        //             [ "XCH", "XCHF" ],
+        //             [ "YYW", "YOYOW" ],
         //             // ...
         //         ],
         //         // label
         //         // verbose friendly names, BNT > Bancor
         //         [
-        //             [ 'BAB', 'Bitcoin Cash' ],
-        //             [ 'BCH', 'Bitcoin Cash' ],
-        //             [ 'LEO', 'Unus Sed LEO' ],
-        //             [ 'LES', 'Unus Sed LEO (EOS)' ],
-        //             [ 'LET', 'Unus Sed LEO (ERC20)' ],
+        //             [ "BAB", "Bitcoin Cash" ],
+        //             [ "BCH", "Bitcoin Cash" ],
+        //             [ "LEO", "Unus Sed LEO" ],
+        //             [ "LES", "Unus Sed LEO (EOS)" ],
+        //             [ "LET", "Unus Sed LEO (ERC20)" ],
         //             // ...
         //         ],
         //         // unit
         //         // maps symbols to unit of measure where applicable
         //         [
-        //             [ 'IOT', 'Mi|MegaIOTA' ],
+        //             [ "IOT", "Mi|MegaIOTA" ],
         //         ],
         //         // undl
         //         // maps derivatives symbols to their underlying currency
         //         [
-        //             [ 'USTF0', 'UST' ],
-        //             [ 'BTCF0', 'BTC' ],
-        //             [ 'ETHF0', 'ETH' ],
+        //             [ "USTF0", "UST" ],
+        //             [ "BTCF0", "BTC" ],
+        //             [ "ETHF0", "ETH" ],
         //         ],
         //         // pool
         //         // maps symbols to underlying network/protocol they operate on
         //         [
-        //             [ 'SAN', 'ETH' ], [ 'OMG', 'ETH' ], [ 'AVT', 'ETH' ], [ 'EDO', 'ETH' ],
-        //             [ 'ESS', 'ETH' ], [ 'ATD', 'EOS' ], [ 'ADD', 'EOS' ], [ 'MTO', 'EOS' ],
-        //             [ 'PNK', 'ETH' ], [ 'BAB', 'BCH' ], [ 'WLO', 'XLM' ], [ 'VLD', 'ETH' ],
-        //             [ 'BTT', 'TRX' ], [ 'IMP', 'ETH' ], [ 'SCR', 'ETH' ], [ 'GNO', 'ETH' ],
+        //             [ 'SAN', 'ETH' ], [ 'OMG', 'ETH' ], [ 'AVT', 'ETH' ], [ "EDO", "ETH" ],
+        //             [ 'ESS', 'ETH' ], [ 'ATD', 'EOS' ], [ 'ADD', 'EOS' ], [ "MTO", "EOS" ],
+        //             [ 'PNK', 'ETH' ], [ 'BAB', 'BCH' ], [ 'WLO', 'XLM' ], [ "VLD", "ETH" ],
+        //             [ 'BTT', 'TRX' ], [ 'IMP', 'ETH' ], [ 'SCR', 'ETH' ], [ "GNO", "ETH" ],
         //             // ...
         //         ],
         //         // explorer
         //         // maps symbols to their recognised block explorer URLs
         //         [
         //             [
-        //                 'AIO',
+        //                 "AIO",
         //                 [
         //                     "https://mainnet.aion.network",
         //                     "https://mainnet.aion.network/#/account/VAL",
@@ -800,7 +800,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitfinex2#fetchBalance
@@ -913,7 +913,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
@@ -968,9 +968,9 @@ export default class bitfinex2 extends Exchange {
     convertDerivativesId (currency, type) {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
-        //   id: 'fUSTF0',
-        //   code: 'USTF0',
-        //   info: [ 'USTF0', [], [], [], [ 'USTF0', 'UST' ] ],
+        //   "id": "fUSTF0",
+        //   "code": "USTF0",
+        //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
         const info = this.safeValue (currency, 'info');
         const transferId = this.safeString (info, 0);
         const underlying = this.safeValue (info, 4, []);
@@ -990,7 +990,7 @@ export default class bitfinex2 extends Exchange {
         return currencyId;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitfinex2#fetchOrderBook
@@ -1036,7 +1036,7 @@ export default class bitfinex2 extends Exchange {
         return result as OrderBook;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1105,7 +1105,7 @@ export default class bitfinex2 extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitfinex2#fetchTickers
@@ -1175,7 +1175,7 @@ export default class bitfinex2 extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitfinex2#fetchTicker
@@ -1194,7 +1194,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1277,7 +1277,7 @@ export default class bitfinex2 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitfinex2#fetchTrades
@@ -1326,7 +1326,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTrades (trades, market, undefined, limit);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 100, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 100, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitfinex2#fetchOHLCV
@@ -1370,7 +1370,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1457539800000,
@@ -1436,7 +1436,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (orderTypes, orderType, 'GTC');
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         const id = this.safeString (order, 0);
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
@@ -1612,7 +1612,7 @@ export default class bitfinex2 extends Exchange {
         //
         //      [
         //          1653325121,   // Timestamp in milliseconds
-        //          "on-req",     // Purpose of notification ('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
+        //          "on-req",     // Purpose of notification ('on-req', 'oc-req', "uca", 'fon-req', "foc-req")
         //          null,         // unique ID of the message
         //          null,
         //              [
@@ -1667,7 +1667,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#cancelAllOrders
@@ -1685,7 +1685,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrders (orders);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#cancelOrder
@@ -1718,7 +1718,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOpenOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOpenOrder
@@ -1741,7 +1741,7 @@ export default class bitfinex2 extends Exchange {
         return order;
     }
 
-    async fetchClosedOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchClosedOrder
@@ -1764,7 +1764,7 @@ export default class bitfinex2 extends Exchange {
         return order;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitfinex2#fetchOpenOrders
@@ -1829,7 +1829,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitfinex2#fetchClosedOrders
@@ -1909,7 +1909,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchOrderTrades
@@ -1922,9 +1922,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrderTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderId = parseInt (id);
@@ -1937,7 +1935,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchMyTrades
@@ -2020,20 +2018,20 @@ export default class bitfinex2 extends Exchange {
         //
         //     [
         //         1582269616687, // MTS Millisecond Time Stamp of the update
-        //         'acc_dep', // TYPE Purpose of notification 'acc_dep' for account deposit
+        //         "acc_dep", // TYPE Purpose of notification "acc_dep" for account deposit
         //         null, // MESSAGE_ID unique ID of the message
         //         null, // not documented
         //         [
         //             null, // PLACEHOLDER
-        //             'BITCOIN', // METHOD Method of deposit
-        //             'BTC', // CURRENCY_CODE Currency code of new address
+        //             "BITCOIN", // METHOD Method of deposit
+        //             "BTC", // CURRENCY_CODE Currency code of new address
         //             null, // PLACEHOLDER
-        //             '1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG', // ADDRESS
+        //             "1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG", // ADDRESS
         //             null, // POOL_ADDRESS
         //         ],
         //         null, // CODE null or integer work in progress
-        //         'SUCCESS', // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
-        //         'success', // TEXT Text of the notification
+        //         "SUCCESS", // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
+        //         "success", // TEXT Text of the notification
         //     ]
         //
         const result = this.safeValue (response, 4, []);
@@ -2067,13 +2065,13 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
         //     [
         //         1582271520931, // MTS Millisecond Time Stamp of the update
-        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal request
         //         null, // MESSAGE_ID unique ID of the message
         //         null, // not documented
         //         [
@@ -2096,26 +2094,26 @@ export default class bitfinex2 extends Exchange {
         //
         //     [
         //         13293039, // ID
-        //         'ETH', // CURRENCY
-        //         'ETHEREUM', // CURRENCY_NAME
+        //         "ETH", // CURRENCY
+        //         "ETHEREUM", // CURRENCY_NAME
         //         null,
         //         null,
         //         1574175052000, // MTS_STARTED
         //         1574181326000, // MTS_UPDATED
         //         null,
         //         null,
-        //         'CANCELED', // STATUS
+        //         "CANCELED", // STATUS
         //         null,
         //         null,
         //         -0.24, // AMOUNT, negative for withdrawals
         //         -0.00135, // FEES
         //         null,
         //         null,
-        //         '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
+        //         "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
         //         null,
         //         null,
         //         null,
-        //         '0x523ec8945500.....................................', // TRANSACTION_ID
+        //         "0x523ec8945500.....................................", // TRANSACTION_ID
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
@@ -2197,6 +2195,7 @@ export default class bitfinex2 extends Exchange {
             'tagTo': tag,
             'updated': updated,
             'comment': comment,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),
@@ -2265,13 +2264,13 @@ export default class bitfinex2 extends Exchange {
         //         [
         //          [
         //              {
-        //              curr: 'Total (USD)',
-        //              vol: '0',
-        //              vol_safe: '0',
-        //              vol_maker: '0',
-        //              vol_BFX: '0',
-        //              vol_BFX_safe: '0',
-        //              vol_BFX_maker: '0'
+        //              "curr": "Total (USD)",
+        //              "vol": "0",
+        //              "vol_safe": "0",
+        //              "vol_maker": "0",
+        //              "vol_BFX": "0",
+        //              "vol_BFX_safe": "0",
+        //              "vol_BFX_maker": "0"
         //              }
         //          ],
         //          {},
@@ -2280,7 +2279,7 @@ export default class bitfinex2 extends Exchange {
         //         [ null, {}, 0 ],
         //         null,
         //         null,
-        //         { leo_lev: '0', leo_amount_avg: '0' }
+        //         { leo_lev: "0", leo_amount_avg: "0" }
         //     ]
         //
         const result = {};
@@ -2318,7 +2317,7 @@ export default class bitfinex2 extends Exchange {
         return result;
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitfinex2#fetchDepositsWithdrawals
@@ -2352,26 +2351,26 @@ export default class bitfinex2 extends Exchange {
         //     [
         //         [
         //             13293039, // ID
-        //             'ETH', // CURRENCY
-        //             'ETHEREUM', // CURRENCY_NAME
+        //             "ETH", // CURRENCY
+        //             "ETHEREUM", // CURRENCY_NAME
         //             null,
         //             null,
         //             1574175052000, // MTS_STARTED
         //             1574181326000, // MTS_UPDATED
         //             null,
         //             null,
-        //             'CANCELED', // STATUS
+        //             "CANCELED", // STATUS
         //             null,
         //             null,
         //             -0.24, // AMOUNT, negative for withdrawals
         //             -0.00135, // FEES
         //             null,
         //             null,
-        //             '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
+        //             "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
         //             null,
         //             null,
         //             null,
-        //             '0x523ec8945500.....................................', // TRANSACTION_ID
+        //             "0x523ec8945500.....................................", // TRANSACTION_ID
         //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //         ]
         //     ]
@@ -2424,7 +2423,7 @@ export default class bitfinex2 extends Exchange {
         //
         //     [
         //         1582271520931, // MTS Millisecond Time Stamp of the update
-        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal request
         //         null, // MESSAGE_ID unique ID of the message
         //         null, // not documented
         //         [
@@ -2470,7 +2469,7 @@ export default class bitfinex2 extends Exchange {
         });
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchPositions
@@ -2520,7 +2519,7 @@ export default class bitfinex2 extends Exchange {
         return this.parsePositions (response, symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //    [
         //        "tBTCUSD",                    // SYMBOL
@@ -2625,7 +2624,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     handleErrors (statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {
-        // ['error', 11010, 'ratelimit: error']
+        // ["error", 11010, "ratelimit: error"]
         if (response !== undefined) {
             if (!Array.isArray (response)) {
                 const message = this.safeString2 (response, 'message', 'error');
@@ -2673,7 +2672,7 @@ export default class bitfinex2 extends Exchange {
         }
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     [
         //         [
@@ -2721,7 +2720,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex2#fetchLedger
@@ -2790,7 +2789,7 @@ export default class bitfinex2 extends Exchange {
         return this.fetchFundingRates ([ symbol ], params);
     }
 
-    async fetchFundingRates (symbols: string[] = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitfine#fetchFundingRate
@@ -2842,7 +2841,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseFundingRates (response);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfine#fetchFundingRateHistory
@@ -2909,7 +2908,7 @@ export default class bitfinex2 extends Exchange {
         return this.filterBySymbolSinceLimit (rates, symbol, since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -2962,7 +2961,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    parseFundingRateHistory (contract, market = undefined) {
+    parseFundingRateHistory (contract, market: Market = undefined) {
         //
         // [
         //     1691165494000,

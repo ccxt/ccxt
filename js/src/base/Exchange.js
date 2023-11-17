@@ -58,7 +58,6 @@ export default class Exchange {
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
-        this.positions = {};
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.enableLastJsonResponse = true;
@@ -252,7 +251,7 @@ export default class Exchange {
         this.transactions = {};
         this.ohlcvs = {};
         this.myTrades = undefined;
-        this.positions = {};
+        this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
@@ -1346,6 +1345,9 @@ export default class Exchange {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderBook() is not supported yet');
     }
+    async fetchMarginMode(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchMarginMode() is not supported yet');
+    }
     async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
         const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
@@ -1369,6 +1371,16 @@ export default class Exchange {
     }
     async fetchTradingLimits(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTradingLimits() is not supported yet');
+    }
+    parseMarket(market) {
+        throw new NotSupported(this.id + ' parseMarket() is not supported yet');
+    }
+    parseMarkets(markets) {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            result.push(this.parseMarket(markets[i]));
+        }
+        return result;
     }
     parseTicker(ticker, market = undefined) {
         throw new NotSupported(this.id + ' parseTicker() is not supported yet');
@@ -1445,6 +1457,17 @@ export default class Exchange {
         const stringifiedNumber = number.toString();
         const convertedNumber = parseFloat(stringifiedNumber);
         return parseInt(convertedNumber);
+    }
+    parseToNumeric(number) {
+        const stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS: 1 == 1.0 is true
+        // in Python: 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (stringVersion.indexOf('.') > 0) {
+            return parseFloat(stringVersion);
+        }
+        return parseInt(stringVersion);
     }
     afterConstruct() {
         this.createNetworksByIdObject();
@@ -1632,7 +1655,7 @@ export default class Exchange {
             else {
                 this.markets_by_id[value['id']] = [value];
             }
-            const market = this.deepExtend(this.safeMarket(), {
+            const market = this.deepExtend(this.safeMarketStructure(), {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
@@ -2734,7 +2757,7 @@ export default class Exchange {
         const symbol = this.safeString(position, 'symbol');
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.safeValue(this.markets, symbol);
         }
         if (contractSize === undefined && market !== undefined) {
             contractSize = this.safeNumber(market, 'contractSize');
@@ -2955,6 +2978,15 @@ export default class Exchange {
     async fetchPosition(symbol, params = {}) {
         throw new NotSupported(this.id + ' fetchPosition() is not supported yet');
     }
+    async watchPosition(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchPosition() is not supported yet');
+    }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchPositions() is not supported yet');
+    }
+    async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.watchPositions(symbols, since, limit, params);
+    }
     async fetchPositionsBySymbol(symbol, params = {}) {
         /**
          * @method
@@ -2994,53 +3026,14 @@ export default class Exchange {
         return {
             'id': currencyId,
             'code': code,
+            'precision': undefined,
         };
     }
-    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const result = {
-            'id': marketId,
+    safeMarket(marketId, market = undefined, delimiter = undefined, marketType = undefined) {
+        const result = this.safeMarketStructure({
             'symbol': marketId,
-            'base': undefined,
-            'quote': undefined,
-            'baseId': undefined,
-            'quoteId': undefined,
-            'active': undefined,
-            'type': undefined,
-            'linear': undefined,
-            'inverse': undefined,
-            'spot': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'margin': false,
-            'contract': false,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'optionType': undefined,
-            'strike': undefined,
-            'settle': undefined,
-            'settleId': undefined,
-            'precision': {
-                'amount': undefined,
-                'price': undefined,
-            },
-            'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'info': undefined,
-        };
+            'marketId': marketId,
+        });
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
@@ -3049,13 +3042,17 @@ export default class Exchange {
                     return markets[0];
                 }
                 else {
-                    if ((marketType === undefined) && (market === undefined)) {
-                        throw new ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                    if (marketType === undefined) {
+                        if (market === undefined) {
+                            throw new ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                        }
+                        else {
+                            marketType = market['type'];
+                        }
                     }
-                    const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (currentMarket[inferredMarketType]) {
+                        if (currentMarket[marketType]) {
                             return currentMarket;
                         }
                     }
@@ -3131,17 +3128,7 @@ export default class Exchange {
         return await this.fetchPartialBalance('total', params);
     }
     async fetchStatus(params = {}) {
-        if (this.has['fetchTime']) {
-            const time = await this.fetchTime(params);
-            this.status = this.extend(this.status, {
-                'updated': time,
-                'info': time,
-            });
-        }
-        if (!('info' in this.status)) {
-            this.status['info'] = undefined;
-        }
-        return this.status;
+        throw new NotSupported(this.id + ' fetchStatus() is not supported yet');
     }
     async fetchFundingFee(code, params = {}) {
         const warnOnFetchFundingFee = this.safeValue(this.options, 'warnOnFetchFundingFee', true);
@@ -3418,6 +3405,9 @@ export default class Exchange {
     async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOHLCVWs() is not supported yet');
     }
+    async fetchGreeks(symbol, params = {}) {
+        throw new NotSupported(this.id + ' fetchGreeks() is not supported yet');
+    }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -3495,21 +3485,19 @@ export default class Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError(this.id + ' markets not loaded');
         }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            }
-            else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                const defaultType = this.safeString2(this.options, 'defaultType', 'defaultSubType', 'spot');
-                for (let i = 0; i < markets.length; i++) {
-                    const market = markets[i];
-                    if (market[defaultType]) {
-                        return market;
-                    }
+        if (symbol in this.markets) {
+            return this.markets[symbol];
+        }
+        else if (symbol in this.markets_by_id) {
+            const markets = this.markets_by_id[symbol];
+            const defaultType = this.safeString2(this.options, 'defaultType', 'defaultSubType', 'spot');
+            for (let i = 0; i < markets.length; i++) {
+                const market = markets[i];
+                if (market[defaultType]) {
+                    return market;
                 }
-                return markets[0];
             }
+            return markets[0];
         }
         throw new BadSymbol(this.id + ' does not have market symbol ' + symbol);
     }
@@ -4577,6 +4565,9 @@ export default class Exchange {
         const sorted = this.sortBy(result, 'timestamp');
         const symbol = this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseGreeks(greeks, market = undefined) {
+        throw new NotSupported(this.id + ' parseGreeks () is not supported yet');
     }
 }
 export { Exchange, };

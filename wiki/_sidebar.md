@@ -7,3 +7,5 @@
 * [Supported Exchanges](Exchange-Markets.md)
 * [Exchanges By Country](Exchange-Markets-By-Country.md)
 * [API Spec](spec.md)
+* [Changelog](CHANGELOG.md)
+* [Awesome](Awesome.md)

@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
-from typing import List
 from ccxt.base.errors import AuthenticationError
 
 
@@ -92,24 +91,24 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.watch(url, messageHash, request, messageHash)
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        result: True
+            #        "jsonrpc": "2.0",
+            #        "result": True
             #    }
             #
             #    # Failure to return results
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        error: {
-            #            code: 1002,
-            #            message: 'Authorization is required or has been failed',
-            #            description: 'invalid signature format'
+            #        "jsonrpc": "2.0",
+            #        "error": {
+            #            "code": 1002,
+            #            "message": "Authorization is required or has been failed",
+            #            "description": "invalid signature format"
             #        }
             #    }
             #
         return future
 
-    async def subscribe_public(self, name: str, symbols: Optional[List[str]] = None, params={}):
+    async def subscribe_public(self, name: str, symbols: Strings = None, params={}):
         """
          * @ignore
         :param str name: websocket endpoint name
@@ -129,7 +128,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def subscribe_private(self, name: str, symbol: Optional[str] = None, params={}):
+    async def subscribe_private(self, name: str, symbol: Str = None, params={}):
         """
          * @ignore
         :param str name: websocket endpoint name
@@ -150,7 +149,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://api.hitbtc.com/#subscribe-to-full-order-book
@@ -429,7 +428,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://api.hitbtc.com/#subscribe-to-trades
@@ -511,7 +510,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_trades(self, trades, market: Optional[object] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_ws_trades(self, trades, market: object = None, since: Int = None, limit: Int = None, params={}):
         trades = self.to_array(trades)
         result = []
         for i in range(0, len(trades)):
@@ -548,7 +547,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'fee': None,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://api.hitbtc.com/#subscribe-to-candles
@@ -652,7 +651,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://api.hitbtc.com/#subscribe-to-reports
@@ -844,7 +843,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #    }
         #
         timestamp = self.safe_string(order, 'created_at')
-        marketId = self.safe_symbol(order, 'symbol')
+        marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         tradeId = self.safe_string(order, 'trade_id')
         trades = None
@@ -926,7 +925,7 @@ class hitbtc(ccxt.async_support.hitbtc):
 
     def handle_notification(self, client: Client, message):
         #
-        #     {jsonrpc: '2.0', result: True, id: null}
+        #     {jsonrpc: "2.0", result: True, id: null}
         #
         return message
 
@@ -960,8 +959,8 @@ class hitbtc(ccxt.async_support.hitbtc):
     def handle_authenticate(self, client: Client, message):
         #
         #    {
-        #        jsonrpc: '2.0',
-        #        result: True
+        #        "jsonrpc": "2.0",
+        #        "result": True
         #    }
         #
         success = self.safe_value(message, 'result')

@@ -20,8 +20,8 @@ use React\Promise;
 function example() {
     return Async\async(function () {
         $prefix = '-';
-        $exchange_1 = new \ccxt\async\lbank();
-        $exchange_2 = new \ccxt\async\lbank2();
+        $exchange_1 = new \ccxt\async\okx();
+        $exchange_2 = new \ccxt\async\htx();
         $keys_1 = is_array($exchange_1->has) ? array_keys($exchange_1->has) : array();
         $keys_2 = is_array($exchange_2->has) ? array_keys($exchange_2->has) : array();
         // check missing from exchange-1

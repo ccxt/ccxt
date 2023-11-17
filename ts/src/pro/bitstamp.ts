@@ -2,9 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import bitstampRest from '../bitstamp.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -78,22 +78,22 @@ export default class bitstamp extends bitstampRest {
         // the feed does not include a snapshot, just the deltas
         //
         //     {
-        //         data: {
-        //             timestamp: '1583656800',
-        //             microtimestamp: '1583656800237527',
-        //             bids: [
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
         //                 ["8729.62", "0.01600000", "1207590502350849"],
         //                 ["8727.22", "0.01800000", "1207590504296448"],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 ["8735.67", "2.00000000", "1207590693249024"],
         //                 ["8735.67", "0.01700000", "1207590693634048"],
         //                 ["8735.68", "1.53294500", "1207590692048896"],
         //             ],
         //         },
-        //         event: 'data',
-        //         channel: 'diff_order_book_btcusd'
+        //         "event": "data",
+        //         "channel": "diff_order_book_btcusd"
         //     }
         //
         const channel = this.safeString (message, 'channel');
@@ -194,16 +194,16 @@ export default class bitstamp extends bitstampRest {
     parseWsTrade (trade, market = undefined) {
         //
         //     {
-        //         buy_order_id: 1211625836466176,
-        //         amount_str: '1.08000000',
-        //         timestamp: '1584642064',
-        //         microtimestamp: '1584642064685000',
-        //         id: 108637852,
-        //         amount: 1.08,
-        //         sell_order_id: 1211625840754689,
-        //         price_str: '6294.77',
-        //         type: 1,
-        //         price: 6294.77
+        //         "buy_order_id": 1211625836466176,
+        //         "amount_str": "1.08000000",
+        //         "timestamp": "1584642064",
+        //         "microtimestamp": "1584642064685000",
+        //         "id": 108637852,
+        //         "amount": 1.08,
+        //         "sell_order_id": 1211625840754689,
+        //         "price_str": "6294.77",
+        //         "type": 1,
+        //         "price": 6294.77
         //     }
         //
         const microtimestamp = this.safeInteger (trade, 'microtimestamp');
@@ -234,20 +234,20 @@ export default class bitstamp extends bitstampRest {
     handleTrade (client: Client, message) {
         //
         //     {
-        //         data: {
-        //             buy_order_id: 1207733769326592,
-        //             amount_str: "0.14406384",
-        //             timestamp: "1583691851",
-        //             microtimestamp: "1583691851934000",
-        //             id: 106833903,
-        //             amount: 0.14406384,
-        //             sell_order_id: 1207733765476352,
-        //             price_str: "8302.92",
-        //             type: 0,
-        //             price: 8302.92
+        //         "data": {
+        //             "buy_order_id": 1207733769326592,
+        //             "amount_str": "0.14406384",
+        //             "timestamp": "1583691851",
+        //             "microtimestamp": "1583691851934000",
+        //             "id": 106833903,
+        //             "amount": 0.14406384,
+        //             "sell_order_id": 1207733765476352,
+        //             "price_str": "8302.92",
+        //             "type": 0,
+        //             "price": 8302.92
         //         },
-        //         event: "trade",
-        //         channel: "live_trades_btcusd"
+        //         "event": "trade",
+        //         "channel": "live_trades_btcusd"
         //     }
         //
         // the trade streams push raw trade information in real-time
@@ -270,20 +270,18 @@ export default class bitstamp extends bitstampRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#watchOrders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitstamp api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('watchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -393,14 +391,14 @@ export default class bitstamp extends bitstampRest {
     handleSubscriptionStatus (client: Client, message) {
         //
         //     {
-        //         'event': "bts:subscription_succeeded",
-        //         'channel': "detail_order_book_btcusd",
-        //         'data': {},
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "detail_order_book_btcusd",
+        //         "data": {},
         //     }
         //     {
-        //         event: 'bts:subscription_succeeded',
-        //         channel: 'private-my_orders_ltcusd-4848701',
-        //         data: {}
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "private-my_orders_ltcusd-4848701",
+        //         "data": {}
         //     }
         //
         const channel = this.safeString (message, 'channel');
@@ -412,22 +410,22 @@ export default class bitstamp extends bitstampRest {
     handleSubject (client: Client, message) {
         //
         //     {
-        //         data: {
-        //             timestamp: '1583656800',
-        //             microtimestamp: '1583656800237527',
-        //             bids: [
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
         //                 ["8729.62", "0.01600000", "1207590502350849"],
         //                 ["8727.22", "0.01800000", "1207590504296448"],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 ["8735.67", "2.00000000", "1207590693249024"],
         //                 ["8735.67", "0.01700000", "1207590693634048"],
         //                 ["8735.68", "1.53294500", "1207590692048896"],
         //             ],
         //         },
-        //         event: 'data',
-        //         channel: 'detail_order_book_btcusd'
+        //         "event": "data",
+        //         "channel": "detail_order_book_btcusd"
         //     }
         //
         // private order
@@ -464,9 +462,9 @@ export default class bitstamp extends bitstampRest {
 
     handleErrorMessage (client: Client, message) {
         // {
-        //     event: 'bts:error',
-        //     channel: '',
-        //     data: { code: 4009, message: 'Connection is unauthorized.' }
+        //     "event": "bts:error",
+        //     "channel": '',
+        //     "data": { code: 4009, message: "Connection is unauthorized." }
         // }
         const event = this.safeString (message, 'event');
         if (event === 'bts:error') {
@@ -484,34 +482,34 @@ export default class bitstamp extends bitstampRest {
         }
         //
         //     {
-        //         'event': "bts:subscription_succeeded",
-        //         'channel': "detail_order_book_btcusd",
-        //         'data': {},
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "detail_order_book_btcusd",
+        //         "data": {},
         //     }
         //
         //     {
-        //         data: {
-        //             timestamp: '1583656800',
-        //             microtimestamp: '1583656800237527',
-        //             bids: [
+        //         "data": {
+        //             "timestamp": "1583656800",
+        //             "microtimestamp": "1583656800237527",
+        //             "bids": [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
         //                 ["8729.62", "0.01600000", "1207590502350849"],
         //                 ["8727.22", "0.01800000", "1207590504296448"],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 ["8735.67", "2.00000000", "1207590693249024"],
         //                 ["8735.67", "0.01700000", "1207590693634048"],
         //                 ["8735.68", "1.53294500", "1207590692048896"],
         //             ],
         //         },
-        //         event: 'data',
-        //         channel: 'detail_order_book_btcusd'
+        //         "event": "data",
+        //         "channel": "detail_order_book_btcusd"
         //     }
         //
         //     {
-        //         event: 'bts:subscription_succeeded',
-        //         channel: 'private-my_orders_ltcusd-4848701',
-        //         data: {}
+        //         "event": "bts:subscription_succeeded",
+        //         "channel": "private-my_orders_ltcusd-4848701",
+        //         "data": {}
         //     }
         //
         const event = this.safeString (message, 'event');

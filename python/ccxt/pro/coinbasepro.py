@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.base.types import Int, Str, Strings, Ticker
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -120,7 +120,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         name = 'ticker'
         return await self.subscribe(name, symbol, name, params)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -140,7 +140,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -157,7 +157,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -180,7 +180,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -200,7 +200,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_my_trades_for_symbols(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades_for_symbols(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str[] symbols: unified symbol of the market to fetch trades for
@@ -221,7 +221,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_orders_for_symbols(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders_for_symbols(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str[] symbols: unified symbol of the market to fetch orders for
@@ -242,7 +242,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = orders.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -263,7 +263,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -297,7 +297,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         orderbook = await self.watch(url, messageHash, self.extend(request, authentication), messageHash, subscription)
         return orderbook.limit()
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
@@ -335,16 +335,16 @@ class coinbasepro(ccxt.async_support.coinbasepro):
     def handle_trade(self, client: Client, message):
         #
         #     {
-        #         type: 'match',
-        #         trade_id: 82047307,
-        #         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
-        #         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
-        #         side: 'sell',
-        #         size: '0.00513192',
-        #         price: '9314.78',
-        #         product_id: 'BTC-USD',
-        #         sequence: 12038915443,
-        #         time: '2020-01-31T20:03:41.158814Z'
+        #         "type": "match",
+        #         "trade_id": 82047307,
+        #         "maker_order_id": "0f358725-2134-435e-be11-753912a326e0",
+        #         "taker_order_id": "252b7002-87a3-425c-ac73-f5b9e23f3caf",
+        #         "side": "sell",
+        #         "size": "0.00513192",
+        #         "price": "9314.78",
+        #         "product_id": "BTC-USD",
+        #         "sequence": 12038915443,
+        #         "time": "2020-01-31T20:03:41.158814Z"
         #     }
         #
         marketId = self.safe_string(message, 'product_id')
@@ -479,18 +479,18 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         # Order is created
         #
         #     {
-        #         type: 'received',
-        #         side: 'sell',
-        #         product_id: 'BTC-USDC',
-        #         time: '2021-03-05T16:42:21.878177Z',
-        #         sequence: 5641953814,
-        #         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        #         user_id: '54fc141576dcf32596000133',
-        #         order_id: '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        #         order_type: 'limit',
-        #         size: '0.0001',
-        #         price: '50000',
-        #         client_oid: 'a317abb9-2b30-4370-ebfe-0deecb300180'
+        #         "type": "received",
+        #         "side": "sell",
+        #         "product_id": "BTC-USDC",
+        #         "time": "2021-03-05T16:42:21.878177Z",
+        #         "sequence": 5641953814,
+        #         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        #         "user_id": "54fc141576dcf32596000133",
+        #         "order_id": "11838707-bf9c-4d65-8cec-b57c9a7cab42",
+        #         "order_type": "limit",
+        #         "size": "0.0001",
+        #         "price": "50000",
+        #         "client_oid": "a317abb9-2b30-4370-ebfe-0deecb300180"
         #     }
         #
         #     {
@@ -507,50 +507,50 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         # Order is on the order book
         #
         #     {
-        #         type: 'open',
-        #         side: 'sell',
-        #         product_id: 'BTC-USDC',
-        #         time: '2021-03-05T16:42:21.878177Z',
-        #         sequence: 5641953815,
-        #         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        #         user_id: '54fc141576dcf32596000133',
-        #         price: '50000',
-        #         order_id: '11838707-bf9c-4d65-8cec-b57c9a7cab42',
-        #         remaining_size: '0.0001'
+        #         "type": "open",
+        #         "side": "sell",
+        #         "product_id": "BTC-USDC",
+        #         "time": "2021-03-05T16:42:21.878177Z",
+        #         "sequence": 5641953815,
+        #         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        #         "user_id": "54fc141576dcf32596000133",
+        #         "price": "50000",
+        #         "order_id": "11838707-bf9c-4d65-8cec-b57c9a7cab42",
+        #         "remaining_size": "0.0001"
         #     }
         #
         # Order is partially or completely filled
         #
         #     {
-        #         type: 'match',
-        #         side: 'sell',
-        #         product_id: 'BTC-USDC',
-        #         time: '2021-03-05T16:37:13.396107Z',
-        #         sequence: 5641897876,
-        #         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        #         user_id: '54fc141576dcf32596000133',
-        #         trade_id: 5455505,
-        #         maker_order_id: 'e5f5754d-70a3-4346-95a6-209bcb503629',
-        #         taker_order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        #         size: '0.00021019',
-        #         price: '47338.46',
-        #         taker_profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        #         taker_user_id: '54fc141576dcf32596000133',
-        #         taker_fee_rate: '0.005'
+        #         "type": "match",
+        #         "side": "sell",
+        #         "product_id": "BTC-USDC",
+        #         "time": "2021-03-05T16:37:13.396107Z",
+        #         "sequence": 5641897876,
+        #         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        #         "user_id": "54fc141576dcf32596000133",
+        #         "trade_id": 5455505,
+        #         "maker_order_id": "e5f5754d-70a3-4346-95a6-209bcb503629",
+        #         "taker_order_id": "88bf7086-7b15-40ff-8b19-ab4e08516d69",
+        #         "size": "0.00021019",
+        #         "price": "47338.46",
+        #         "taker_profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        #         "taker_user_id": "54fc141576dcf32596000133",
+        #         "taker_fee_rate": "0.005"
         #     }
         #
         # Order is canceled / closed
         #
         #     {
-        #         type: 'done',
-        #         side: 'buy',
-        #         product_id: 'BTC-USDC',
-        #         time: '2021-03-05T16:37:13.396107Z',
-        #         sequence: 5641897877,
-        #         profile_id: '774ee0ce-fdda-405f-aa8d-47189a14ba0a',
-        #         user_id: '54fc141576dcf32596000133',
-        #         order_id: '88bf7086-7b15-40ff-8b19-ab4e08516d69',
-        #         reason: 'filled'
+        #         "type": "done",
+        #         "side": "buy",
+        #         "product_id": "BTC-USDC",
+        #         "time": "2021-03-05T16:37:13.396107Z",
+        #         "sequence": 5641897877,
+        #         "profile_id": "774ee0ce-fdda-405f-aa8d-47189a14ba0a",
+        #         "user_id": "54fc141576dcf32596000133",
+        #         "order_id": "88bf7086-7b15-40ff-8b19-ab4e08516d69",
+        #         "reason": "filled"
         #     }
         #
         currentOrders = self.orders
@@ -676,21 +676,21 @@ class coinbasepro(ccxt.async_support.coinbasepro):
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         type: 'ticker',
-        #         sequence: 12042642428,
-        #         product_id: 'BTC-USD',
-        #         price: '9380.55',
-        #         open_24h: '9450.81000000',
-        #         volume_24h: '9611.79166047',
-        #         low_24h: '9195.49000000',
-        #         high_24h: '9475.19000000',
-        #         volume_30d: '327812.00311873',
-        #         best_bid: '9380.54',
-        #         best_ask: '9380.55',
-        #         side: 'buy',
-        #         time: '2020-02-01T01:40:16.253563Z',
-        #         trade_id: 82062566,
-        #         last_size: '0.41969131'
+        #         "type": "ticker",
+        #         "sequence": 12042642428,
+        #         "product_id": "BTC-USD",
+        #         "price": "9380.55",
+        #         "open_24h": "9450.81000000",
+        #         "volume_24h": "9611.79166047",
+        #         "low_24h": "9195.49000000",
+        #         "high_24h": "9475.19000000",
+        #         "volume_30d": "327812.00311873",
+        #         "best_bid": "9380.54",
+        #         "best_ask": "9380.55",
+        #         "side": "buy",
+        #         "time": "2020-02-01T01:40:16.253563Z",
+        #         "trade_id": 82062566,
+        #         "last_size": "0.41969131"
         #     }
         #
         marketId = self.safe_string(message, 'product_id')
@@ -711,26 +711,26 @@ class coinbasepro(ccxt.async_support.coinbasepro):
                     client.resolve(ticker, currentMessageHash)
         return message
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
-        #         type: 'ticker',
-        #         sequence: 7388547310,
-        #         product_id: 'BTC-USDT',
-        #         price: '22345.67',
-        #         open_24h: '22308.13',
-        #         volume_24h: '470.21123644',
-        #         low_24h: '22150',
-        #         high_24h: '22495.15',
-        #         volume_30d: '25713.98401605',
-        #         best_bid: '22345.67',
-        #         best_bid_size: '0.10647825',
-        #         best_ask: '22349.68',
-        #         best_ask_size: '0.03131702',
-        #         side: 'sell',
-        #         time: '2023-03-04T03:37:20.799258Z',
-        #         trade_id: 11586478,
-        #         last_size: '0.00352175'
+        #         "type": "ticker",
+        #         "sequence": 7388547310,
+        #         "product_id": "BTC-USDT",
+        #         "price": "22345.67",
+        #         "open_24h": "22308.13",
+        #         "volume_24h": "470.21123644",
+        #         "low_24h": "22150",
+        #         "high_24h": "22495.15",
+        #         "volume_30d": "25713.98401605",
+        #         "best_bid": "22345.67",
+        #         "best_bid_size": "0.10647825",
+        #         "best_ask": "22349.68",
+        #         "best_ask_size": "0.03131702",
+        #         "side": "sell",
+        #         "time": "2023-03-04T03:37:20.799258Z",
+        #         "trade_id": 11586478,
+        #         "last_size": "0.00352175"
         #     }
         #
         type = self.safe_string(ticker, 'type')
@@ -840,11 +840,11 @@ class coinbasepro(ccxt.async_support.coinbasepro):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         type: 'subscriptions',
-        #         channels: [
+        #         "type": "subscriptions",
+        #         "channels": [
         #             {
-        #                 name: 'level2',
-        #                 product_ids: ['ETH-BTC']
+        #                 "name": "level2",
+        #                 "product_ids": ["ETH-BTC"]
         #             }
         #         ]
         #     }
@@ -862,9 +862,9 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         # auth error
         #
         #     {
-        #         type: 'error',
-        #         message: 'Authentication Failed',
-        #         reason: '{"message":"Invalid API Key"}'
+        #         "type": "error",
+        #         "message": "Authentication Failed",
+        #         "reason": "{"message":"Invalid API Key"}"
         #     }
         #
         errMsg = self.safe_string(message, 'message')

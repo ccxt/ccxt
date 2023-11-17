@@ -10,6 +10,7 @@ use ccxt\async\abstract\zaif as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class zaif extends Exchange {
 
@@ -129,14 +130,6 @@ class zaif extends Exchange {
                 ),
             ),
             'options' => array(
-                // zaif schedule defines several market-specific fees
-                'fees' => array(
-                    'BTC/JPY' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.001') ),
-                    'BCH/JPY' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.003') ),
-                    'BCH/BTC' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.003') ),
-                    'PEPECASH/JPY' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.0001') ),
-                    'PEPECASH/BT' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.0001') ),
-                ),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -155,7 +148,7 @@ class zaif extends Exchange {
              * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
              * retrieves data on all $markets for zaif
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $markets = Async\await($this->publicGetCurrencyPairsAll ($params));
             //
@@ -179,73 +172,69 @@ class zaif extends Exchange {
             //         }
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'currency_pair');
-                $name = $this->safe_string($market, 'name');
-                list($baseId, $quoteId) = explode('/', $name);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-                $fees = $this->safe_value($this->options['fees'], $symbol, $this->fees['trading']);
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => null,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => null, // can trade or not
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'taker' => $fees['taker'],
-                    'maker' => $fees['maker'],
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->safe_number($market, 'item_unit_step'),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'aux_unit_point'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $this->safe_number($market, 'item_unit_min'),
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => $this->safe_number($market, 'aux_unit_min'),
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                );
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'currency_pair');
+        $name = $this->safe_string($market, 'name');
+        list($baseId, $quoteId) = explode('/', $name);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $symbol = $base . '/' . $quote;
+        return array(
+            'id' => $id,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => null,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => null, // can trade or not
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->safe_number($market, 'item_unit_step'),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'aux_unit_point'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'item_unit_min'),
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => $this->safe_number($market, 'aux_unit_min'),
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
+    }
+
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'return', array());
         $deposit = $this->safe_value($balances, 'deposit');
         $result = array(
@@ -272,7 +261,7 @@ class zaif extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
@@ -286,7 +275,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
@@ -306,7 +295,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // {
         //     "last" => 9e-08,
@@ -348,7 +337,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
@@ -378,7 +367,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -416,7 +405,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
@@ -505,7 +494,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "currency_pair" => "btc_jpy",
@@ -550,7 +539,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
@@ -576,7 +565,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
@@ -659,7 +648,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "id" => 23634,
@@ -700,6 +689,7 @@ class zaif extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
             'info' => $transaction,
         );

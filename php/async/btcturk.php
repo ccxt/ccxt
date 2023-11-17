@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class btcturk extends Exchange {
 
@@ -191,87 +192,86 @@ class btcturk extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             $markets = $this->safe_value($data, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $entry = $markets[$i];
-                $id = $this->safe_string($entry, 'name');
-                $baseId = $this->safe_string($entry, 'numerator');
-                $quoteId = $this->safe_string($entry, 'denominator');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $filters = $this->safe_value($entry, 'filters', array());
-                $minPrice = null;
-                $maxPrice = null;
-                $minAmount = null;
-                $maxAmount = null;
-                $minCost = null;
-                for ($j = 0; $j < count($filters); $j++) {
-                    $filter = $filters[$j];
-                    $filterType = $this->safe_string($filter, 'filterType');
-                    if ($filterType === 'PRICE_FILTER') {
-                        $minPrice = $this->safe_number($filter, 'minPrice');
-                        $maxPrice = $this->safe_number($filter, 'maxPrice');
-                        $minAmount = $this->safe_number($filter, 'minAmount');
-                        $maxAmount = $this->safe_number($filter, 'maxAmount');
-                        $minCost = $this->safe_number($filter, 'minExchangeValue');
-                    }
-                }
-                $status = $this->safe_string($entry, 'status');
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => ($status === 'TRADING'),
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'numeratorScale'))),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'denominatorScale'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $minAmount,
-                            'max' => $maxAmount,
-                        ),
-                        'price' => array(
-                            'min' => $minPrice,
-                            'max' => $maxPrice,
-                        ),
-                        'cost' => array(
-                            'min' => $minCost,
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $entry,
-                );
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_market($entry): array {
+        $id = $this->safe_string($entry, 'name');
+        $baseId = $this->safe_string($entry, 'numerator');
+        $quoteId = $this->safe_string($entry, 'denominator');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $filters = $this->safe_value($entry, 'filters', array());
+        $minPrice = null;
+        $maxPrice = null;
+        $minAmount = null;
+        $maxAmount = null;
+        $minCost = null;
+        for ($j = 0; $j < count($filters); $j++) {
+            $filter = $filters[$j];
+            $filterType = $this->safe_string($filter, 'filterType');
+            if ($filterType === 'PRICE_FILTER') {
+                $minPrice = $this->safe_number($filter, 'minPrice');
+                $maxPrice = $this->safe_number($filter, 'maxPrice');
+                $minAmount = $this->safe_number($filter, 'minAmount');
+                $maxAmount = $this->safe_number($filter, 'maxAmount');
+                $minCost = $this->safe_number($filter, 'minExchangeValue');
+            }
+        }
+        $status = $this->safe_string($entry, 'status');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'TRADING'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'numeratorScale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'denominatorScale'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $minAmount,
+                    'max' => $maxAmount,
+                ),
+                'price' => array(
+                    'min' => $minPrice,
+                    'max' => $maxPrice,
+                ),
+                'cost' => array(
+                    'min' => $minCost,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $entry,
+        );
+    }
+
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data', array());
         $result = array(
             'info' => $response,
@@ -291,7 +291,7 @@ class btcturk extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -320,7 +320,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -352,7 +352,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //   {
         //     "pair" => "BTCTRY",
@@ -402,7 +402,7 @@ class btcturk extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -417,7 +417,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -431,7 +431,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
@@ -494,7 +494,7 @@ class btcturk extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -536,15 +536,15 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    {
-        //        'timestamp' => 1661990400,
-        //        'high' => 368388.0,
-        //        'open' => 368388.0,
-        //        'low' => 368388.0,
-        //        'close' => 368388.0,
-        //        'volume' => 0.00035208,
+        //        "timestamp" => 1661990400,
+        //        "high" => 368388.0,
+        //        "open" => 368388.0,
+        //        "low" => 368388.0,
+        //        "close" => 368388.0,
+        //        "volume" => 0.00035208,
         //    }
         //
         return array(
@@ -557,7 +557,7 @@ class btcturk extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -709,7 +709,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -734,7 +734,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -792,7 +792,7 @@ class btcturk extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrders / fetchOpenOrders
         //     {

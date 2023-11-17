@@ -162,15 +162,15 @@ class ascendex extends ascendex$1 {
     handleTrades(client, message) {
         //
         // {
-        //     m: 'trades',
-        //     symbol: 'BTC/USDT',
-        //     data: [
+        //     "m": "trades",
+        //     "symbol": "BTC/USDT",
+        //     "data": [
         //       {
-        //         p: '40744.28',
-        //         q: '0.00150',
-        //         ts: 1647514330758,
-        //         bm: true,
-        //         seqnum: 72057633465800320
+        //         "p": "40744.28",
+        //         "q": "0.00150",
+        //         "ts": 1647514330758,
+        //         "bm": true,
+        //         "seqnum": 72057633465800320
         //       }
         //     ]
         // }
@@ -233,16 +233,16 @@ class ascendex extends ascendex$1 {
     handleOrderBookSnapshot(client, message) {
         //
         // {
-        //     m: 'depth',
-        //     symbol: 'BTC/USDT',
-        //     data: {
-        //       ts: 1647520500149,
-        //       seqnum: 28590487626,
-        //       asks: [
+        //     "m": "depth",
+        //     "symbol": "BTC/USDT",
+        //     "data": {
+        //       "ts": 1647520500149,
+        //       "seqnum": 28590487626,
+        //       "asks": [
         //         [Array], [Array], [Array],
         //         [Array], [Array], [Array],
         //       ],
-        //       bids: [
+        //       "bids": [
         //         [Array], [Array], [Array],
         //         [Array], [Array], [Array],
         //       ]
@@ -270,13 +270,13 @@ class ascendex extends ascendex$1 {
     handleOrderBook(client, message) {
         //
         //   {
-        //       m: 'depth',
-        //       symbol: 'BTC/USDT',
-        //       data: {
-        //         ts: 1647515136144,
-        //         seqnum: 28590470736,
-        //         asks: [ [Array], [Array] ],
-        //         bids: [ [Array], [Array], [Array], [Array], [Array], [Array] ]
+        //       "m": "depth",
+        //       "symbol": "BTC/USDT",
+        //       "data": {
+        //         "ts": 1647515136144,
+        //         "seqnum": 28590470736,
+        //         "asks": [ [Array], [Array] ],
+        //         "bids": [ [Array], [Array], [Array], [Array], [Array], [Array] ]
         //       }
         //   }
         //
@@ -512,41 +512,41 @@ class ascendex extends ascendex$1 {
         //
         // spot order
         // {
-        //   m: 'order',
-        //   accountId: 'cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH',
-        //   ac: 'CASH',
-        //   data: {
-        //     sn: 19399016185,
-        //     orderId: 'r17f9d7983faU7223046196CMlrj3bfC',
-        //     s: 'LTC/USDT',
-        //     ot: 'Limit',
-        //     t: 1647614461160,
-        //     p: '50',
-        //     q: '0.1',
-        //     sd: 'Buy',
-        //     st: 'New',
-        //     ap: '0',
-        //     cfq: '0',
-        //     sp: '',
-        //     err: '',
-        //     btb: '0',
-        //     bab: '0',
-        //     qtb: '8',
-        //     qab: '2.995',
-        //     cf: '0',
-        //     fa: 'USDT',
-        //     ei: 'NULL_VAL'
+        //   "m": "order",
+        //   "accountId": "cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH",
+        //   "ac": "CASH",
+        //   "data": {
+        //     "sn": 19399016185,
+        //     "orderId": "r17f9d7983faU7223046196CMlrj3bfC",
+        //     "s": "LTC/USDT",
+        //     "ot": "Limit",
+        //     "t": 1647614461160,
+        //     "p": "50",
+        //     "q": "0.1",
+        //     "sd": "Buy",
+        //     "st": "New",
+        //     "ap": "0",
+        //     "cfq": "0",
+        //     "sp": '',
+        //     "err": '',
+        //     "btb": "0",
+        //     "bab": "0",
+        //     "qtb": "8",
+        //     "qab": "2.995",
+        //     "cf": "0",
+        //     "fa": "USDT",
+        //     "ei": "NULL_VAL"
         //   }
         // }
         //
         //  futures order
         // {
-        //     m: 'futures-order',
-        //     sn: 19399927636,
-        //     e: 'ExecutionReport',
-        //     a: 'futF5SlR9ukAXoDOuXbND4dVpBMw9gzH', // account id
-        //     ac: 'FUTURES',
-        //     t: 1647622515434, // last execution time
+        //     "m": "futures-order",
+        //     "sn": 19399927636,
+        //     "e": "ExecutionReport",
+        //     "a": "futF5SlR9ukAXoDOuXbND4dVpBMw9gzH", // account id
+        //     "ac": "FUTURES",
+        //     "t": 1647622515434, // last execution time
         //      (...)
         // }
         //
@@ -568,59 +568,59 @@ class ascendex extends ascendex$1 {
         //
         // spot order
         //    {
-        //          sn: 19399016185, //sequence number
-        //          orderId: 'r17f9d7983faU7223046196CMlrj3bfC',
-        //          s: 'LTC/USDT',
-        //          ot: 'Limit', // order type
-        //          t: 1647614461160, // last execution timestamp
-        //          p: '50', // price
-        //          q: '0.1', // quantity
-        //          sd: 'Buy', // side
-        //          st: 'New', // status
-        //          ap: '0', // average fill price
-        //          cfq: '0', // cumulated fill quantity
-        //          sp: '', // stop price
-        //          err: '',
-        //          btb: '0', // base asset total balance
-        //          bab: '0', // base asset available balance
-        //          qtb: '8', // quote asset total balance
-        //          qab: '2.995', // quote asset available balance
-        //          cf: '0', // cumulated commission
-        //          fa: 'USDT', // fee asset
-        //          ei: 'NULL_VAL'
+        //          "sn": 19399016185, //sequence number
+        //          "orderId": "r17f9d7983faU7223046196CMlrj3bfC",
+        //          "s": "LTC/USDT",
+        //          "ot": "Limit", // order type
+        //          "t": 1647614461160, // last execution timestamp
+        //          "p": "50", // price
+        //          "q": "0.1", // quantity
+        //          "sd": "Buy", // side
+        //          "st": "New", // status
+        //          "ap": "0", // average fill price
+        //          "cfq": "0", // cumulated fill quantity
+        //          "sp": '', // stop price
+        //          "err": '',
+        //          "btb": "0", // base asset total balance
+        //          "bab": "0", // base asset available balance
+        //          "qtb": "8", // quote asset total balance
+        //          "qab": "2.995", // quote asset available balance
+        //          "cf": "0", // cumulated commission
+        //          "fa": "USDT", // fee asset
+        //          "ei": "NULL_VAL"
         //        }
         //
         //  futures order
         // {
-        //     m: 'futures-order',
-        //     sn: 19399927636,
-        //     e: 'ExecutionReport',
-        //     a: 'futF5SlR9ukAXoDOuXbND4dVpBMw9gzH', // account id
-        //     ac: 'FUTURES',
-        //     t: 1647622515434, // last execution time
-        //     ct: 1647622515413, // order creation time
-        //     orderId: 'r17f9df469b1U7223046196Okf5Kbmd',
-        //     sd: 'Buy', // side
-        //     ot: 'Limit', // order type
-        //     ei: 'NULL_VAL',
-        //     q: '1', // quantity
-        //     p: '50', //price
-        //     sp: '0', // stopPrice
-        //     spb: '',  // stopTrigger
-        //     s: 'LTC-PERP', // symbol
-        //     st: 'New', // state
-        //     err: '',
-        //     lp: '0', // last filled price
-        //     lq: '0', // last filled quantity (base asset)
-        //     ap: '0',  // average filled price
-        //     cfq: '0', // cummulative filled quantity (base asset)
-        //     f: '0', // commission fee of the current execution
-        //     cf: '0', // cumulative commission fee
-        //     fa: 'USDT', // fee asset
-        //     psl: '0',
-        //     pslt: 'market',
-        //     ptp: '0',
-        //     ptpt: 'market'
+        //     "m": "futures-order",
+        //     "sn": 19399927636,
+        //     "e": "ExecutionReport",
+        //     "a": "futF5SlR9ukAXoDOuXbND4dVpBMw9gzH", // account id
+        //     "ac": "FUTURES",
+        //     "t": 1647622515434, // last execution time
+        //     "ct": 1647622515413, // order creation time
+        //     "orderId": "r17f9df469b1U7223046196Okf5Kbmd",
+        //     "sd": "Buy", // side
+        //     "ot": "Limit", // order type
+        //     "ei": "NULL_VAL",
+        //     "q": "1", // quantity
+        //     "p": "50", //price
+        //     "sp": "0", // stopPrice
+        //     "spb": '',  // stopTrigger
+        //     "s": "LTC-PERP", // symbol
+        //     "st": "New", // state
+        //     "err": '',
+        //     "lp": "0", // last filled price
+        //     "lq": "0", // last filled quantity (base asset)
+        //     "ap": "0",  // average filled price
+        //     "cfq": "0", // cummulative filled quantity (base asset)
+        //     "f": "0", // commission fee of the current execution
+        //     "cf": "0", // cumulative commission fee
+        //     "fa": "USDT", // fee asset
+        //     "psl": "0",
+        //     "pslt": "market",
+        //     "ptp": "0",
+        //     "ptpt": "market"
         //   }
         //
         const status = this.parseOrderStatus(this.safeString(order, 'st'));
@@ -674,10 +674,10 @@ class ascendex extends ascendex$1 {
     handleErrorMessage(client, message) {
         //
         // {
-        //     m: 'disconnected',
-        //     code: 100005,
-        //     reason: 'INVALID_WS_REQUEST_DATA',
-        //     info: 'Session is disconnected due to missing pong message from the client'
+        //     "m": "disconnected",
+        //     "code": 100005,
+        //     "reason": "INVALID_WS_REQUEST_DATA",
+        //     "info": "Session is disconnected due to missing pong message from the client"
         //   }
         //
         const errorCode = this.safeInteger(message, 'code');
@@ -708,7 +708,7 @@ class ascendex extends ascendex$1 {
     }
     handleAuthenticate(client, message) {
         //
-        //     { m: 'auth', id: '1647605234', code: 0 }
+        //     { m: "auth", id: "1647605234", code: 0 }
         //
         const messageHash = 'authenticated';
         client.resolve(message, messageHash);
@@ -718,51 +718,51 @@ class ascendex extends ascendex$1 {
             return;
         }
         //
-        //     { m: 'ping', hp: 3 }
+        //     { m: "ping", hp: 3 }
         //
-        //     { m: 'sub', ch: 'bar:BTC/USDT', code: 0 }
+        //     { m: "sub", ch: "bar:BTC/USDT", code: 0 }
         //
-        //     { m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0 }
+        //     { m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0 }
         //
-        //     { m: 'connected', type: 'unauth' }
+        //     { m: "connected", type: "unauth" }
         //
-        //     { m: 'auth', id: '1647605234', code: 0 }
+        //     { m: "auth", id: "1647605234", code: 0 }
         //
         // order or balance sub
         // {
-        //     m: 'sub',
-        //     id: '1647605952',
-        //     ch: 'order:cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH', or futures-order
-        //     code: 0
+        //     "m": "sub",
+        //     "id": "1647605952",
+        //     "ch": "order:cshF5SlR9ukAXoDOuXbND4dVpBMw9gzH", or futures-order
+        //     "code": 0
         //   }
         //
         // ohlcv
         //  {
-        //     m: 'bar',
-        //     s: 'BTC/USDT',
-        //     data: {
-        //       i: '1',
-        //       ts: 1647510060000,
-        //       o: '40813.93',
-        //       c: '40804.57',
-        //       h: '40814.21',
-        //       l: '40804.56',
-        //       v: '0.01537'
+        //     "m": "bar",
+        //     "s": "BTC/USDT",
+        //     "data": {
+        //       "i": "1",
+        //       "ts": 1647510060000,
+        //       "o": "40813.93",
+        //       "c": "40804.57",
+        //       "h": "40814.21",
+        //       "l": "40804.56",
+        //       "v": "0.01537"
         //     }
         //   }
         //
         // trades
         //
         //    {
-        //        m: 'trades',
-        //        symbol: 'BTC/USDT',
-        //        data: [
+        //        "m": "trades",
+        //        "symbol": "BTC/USDT",
+        //        "data": [
         //          {
-        //            p: '40762.26',
-        //            q: '0.01500',
-        //            ts: 1647514306759,
-        //            bm: true,
-        //            seqnum: 72057633465795180
+        //            "p": "40762.26",
+        //            "q": "0.01500",
+        //            "ts": 1647514306759,
+        //            "bm": true,
+        //            "seqnum": 72057633465795180
         //          }
         //        ]
         //    }
@@ -789,12 +789,12 @@ class ascendex extends ascendex$1 {
         //
         // orderbook snapshot
         //  {
-        //     m: 'depth-snapshot',
-        //     symbol: 'BTC/USDT',
-        //     data: {
-        //       ts: 1647525938513,
-        //       seqnum: 28590504772,
-        //       asks: [
+        //     "m": "depth-snapshot",
+        //     "symbol": "BTC/USDT",
+        //     "data": {
+        //       "ts": 1647525938513,
+        //       "seqnum": 28590504772,
+        //       "asks": [
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
         //         [Array], [Array], [Array], [Array], [Array], [Array], [Array],
@@ -821,16 +821,16 @@ class ascendex extends ascendex$1 {
         //  }
         // future order update
         // {
-        //     m: 'futures-order',
-        //     sn: 19404258063,
-        //     e: 'ExecutionReport',
-        //     a: 'futF5SlR9ukAXoDOuXbND4dVpBMw9gzH',
-        //     ac: 'FUTURES',
-        //     t: 1647681792543,
-        //     ct: 1647622515413,
-        //     orderId: 'r17f9df469b1U7223046196Okf5KbmdL',
+        //     "m": "futures-order",
+        //     "sn": 19404258063,
+        //     "e": "ExecutionReport",
+        //     "a": "futF5SlR9ukAXoDOuXbND4dVpBMw9gzH",
+        //     "ac": "FUTURES",
+        //     "t": 1647681792543,
+        //     "ct": 1647622515413,
+        //     "orderId": "r17f9df469b1U7223046196Okf5KbmdL",
         //         (...)
-        //     ptpt: 'None'
+        //     "ptpt": "None"
         //   }
         //
         // balance update cash
@@ -890,9 +890,9 @@ class ascendex extends ascendex$1 {
     }
     handleSubscriptionStatus(client, message) {
         //
-        //     { m: 'sub', ch: 'bar:BTC/USDT', code: 0 }
+        //     { m: "sub", ch: "bar:BTC/USDT", code: 0 }
         //
-        //     { m: 'sub', id: '1647515701', ch: 'depth:BTC/USDT', code: 0 }
+        //     { m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0 }
         //
         const channel = this.safeString(message, 'ch', '');
         if (channel.indexOf('depth-realtime') > -1) {
@@ -913,7 +913,7 @@ class ascendex extends ascendex$1 {
     }
     async pong(client, message) {
         //
-        //     { m: 'ping', hp: 3 }
+        //     { m: "ping", hp: 3 }
         //
         try {
             await client.send({ 'op': 'pong', 'hp': this.safeInteger(message, 'hp') });

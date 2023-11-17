@@ -747,7 +747,7 @@ class digifinex extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         // spot and margin
         //
@@ -788,7 +788,7 @@ class digifinex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-account-assets
@@ -852,7 +852,7 @@ class digifinex extends Exchange {
         return $this->parse_balance($balances);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-orderbook
@@ -928,7 +928,7 @@ class digifinex extends Exchange {
         return $this->parse_order_book($orderBook, $market['symbol'], $timestamp);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#$ticker-price
@@ -1014,7 +1014,7 @@ class digifinex extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
@@ -1092,7 +1092,7 @@ class digifinex extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -1164,7 +1164,7 @@ class digifinex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // spot => fetchTrades
         //
@@ -1341,7 +1341,7 @@ class digifinex extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-recent-trades
@@ -1411,7 +1411,7 @@ class digifinex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1556712900,
@@ -1443,7 +1443,7 @@ class digifinex extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-$candles-$data
@@ -1604,7 +1604,7 @@ class digifinex extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_value($rawOrder, 'params', array());
-            $marginResult = $this->handle_margin_mode_and_params('createOrders', $params);
+            $marginResult = $this->handle_margin_mode_and_params('createOrders', $orderParams);
             $currentMarginMode = $marginResult[0];
             if ($currentMarginMode !== null) {
                 if ($marginMode === null) {
@@ -1881,7 +1881,7 @@ class digifinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot => createOrder
         //
@@ -2022,7 +2022,7 @@ class digifinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#current-active-orders
@@ -2122,7 +2122,7 @@ class digifinex extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-all-orders-including-history-orders
@@ -2420,7 +2420,7 @@ class digifinex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // spot and margin
         //
@@ -2556,7 +2556,7 @@ class digifinex extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "addressTag":"",
@@ -2655,7 +2655,7 @@ class digifinex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, array( 'type' => $type ));
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified currency $code
@@ -2667,7 +2667,7 @@ class digifinex extends Exchange {
         return $this->fetch_transactions_by_type('deposit', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified currency $code
@@ -2691,7 +2691,7 @@ class digifinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -2750,6 +2750,8 @@ class digifinex extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
+            'internal' => null,
+            'comment' => null,
             'fee' => $fee,
         );
     }
@@ -2761,7 +2763,7 @@ class digifinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -2901,7 +2903,7 @@ class digifinex extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     {
         //         "amount" => 0.0006103,
@@ -2964,7 +2966,7 @@ class digifinex extends Exchange {
                 $result = $entry;
             }
         }
-        $currency = $this->safe_string($result, 'currency');
+        $currency = $this->currency($code);
         return $this->parse_borrow_rate($result, $currency);
     }
 
@@ -2997,7 +2999,7 @@ class digifinex extends Exchange {
         return $this->parse_borrow_rates($result, 'currency');
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_borrow_rate($info, ?array $currency = null) {
         //
         //     {
         //         "valuation_rate" => 1,
@@ -3032,7 +3034,7 @@ class digifinex extends Exchange {
             $item = $info[$i];
             $currency = $this->safe_string($item, $codeKey);
             $code = $this->safe_currency_code($currency);
-            $borrowRate = $this->parse_borrow_rate($item, $currency);
+            $borrowRate = $this->parse_borrow_rate($item);
             $result[$code] = $borrowRate;
         }
         return $result;
@@ -3071,7 +3073,7 @@ class digifinex extends Exchange {
         return $this->parse_funding_rate($data, $market);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -3196,7 +3198,7 @@ class digifinex extends Exchange {
         return $this->parse_trading_fee($data, $market);
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -3407,7 +3409,7 @@ class digifinex extends Exchange {
         }
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         // swap
         //
@@ -3729,7 +3731,7 @@ class digifinex extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -3970,7 +3972,7 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -4035,7 +4037,7 @@ class digifinex extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function parse_income($income, $market = null) {
+    public function parse_income($income, ?array $market = null) {
         //
         //     {
         //         "instrument_id" => "BTCUSDTPERP",
@@ -4089,7 +4091,12 @@ class digifinex extends Exchange {
         $payload = $pathPart . $request;
         $url = $this->urls['api']['rest'] . $payload;
         $query = $this->omit($params, $this->extract_params($path));
-        $urlencoded = $this->urlencode($this->keysort($query));
+        $urlencoded = null;
+        if ($signed && ($pathPart === '/swap/v2') && ($method === 'POST')) {
+            $urlencoded = json_encode ($params);
+        } else {
+            $urlencoded = $this->urlencode($this->keysort($query));
+        }
         if ($signed) {
             $auth = null;
             $nonce = null;
@@ -4101,9 +4108,7 @@ class digifinex extends Exchange {
                         $auth .= '?' . $urlencoded;
                     }
                 } elseif ($method === 'POST') {
-                    $swapPostParams = json_encode ($params);
-                    $urlencoded = $swapPostParams;
-                    $auth .= $swapPostParams;
+                    $auth .= $urlencoded;
                 }
             } else {
                 $nonce = (string) $this->nonce();

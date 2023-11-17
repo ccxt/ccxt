@@ -6,11 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitforex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -268,7 +267,7 @@ class bitforex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public) v1
         #
@@ -337,7 +336,7 @@ class bitforex(Exchange, ImplicitAPI):
             'takerOrMaker': takerOrMaker,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://apidoc.bitforex.com/#recent-trades-list
@@ -373,7 +372,7 @@ class bitforex(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response['data'], market, since, limit)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://apidoc.bitforex.com/#spot-account-trade
@@ -427,7 +426,7 @@ class bitforex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         data = response['data']
         result = {'info': response}
         for i in range(0, len(data)):
@@ -441,7 +440,7 @@ class bitforex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://apidoc.bitforex.com/#user-all-asset-information-user_data
@@ -452,7 +451,7 @@ class bitforex(Exchange, ImplicitAPI):
         response = self.privatePostApiV1FundAllAccount(params)
         return self.parse_balance(response)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "buy":7.04E-7,
@@ -489,7 +488,7 @@ class bitforex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://apidoc.bitforex.com/#exchange-information
@@ -521,7 +520,7 @@ class bitforex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "close":0.02505143,
@@ -542,7 +541,7 @@ class bitforex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'vol'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://apidoc.bitforex.com/#kline
@@ -576,7 +575,7 @@ class bitforex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://apidoc.bitforex.com/#order-book
@@ -615,7 +614,7 @@ class bitforex(Exchange, ImplicitAPI):
         else:
             return None
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_number(order, 'createTime')
         lastTradeTimestamp = self.safe_number(order, 'lastTime')
@@ -659,7 +658,7 @@ class bitforex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://apidoc.bitforex.com/#order-information-user_data
@@ -677,17 +676,16 @@ class bitforex(Exchange, ImplicitAPI):
         order = self.parse_order(response['data'], market)
         return order
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the bitforex api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchOpenOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -697,17 +695,16 @@ class bitforex(Exchange, ImplicitAPI):
         response = self.privatePostApiV1TradeOrderInfos(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the bitforex api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchClosedOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -749,7 +746,7 @@ class bitforex(Exchange, ImplicitAPI):
             'id': self.safe_string(data, 'orderId'),
         }, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://apidoc.bitforex.com/#cancel-order-trade

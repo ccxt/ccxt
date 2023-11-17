@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -225,137 +224,135 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #  "code": "200000",
         #  "data": [
         #     {
-        #       symbol: 'APTUSDTPERP',
-        #       takerFixFee: '0E-10',
-        #       nextFundingRateTime: '20145603',
-        #       makerFixFee: '0E-10',
-        #       type: 'FFWCSX',
-        #       predictedFundingFeeRate: '0.000000',
-        #       turnoverOf24h: '386037.46704292',
-        #       initialMargin: '0.05',
-        #       isDeleverage: True,
-        #       createdAt: '1666681959000',
-        #       fundingBaseSymbol: '.APTINT8H',
-        #       lowPriceOf24h: '4.34499979019165',
-        #       lastTradePrice: '4.4090000000',
-        #       indexPriceTickSize: '0.001',
-        #       fairMethod: 'FundingRate',
-        #       takerFeeRate: '0.00040',
-        #       order: '102',
-        #       updatedAt: '1671076377000',
-        #       displaySettleCurrency: 'USDT',
-        #       indexPrice: '4.418',
-        #       multiplier: '1.0',
-        #       maxLeverage: '20',
-        #       fundingQuoteSymbol: '.USDTINT8H',
-        #       quoteCurrency: 'USDT',
-        #       maxOrderQty: '1000000',
-        #       maxPrice: '1000000.0000000000',
-        #       maintainMargin: '0.025',
-        #       status: 'Open',
-        #       displayNameMap: [Object],
-        #       openInterest: '2367',
-        #       highPriceOf24h: '4.763999938964844',
-        #       fundingFeeRate: '0.000000',
-        #       volumeOf24h: '83540.00000000',
-        #       riskStep: '500000',
-        #       isQuanto: True,
-        #       maxRiskLimit: '20000',
-        #       rootSymbol: 'USDT',
-        #       baseCurrency: 'APT',
-        #       firstOpenDate: '1666701000000',
-        #       tickSize: '0.001',
-        #       markMethod: 'FairPrice',
-        #       indexSymbol: '.PAPTUSDT',
-        #       markPrice: '4.418',
-        #       minRiskLimit: '1000000',
-        #       settlementFixFee: '0E-10',
-        #       settlementSymbol: '',
-        #       priceChgPctOf24h: '-0.0704',
-        #       fundingRateSymbol: '.APTUSDTPERPFPI8H',
-        #       makerFeeRate: '0.00010',
-        #       isInverse: False,
-        #       lotSize: '1',
-        #       settleCurrency: 'USDT',
-        #       settlementFeeRate: '0.0'
+        #       "symbol": "APTUSDTPERP",
+        #       "takerFixFee": "0E-10",
+        #       "nextFundingRateTime": "20145603",
+        #       "makerFixFee": "0E-10",
+        #       "type": "FFWCSX",
+        #       "predictedFundingFeeRate": "0.000000",
+        #       "turnoverOf24h": "386037.46704292",
+        #       "initialMargin": "0.05",
+        #       "isDeleverage": True,
+        #       "createdAt": "1666681959000",
+        #       "fundingBaseSymbol": ".APTINT8H",
+        #       "lowPriceOf24h": "4.34499979019165",
+        #       "lastTradePrice": "4.4090000000",
+        #       "indexPriceTickSize": "0.001",
+        #       "fairMethod": "FundingRate",
+        #       "takerFeeRate": "0.00040",
+        #       "order": "102",
+        #       "updatedAt": "1671076377000",
+        #       "displaySettleCurrency": "USDT",
+        #       "indexPrice": "4.418",
+        #       "multiplier": "1.0",
+        #       "maxLeverage": "20",
+        #       "fundingQuoteSymbol": ".USDTINT8H",
+        #       "quoteCurrency": "USDT",
+        #       "maxOrderQty": "1000000",
+        #       "maxPrice": "1000000.0000000000",
+        #       "maintainMargin": "0.025",
+        #       "status": "Open",
+        #       "displayNameMap": [Object],
+        #       "openInterest": "2367",
+        #       "highPriceOf24h": "4.763999938964844",
+        #       "fundingFeeRate": "0.000000",
+        #       "volumeOf24h": "83540.00000000",
+        #       "riskStep": "500000",
+        #       "isQuanto": True,
+        #       "maxRiskLimit": "20000",
+        #       "rootSymbol": "USDT",
+        #       "baseCurrency": "APT",
+        #       "firstOpenDate": "1666701000000",
+        #       "tickSize": "0.001",
+        #       "markMethod": "FairPrice",
+        #       "indexSymbol": ".PAPTUSDT",
+        #       "markPrice": "4.418",
+        #       "minRiskLimit": "1000000",
+        #       "settlementFixFee": "0E-10",
+        #       "settlementSymbol": '',
+        #       "priceChgPctOf24h": "-0.0704",
+        #       "fundingRateSymbol": ".APTUSDTPERPFPI8H",
+        #       "makerFeeRate": "0.00010",
+        #       "isInverse": False,
+        #       "lotSize": "1",
+        #       "settleCurrency": "USDT",
+        #       "settlementFeeRate": "0.0"
         #     },
         #   ]
         # }
         #
-        result = []
         data = self.safe_value(response, 'data', [])
-        dataLength = len(data)
-        for i in range(0, dataLength):
-            market = data[i]
-            id = self.safe_string(market, 'symbol')
-            baseId = self.safe_string(market, 'baseCurrency')
-            quoteId = self.safe_string(market, 'quoteCurrency')
-            settleId = self.safe_string(market, 'rootSymbol')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            settle = self.safe_currency_code(settleId)
-            symbol = base + '/' + quote + ':' + settle
-            inverse = self.safe_value(market, 'isInverse')
-            status = self.safe_string(market, 'status')
-            multiplier = self.safe_string(market, 'multiplier')
-            tickSize = self.safe_number(market, 'indexPriceTickSize')
-            lotSize = self.safe_number(market, 'lotSize')
-            limitAmountMax = self.safe_number(market, 'maxOrderQty')
-            limitPriceMax = self.safe_number(market, 'maxPrice')
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'swap',
-                'spot': False,
-                'margin': False,
-                'swap': True,
-                'future': False,
-                'option': False,
-                'active': (status == 'Open'),
-                'contract': True,
-                'linear': not inverse,
-                'inverse': inverse,
-                'taker': self.safe_number(market, 'takerFeeRate'),
-                'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': self.parse_number(Precise.string_abs(multiplier)),
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': lotSize,
-                    'price': tickSize,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': self.parse_number('1'),
-                        'max': self.safe_number(market, 'maxLeverage'),
-                    },
-                    'amount': {
-                        'min': lotSize,
-                        'max': limitAmountMax,
-                    },
-                    'price': {
-                        'min': tickSize,
-                        'max': limitPriceMax,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': self.safe_integer(market, 'firstOpenDate'),
-                'info': market,
-            })
-        return result
+        return self.parse_markets(data)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'symbol')
+        baseId = self.safe_string(market, 'baseCurrency')
+        quoteId = self.safe_string(market, 'quoteCurrency')
+        settleId = self.safe_string(market, 'rootSymbol')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        settle = self.safe_currency_code(settleId)
+        symbol = base + '/' + quote + ':' + settle
+        inverse = self.safe_value(market, 'isInverse')
+        status = self.safe_string(market, 'status')
+        multiplier = self.safe_string(market, 'multiplier')
+        tickSize = self.safe_number(market, 'indexPriceTickSize')
+        lotSize = self.safe_number(market, 'lotSize')
+        limitAmountMax = self.safe_number(market, 'maxOrderQty')
+        limitPriceMax = self.safe_number(market, 'maxPrice')
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': False,
+            'margin': False,
+            'swap': True,
+            'future': False,
+            'option': False,
+            'active': (status == 'Open'),
+            'contract': True,
+            'linear': not inverse,
+            'inverse': inverse,
+            'taker': self.safe_number(market, 'takerFeeRate'),
+            'maker': self.safe_number(market, 'makerFeeRate'),
+            'contractSize': self.parse_number(Precise.string_abs(multiplier)),
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': lotSize,
+                'price': tickSize,
+            },
+            'limits': {
+                'leverage': {
+                    'min': self.parse_number('1'),
+                    'max': self.safe_number(market, 'maxLeverage'),
+                },
+                'amount': {
+                    'min': lotSize,
+                    'max': limitAmountMax,
+                },
+                'price': {
+                    'min': tickSize,
+                    'max': limitPriceMax,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': self.safe_integer(market, 'firstOpenDate'),
+            'info': market,
+        }
+
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #    {
         #        "symbol": "BTCUSDTPERP",                   # Market of the symbol
@@ -407,7 +404,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
@@ -423,25 +420,25 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.publicGetTicker(self.extend(request, params))
         #
         # {
-        #     code: '200000',
-        #     data: {
-        #       sequence: '11574719',
-        #       symbol: 'BTCUSDTPERP',
-        #       side: 'sell',
-        #       size: '1',
-        #       price: '16990.1',
-        #       bestBidSize: '3',
-        #       bestBidPrice: '16990.1',
-        #       bestAskPrice: '16991.0',
-        #       tradeId: '639c8a529fd7cf0001af4157',
-        #       bestAskSize: '505',
-        #       ts: '1671203410721232337'
+        #     "code": "200000",
+        #     "data": {
+        #       "sequence": "11574719",
+        #       "symbol": "BTCUSDTPERP",
+        #       "side": "sell",
+        #       "size": "1",
+        #       "price": "16990.1",
+        #       "bestBidSize": "3",
+        #       "bestBidPrice": "16990.1",
+        #       "bestAskPrice": "16991.0",
+        #       "tradeId": "639c8a529fd7cf0001af4157",
+        #       "bestAskSize": "505",
+        #       "ts": "1671203410721232337"
         #     }
         # }
         #
         return self.parse_ticker(self.safe_value(response, 'data', {}), market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
@@ -453,7 +450,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         return self.parse_tickers(self.safe_value(response, 'data', []), symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://futures-docs.poloniex.com/#get-full-order-book-level-2
@@ -533,7 +530,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    def fetch_l3_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://futures-docs.poloniex.com/#get-full-order-book-level-3
@@ -546,7 +543,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.fetch_order_book(market['id'], None, {'level': 3})
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -632,7 +629,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://futures-docs.poloniex.com/#historical-data
@@ -684,7 +681,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'data')
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://futures-docs.poloniex.com/#k-chart
@@ -731,7 +728,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -746,7 +743,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://futures-docs.poloniex.com/#get-account-overview
@@ -764,16 +761,16 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.privateGetAccountOverview(self.extend(request, params))
         #
         #     {
-        #         code: '200000',
-        #         data: {
-        #             accountEquity: 0.00005,
-        #             unrealisedPNL: 0,
-        #             marginBalance: 0.00005,
-        #             positionMargin: 0,
-        #             orderMargin: 0,
-        #             frozenFunds: 0,
-        #             availableBalance: 0.00005,
-        #             currency: 'XBT'
+        #         "code": "200000",
+        #         "data": {
+        #             "accountEquity": 0.00005,
+        #             "unrealisedPNL": 0,
+        #             "marginBalance": 0.00005,
+        #             "positionMargin": 0,
+        #             "orderMargin": 0,
+        #             "frozenFunds": 0,
+        #             "availableBalance": 0.00005,
+        #             "currency": "XBT"
         #         }
         #     }
         #
@@ -845,9 +842,9 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.privatePostOrders(self.extend(request, params))
         #
         #    {
-        #        code: "200000",
-        #        data: {
-        #            orderId: "619717484f1d010001510cde",
+        #        "code": "200000",
+        #        "data": {
+        #            "orderId": "619717484f1d010001510cde",
         #        },
         #    }
         #
@@ -876,7 +873,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'info': response,
         }, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://futures-docs.poloniex.com/#cancel-an-order
@@ -892,15 +889,15 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.privateDeleteOrdersOrderId(self.extend(request, params))
         #
         #    {
-        #        code: "200000",
-        #        data: {
-        #            cancelledOrderIds: [
+        #        "code": "200000",
+        #        "data": {
+        #            "cancelledOrderIds": [
         #                "619714b8b6353000014c505a",
         #            ],
-        #            cancelFailedOrders: [
+        #            "cancelFailedOrders": [
         #                {
-        #                    orderId: "63a9c5c2b9e7d70007eb0cd5",
-        #                    orderState: "2"
+        #                    "orderId": "63a9c5c2b9e7d70007eb0cd5",
+        #                    "orderState": "2"
         #                }
         #            ],
         #        },
@@ -913,7 +910,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' cancelOrder() order already cancelled')
         return self.parse_order(data)
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :see: https://futures-docs.poloniex.com/#get-position-list
@@ -972,7 +969,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_positions(data, symbols)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #    {
         #        "code": "200000",
@@ -1023,7 +1020,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         market = self.safe_market(symbol, market)
         timestamp = self.safe_integer(position, 'currentTimestamp')
         size = self.safe_string(position, 'currentQty')
-        side = None
+        side: Str
         if Precise.string_gt(size, '0'):
             side = 'long'
         elif Precise.string_lt(size, '0'):
@@ -1063,7 +1060,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         }
 
-    def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :see: https://futures-docs.poloniex.com/#get-funding-history
@@ -1073,8 +1070,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingHistory', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1130,7 +1126,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             })
         return fees
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1147,9 +1143,9 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         #
         #   {
-        #       code: "200000",
-        #       data: {
-        #           cancelledOrderIds: [
+        #       "code": "200000",
+        #       "data": {
+        #           "cancelledOrderIds": [
         #                "619714b8b6353000014c505a",
         #           ],
         #       },
@@ -1186,7 +1182,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches a list of orders placed on the exchange
         :see: https://futures-docs.poloniex.com/#get-order-list
@@ -1213,7 +1209,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             request['status'] = 'active' if (status == 'open') else 'done'
         elif status != 'open':
             raise BadRequest(self.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders')
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1281,7 +1277,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 result.append(orders[i])
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://futures-docs.poloniex.com/#get-order-list
@@ -1297,7 +1293,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://futures-docs.poloniex.com/#get-order-list
@@ -1313,7 +1309,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    def fetch_order(self, id=None, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id=None, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://futures-docs.poloniex.com/#get-details-of-a-single-order
@@ -1384,14 +1380,14 @@ class poloniexfutures(Exchange, ImplicitAPI):
         responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
         #    {
-        #        code: "200000",
-        #        data: {
-        #            orderId: "619717484f1d010001510cde",
+        #        "code": "200000",
+        #        "data": {
+        #            "orderId": "619717484f1d010001510cde",
         #        },
         #    }
         #
@@ -1441,13 +1437,13 @@ class poloniexfutures(Exchange, ImplicitAPI):
         # cancelOrder
         #
         #    {
-        #        cancelledOrderIds: [
+        #        "cancelledOrderIds": [
         #            "619714b8b6353000014c505a",
         #        ],
-        #        cancelFailedOrders: [
+        #        "cancelFailedOrders": [
         #            {
-        #                orderId: "63a9c5c2b9e7d70007eb0cd5",
-        #                orderState: "2"
+        #                "orderId": "63a9c5c2b9e7d70007eb0cd5",
+        #                "orderState": "2"
         #            }
         #        ],
         #    },
@@ -1460,7 +1456,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
         filled = self.safe_string(order, 'dealSize')
         rawCost = self.safe_string_2(order, 'dealFunds', 'filledValue')
-        average = None
+        average: Str = None
         if Precise.string_gt(filled, '0'):
             contractSize = self.safe_string(market, 'contractSize')
             if market['linear']:
@@ -1550,7 +1546,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'previousFundingDatetime': self.iso8601(fundingTimestamp),
         }
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://futures-docs.poloniex.com/#get-fills
@@ -1620,8 +1616,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         if (marginMode != 0) and (marginMode != 1):
             raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be 0(isolated) or 1(cross)')
         self.load_markets()
@@ -1680,7 +1675,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         # bad
         #     {"code": "400100", "msg": "validation.createOrder.clientOidIsRequired"}
         # good
-        #     {code: '200000', data: {...}}
+        #     {code: "200000", data: {...}}
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg', '')

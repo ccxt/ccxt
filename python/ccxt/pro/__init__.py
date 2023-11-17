@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.40'
+__version__ = '4.1.55'
 
 # ----------------------------------------------------------------------------
 
@@ -48,6 +48,7 @@ from ccxt.pro.gateio import gateio                                        # noqa
 from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
+from ccxt.pro.htx import htx                                              # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
 from ccxt.pro.huobipro import huobipro                                    # noqa: F401
@@ -110,6 +111,7 @@ exchanges = [
     'gemini',
     'hitbtc',
     'hollaex',
+    'htx',
     'huobi',
     'huobijp',
     'huobipro',

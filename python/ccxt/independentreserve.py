@@ -6,8 +6,8 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.independentreserve import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
+from typing import List
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -216,7 +216,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -228,7 +228,7 @@ class independentreserve(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the independentreserve api endpoint
@@ -238,7 +238,7 @@ class independentreserve(Exchange, ImplicitAPI):
         response = self.privatePostGetAccounts(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -256,7 +256,7 @@ class independentreserve(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'CreatedTimestampUtc'))
         return self.parse_order_book(response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         # {
         #     "DayHighestPrice":43489.49,
         #     "DayLowestPrice":41998.32,
@@ -302,7 +302,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -331,7 +331,7 @@ class independentreserve(Exchange, ImplicitAPI):
         # }
         return self.parse_ticker(response, market)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOrder
         #
@@ -437,7 +437,7 @@ class independentreserve(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -453,7 +453,7 @@ class independentreserve(Exchange, ImplicitAPI):
             market = self.market(symbol)
         return self.parse_order(response, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -477,7 +477,7 @@ class independentreserve(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'Data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -501,7 +501,7 @@ class independentreserve(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'Data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=50, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit=50, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -524,7 +524,7 @@ class independentreserve(Exchange, ImplicitAPI):
             market = self.market(symbol)
         return self.parse_trades(response['Data'], market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         timestamp = self.parse8601(trade['TradeTimestampUtc'])
         id = self.safe_string(trade, 'TradeGuid')
         orderId = self.safe_string(trade, 'OrderGuid')
@@ -561,7 +561,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -653,7 +653,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'id': response['OrderGuid'],
         }, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id

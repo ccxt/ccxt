@@ -16,14 +16,23 @@ class coinbase(ccxt.async_support.coinbase):
         return self.deep_extend(super(coinbase, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
+                'watchBalance': False,
+                'watchMyTrades': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
+                'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
-                'watchBalance': False,
-                'watchOrders': True,
-                'watchMyTrades': False,
             },
             'urls': {
                 'api': {
@@ -487,11 +496,11 @@ class coinbase(ccxt.async_support.coinbase):
     def handle_subscription_status(self, client, message):
         #
         #     {
-        #         type: 'subscriptions',
-        #         channels: [
+        #         "type": "subscriptions",
+        #         "channels": [
         #             {
-        #                 name: 'level2',
-        #                 product_ids: ['ETH-BTC']
+        #                 "name": "level2",
+        #                 "product_ids": ["ETH-BTC"]
         #             }
         #         ]
         #     }

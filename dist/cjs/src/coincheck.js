@@ -223,13 +223,13 @@ class coincheck extends coincheck$1 {
         // fetchOpenOrders
         //
         //     {                        id:  202835,
-        //                      order_type: "buy",
-        //                            rate:  26890,
-        //                            pair: "btc_jpy",
-        //                  pending_amount: "0.5527",
-        //       pending_market_buy_amount:  null,
-        //                  stop_loss_rate:  null,
-        //                      created_at: "2015-01-10T05:55:38.000Z" }
+        //                      "order_type": "buy",
+        //                            "rate":  26890,
+        //                            "pair": "btc_jpy",
+        //                  "pending_amount": "0.5527",
+        //       "pending_market_buy_amount":  null,
+        //                  "stop_loss_rate":  null,
+        //                      "created_at": "2015-01-10T05:55:38.000Z" }
         //
         // todo: add formats for fetchOrder, fetchClosedOrders here
         //
@@ -524,20 +524,20 @@ class coincheck extends coincheck$1 {
         const response = await this.privateGetAccounts(params);
         //
         //     {
-        //         success: true,
-        //         id: '7487995',
-        //         email: 'some@email.com',
-        //         identity_status: 'identity_pending',
-        //         bitcoin_address: null,
-        //         lending_leverage: '4',
-        //         taker_fee: '0.0',
-        //         maker_fee: '0.0',
-        //         exchange_fees: {
-        //           btc_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           etc_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           fct_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           mona_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           plt_jpy: { taker_fee: '0.0', maker_fee: '0.0' }
+        //         "success": true,
+        //         "id": "7487995",
+        //         "email": "some@email.com",
+        //         "identity_status": "identity_pending",
+        //         "bitcoin_address": null,
+        //         "lending_leverage": "4",
+        //         "taker_fee": "0.0",
+        //         "maker_fee": "0.0",
+        //         "exchange_fees": {
+        //           "btc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "etc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "fct_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "mona_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "plt_jpy": { taker_fee: '0.0', maker_fee: "0.0" }
         //         }
         //     }
         //
@@ -776,6 +776,7 @@ class coincheck extends coincheck$1 {
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': undefined,
             'internal': undefined,
             'fee': fee,
         };

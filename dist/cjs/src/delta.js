@@ -44,6 +44,7 @@ class delta extends delta$1 {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
@@ -1898,8 +1899,8 @@ class delta extends delta$1 {
         const request = {
             'id': parseInt(id),
             'product_id': market['numericId'],
-            // 'limit_price': this.priceToPrecision (symbol, price),
-            // 'size': this.amountToPrecision (symbol, amount),
+            // "limit_price": this.priceToPrecision (symbol, price),
+            // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
             request['size'] = parseInt(this.amountToPrecision(symbol, amount));
@@ -2672,7 +2673,7 @@ class delta extends delta$1 {
          * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
          * @param {string} symbol unified market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3019,6 +3020,154 @@ class delta extends delta$1 {
             result.push(this.parseSettlement(settlements[i], market));
         }
         return result;
+    }
+    async fetchGreeks(symbol, params = {}) {
+        /**
+         * @method
+         * @name delta#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @returns {object} a [greeks structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTickersSymbol(this.extend(request, params));
+        //
+        //     {
+        //         "result": {
+        //             "close": 6793.0,
+        //             "contract_type": "call_options",
+        //             "greeks": {
+        //                 "delta": "0.94739174",
+        //                 "gamma": "0.00002206",
+        //                 "rho": "11.00890725",
+        //                 "spot": "36839.58124652",
+        //                 "theta": "-18.18365310",
+        //                 "vega": "7.85209698"
+        //             },
+        //             "high": 7556.0,
+        //             "low": 6793.0,
+        //             "mark_price": "6955.70698909",
+        //             "mark_vol": "0.66916863",
+        //             "oi": "1.8980",
+        //             "oi_change_usd_6h": "110.4600",
+        //             "oi_contracts": "1898",
+        //             "oi_value": "1.8980",
+        //             "oi_value_symbol": "BTC",
+        //             "oi_value_usd": "69940.7319",
+        //             "open": 7.2e3,
+        //             "price_band": {
+        //                 "lower_limit": "5533.89814767",
+        //                 "upper_limit": "11691.37688371"
+        //             },
+        //             "product_id": 129508,
+        //             "quotes": {
+        //                 "ask_iv": "0.90180438",
+        //                 "ask_size": "1898",
+        //                 "best_ask": "7210",
+        //                 "best_bid": "6913",
+        //                 "bid_iv": "0.60881706",
+        //                 "bid_size": "3163",
+        //                 "impact_mid_price": null,
+        //                 "mark_iv": "0.66973549"
+        //             },
+        //             "size": 5,
+        //             "spot_price": "36839.58153868",
+        //             "strike_price": "30000",
+        //             "symbol": "C-BTC-30000-241123",
+        //             "timestamp": 1699584998504530,
+        //             "turnover": 184.41206804,
+        //             "turnover_symbol": "USDT",
+        //             "turnover_usd": 184.41206804,
+        //             "volume": 0.005
+        //         },
+        //         "success": true
+        //     }
+        //
+        const result = this.safeValue(response, 'result', {});
+        return this.parseGreeks(result, market);
+    }
+    parseGreeks(greeks, market = undefined) {
+        //
+        //     {
+        //         "close": 6793.0,
+        //         "contract_type": "call_options",
+        //         "greeks": {
+        //             "delta": "0.94739174",
+        //             "gamma": "0.00002206",
+        //             "rho": "11.00890725",
+        //             "spot": "36839.58124652",
+        //             "theta": "-18.18365310",
+        //             "vega": "7.85209698"
+        //         },
+        //         "high": 7556.0,
+        //         "low": 6793.0,
+        //         "mark_price": "6955.70698909",
+        //         "mark_vol": "0.66916863",
+        //         "oi": "1.8980",
+        //         "oi_change_usd_6h": "110.4600",
+        //         "oi_contracts": "1898",
+        //         "oi_value": "1.8980",
+        //         "oi_value_symbol": "BTC",
+        //         "oi_value_usd": "69940.7319",
+        //         "open": 7.2e3,
+        //         "price_band": {
+        //             "lower_limit": "5533.89814767",
+        //             "upper_limit": "11691.37688371"
+        //         },
+        //         "product_id": 129508,
+        //         "quotes": {
+        //             "ask_iv": "0.90180438",
+        //             "ask_size": "1898",
+        //             "best_ask": "7210",
+        //             "best_bid": "6913",
+        //             "bid_iv": "0.60881706",
+        //             "bid_size": "3163",
+        //             "impact_mid_price": null,
+        //             "mark_iv": "0.66973549"
+        //         },
+        //         "size": 5,
+        //         "spot_price": "36839.58153868",
+        //         "strike_price": "30000",
+        //         "symbol": "C-BTC-30000-241123",
+        //         "timestamp": 1699584998504530,
+        //         "turnover": 184.41206804,
+        //         "turnover_symbol": "USDT",
+        //         "turnover_usd": 184.41206804,
+        //         "volume": 0.005
+        //     }
+        //
+        const timestamp = this.safeIntegerProduct(greeks, 'timestamp', 0.001);
+        const marketId = this.safeString(greeks, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        const stats = this.safeValue(greeks, 'greeks', {});
+        const quotes = this.safeValue(greeks, 'quotes', {});
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'delta': this.safeNumber(stats, 'delta'),
+            'gamma': this.safeNumber(stats, 'gamma'),
+            'theta': this.safeNumber(stats, 'theta'),
+            'vega': this.safeNumber(stats, 'vega'),
+            'rho': this.safeNumber(stats, 'rho'),
+            'bidSize': this.safeNumber(quotes, 'bid_size'),
+            'askSize': this.safeNumber(quotes, 'ask_size'),
+            'bidImpliedVolatility': this.safeNumber(quotes, 'bid_iv'),
+            'askImpliedVolatility': this.safeNumber(quotes, 'ask_iv'),
+            'markImpliedVolatility': this.safeNumber(quotes, 'mark_iv'),
+            'bidPrice': this.safeNumber(quotes, 'best_bid'),
+            'askPrice': this.safeNumber(quotes, 'best_ask'),
+            'markPrice': this.safeNumber(greeks, 'mark_price'),
+            'lastPrice': undefined,
+            'underlyingPrice': this.safeNumber(greeks, 'spot_price'),
+            'info': greeks,
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const requestPath = '/' + this.version + '/' + this.implodeParams(path, params);

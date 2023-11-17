@@ -17,6 +17,15 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'cancelAllOrdersWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelOrderWs' => false,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchBalanceWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'fetchTradesWs' => false,
                 'watchOHLCV' => false,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
@@ -80,18 +89,18 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
                 $response = Async\await($this->privatePostBulletPrivate ($params));
                 //
                 //     {
-                //         code => "200000",
-                //         $data => {
-                //             $instanceServers => array(
+                //         "code" => "200000",
+                //         "data" => {
+                //             "instanceServers" => array(
                 //                 {
-                //                     $pingInterval =>  50000,
-                //                     $endpoint => "wss://push-private.kucoin.com/endpoint",
-                //                     protocol => "websocket",
-                //                     encrypt => true,
-                //                     pingTimeout => 10000
+                //                     "pingInterval" =>  50000,
+                //                     "endpoint" => "wss://push-private.kucoin.com/endpoint",
+                //                     "protocol" => "websocket",
+                //                     "encrypt" => true,
+                //                     "pingTimeout" => 10000
                 //                 }
                 //             ),
-                //             $token => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //             "token" => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
                 //         }
                 //     }
                 //
@@ -207,8 +216,8 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
-        //         $id => '1578090438322',
-        //         type => 'ack'
+        //         "id" => "1578090438322",
+        //         "type" => "ack"
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -348,22 +357,22 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function handle_trade(Client $client, $message) {
         //
         //    {
-        //        $data => array(
-        //            makerUserId => "1410336",
-        //            $symbol => "BTCUSDTPERP",
-        //            sequence => 267913,
-        //            side => "buy",
-        //            size => 2,
-        //            price => 28409.5,
-        //            takerOrderId => "6426f9f15782c8000776995f",
-        //            makerOrderId => "6426f9f141406b0008df976e",
-        //            takerUserId => "1410880",
-        //            tradeId => "6426f9f1de029f0001e334dd",
-        //            ts => 1680275953739092500,
+        //        "data" => array(
+        //            "makerUserId" => "1410336",
+        //            "symbol" => "BTCUSDTPERP",
+        //            "sequence" => 267913,
+        //            "side" => "buy",
+        //            "size" => 2,
+        //            "price" => 28409.5,
+        //            "takerOrderId" => "6426f9f15782c8000776995f",
+        //            "makerOrderId" => "6426f9f141406b0008df976e",
+        //            "takerUserId" => "1410880",
+        //            "tradeId" => "6426f9f1de029f0001e334dd",
+        //            "ts" => 1680275953739092500,
         //        ),
-        //        subject => "match",
-        //        topic => "/contractMarket/execution:BTCUSDTPERP",
-        //        type => "message",
+        //        "subject" => "match",
+        //        "topic" => "/contractMarket/execution:BTCUSDTPERP",
+        //        "type" => "message",
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
@@ -389,17 +398,17 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
         // handleTrade
         //
         //    {
-        //        makerUserId => '1410880',
-        //        symbol => 'BTCUSDTPERP',
-        //        sequence => 731390,
-        //        side => 'sell',
-        //        size => 2,
-        //        price => 29372.4,
-        //        takerOrderId => '644ef0fdd64748000759218a',
-        //        makerOrderId => '644ef0fd25f4a50007f12fc5',
-        //        takerUserId => '1410880',
-        //        tradeId => '644ef0fdde029f0001eec346',
-        //        ts => 1682895101923194000
+        //        "makerUserId" => "1410880",
+        //        "symbol" => "BTCUSDTPERP",
+        //        "sequence" => 731390,
+        //        "side" => "sell",
+        //        "size" => 2,
+        //        "price" => 29372.4,
+        //        "takerOrderId" => "644ef0fdd64748000759218a",
+        //        "makerOrderId" => "644ef0fd25f4a50007f12fc5",
+        //        "takerUserId" => "1410880",
+        //        "tradeId" => "644ef0fdde029f0001eec346",
+        //        "ts" => 1682895101923194000
         //    }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -477,52 +486,52 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function handle_order(Client $client, $message) {
         //
         //    {
-        //        $data => array(
-        //          symbol => 'ADAUSDTPERP',
-        //          orderType => 'limit',
-        //          side => 'buy',
-        //          canceledSize => '1',
-        //          orderId => '642b4d4c0494cd0007c76813',
-        //          type => 'canceled',
-        //          orderTime => '1680559436101909048',
-        //          size => '1',
-        //          filledSize => '0',
-        //          marginType => 1,
-        //          price => '0.25',
-        //          remainSize => '0',
-        //          clientOid => '112cbbf1-95a3-4917-957c-d3a87d81f853',
-        //          status => 'done',
-        //          ts => 1680559677560686600
+        //        "data" => array(
+        //          "symbol" => "ADAUSDTPERP",
+        //          "orderType" => "limit",
+        //          "side" => "buy",
+        //          "canceledSize" => "1",
+        //          "orderId" => "642b4d4c0494cd0007c76813",
+        //          "type" => "canceled",
+        //          "orderTime" => "1680559436101909048",
+        //          "size" => "1",
+        //          "filledSize" => "0",
+        //          "marginType" => 1,
+        //          "price" => "0.25",
+        //          "remainSize" => "0",
+        //          "clientOid" => "112cbbf1-95a3-4917-957c-d3a87d81f853",
+        //          "status" => "done",
+        //          "ts" => 1680559677560686600
         //        ),
-        //        subject => 'orderChange',
-        //        topic => '/contractMarket/tradeOrders',
-        //        channelType => 'private',
-        //        type => 'message',
-        //        userId => '1139790'
+        //        "subject" => "orderChange",
+        //        "topic" => "/contractMarket/tradeOrders",
+        //        "channelType" => "private",
+        //        "type" => "message",
+        //        "userId" => "1139790"
         //    }
         // stop order
         //    {
-        //        $data => array(
-        //            orderType => 'stop',
-        //            symbol => 'BTCUSDTPERP',
-        //            side => 'buy',
-        //            stopPriceType => 'TP',
-        //            orderId => '64514fe1850d2100074378f6',
-        //            type => 'open',
-        //            createdAt => 1683050465847,
-        //            stopPrice => '29000',
-        //            size => 2,
-        //            stop => 'up',
-        //            marginType => 0,
-        //            orderPrice => '28552.9',
-        //            ts => 1683050465847597300
+        //        "data" => array(
+        //            "orderType" => "stop",
+        //            "symbol" => "BTCUSDTPERP",
+        //            "side" => "buy",
+        //            "stopPriceType" => "TP",
+        //            "orderId" => "64514fe1850d2100074378f6",
+        //            "type" => "open",
+        //            "createdAt" => 1683050465847,
+        //            "stopPrice" => "29000",
+        //            "size" => 2,
+        //            "stop" => "up",
+        //            "marginType" => 0,
+        //            "orderPrice" => "28552.9",
+        //            "ts" => 1683050465847597300
         //        ),
-        //        subject => 'stopOrder',
-        //        topic => '/contractMarket/advancedOrders',
-        //        channelType => 'private',
-        //        id => '64514fe1850d2100074378fa',
-        //        type => 'message',
-        //        userId => '1160396'
+        //        "subject" => "stopOrder",
+        //        "topic" => "/contractMarket/advancedOrders",
+        //        "channelType" => "private",
+        //        "id" => "64514fe1850d2100074378fa",
+        //        "type" => "message",
+        //        "userId" => "1160396"
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
@@ -566,37 +575,37 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function parse_ws_order($order, $market = null) {
         //
         //    {
-        //        symbol => 'ADAUSDTPERP',
-        //        orderType => 'limit',
-        //        side => 'buy',
-        //        canceledSize => '1',
-        //        orderId => '642b4d4c0494cd0007c76813',
-        //        type => 'canceled',
-        //        orderTime => '1680559436101909048',
-        //        size => '1',
-        //        filledSize => '0',
-        //        marginType => 1,
-        //        price => '0.25',
-        //        remainSize => '0',
-        //        clientOid => '112cbbf1-95a3-4917-957c-d3a87d81f853',
-        //        $status => 'done',
-        //        ts => 1680559677560686600
+        //        "symbol" => "ADAUSDTPERP",
+        //        "orderType" => "limit",
+        //        "side" => "buy",
+        //        "canceledSize" => "1",
+        //        "orderId" => "642b4d4c0494cd0007c76813",
+        //        "type" => "canceled",
+        //        "orderTime" => "1680559436101909048",
+        //        "size" => "1",
+        //        "filledSize" => "0",
+        //        "marginType" => 1,
+        //        "price" => "0.25",
+        //        "remainSize" => "0",
+        //        "clientOid" => "112cbbf1-95a3-4917-957c-d3a87d81f853",
+        //        "status" => "done",
+        //        "ts" => 1680559677560686600
         //    }
         // stop
         //    {
-        //        orderType => 'stop',
-        //        symbol => 'BTCUSDTPERP',
-        //        side => 'buy',
-        //        stopPriceType => 'TP',
-        //        orderId => '64514fe1850d2100074378f6',
-        //        type => 'open',
-        //        createdAt => 1683050465847,
-        //        stopPrice => '29000',
-        //        size => 2,
-        //        stop => 'up',
-        //        marginType => 0,
-        //        orderPrice => '28552.9',
-        //        ts => 1683050465847597300
+        //        "orderType" => "stop",
+        //        "symbol" => "BTCUSDTPERP",
+        //        "side" => "buy",
+        //        "stopPriceType" => "TP",
+        //        "orderId" => "64514fe1850d2100074378f6",
+        //        "type" => "open",
+        //        "createdAt" => 1683050465847,
+        //        "stopPrice" => "29000",
+        //        "size" => 2,
+        //        "stop" => "up",
+        //        "marginType" => 0,
+        //        "orderPrice" => "28552.9",
+        //        "ts" => 1683050465847597300
         //    }
         //
         $id = $this->safe_string($order, 'orderId');
@@ -678,45 +687,45 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function handle_l3_order_book(Client $client, $message) {
         //
         //    {
-        //        data => array(
-        //            symbol => 'BTCUSDTPERP',
-        //            sequence => 1679593048010,
-        //            orderId => '6426fec8586b9500089d64d8',
-        //            clientOid => '14e6ee8e-8757-462c-84db-ed12c2b62f55',
-        //            ts => 1680277192127513900
+        //        "data" => array(
+        //            "symbol" => "BTCUSDTPERP",
+        //            "sequence" => 1679593048010,
+        //            "orderId" => "6426fec8586b9500089d64d8",
+        //            "clientOid" => "14e6ee8e-8757-462c-84db-ed12c2b62f55",
+        //            "ts" => 1680277192127513900
         //        ),
-        //        $subject => 'received',
-        //        topic => '/contractMarket/level3v2:BTCUSDTPERP',
-        //        type => 'message'
+        //        "subject" => "received",
+        //        "topic" => "/contractMarket/level3v2:BTCUSDTPERP",
+        //        "type" => "message"
         //    }
         //
         //    {
-        //        data => array(
-        //            symbol => 'BTCUSDTPERP',
-        //            sequence => 1679593047982,
-        //            side => 'sell',
-        //            orderTime => '1680277191900131371',
-        //            size => '1',
-        //            orderId => '6426fec7d32b6e000790268b',
-        //            price => '28376.4',
-        //            ts => 1680277191939042300
+        //        "data" => array(
+        //            "symbol" => "BTCUSDTPERP",
+        //            "sequence" => 1679593047982,
+        //            "side" => "sell",
+        //            "orderTime" => "1680277191900131371",
+        //            "size" => "1",
+        //            "orderId" => "6426fec7d32b6e000790268b",
+        //            "price" => "28376.4",
+        //            "ts" => 1680277191939042300
         //        ),
-        //        $subject => 'open',
-        //        topic => '/contractMarket/level3v2:BTCUSDTPERP',
-        //        type => 'message'
+        //        "subject" => "open",
+        //        "topic" => "/contractMarket/level3v2:BTCUSDTPERP",
+        //        "type" => "message"
         //    }
         //
         //    {
-        //        data => array(
-        //            symbol => 'BTCUSDTPERP',
-        //            reason => 'canceled',   // or 'filled'
-        //            sequence => 1679593047983,
-        //            orderId => '6426fec74026fa0008e7046f',
-        //            ts => 1680277191949842000
+        //        "data" => array(
+        //            "symbol" => "BTCUSDTPERP",
+        //            "reason" => "canceled",   // or "filled"
+        //            "sequence" => 1679593047983,
+        //            "orderId" => "6426fec74026fa0008e7046f",
+        //            "ts" => 1680277191949842000
         //        ),
-        //        $subject => 'done',
-        //        topic => '/contractMarket/level3v2:BTCUSDTPERP',
-        //        type => 'message'
+        //        "subject" => "done",
+        //        "topic" => "/contractMarket/level3v2:BTCUSDTPERP",
+        //        "type" => "message"
         //    }
         //
         $messageHash = $this->safe_string($message, 'topic');
@@ -883,31 +892,31 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function handle_balance(Client $client, $message) {
         //
         //    {
-        //        $data => array(
-        //          $currency => 'USDT',
-        //          availableBalance => '4.0000000000',
-        //          timestamp => '1680557568670'
+        //        "data" => array(
+        //          "currency" => "USDT",
+        //          "availableBalance" => "4.0000000000",
+        //          "timestamp" => "1680557568670"
         //        ),
-        //        subject => 'availableBalance.change',
-        //        topic => '/contractAccount/wallet',
-        //        channelType => 'private',
-        //        id => '642b4600cae86800074b5ab7',
-        //        type => 'message',
-        //        userId => '1139790'
+        //        "subject" => "availableBalance.change",
+        //        "topic" => "/contractAccount/wallet",
+        //        "channelType" => "private",
+        //        "id" => "642b4600cae86800074b5ab7",
+        //        "type" => "message",
+        //        "userId" => "1139790"
         //    }
         //
         //    {
-        //        $data => array(
-        //          $currency => 'USDT',
-        //          orderMargin => '0.0000000000',
-        //          timestamp => '1680558743307'
+        //        "data" => array(
+        //          "currency" => "USDT",
+        //          "orderMargin" => "0.0000000000",
+        //          "timestamp" => "1680558743307"
         //        ),
-        //        subject => 'orderMargin.change',
-        //        topic => '/contractAccount/wallet',
-        //        channelType => 'private',
-        //        id => '642b4a97b58e360007c3a237',
-        //        type => 'message',
-        //        userId => '1139790'
+        //        "subject" => "orderMargin.change",
+        //        "topic" => "/contractAccount/wallet",
+        //        "channelType" => "private",
+        //        "id" => "642b4a97b58e360007c3a237",
+        //        "type" => "message",
+        //        "userId" => "1139790"
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
@@ -923,15 +932,15 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function parse_ws_balance($response) {
         //
         //    {
-        //        currency => 'USDT',
-        //        availableBalance => '4.0000000000',
-        //        $timestamp => '1680557568670'
+        //        "currency" => "USDT",
+        //        "availableBalance" => "4.0000000000",
+        //        "timestamp" => "1680557568670"
         //    }
         //
         //    {
-        //        currency => 'USDT',
-        //        orderMargin => '0.0000000000',
-        //        $timestamp => '1680558743307'
+        //        "currency" => "USDT",
+        //        "orderMargin" => "0.0000000000",
+        //        "timestamp" => "1680558743307"
         //    }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
@@ -951,8 +960,8 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function handle_system_status(Client $client, $message) {
         //
         //     {
-        //         id => '1578090234088', // connectId
-        //         type => 'welcome',
+        //         "id" => "1578090234088", // connectId
+        //         "type" => "welcome",
         //     }
         //
         return $message;
@@ -997,10 +1006,10 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function handle_error_message(Client $client, $message) {
         //
         //    {
-        //        code => 404,
-        //        data => 'tunnel stream-0 is not exist',
-        //        id => '3',
-        //        type => 'error'
+        //        "code" => 404,
+        //        "data" => "tunnel stream-0 is not exist",
+        //        "id" => "3",
+        //        "type" => "error"
         //    }
         //
         $client->reject ($message);
@@ -1024,10 +1033,10 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
     public function handle_authenticate($client, $message) {
         //
         //    {
-        //        $success => true,
-        //        ret_msg => '',
-        //        op => 'auth',
-        //        conn_id => 'ce3dpomvha7dha97tvp0-2xh'
+        //        "success" => true,
+        //        "ret_msg" => '',
+        //        "op" => "auth",
+        //        "conn_id" => "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
         $data = $this->safe_value($message, 'data');
