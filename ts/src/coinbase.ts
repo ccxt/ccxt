@@ -926,6 +926,7 @@ export default class coinbase extends Exchange {
         /**
          * @method
          * @name coinbase#fetchMarkets
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
          * @description retrieves data on all markets for coinbase
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
@@ -1104,7 +1105,7 @@ export default class coinbase extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.safeNumber (market, 'base_increment'),
-                    'price': this.safeNumber (market, 'quote_increment'),
+                    'price': this.safeNumber2 (market, 'price_increment', 'quote_increment'),
                 },
                 'limits': {
                     'leverage': {
