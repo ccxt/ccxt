@@ -3089,6 +3089,9 @@ export default class bingx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a since argument');
+        }
         const tradingUnit = this.safeStringUpper (params, 'tradingUnit', 'CONT');
         await this.loadMarkets ();
         const market = this.market (symbol);

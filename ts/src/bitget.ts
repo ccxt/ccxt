@@ -1807,8 +1807,8 @@ export default class bitget extends Exchange {
             response = await this.publicMarginGetMarginV1IsolatedPublicTierData (this.extend (request, params));
         } else if (marginMode === 'cross') {
             const code = this.safeString (params, 'code');
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMarketLeverageTiers() requires a symbol argument');
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMarketLeverageTiers() requires a code argument');
             }
             params = this.omit (params, 'code');
             const currency = this.currency (code);
