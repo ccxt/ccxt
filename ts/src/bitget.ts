@@ -1784,7 +1784,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] for spot margin 'cross' or 'isolated', default is 'isolated'
          * @param {string} [params.code] required for cross spot margin
-         * @returns {object} a [leverage tiers structure]{https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1955,7 +1955,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.pageSize] pageSize default 20. Max 100
          * @param {int} [params.until] end tim in ms
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object[]} a list of [transaction structures]{https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -2017,7 +2017,7 @@ export default class bitget extends Exchange {
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.chain] the chain to withdraw to
-         * @returns {object} a [transaction structure]{https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         this.checkAddress (address);
         const chain = this.safeString2 (params, 'chain', 'network');
@@ -2112,7 +2112,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.pageSize] pageSize default 20. Max 100
          * @param {int} [params.until] end time in ms
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object[]} a list of [transaction structures]{https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -2237,7 +2237,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} an [address structure]{https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const networkCode = this.safeString (params, 'network');
@@ -2299,7 +2299,7 @@ export default class bitget extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} A dictionary of [order book structures]{https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2459,7 +2459,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-single-symbol-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [ticker structure]{https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2505,7 +2505,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a dictionary of [ticker structures]{https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
@@ -2704,7 +2704,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] the latest time in ms to fetch deposits for
          * @param {boolean} [params.paginate] *only applies to publicSpotGetMarketFillsHistory and publicMixGetMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
-         * @returns {Trade[]} a list of [trade structures]{https://docs.ccxt.com/#/?id=public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -2813,7 +2813,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-single-symbol
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [fee structure]{https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2852,7 +2852,7 @@ export default class bitget extends Exchange {
          * @description fetch the trading fees for multiple markets
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-symbols
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a dictionary of [fee structures]{https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.publicSpotGetSpotV1PublicProducts (params);
@@ -3057,7 +3057,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [balance structure]{https://docs.ccxt.com/#/?id=balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
@@ -3477,7 +3477,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @param {string} [params.loanType] *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
-         * @returns {object} an [order structure]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3703,7 +3703,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
          * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the api endpoint
-         * @returns {object} an [order structure]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const ordersRequests = [];
@@ -3803,7 +3803,7 @@ export default class bitget extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} an [order structure]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3907,7 +3907,7 @@ export default class bitget extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
-         * @returns {object} An [order structure]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
@@ -4033,7 +4033,7 @@ export default class bitget extends Exchange {
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
-         * @returns {object} an list of [order structures]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredSymbol ('cancelOrders', symbol);
         await this.loadMarkets ();
@@ -4113,7 +4113,7 @@ export default class bitget extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
-         * @returns {object[]} a list of [order structures]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
@@ -4191,7 +4191,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-details
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} An [order structure]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredSymbol ('fetchOrder', symbol);
         await this.loadMarkets ();
@@ -4285,7 +4285,7 @@ export default class bitget extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {Order[]} a list of [order structures]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -4520,7 +4520,7 @@ export default class bitget extends Exchange {
          * @param {int} [limit] the max number of closed orders to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @returns {Order[]} a list of [order structures]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         this.checkRequiredSymbol ('fetchClosedOrders', symbol);
@@ -4561,7 +4561,7 @@ export default class bitget extends Exchange {
          * @param {int} [limit] the max number of canceled orders to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @returns {object} a list of [order structures]{https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         this.checkRequiredSymbol ('fetchCanceledOrders', symbol);
@@ -4853,7 +4853,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] end tim in ms
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} a [ledger structure]{https://docs.ccxt.com/#/?id=ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -4958,7 +4958,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Trade[]} a list of [trade structures]{https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
@@ -5117,7 +5117,7 @@ export default class bitget extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [trade structures]{https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredSymbol ('fetchOrderTrades', symbol);
         await this.loadMarkets ();
@@ -5170,7 +5170,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-symbol-position-v2
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [position structure]{https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -5222,7 +5222,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-position
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [position structure]{https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
@@ -5479,10 +5479,10 @@ export default class bitget extends Exchange {
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object[]} a list of [funding rate structures]{https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
@@ -5544,7 +5544,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-current-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [funding rate structure]{https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -5610,7 +5610,7 @@ export default class bitget extends Exchange {
          * @param {int} [since] the starting timestamp in milliseconds
          * @param {int} [limit] the number of entries to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [funding history structures]{https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets ();
         this.checkRequiredSymbol ('fetchFundingHistory', symbol);
@@ -5757,7 +5757,7 @@ export default class bitget extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [margin structure]{https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
          */
         if (amount > 0) {
             throw new BadRequest (this.id + ' reduceMargin() amount parameter must be a negative value');
@@ -5778,7 +5778,7 @@ export default class bitget extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [margin structure]{https://docs.ccxt.com/#/?id=add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         const holdSide = this.safeString (params, 'holdSide');
         if (holdSide === undefined) {
@@ -5795,7 +5795,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-single-account
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [leverage structure]{https://docs.ccxt.com/#/?id=leverage-structure}
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -5937,7 +5937,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{https://docs.ccxt.com/#/?id=open-interest-structure}
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -5976,7 +5976,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object[]} a list of [transfer structures]{https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -6041,7 +6041,7 @@ export default class bitget extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMS
          * @param {string} [params.clientOid] custom id
-         * @returns {object} a [transfer structure]{https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6198,7 +6198,7 @@ export default class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a list of [fee structures]{https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicSpotGetSpotV1PublicCurrencies (params);
@@ -6248,7 +6248,7 @@ export default class bitget extends Exchange {
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross', symbol is required for 'isolated'
-         * @returns {object} a [margin loan structure]{https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6314,7 +6314,7 @@ export default class bitget extends Exchange {
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross', symbol is required for 'isolated'
-         * @returns {object} a [margin loan structure]{https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6438,7 +6438,7 @@ export default class bitget extends Exchange {
          * @param {object} [params] exchange specific parameters for the bitget api endpoint
          * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @param {string} [params.marginMode] 'cross' or 'isolated' default value is 'cross'
-         * @returns {object} an array of [liquidation structures]{https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -6582,7 +6582,7 @@ export default class bitget extends Exchange {
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.symbol] required for isolated margin
-         * @returns {object} a [borrow rate structure]{https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6778,7 +6778,7 @@ export default class bitget extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch borrow interest for
          * @param {int} [limit] the maximum number of structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [borrow interest structures]{https://docs.ccxt.com/#/?id=borrow-interest-structure}
+         * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
         await this.loadMarkets ();
         let market = undefined;

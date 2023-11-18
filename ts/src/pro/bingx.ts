@@ -490,7 +490,7 @@ export default class bingx extends bingxRest {
          * @param {int} [since] the earliest time in ms to trades orders for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object[]} a list of [trade structures]{https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets ();
         await this.authenticate ();
