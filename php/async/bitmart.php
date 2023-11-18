@@ -2138,17 +2138,17 @@ class bitmart extends Exchange {
     public function parse_order_status_by_type($type, $status) {
         $statusesByType = array(
             'spot' => array(
-                '1' => 'failed', // Order failure
+                '1' => 'rejected', // Order failure
                 '2' => 'open', // Placing order
-                '3' => 'failed', // Order failure, Freeze failure
+                '3' => 'rejected', // Order failure, Freeze failure
                 '4' => 'open', // Order success, Pending for fulfilment
                 '5' => 'open', // Partially filled
                 '6' => 'closed', // Fully filled
-                '7' => 'canceling', // Canceling
+                '7' => 'canceled', // Canceling
                 '8' => 'canceled', // Canceled
                 'new' => 'open',
                 'partially_filled' => 'open',
-                'filled' => 'filled',
+                'filled' => 'closed',
                 'partially_canceled' => 'canceled',
             ),
             'swap' => array(
@@ -2666,11 +2666,14 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+             * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitmart api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest entry
+             * @param {string} [$params->marginMode] *spot only* 'cross' or 'isolated', for margin trading
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -2683,20 +2686,30 @@ class bitmart extends Exchange {
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
             if ($type !== 'spot') {
-                throw new NotSupported($this->id . ' fetchClosedOrders() does not support ' . $type . ' orders, only spot orders are accepted');
+                $this->check_required_symbol('fetchClosedOrders', $symbol);
             }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchClosedOrders', $params);
             if ($marginMode === 'isolated') {
                 $request['orderMode'] = 'iso_margin';
             }
-            $until = $this->safe_integer_2($params, 'until', 'endTime');
-            if ($until !== null) {
-                $params = $this->omit($params, array( 'endTime' ));
-                $request['endTime'] = $until;
+            $startTimeKey = ($type === 'spot') ? 'startTime' : 'start_time';
+            if ($since !== null) {
+                $request[$startTimeKey] = $since;
             }
-            $response = Async\await($this->privatePostSpotV4QueryHistoryOrders (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data');
+            $endTimeKey = ($type === 'spot') ? 'endTime' : 'end_time';
+            $until = $this->safe_integer_2($params, 'until', $endTimeKey);
+            if ($until !== null) {
+                $params = $this->omit($params, array( 'until' ));
+                $request[$endTimeKey] = $until;
+            }
+            $response = null;
+            if ($type === 'spot') {
+                $response = Async\await($this->privatePostSpotV4QueryHistoryOrders (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetContractPrivateOrderHistory (array_merge($request, $params)));
+            }
+            $data = $this->safe_value($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }

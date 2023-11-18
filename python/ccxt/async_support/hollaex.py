@@ -1733,7 +1733,7 @@ class hollaex(Exchange, ImplicitAPI):
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
 
     def normalize_number_if_needed(self, number):
-        if number % 1 == 0:
+        if self.is_round_number(number):
             number = int(number)
         return number
 

@@ -7161,7 +7161,7 @@ class binance extends binance$1 {
         const initialMarginString = this.safeString(position, 'initialMargin');
         const initialMargin = this.parseNumber(initialMarginString);
         let initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
-        const rational = (1000 % leverage) === 0;
+        const rational = this.isRoundNumber(1000 % leverage);
         if (!rational) {
             initialMarginPercentageString = Precise["default"].stringDiv(Precise["default"].stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
         }
@@ -7447,7 +7447,7 @@ class binance extends binance$1 {
         const maintenanceMarginString = Precise["default"].stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
         let initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
-        const rational = (1000 % leverage) === 0;
+        const rational = this.isRoundNumber(1000 % leverage);
         if (!rational) {
             initialMarginPercentageString = Precise["default"].stringAdd(initialMarginPercentageString, '1e-8');
         }

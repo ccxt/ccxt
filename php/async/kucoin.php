@@ -2158,7 +2158,7 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-            $stop = $this->safe_value($params, 'stop', false);
+            $stop = $this->safe_value_2($params, 'stop', 'trigger', false);
             $hf = $this->safe_value($params, 'hf', false);
             if ($hf) {
                 if ($symbol === null) {
@@ -2167,26 +2167,28 @@ class kucoin extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $method = 'privateDeleteOrdersOrderId';
+            $response = null;
+            $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'hf', 'trigger' ));
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
                 if ($stop) {
-                    $method = 'privateDeleteStopOrderCancelOrderByClientOid';
+                    $response = Async\await($this->privateDeleteStopOrderCancelOrderByClientOid (array_merge($request, $params)));
                 } elseif ($hf) {
-                    $method = 'privateDeleteHfOrdersClientOrderClientOid';
+                    $response = Async\await($this->privateDeleteHfOrdersClientOrderClientOid (array_merge($request, $params)));
                 } else {
-                    $method = 'privateDeleteOrderClientOrderClientOid';
+                    $response = Async\await($this->privateDeleteOrderClientOrderClientOid (array_merge($request, $params)));
                 }
             } else {
-                if ($stop) {
-                    $method = 'privateDeleteStopOrderOrderId';
-                } elseif ($hf) {
-                    $method = 'privateDeleteHfOrdersOrderId';
-                }
                 $request['orderId'] = $id;
+                if ($stop) {
+                    $response = Async\await($this->privateDeleteStopOrderOrderId (array_merge($request, $params)));
+                } elseif ($hf) {
+                    $response = Async\await($this->privateDeleteHfOrdersOrderId (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
+                }
             }
-            $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'hf' ));
-            return Async\await($this->$method (array_merge($request, $params)));
+            return $response;
         }) ();
     }
 
