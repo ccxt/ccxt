@@ -52,14 +52,13 @@ export default class binance extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': true,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': 'emulated',
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
@@ -75,6 +74,8 @@ export default class binance extends Exchange {
                 'fetchFundingRates': true,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
                 'fetchLedger': true,
@@ -8729,10 +8730,10 @@ export default class binance extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
-    async fetchBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}) {
         /**
          * @method
-         * @name binance#fetchBorrowRate
+         * @name binance#fetchCrossBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @see https://binance-docs.github.io/apidocs/spot/en/#query-margin-interest-rate-history-user_data
          * @param {string} code unified currency code
@@ -8824,7 +8825,7 @@ export default class binance extends Exchange {
         //        "vipLevel": 0
         //    }
         //
-        const timestamp = this.safeNumber (info, 'timestamp');
+        const timestamp = this.safeInteger (info, 'timestamp');
         const currencyId = this.safeString (info, 'asset');
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),

@@ -43,13 +43,12 @@ export default class bitget extends Exchange {
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -61,6 +60,8 @@ export default class bitget extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedBorrowRate': true,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
@@ -6569,40 +6570,23 @@ export default class bitget extends Exchange {
         });
     }
 
-    async fetchBorrowRate (code: string, params = {}) {
+    async fetchIsolatedBorrowRate (symbol: string, params = {}) {
         /**
          * @method
-         * @name bitget#fetchBorrowRate
+         * @name bitget#fetchIsolatedBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-margin-interest-rate-and-max-borrowable-amount
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-margin-interest-rate-and-borrowable
-         * @param {string} code unified currency code
+         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.symbol] required for isolated margin
-         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+         * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        let market = undefined;
-        const symbol = this.safeString (params, 'symbol');
-        params = this.omit (params, 'symbol');
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const request = {};
-        let response = undefined;
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowRate', params, 'cross');
-        if ((symbol !== undefined) || (marginMode === 'isolated')) {
-            this.checkRequiredSymbol ('fetchBorrowRate', symbol);
-            request['symbol'] = market['info']['symbolName'];
-            response = await this.publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit (this.extend (request, params));
-        } else if (marginMode === 'cross') {
-            request['coin'] = currency['code'];
-            response = await this.publicMarginGetMarginV1CrossPublicInterestRateAndLimit (this.extend (request, params));
-        }
-        //
-        // isolated
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['info']['symbolName'],
+        };
+        const response = await this.publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -6644,7 +6628,83 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        // cross
+        const timestamp = this.safeInteger (response, 'requestTime');
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0, {});
+        first['timestamp'] = timestamp;
+        return this.parseIsolatedBorrowRate (first, market);
+    }
+
+    parseIsolatedBorrowRate (info, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "leverage": "10",
+        //         "baseCoin": "BTC",
+        //         "baseTransferInAble": true,
+        //         "baseBorrowAble": true,
+        //         "baseDailyInterestRate": "0.00007",
+        //         "baseYearlyInterestRate": "0.02555",
+        //         "baseMaxBorrowableAmount": "35",
+        //         "baseVips": [
+        //             {
+        //                 "level": "0",
+        //                 "dailyInterestRate": "0.00007",
+        //                 "yearlyInterestRate": "0.02555",
+        //                 "discountRate": "1"
+        //             },
+        //         ],
+        //         "quoteCoin": "USDT",
+        //         "quoteTransferInAble": true,
+        //         "quoteBorrowAble": true,
+        //         "quoteDailyInterestRate": "0.00012627",
+        //         "quoteYearlyInterestRate": "0.04608855",
+        //         "quoteMaxBorrowableAmount": "300000",
+        //         "quoteVips": [
+        //             {
+        //                 "level": "0",
+        //                 "dailyInterestRate": "0.000126279",
+        //                 "yearlyInterestRate": "0.046091835",
+        //                 "discountRate": "1"
+        //             },
+        //         ]
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const baseId = this.safeString (info, 'baseCoin');
+        const quoteId = this.safeString (info, 'quoteCoin');
+        const timestamp = this.safeInteger (info, 'timestamp');
+        return {
+            'symbol': symbol,
+            'base': this.safeCurrencyCode (baseId),
+            'baseRate': this.safeNumber (info, 'baseDailyInterestRate'),
+            'quote': this.safeCurrencyCode (quoteId),
+            'quoteRate': this.safeNumber (info, 'quoteDailyInterestRate'),
+            'period': 86400000, // 1-Day
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async fetchCrossBorrowRate (code: string, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchCrossBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-margin-interest-rate-and-borrowable
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.symbol] required for isolated margin
+         * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['code'],
+        };
+        const response = await this.publicMarginGetMarginV1CrossPublicInterestRateAndLimit (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -6680,43 +6740,6 @@ export default class bitget extends Exchange {
 
     parseBorrowRate (info, currency: Currency = undefined) {
         //
-        // isolated
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "leverage": "10",
-        //         "baseCoin": "BTC",
-        //         "baseTransferInAble": true,
-        //         "baseBorrowAble": true,
-        //         "baseDailyInterestRate": "0.00007",
-        //         "baseYearlyInterestRate": "0.02555",
-        //         "baseMaxBorrowableAmount": "35",
-        //         "baseVips": [
-        //             {
-        //                 "level": "0",
-        //                 "dailyInterestRate": "0.00007",
-        //                 "yearlyInterestRate": "0.02555",
-        //                 "discountRate": "1"
-        //             },
-        //         ],
-        //         "quoteCoin": "USDT",
-        //         "quoteTransferInAble": true,
-        //         "quoteBorrowAble": true,
-        //         "quoteDailyInterestRate": "0.00012627",
-        //         "quoteYearlyInterestRate": "0.04608855",
-        //         "quoteMaxBorrowableAmount": "300000",
-        //         "quoteVips": [
-        //             {
-        //                 "level": "0",
-        //                 "dailyInterestRate": "0.000126279",
-        //                 "yearlyInterestRate": "0.046091835",
-        //                 "discountRate": "1"
-        //             },
-        //         ]
-        //     }
-        //
-        // cross
-        //
         //     {
         //         "coin": "BTC",
         //         "leverage": "3",
@@ -6735,27 +6758,11 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const code = currency['code'];
-        const baseCoin = this.safeString (info, 'baseCoin');
-        const quoteCoin = this.safeString (info, 'quoteCoin');
-        let currencyId = undefined;
-        let interestRate = undefined;
-        if (baseCoin !== undefined) {
-            if (code === baseCoin) {
-                currencyId = baseCoin;
-                interestRate = this.safeNumber (info, 'baseDailyInterestRate');
-            } else if (code === quoteCoin) {
-                currencyId = quoteCoin;
-                interestRate = this.safeNumber (info, 'quoteDailyInterestRate');
-            }
-        } else {
-            currencyId = this.safeString (info, 'coin');
-            interestRate = this.safeNumber (info, 'dailyInterestRate');
-        }
+        const currencyId = this.safeString (info, 'coin');
         const timestamp = this.safeInteger (info, 'timestamp');
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'rate': interestRate,
+            'rate': this.safeNumber (info, 'dailyInterestRate'),
             'period': 86400000, // 1-Day
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

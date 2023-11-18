@@ -545,7 +545,7 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|string|number);\n/mg, '' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number);\n/mg, '' ],
             [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number)(\s+=\s+\w+)/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -923,11 +923,13 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         const matchObject = {
+            'Account': /-> Account:/,
             'Balances': /-> Balances:/,
             'Currency': /(-> Currency:|: Currency)/,
             'Greeks': /-> Greeks:/,
             'Int': /: Int =/,
             'MarginMode': /-> MarginMode:/,
+            'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,
             'OrderBook': /-> OrderBook:/,
@@ -1576,6 +1578,7 @@ class Transpiler {
             const phpTypes = {
                 'any': 'mixed',
                 'string': 'string',
+                'MarketType': 'string',
                 'Str': '?string',
                 'Strings': '?array',
                 'number': 'float',
@@ -1585,7 +1588,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /^(?:Market|Currency|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {

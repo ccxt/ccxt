@@ -274,11 +274,9 @@ export default class coinex extends coinexRest {
             const code = this.safeCurrencyCode (currencyId);
             const available = this.safeString (first[currencyId], 'available');
             const frozen = this.safeString (first[currencyId], 'frozen');
-            const total = Precise.stringAdd (available, frozen);
             const account = this.account ();
-            account['free'] = this.parseNumber (available);
-            account['used'] = this.parseNumber (frozen);
-            account['total'] = this.parseNumber (total);
+            account['free'] = available;
+            account['used'] = frozen;
             this.balance[code] = account;
             this.balance = this.safeBalance (this.balance);
         }

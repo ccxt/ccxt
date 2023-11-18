@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Bool, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction } from './base/types.js';
+import { Balances, Bool, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -339,9 +339,17 @@ export default class woo extends Exchange {
     parseMarket (market): Market {
         const marketId = this.safeString (market, 'symbol');
         const parts = marketId.split ('_');
-        let marketType = this.safeStringLower (parts, 0);
-        const isSpot = marketType === 'spot';
-        const isSwap = marketType === 'perp';
+        const first = this.safeString (parts, 0);
+        let marketType: MarketType;
+        let spot = false;
+        let swap = false;
+        if (first === 'SPOT') {
+            spot = true;
+            marketType = 'spot';
+        } else if (first === 'PERP') {
+            swap = true;
+            marketType = 'swap';
+        }
         const baseId = this.safeString (parts, 1);
         const quoteId = this.safeString (parts, 2);
         const base = this.safeCurrencyCode (baseId);
@@ -352,14 +360,13 @@ export default class woo extends Exchange {
         let contractSize: Num = undefined;
         let linear: Bool = undefined;
         let margin = true;
-        const contract = isSwap;
+        const contract = swap;
         if (contract) {
             margin = false;
             settleId = this.safeString (parts, 2);
             settle = this.safeCurrencyCode (settleId);
             symbol = base + '/' + quote + ':' + settle;
             contractSize = this.parseNumber ('1');
-            marketType = 'swap';
             linear = true;
         }
         return {
@@ -372,9 +379,9 @@ export default class woo extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': marketType,
-            'spot': isSpot,
+            'spot': spot,
             'margin': margin,
-            'swap': isSwap,
+            'swap': swap,
             'future': false,
             'option': false,
             'active': undefined,

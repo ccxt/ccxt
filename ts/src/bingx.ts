@@ -565,7 +565,7 @@ export default class bingx extends Exchange {
         const isActive = this.safeString (market, 'status') === '1';
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : swap;
-        const entry = {
+        return {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -594,8 +594,6 @@ export default class bingx extends Exchange {
             'precision': {
                 'amount': quantityPrecision,
                 'price': pricePrecision,
-                'base': undefined,
-                'quote': undefined,
             },
             'limits': {
                 'leverage': {
@@ -618,7 +616,6 @@ export default class bingx extends Exchange {
             'created': undefined,
             'info': market,
         };
-        return entry;
     }
 
     async fetchMarkets (params = {}) {

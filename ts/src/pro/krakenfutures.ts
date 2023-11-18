@@ -1286,10 +1286,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode (key);
                 const newAccount = this.account ();
-                const amount = this.safeNumber (holding, key);
-                newAccount['free'] = amount;
-                newAccount['total'] = amount;
-                newAccount['used'] = 0;
+                newAccount['total'] = this.safeString (holding, key);
                 holdingResult[code] = newAccount;
             }
             this.balance['cash'] = holdingResult;
@@ -1309,9 +1306,9 @@ export default class krakenfutures extends krakenfuturesRest {
                 const future = this.safeValue (futures, key);
                 const currencyId = this.safeString (future, 'unit');
                 const code = this.safeCurrencyCode (currencyId);
-                newAccount['free'] = this.safeNumber (future, 'available');
-                newAccount['used'] = this.safeNumber (future, 'initial_margin');
-                newAccount['total'] = this.safeNumber (future, 'balance');
+                newAccount['free'] = this.safeString (future, 'available');
+                newAccount['used'] = this.safeString (future, 'initial_margin');
+                newAccount['total'] = this.safeString (future, 'balance');
                 futuresResult[symbol] = {};
                 futuresResult[symbol][code] = newAccount;
             }
@@ -1331,9 +1328,9 @@ export default class krakenfutures extends krakenfuturesRest {
                 const flexFuture = this.safeValue (flexFutureCurrencies, key);
                 const code = this.safeCurrencyCode (key);
                 const newAccount = this.account ();
-                newAccount['free'] = this.safeNumber (flexFuture, 'available');
-                newAccount['used'] = this.safeNumber (flexFuture, 'collateral_value');
-                newAccount['total'] = this.safeNumber (flexFuture, 'quantity');
+                newAccount['free'] = this.safeString (flexFuture, 'available');
+                newAccount['used'] = this.safeString (flexFuture, 'collateral_value');
+                newAccount['total'] = this.safeString (flexFuture, 'quantity');
                 flexFuturesResult[code] = newAccount;
             }
             this.balance['flex'] = flexFuturesResult;

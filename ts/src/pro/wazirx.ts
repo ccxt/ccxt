@@ -92,8 +92,8 @@ export default class wazirx extends wazirxRest {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
-            const available = this.safeNumber (balance, 'b');
-            const locked = this.safeNumber (balance, 'l');
+            const available = this.safeString (balance, 'b');
+            const locked = this.safeString (balance, 'l');
             const account = this.account ();
             account['free'] = available;
             account['used'] = locked;

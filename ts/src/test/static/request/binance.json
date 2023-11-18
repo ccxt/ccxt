@@ -597,6 +597,16 @@
             ],
             "output": "timestamp=1699441887107&symbol=BTCUSD_PERP&marginType=ISOLATED&recvWindow=10000&signature=23faa49ca6c2c26c2ed637bda09e850587c8cf9dd884d495b44bddf6744dff09"
           }
+        ],
+        "fetchCrossBorrowRate":[
+          {
+            "description": "Fetch cross borrow rate",
+            "method": "fetchCrossBorrowRate",
+            "url": "https://api.binance.com/sapi/v1/margin/interestRateHistory?timestamp=1700202941111&asset=USDT&recvWindow=10000&signature=ffc9f69400ec59a68f0785334a9a619258411f43f6cfc0c7aa9585202d0f8eb5",
+            "input": [
+              "USDT"
+            ]
+          }
         ]
     }
 }
