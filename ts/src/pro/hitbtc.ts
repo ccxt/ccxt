@@ -156,6 +156,7 @@ export default class hitbtc extends hitbtcRest {
             'params': params,
             'id': this.nonce (),
         };
+        console.log ('watch test');
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
@@ -1071,14 +1072,9 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const messageHash = this.safeString (message, 'id');
-        const data = this.safeValue (message, 'result', {});
-        const orders = [];
-        for (let i = 0; i < data.length; i++) {
-            const order = data[i];
-            const parsedOrder = this.parseWsOrder (order);
-            orders.push (parsedOrder);
-        }
-        client.resolve (orders, messageHash);
+        const result = this.safeValue (message, 'result', {});
+        const parsedOrder = this.parseWsOrder (result);
+        client.resolve (parsedOrder, messageHash);
     }
 
     handleMessage (client: Client, message) {
@@ -1104,16 +1100,14 @@ export default class hitbtc extends hitbtcRest {
             const method = this.safeValue (methods, channel);
             if (method !== undefined) {
                 method.call (this, client, message);
-            } else {
-                const result = this.safeValue (message, 'result');
-                const clientOrderId = this.safeString (result, 'client_order_id');
-                if (clientOrderId !== undefined) {
-                    this.handleOrderRequest (client, message);
-                }
             }
         } else {
-            const success = this.safeValue (message, 'result');
-            if ((success === true) && !('id' in message)) {
+            const result = this.safeValue (message, 'result');
+            const clientOrderId = this.safeString (result, 'client_order_id');
+            if (clientOrderId !== undefined) {
+                this.handleOrderRequest (client, message);
+            }
+            if ((result === true) && !('id' in message)) {
                 this.handleAuthenticate (client, message);
             }
         }
