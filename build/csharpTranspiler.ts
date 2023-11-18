@@ -34,6 +34,7 @@ const WRAPPER_FILE = './c#/ccxt/base/Exchange.Wrappers.cs';
 const ERRORS_FILE = './c#/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './c#/ccxt/base/Exchange.BaseMethods.cs';
 const EXCHANGES_FOLDER = './c#/ccxt/exchanges/';
+const EXCHANGES_WS_FOLDER = './c#/ccxt/exchanges/pro/';
 const GENERATED_TESTS_FOLDER = './c#/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './c#/tests/Generated/Base';
 const BASE_TESTS_FILE =  './c#/tests/Generated/TestMethods.cs';
@@ -499,6 +500,13 @@ class NewTranspiler {
         }
     }
 
+    async transpileWS(force = false) {
+        const exchanges = ['binance']
+        const tsFolder = './ts/src/pro/';
+        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges }
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.length))
+    }
+
     async transpileEverything (force = false, child = false) {
 
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
@@ -586,6 +594,9 @@ class NewTranspiler {
         let content = csharpVersion.content;
         content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
+        // WS fixes
+        content = content.replace(/typeof\(client\)/gm, 'client');
+        content = content.replace(/\(object client,/gm, '(WebSocketClient client,');
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }
@@ -997,6 +1008,7 @@ class NewTranspiler {
 }
 
 if (isMainEntry(import.meta.url)) {
+    const ws = process.argv.includes ('--ws')
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const force = process.argv.includes ('--force')
     const child = process.argv.includes ('--child')
@@ -1005,8 +1017,9 @@ if (isMainEntry(import.meta.url)) {
         log.bright.green ({ force })
     }
     const transpiler = new NewTranspiler ();
-
-    if (test) {
+    if (ws) {
+        await transpiler.transpileWS (force)
+    } else if (test) {
         transpiler.transpileTests ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds)
