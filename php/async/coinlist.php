@@ -561,7 +561,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "type":"spot",
@@ -719,7 +719,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "2023-10-17T15:30:00.000Z",
@@ -799,7 +799,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
@@ -972,7 +972,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_fee_tiers($feeTiers, $market = null) {
+    public function parse_fee_tiers($feeTiers, ?array $market = null) {
         //
         //     base => array(
         //         fees => array( $maker => '0', $taker => '0.0045', liquidation => '0' ),
@@ -1579,7 +1579,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrder
         //     {
@@ -1839,7 +1839,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // fetchTransfers
         //     {
@@ -2012,7 +2012,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         // withdraw
         //
         //     {
@@ -2190,7 +2190,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {

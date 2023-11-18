@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.p2b import ImplicitAPI
 import hashlib
-from ccxt.base.types import Int, Order, OrderSide, OrderType, Strings, Ticker, Tickers
+from ccxt.base.types import Int, Market, Order, OrderSide, OrderType, Strings, Ticker, Tickers
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -114,7 +114,7 @@ class p2b(Exchange, ImplicitAPI):
             'urls': {
                 'extension': '.json',
                 'referral': 'https://p2pb2b.com?referral=ee784c53',
-                'logo': 'https://cdn.worldvectorlogo.com/logos/p2b-1.svg',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
                     'private': 'https://api.p2pb2b.com/api/v2',
@@ -416,7 +416,7 @@ class p2b(Exchange, ImplicitAPI):
             self.parse_ticker(result, market)
         )
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None):
         #
         # parseTickers
         #
@@ -570,7 +570,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None):
         #
         # fetchTrades
         #
@@ -683,7 +683,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    [
         #        1699253400,       # Kline open time
@@ -1094,7 +1094,7 @@ class p2b(Exchange, ImplicitAPI):
             orders = self.array_concat(orders, parsedOrders)
         return orders
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # cancelOrder, fetchOpenOrders, createOrder
         #

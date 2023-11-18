@@ -3,7 +3,7 @@ import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, PermissionDeni
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 /**
  * @class wazirx
@@ -37,12 +37,11 @@ export default class wazirx extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -53,6 +52,8 @@ export default class wazirx extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
@@ -222,7 +223,7 @@ export default class wazirx extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const isSpot = this.safeValue (market, 'isSpotTradingAllowed');
         const filters = this.safeValue (market, 'filters');
-        let minPrice = undefined;
+        let minPrice: Num = undefined;
         for (let j = 0; j < filters.length; j++) {
             const filter = filters[j];
             const filterType = this.safeString (filter, 'filterType');
@@ -231,9 +232,9 @@ export default class wazirx extends Exchange {
             }
         }
         const fee = this.safeValue (this.fees, quote, {});
-        let takerString = this.safeString (fee, 'taker', '0.2');
+        let takerString: Str = this.safeString (fee, 'taker', '0.2');
         takerString = Precise.stringDiv (takerString, '100');
-        let makerString = this.safeString (fee, 'maker', '0.2');
+        let makerString: Str = this.safeString (fee, 'maker', '0.2');
         makerString = Precise.stringDiv (makerString, '100');
         const status = this.safeString (market, 'status');
         return {
@@ -330,7 +331,7 @@ export default class wazirx extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    [1669014300,1402001,1402001,1402001,1402001,0],
         //
@@ -489,7 +490,7 @@ export default class wazirx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         //     {
         //         "id":322307791,
@@ -570,7 +571,7 @@ export default class wazirx extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //        "symbol":"btcinr",
@@ -731,7 +732,7 @@ export default class wazirx extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -860,7 +861,7 @@ export default class wazirx extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         // {
         //     "id":1949417813,
         //     "symbol":"ltcusdt",

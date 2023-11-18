@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -50,8 +50,8 @@ export default class bitmex extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDepositsWithdrawals': 'emulated',
-                'fetchDepositWithdrawalFee': 'emulated',
-                'fetchDepositWithdrawalFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -392,12 +392,10 @@ export default class bitmex extends Exchange {
         return this.parseNumber (finalAmount);
     }
 
-    convertToRealAmount (code, amount) {
+    convertToRealAmount (code: string, amount: string) {
         const currency = this.currency (code);
         const precision = this.safeString (currency, 'precision');
-        const amountString = this.numberToString (amount);
-        const finalAmount = Precise.stringMul (amountString, precision);
-        return this.parseNumber (finalAmount);
+        return Precise.stringMul (amount, precision);
     }
 
     amountToPrecision (symbol, amount) {
@@ -421,7 +419,7 @@ export default class bitmex extends Exchange {
         }
         const market = this.market (symbol);
         if (market['spot']) {
-            return this.convertToRealAmount (market[currencySide], rawQuantity);
+            return this.parseNumber (this.convertToRealAmount (market[currencySide], rawQuantity));
         }
         return this.parseNumber (rawQuantity);
     }
@@ -438,7 +436,7 @@ export default class bitmex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetInstrumentActiveAndIndices (params);
+        const response = await this.publicGetInstrumentActive (params);
         //
         //  [
         //    {
@@ -555,30 +553,35 @@ export default class bitmex extends Exchange {
 
     parseMarket (market): Market {
         const id = this.safeString (market, 'symbol');
-        const baseId = this.safeString (market, 'underlying');
-        const quoteId = this.safeString (market, 'quoteCurrency');
+        let baseId = this.safeString (market, 'underlying');
+        let quoteId = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settlCurrency');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        const types = {
-            'FFWCSX': 'swap',
-            'FFWCSF': 'swap',
-            'IFXXXP': 'spot',
-            'FFCCSX': 'future',
-            'MRBXXX': 'index',
-            'MRCXXX': 'index',
-            'MRFXXX': 'index',
-            'MRRXXX': 'index',
-            'MRIXXX': 'index',
-        };
-        const type = this.safeString (types, typ, typ);
-        const swap = type === 'swap';
-        const future = type === 'future';
-        const spot = type === 'spot';
+        let type: MarketType;
+        let swap = false;
+        let spot = false;
+        let future = false;
+        if (typ === 'FFWCSX') {
+            type = 'swap';
+            swap = true;
+        } else if (typ === 'IFXXXP') {
+            type = 'spot';
+            spot = true;
+        } else if (typ === 'FFCCSX') {
+            type = 'future';
+            future = true;
+        } else if (typ === 'FFICSX') {
+            // prediction markets (without any volume)
+            quoteId = baseId;
+            baseId = this.safeString (market, 'rootSymbol');
+            type = 'future';
+            future = true;
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
         const contract = swap || future;
         let contractSize = undefined;
         const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
@@ -593,10 +596,11 @@ export default class bitmex extends Exchange {
             symbol = base + '/' + quote;
         } else if (contract) {
             symbol = base + '/' + quote + ':' + settle;
-            const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
             if (linear) {
-                contractSize = this.parseNumber (Precise.stringDiv ('1', market['underlyingToPositionMultiplier']));
+                const multiplierString = this.safeString2 (market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
+                contractSize = this.parseNumber (Precise.stringDiv ('1', multiplierString));
             } else {
+                const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
                 contractSize = this.parseNumber (multiplierString);
             }
             if (future) {
@@ -1056,7 +1060,7 @@ export default class bitmex extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1114,15 +1118,15 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let feeCost = this.safeNumber (item, 'fee', 0);
+        let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
         }
         const fee = {
-            'cost': feeCost,
+            'cost': this.parseNumber (feeCost),
             'currency': code,
         };
-        let after = this.safeNumber (item, 'walletBalance');
+        let after = this.safeString (item, 'walletBalance');
         if (after !== undefined) {
             after = this.convertToRealAmount (code, after);
         }
@@ -1148,7 +1152,7 @@ export default class bitmex extends Exchange {
             'currency': code,
             'amount': amount,
             'before': before,
-            'after': after,
+            'after': this.parseNumber (after),
             'status': status,
             'fee': fee,
         };
@@ -1250,7 +1254,7 @@ export default class bitmex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
@@ -1305,7 +1309,7 @@ export default class bitmex extends Exchange {
             'type': type,
             'currency': currency['code'],
             'network': this.networkIdToCode (this.safeString (transaction, 'network'), currency['code']),
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'status': status,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
@@ -1320,7 +1324,7 @@ export default class bitmex extends Exchange {
             'comment': undefined,
             'fee': {
                 'currency': currency['code'],
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
         };
@@ -1372,7 +1376,7 @@ export default class bitmex extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1403,7 +1407,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1512,7 +1516,7 @@ export default class bitmex extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1655,7 +1659,7 @@ export default class bitmex extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -2128,7 +2132,7 @@ export default class bitmex extends Exchange {
         return this.filterByArrayPositions (results, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     {
         //         "account": 9371654,
@@ -2350,7 +2354,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');
@@ -2438,7 +2442,7 @@ export default class bitmex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit);
     }
 
-    parseFundingRateHistory (info, market = undefined) {
+    parseFundingRateHistory (info, market: Market = undefined) {
         //
         //    {
         //        "timestamp": "2016-05-07T12:00:00.000Z",
@@ -2552,7 +2556,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "XBT",
@@ -2719,7 +2723,7 @@ export default class bitmex extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "orderID": "string",

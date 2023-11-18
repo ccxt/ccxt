@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -49,14 +49,13 @@ export default class htx extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistories': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRates': true,
-                'fetchBorrowRatesPerSymbol': true,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
@@ -70,6 +69,8 @@ export default class htx extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': true,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
@@ -498,6 +499,7 @@ export default class htx extends Exchange {
                             // Future Market Data interface
                             'api/v1/contract_contract_info': 1,
                             'api/v1/contract_index': 1,
+                            'api/v1/contract_query_elements': 1,
                             'api/v1/contract_price_limit': 1,
                             'api/v1/contract_open_interest': 1,
                             'api/v1/contract_delivery_price': 1,
@@ -527,6 +529,7 @@ export default class htx extends Exchange {
                             // Swap Market Data interface
                             'swap-api/v1/swap_contract_info': 1,
                             'swap-api/v1/swap_index': 1,
+                            'swap-api/v1/swap_query_elements': 1,
                             'swap-api/v1/swap_price_limit': 1,
                             'swap-api/v1/swap_open_interest': 1,
                             'swap-ex/market/depth': 1,
@@ -559,6 +562,7 @@ export default class htx extends Exchange {
                             // Swap Market Data interface
                             'linear-swap-api/v1/swap_contract_info': 1,
                             'linear-swap-api/v1/swap_index': 1,
+                            'linear-swap-api/v1/swap_query_elements': 1,
                             'linear-swap-api/v1/swap_price_limit': 1,
                             'linear-swap-api/v1/swap_open_interest': 1,
                             'linear-swap-ex/market/depth': 1,
@@ -1457,7 +1461,7 @@ export default class htx extends Exchange {
         return this.safeInteger2 (response, 'data', 'ts');
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         //
         //     {
         //         "symbol":"btcusdt",
@@ -1914,7 +1918,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -2334,7 +2338,7 @@ export default class htx extends Exchange {
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // spot fetchTrades (public)
         //
@@ -2750,7 +2754,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "amount":1.2082,
@@ -4343,7 +4347,7 @@ export default class htx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // spot
         //
@@ -5641,7 +5645,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "usdt",
@@ -5871,7 +5875,7 @@ export default class htx extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined): Transaction {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -6052,7 +6056,7 @@ export default class htx extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
@@ -6167,83 +6171,17 @@ export default class htx extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async fetchBorrowRatesPerSymbol (params = {}) {
+    async fetchIsolatedBorrowRates (params = {}) {
         /**
          * @method
-         * @name huobi#fetchBorrowRatesPerSymbol
-         * @description fetch borrow rates for currencies within individual markets
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a dictionary of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure} indexed by market symbol
-         */
-        await this.loadMarkets ();
-        const response = await this.spotPrivateGetV1MarginLoanInfo (params);
-        //
-        //    {
-        //        "status": "ok",
-        //        "data": [
-        //            {
-        //                "symbol": "1inchusdt",
-        //                "currencies": [
-        //                    {
-        //                        "currency": "1inch",
-        //                        "interest-rate": "0.00098",
-        //                        "min-loan-amt": "90.000000000000000000",
-        //                        "max-loan-amt": "1000.000000000000000000",
-        //                        "loanable-amt": "0.0",
-        //                        "actual-rate": "0.00098"
-        //                    },
-        //                    {
-        //                        "currency": "usdt",
-        //                        "interest-rate": "0.00098",
-        //                        "min-loan-amt": "100.000000000000000000",
-        //                        "max-loan-amt": "1000.000000000000000000",
-        //                        "loanable-amt": "0.0",
-        //                        "actual-rate": "0.00098"
-        //                    }
-        //                ]
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        const timestamp = this.milliseconds ();
-        const data = this.safeValue (response, 'data', []);
-        const rates = {
-            'info': response,
-        };
-        for (let i = 0; i < data.length; i++) {
-            const rate = data[i];
-            const currencies = this.safeValue (rate, 'currencies', []);
-            const symbolRates = {};
-            for (let j = 0; j < currencies.length; j++) {
-                const currency = currencies[j];
-                const currencyId = this.safeString (currency, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                symbolRates[code] = {
-                    'currency': code,
-                    'rate': this.safeNumber (currency, 'actual-rate'),
-                    'span': 86400000,
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                };
-            }
-            const marketId = this.safeString (rate, 'symbol');
-            const symbol = this.safeSymbol (marketId);
-            rates[symbol] = symbolRates;
-        }
-        return rates;
-    }
-
-    async fetchBorrowRates (params = {}) {
-        /**
-         * @method
-         * @name huobi#fetchBorrowRates
+         * @name htx#fetchIsolatedBorrowRates
          * @description fetch the borrow interest rates of all currencies
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         * @param {object} [params] extra parameters specific to the htx api endpoint
+         * @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
          */
         await this.loadMarkets ();
         const response = await this.spotPrivateGetV1MarginLoanInfo (params);
+        //
         // {
         //     "status": "ok",
         //     "data": [
@@ -6271,27 +6209,57 @@ export default class htx extends Exchange {
         //         ...
         //     ]
         // }
-        const timestamp = this.milliseconds ();
+        //
         const data = this.safeValue (response, 'data', []);
-        const rates = {};
+        const rates = [];
         for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const currencies = this.safeValue (market, 'currencies', []);
-            for (let j = 0; j < currencies.length; j++) {
-                const currency = currencies[j];
-                const currencyId = this.safeString (currency, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                rates[code] = {
-                    'currency': code,
-                    'rate': this.safeNumber (currency, 'actual-rate'),
-                    'span': 86400000,
-                    'timestamp': timestamp,
-                    'datetime': this.iso8601 (timestamp),
-                    'info': undefined,
-                };
-            }
+            rates.push (this.parseIsolatedBorrowRate (data[i]));
         }
         return rates;
+    }
+
+    parseIsolatedBorrowRate (info, market: Market = undefined) {
+        //
+        //     {
+        //         "symbol": "1inchusdt",
+        //         "currencies": [
+        //             {
+        //                 "currency": "1inch",
+        //                 "interest-rate": "0.00098",
+        //                 "min-loan-amt": "90.000000000000000000",
+        //                 "max-loan-amt": "1000.000000000000000000",
+        //                 "loanable-amt": "0.0",
+        //                 "actual-rate": "0.00098"
+        //             },
+        //             {
+        //                 "currency": "usdt",
+        //                 "interest-rate": "0.00098",
+        //                 "min-loan-amt": "100.000000000000000000",
+        //                 "max-loan-amt": "1000.000000000000000000",
+        //                 "loanable-amt": "0.0",
+        //                 "actual-rate": "0.00098"
+        //             }
+        //         ]
+        //     },
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const currencies = this.safeValue (info, 'currencies', []);
+        const baseData = this.safeValue (currencies, 0);
+        const quoteData = this.safeValue (currencies, 1);
+        const baseId = this.safeString (baseData, 'currency');
+        const quoteId = this.safeString (quoteData, 'currency');
+        return {
+            'symbol': symbol,
+            'base': this.safeCurrencyCode (baseId),
+            'baseRate': this.safeNumber (baseData, 'actual-rate'),
+            'quote': this.safeCurrencyCode (quoteId),
+            'quoteRate': this.safeNumber (quoteData, 'actual-rate'),
+            'period': 86400000,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -6371,7 +6339,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         // {
         //      "status": "ok",
@@ -6568,7 +6536,7 @@ export default class htx extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -6941,7 +6909,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    parseIncome (income, market = undefined) {
+    parseIncome (income, market: Market = undefined) {
         //
         //     {
         //       "id": "1667161118",
@@ -6970,7 +6938,7 @@ export default class htx extends Exchange {
         };
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC",
@@ -7462,7 +7430,7 @@ export default class htx extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "accountId": 10000001,
@@ -7936,7 +7904,7 @@ export default class htx extends Exchange {
         return openInterest;
     }
 
-    parseOpenInterest (interest, market = undefined) {
+    parseOpenInterest (interest, market: Market = undefined) {
         //
         // fetchOpenInterestHistory
         //
@@ -8103,7 +8071,7 @@ export default class htx extends Exchange {
         });
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         // borrowMargin cross
         //
@@ -8289,7 +8257,7 @@ export default class htx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //            {
         //              "currency": "sxp",
@@ -8516,7 +8484,7 @@ export default class htx extends Exchange {
         return this.parseLiquidations (data, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market = undefined) {
+    parseLiquidation (liquidation, market: Market = undefined) {
         //
         //     {
         //         "query_id": 452057,

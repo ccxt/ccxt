@@ -147,6 +147,7 @@ class binance extends Exchange {
                     'dapiPrivate' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivateV2' => 'https://testnet.binancefuture.com/dapi/v2',
                     'fapiPublic' => 'https://testnet.binancefuture.com/fapi/v1',
+                    'fapiPublicV2' => 'https://testnet.binancefuture.com/fapi/v2',
                     'fapiPrivate' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2' => 'https://testnet.binancefuture.com/fapi/v2',
                     'public' => 'https://testnet.binance.vision/api/v3',
@@ -165,6 +166,7 @@ class binance extends Exchange {
                     'dapiPrivateV2' => 'https://dapi.binance.com/dapi/v2',
                     'dapiData' => 'https://dapi.binance.com/futures/data',
                     'fapiPublic' => 'https://fapi.binance.com/fapi/v1',
+                    'fapiPublicV2' => 'https://fapi.binance.com/fapi/v2',
                     'fapiPrivate' => 'https://fapi.binance.com/fapi/v1',
                     'fapiData' => 'https://fapi.binance.com/futures/data',
                     'fapiPrivateV2' => 'https://fapi.binance.com/fapi/v2',
@@ -780,6 +782,11 @@ class binance extends Exchange {
                         'order' => 1,
                         'allOpenOrders' => 1,
                         'listenKey' => 1,
+                    ),
+                ),
+                'fapiPublicV2' => array(
+                    'get' => array(
+                        'ticker/price' => 0,
                     ),
                 ),
                 'fapiPrivateV2' => array(
@@ -2821,7 +2828,7 @@ class binance extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -3086,7 +3093,7 @@ class binance extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchLastPrices', $market, $params);
         $response = null;
         if ($this->is_linear($type, $subType)) {
-            $response = $this->fapiPublicGetTickerPrice ($params);
+            $response = $this->fapiPublicV2GetTickerPrice ($params);
             //
             //     array(
             //         array(
@@ -3126,7 +3133,7 @@ class binance extends Exchange {
         return $this->parse_last_prices($response, $symbols);
     }
 
-    public function parse_last_price($info, $market = null) {
+    public function parse_last_price($info, ?array $market = null) {
         //
         // spot
         //
@@ -3206,7 +3213,7 @@ class binance extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     array(
         //         1591478520000, // open time
@@ -3383,7 +3390,7 @@ class binance extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         if (is_array($trade) && array_key_exists('isDustTrade', $trade)) {
             return $this->parse_dust_trade($trade, $market);
         }
@@ -4042,7 +4049,7 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot
         //
@@ -5337,7 +5344,7 @@ class binance extends Exchange {
         return $this->filter_by_since_limit($trades, $since, $limit);
     }
 
-    public function parse_dust_trade($trade, $market = null) {
+    public function parse_dust_trade($trade, ?array $market = null) {
         //
         //     {
         //       "fromAsset" => "USDT",
@@ -5691,7 +5698,7 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -5829,7 +5836,7 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -5878,7 +5885,7 @@ class binance extends Exchange {
         );
     }
 
-    public function parse_income($income, $market = null) {
+    public function parse_income($income, ?array $market = null) {
         //
         //     {
         //       "symbol" => "ETHUSDT",
@@ -6318,7 +6325,7 @@ class binance extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'coin');
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "coin" => "BAT",
@@ -6425,7 +6432,7 @@ class binance extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         // spot
         //     array(
@@ -6863,7 +6870,7 @@ class binance extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
         //   {
@@ -6940,7 +6947,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function parse_account_position($position, $market = null) {
+    public function parse_account_position($position, ?array $market = null) {
         //
         // $usdm
         //    {
@@ -6989,7 +6996,7 @@ class binance extends Exchange {
         $initialMarginString = $this->safe_string($position, 'initialMargin');
         $initialMargin = $this->parse_number($initialMarginString);
         $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
-        $rational = (fmod(1000, $leverage)) === 0;
+        $rational = $this->is_round_number(fmod(1000, $leverage));
         if (!$rational) {
             $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
         }
@@ -7136,7 +7143,7 @@ class binance extends Exchange {
         );
     }
 
-    public function parse_position_risk($position, $market = null) {
+    public function parse_position_risk($position, ?array $market = null) {
         //
         // usdm
         //
@@ -7266,7 +7273,7 @@ class binance extends Exchange {
         $maintenanceMarginString = Precise::string_mul($maintenanceMarginPercentageString, $notionalStringAbs);
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
-        $rational = (fmod(1000, $leverage)) === 0;
+        $rational = $this->is_round_number(fmod(1000, $leverage));
         if (!$rational) {
             $initialMarginPercentageString = Precise::string_add($initialMarginPercentageString, '1e-8');
         }
@@ -7412,7 +7419,7 @@ class binance extends Exchange {
         return $this->parse_leverage_tiers($response, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @ignore
          * @param {array} $info Exchange response for 1 $market
@@ -7553,7 +7560,7 @@ class binance extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "entryPrice" => "27.70000000",
@@ -8205,7 +8212,7 @@ class binance extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // options (eapi)
         //
@@ -8553,7 +8560,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         $rawType = $this->safe_integer($data, 'type');
         $resultType = ($rawType === 1) ? 'add' : 'reduce';
         $resultAmount = $this->safe_number($data, 'amount');
@@ -8677,7 +8684,7 @@ class binance extends Exchange {
         return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_borrow_rate($info, ?array $currency = null) {
         //
         //    {
         //        "asset" => "USDT",
@@ -8687,9 +8694,9 @@ class binance extends Exchange {
         //    }
         //
         $timestamp = $this->safe_number($info, 'timestamp');
-        $currency = $this->safe_string($info, 'asset');
+        $currencyId = $this->safe_string($info, 'asset');
         return array(
-            'currency' => $this->safe_currency_code($currency),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
             'rate' => $this->safe_number($info, 'dailyInterestRate'),
             'period' => 86400000,
             'timestamp' => $timestamp,
@@ -8834,7 +8841,7 @@ class binance extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         $symbol = $this->safe_string($info, 'isolatedSymbol');
         $timestamp = $this->safe_number($info, 'interestAccuredTime');
         $marginMode = ($symbol === null) ? 'cross' : 'isolated';
@@ -8918,7 +8925,7 @@ class binance extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         //     {
         //         "tranId" => 108988250265,
@@ -9073,7 +9080,7 @@ class binance extends Exchange {
         }
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         $timestamp = $this->safe_integer_2($interest, 'timestamp', 'time');
         $id = $this->safe_string($interest, 'symbol');
         $amount = $this->safe_number_2($interest, 'sumOpenInterest', 'openInterest');
@@ -9230,7 +9237,7 @@ class binance extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         //
         // margin
         //
@@ -9348,7 +9355,7 @@ class binance extends Exchange {
         return $this->parse_greeks($response[0], $market);
     }
 
-    public function parse_greeks($greeks, $market = null) {
+    public function parse_greeks($greeks, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC-231229-40000-C",

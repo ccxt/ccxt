@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -123,7 +123,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         self.options['requestId'] = requestId
         return requestId
 
-    async def subscribe(self, name: str, isPrivate: bool, symbol: String = None, subscription=None, params={}):
+    async def subscribe(self, name: str, isPrivate: bool, symbol: Str = None, subscription=None, params={}):
         """
          * @ignore
         Connects to a websocket channel
@@ -279,7 +279,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         orderbook = await self.subscribe(name, False, symbol, subscription, params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://futures-docs.poloniex.com/#private-messages

@@ -152,7 +152,7 @@ The CCXT library currently supports the following 95 cryptocurrency exchange mar
 | [![oceanex](https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg)](https://oceanex.pro/signup?referral=VE24QX)                                                 | oceanex            | [OceanEx](https://oceanex.pro/signup?referral=VE24QX)                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.oceanex.pro/doc/v1)                                                     |                                                                                                                             |                                                                              |
 | [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                  | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                   | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okcoin.com/docs/en/)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                         | okx                | [OKX](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                          | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![p2b](https://cdn.worldvectorlogo.com/logos/p2b-1.svg)](https://p2pb2b.com?referral=ee784c53)                                                                                                               | p2b                | [p2b](https://p2pb2b.com?referral=ee784c53)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md)                    |                                                                                                                             |                                                                              |
+| [![p2b](https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755)](https://p2pb2b.com?referral=ee784c53)                                                                             | p2b                | [p2b](https://p2pb2b.com?referral=ee784c53)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md)                    |                                                                                                                             |                                                                              |
 | [![paymium](https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg)](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                        | paymium            | [Paymium](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Paymium/api-documentation)                                       |                                                                                                                             |                                                                              |
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                              | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                                    | poloniex           | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.poloniex.com)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -1634,6 +1634,10 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchLiquidations (symbol, since, limit, params)`
 - `fetchMyLiquidations (symbol, since, limit, params)`
 - `fetchGreeks (symbol, params)`
+- `fetchCrossBorrowRate (code, params)`
+- `fetchCrossBorrowRates (params)`
+- `fetchIsolatedBorrowRate (symbol, params)`
+- `fetchIsolatedBorrowRates (params)`
 - ...
 
 ```text
@@ -2676,46 +2680,77 @@ When short trading or trading with leverage on a spot market, currency must be b
 
 Data on the borrow rate for a currency can be retrieved using
 
-- `fetchBorrowRate ()` for a single currencies borrow rate
-- `fetchBorrowRates ()` for all currencies borrow rates
+- `fetchCrossBorrowRate ()` for a single currencies borrow rate
+- `fetchCrossBorrowRates ()` for all currencies borrow rates
+- `fetchIsolatedBorrowRate ()` for a trading pairs borrow rate
+- `fetchIsolatedBorrowRates ()` for all trading pairs borrow rates
 - `fetchBorrowRatesPerSymbol ()` for the borrow rates of currencies in individual markets
 
 ```javascript
-fetchBorrowRate (code, params = {})
+fetchCrossBorrowRate (code, params = {})
 ```
 
 Parameters
 
 - **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "USDT"}`)
 
 Returns
 
-- A [transaction structure](#transaction-structure)
+- A [borrow rate structure](#borrow-rate-structure)
 
 ```javascript
-fetchBorrowRates (params = {})
+fetchCrossBorrowRates (params = {})
 ```
 
 Parameters
 
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"startTime": 1610248118000}`)
 
 Returns
 
 - A dictionary of [borrow rate structures](#borrow-rate-structure) with unified currency codes as keys
 
 ```javascript
-fetchBorrowRatesPerSymbol (params = {})
+fetchIsolatedBorrowRate (symbol, params = {})
 ```
 
 Parameters
 
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **symbol** (String) Unified CCXT market symbol, required (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "USDT"}`)
 
 Returns
 
-- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
+- An [isolated borrow rate structure](#isolated-borrow-rate-structure)
+
+```javascript
+fetchIsolatedBorrowRates (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"startTime": 1610248118000}`)
+
+Returns
+
+- A dictionary of [isolated borrow rate structures](#isolated-borrow-rate-structure) with unified market symbols as keys
+
+### Isolated Borrow Rate Structure
+
+```javascript
+{
+  symbol: 'BTC/USDT',  // Unified market symbol
+  base: 'BTC',  // Unified currency code of the base currency
+  baseRate: 0.00025,  // A decimal value rate that interest is accrued at
+  quote: 'USDT',  // Unified currency code of the quote currency
+  quoteRate: 0.00025,  // A decimal value rate that interest is accrued at
+  period: 86400000,  // The amount of time in milliseconds that is required to accrue the interest amount specified by rate
+  timestamp: 1646956800000,  // Timestamp for when the currency had this rate
+  datetime: '2022-03-11T00:00:00.000Z',  // Datetime for when the currency had this rate
+  info: [ ... ]
+}
+```
 
 ### Borrow Rate Structure
 
@@ -3731,7 +3766,7 @@ if exchange.has['fetchOrder']:
     order = exchange.fetch_order(id)
     print(order)
 
-# Python 3.5+ asyncio (asynchronous)
+# Python 3.7+ asyncio (asynchronous)
 import asyncio
 import ccxt.async_support as ccxt
 if exchange.has['fetchOrder']:

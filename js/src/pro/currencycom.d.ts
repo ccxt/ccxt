@@ -15,7 +15,7 @@ export default class currencycom extends currencycomRest {
         info: any;
         timestamp: number;
         datetime: string;
-        symbol: any;
+        symbol: string;
         id: string;
         order: string;
         type: any;

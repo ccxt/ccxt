@@ -24,7 +24,7 @@ export default class binance extends binanceRest {
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     parseWsTicker(message: any, marketType: any): {
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: string;
         high: number;

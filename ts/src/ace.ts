@@ -35,11 +35,11 @@ export default class ace extends Exchange {
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
                 'fetchClosedOrders': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
@@ -48,6 +48,8 @@ export default class ace extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -251,7 +253,7 @@ export default class ace extends Exchange {
         };
     }
 
-    parseTicker (ticker, market = undefined): Ticker {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -407,7 +409,7 @@ export default class ace extends Exchange {
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "changeRate": 0,
@@ -497,7 +499,7 @@ export default class ace extends Exchange {
         return this.safeString (statuses, status, undefined);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -524,17 +526,17 @@ export default class ace extends Exchange {
         //             "type": 1
         //         }
         //
-        let id = undefined;
-        let timestamp = undefined;
-        let symbol = undefined;
-        let price = undefined;
-        let amount = undefined;
-        let side = undefined;
-        let type = undefined;
-        let status = undefined;
-        let filled = undefined;
-        let remaining = undefined;
-        let average = undefined;
+        let id: Str;
+        let timestamp: Int = undefined;
+        let symbol: Str = undefined;
+        let price: Str = undefined;
+        let amount: Str = undefined;
+        let side: Str = undefined;
+        let type: Str = undefined;
+        let status: Str = undefined;
+        let filled: Str = undefined;
+        let remaining: Str = undefined;
+        let average: Str = undefined;
         if (typeof order === 'string') {
             id = order;
         } else {
@@ -758,7 +760,7 @@ export default class ace extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchOrderTrades
         //         {
@@ -807,8 +809,8 @@ export default class ace extends Exchange {
         if (quoteId !== undefined && baseId !== undefined) {
             symbol = baseId + '/' + quoteId;
         }
-        let side = undefined;
-        const tradeSide = this.safeNumber (trade, 'buyOrSell');
+        let side: Str = undefined;
+        const tradeSide = this.safeInteger (trade, 'buyOrSell');
         if (tradeSide !== undefined) {
             side = (tradeSide === 1) ? 'buy' : 'sell';
         }

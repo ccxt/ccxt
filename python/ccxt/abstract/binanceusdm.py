@@ -498,6 +498,7 @@ class ImplicitAPI:
     fapiprivate_delete_order = fapiPrivateDeleteOrder = Entry('order', 'fapiPrivate', 'DELETE', {'cost': 1})
     fapiprivate_delete_allopenorders = fapiPrivateDeleteAllOpenOrders = Entry('allOpenOrders', 'fapiPrivate', 'DELETE', {'cost': 1})
     fapiprivate_delete_listenkey = fapiPrivateDeleteListenKey = Entry('listenKey', 'fapiPrivate', 'DELETE', {'cost': 1})
+    fapipublicv2_get_ticker_price = fapiPublicV2GetTickerPrice = Entry('ticker/price', 'fapiPublicV2', 'GET', {'cost': 0})
     fapiprivatev2_get_account = fapiPrivateV2GetAccount = Entry('account', 'fapiPrivateV2', 'GET', {'cost': 1})
     fapiprivatev2_get_balance = fapiPrivateV2GetBalance = Entry('balance', 'fapiPrivateV2', 'GET', {'cost': 1})
     fapiprivatev2_get_positionrisk = fapiPrivateV2GetPositionRisk = Entry('positionRisk', 'fapiPrivateV2', 'GET', {'cost': 1})

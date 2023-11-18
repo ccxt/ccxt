@@ -909,7 +909,7 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const timestamp = this.safeString (order, 'created_at');
-        const marketId = this.safeSymbol (order, 'symbol');
+        const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'trade_id');
         let trades = undefined;

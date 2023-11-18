@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Int, String, Strings
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -20,6 +20,15 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         return self.deep_extend(super(krakenfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchTicker': True,
@@ -166,7 +175,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         symbols = self.market_symbols(symbols, None, False)
         return await self.subscribe_public(name, symbols, params)
 
-    async def watch_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
@@ -314,7 +323,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'marginRatio': None,
         })
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
@@ -336,7 +345,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-fills

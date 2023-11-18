@@ -306,7 +306,6 @@ class whitebit extends Exchange {
         $active = $this->safe_value($market, 'tradesEnabled');
         $isCollateral = $this->safe_value($market, 'isCollateral');
         $typeId = $this->safe_string($market, 'type');
-        $type = null;
         $settle = null;
         $settleId = null;
         $symbol = $base . '/' . $quote;
@@ -724,7 +723,7 @@ class whitebit extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //  FetchTicker (v1)
         //
@@ -953,7 +952,7 @@ class whitebit extends Exchange {
         }
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTradesV4
         //
@@ -1078,7 +1077,7 @@ class whitebit extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1591488000,
@@ -1175,7 +1174,6 @@ class whitebit extends Exchange {
         if ($postOnly) {
             $request['postOnly'] = true;
         }
-        $method = null;
         if ($marginMode !== null && $marginMode !== 'cross') {
             throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
         }
@@ -1411,7 +1409,7 @@ class whitebit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, fetchOpenOrders
         //
@@ -1676,7 +1674,7 @@ class whitebit extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //    array()
         //
@@ -1735,7 +1733,7 @@ class whitebit extends Exchange {
         return array_merge(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit $address
@@ -1992,7 +1990,7 @@ class whitebit extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     {
         //         "positionId" => 191823,
@@ -2102,7 +2100,7 @@ class whitebit extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         // {
         //     "ticker_id":"ADA_PERP",

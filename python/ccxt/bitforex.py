@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitforex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -267,7 +267,7 @@ class bitforex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public) v1
         #
@@ -372,7 +372,7 @@ class bitforex(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response['data'], market, since, limit)
 
-    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://apidoc.bitforex.com/#spot-account-trade
@@ -451,7 +451,7 @@ class bitforex(Exchange, ImplicitAPI):
         response = self.privatePostApiV1FundAllAccount(params)
         return self.parse_balance(response)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "buy":7.04E-7,
@@ -520,7 +520,7 @@ class bitforex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "close":0.02505143,
@@ -614,7 +614,7 @@ class bitforex(Exchange, ImplicitAPI):
         else:
             return None
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_number(order, 'createTime')
         lastTradeTimestamp = self.safe_number(order, 'lastTime')
@@ -658,7 +658,7 @@ class bitforex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id: str, symbol: String = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://apidoc.bitforex.com/#order-information-user_data
@@ -676,7 +676,7 @@ class bitforex(Exchange, ImplicitAPI):
         order = self.parse_order(response['data'], market)
         return order
 
-    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -695,7 +695,7 @@ class bitforex(Exchange, ImplicitAPI):
         response = self.privatePostApiV1TradeOrderInfos(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
-    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -746,7 +746,7 @@ class bitforex(Exchange, ImplicitAPI):
             'id': self.safe_string(data, 'orderId'),
         }, market)
 
-    def cancel_order(self, id: str, symbol: String = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://apidoc.bitforex.com/#cancel-order-trade

@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import { Precise } from '../ccxt.js';
+import { Market, Precise } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -45,11 +45,10 @@ export default class p2b extends Exchange {
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -61,6 +60,8 @@ export default class p2b extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': false,
                 'fetchLedgerEntry': false,
                 'fetchLeverageTiers': false,
@@ -110,7 +111,7 @@ export default class p2b extends Exchange {
             'urls': {
                 'extension': '.json',
                 'referral': 'https://p2pb2b.com?referral=ee784c53',
-                'logo': 'https://cdn.worldvectorlogo.com/logos/p2b-1.svg',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
                     'private': 'https://api.p2pb2b.com/api/v2',
@@ -423,7 +424,7 @@ export default class p2b extends Exchange {
         );
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined) {
         //
         // parseTickers
         //
@@ -588,7 +589,7 @@ export default class p2b extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined) {
         //
         // fetchTrades
         //
@@ -707,7 +708,7 @@ export default class p2b extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) : OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
         //
         //    [
         //        1699253400,       // Kline open time
@@ -1159,7 +1160,7 @@ export default class p2b extends Exchange {
         return orders;
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //

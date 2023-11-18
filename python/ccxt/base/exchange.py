@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.54'
+__version__ = '4.1.56'
 
 # -----------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Numeric, Market, String
+from ccxt.base.types import Account, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, Str, Num
 
 # -----------------------------------------------------------------------------
 
@@ -369,7 +369,7 @@ class Exchange(object):
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     quoteJsonNumbers = True
-    number: Numeric = float  # or str (a pointer to a class)
+    number: Num = float  # or str (a pointer to a class)
     handleContentTypeApplicationZip = False
     # whether fees should be summed by currency code
     reduceFees = True
@@ -1916,58 +1916,61 @@ class Exchange(object):
             result.append(self.parseMarket(markets[i]))
         return result
 
-    def parse_ticker(self, ticker: object, market=None):
+    def parse_ticker(self, ticker: object, market: Market = None):
         raise NotSupported(self.id + ' parseTicker() is not supported yet')
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         raise NotSupported(self.id + ' parseDepositAddress() is not supported yet')
 
-    def parse_trade(self, trade: object, market=None):
+    def parse_trade(self, trade: object, market: Market = None):
         raise NotSupported(self.id + ' parseTrade() is not supported yet')
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None):
         raise NotSupported(self.id + ' parseTransaction() is not supported yet')
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         raise NotSupported(self.id + ' parseTransfer() is not supported yet')
 
     def parse_account(self, account):
         raise NotSupported(self.id + ' parseAccount() is not supported yet')
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         raise NotSupported(self.id + ' parseLedgerEntry() is not supported yet')
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None):
         raise NotSupported(self.id + ' parseOrder() is not supported yet')
 
-    def fetch_borrow_rates(self, params={}):
-        raise NotSupported(self.id + ' fetchBorrowRates() is not supported yet')
+    def fetch_cross_borrow_rates(self, params={}):
+        raise NotSupported(self.id + ' fetchCrossBorrowRates() is not supported yet')
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def fetch_isolated_borrow_rates(self, params={}):
+        raise NotSupported(self.id + ' fetchIsolatedBorrowRates() is not supported yet')
+
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         raise NotSupported(self.id + ' parseMarketLeverageTiers() is not supported yet')
 
     def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchLeverageTiers() is not supported yet')
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         raise NotSupported(self.id + ' parsePosition() is not supported yet')
 
-    def parse_funding_rate_history(self, info, market=None):
+    def parse_funding_rate_history(self, info, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRateHistory() is not supported yet')
 
-    def parse_borrow_interest(self, info, market=None):
+    def parse_borrow_interest(self, info, market: Market = None):
         raise NotSupported(self.id + ' parseBorrowInterest() is not supported yet')
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         raise NotSupported(self.id + ' parseWsTrade() is not supported yet')
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         raise NotSupported(self.id + ' parseWsOrder() is not supported yet')
 
-    def parse_ws_order_trade(self, trade, market=None):
+    def parse_ws_order_trade(self, trade, market: Market = None):
         raise NotSupported(self.id + ' parseWsOrderTrade() is not supported yet')
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None):
         return self.parse_ohlcv(ohlcv, market)
 
     def fetch_funding_rates(self, symbols: List[str] = None, params={}):
@@ -1995,12 +1998,18 @@ class Exchange(object):
     def parse_to_numeric(self, number):
         stringVersion = self.number_to_string(number)  # self will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         # keep self in mind:
-        # in JS: 1 == 1.0 is True
+        # in JS: 1 == 1.0 is True;  1 == 1.0 is True
         # in Python: 1 == 1.0 is True
-        # in PHP 1 == 1.0 is False
-        if stringVersion.find('.') > 0:
+        # in PHP 1 == 1.0 is True, but 1 == 1.0 is False
+        if stringVersion.find('.') >= 0:
             return float(stringVersion)
         return int(stringVersion)
+
+    def is_round_number(self, value):
+        # self method is similar to isInteger, but self is more loyal and does not check for types.
+        # i.e. isRoundNumber(1.000) returns True, while isInteger(1.000) returns False
+        res = self.parse_to_numeric((value % 1))
+        return res == 0
 
     def after_construct(self):
         self.create_networks_by_id_object()
@@ -2085,7 +2094,7 @@ class Exchange(object):
             },
         }, currency)
 
-    def safe_market_structure(self, market: object = None):
+    def safe_market_structure(self, market=None):
         cleanStructure = {
             'id': None,
             'lowercaseId': None,
@@ -2267,7 +2276,7 @@ class Exchange(object):
             balance['debt'] = debtBalance
         return balance
 
-    def safe_order(self, order: object, market: object = None):
+    def safe_order(self, order: object, market: Market = None):
         # parses numbers
         # * it is important pass the trades rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
@@ -2479,7 +2488,7 @@ class Exchange(object):
             'fee': self.safe_value(order, 'fee'),
         })
 
-    def parse_orders(self, orders: object, market: object = None, since: Int = None, limit: Int = None, params={}):
+    def parse_orders(self, orders: object, market: Market = None, since: Int = None, limit: Int = None, params={}):
         #
         # the value of orders is either a dict or a list
         #
@@ -2554,7 +2563,7 @@ class Exchange(object):
             'cost': self.parse_number(cost),
         }
 
-    def safe_liquidation(self, liquidation: object, market: object = None):
+    def safe_liquidation(self, liquidation: object, market: Market = None):
         contracts = self.safe_string(liquidation, 'contracts')
         contractSize = self.safe_string(market, 'contractSize')
         price = self.safe_string(liquidation, 'price')
@@ -2571,7 +2580,7 @@ class Exchange(object):
         liquidation['quoteValue'] = self.parse_number(quoteValue)
         return liquidation
 
-    def safe_trade(self, trade: object, market: object = None):
+    def safe_trade(self, trade: object, market: Market = None):
         amount = self.safe_string(trade, 'amount')
         price = self.safe_string(trade, 'price')
         cost = self.safe_string(trade, 'cost')
@@ -2702,7 +2711,7 @@ class Exchange(object):
             result = self.array_concat(result, reducedFeeValues)
         return result
 
-    def safe_ticker(self, ticker: object, market=None):
+    def safe_ticker(self, ticker: object, market: Market = None):
         open = self.safe_value(ticker, 'open')
         close = self.safe_value(ticker, 'close')
         last = self.safe_value(ticker, 'last')
@@ -2907,7 +2916,7 @@ class Exchange(object):
                 result.append(objects[i])
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         if isinstance(ohlcv, list):
             return [
                 self.safe_integer(ohlcv, 0),  # timestamp
@@ -3109,7 +3118,7 @@ class Exchange(object):
             result.append(account)
         return result
 
-    def parse_trades(self, trades, market: object = None, since: Int = None, limit: Int = None, params={}):
+    def parse_trades(self, trades, market: Market = None, since: Int = None, limit: Int = None, params={}):
         trades = self.to_array(trades)
         result = []
         for i in range(0, len(trades)):
@@ -3119,7 +3128,7 @@ class Exchange(object):
         symbol = market['symbol'] if (market is not None) else None
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_transactions(self, transactions, currency: object = None, since: Int = None, limit: Int = None, params={}):
+    def parse_transactions(self, transactions, currency: Currency = None, since: Int = None, limit: Int = None, params={}):
         transactions = self.to_array(transactions)
         result = []
         for i in range(0, len(transactions)):
@@ -3129,7 +3138,7 @@ class Exchange(object):
         code = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def parse_transfers(self, transfers, currency: object = None, since: Int = None, limit: Int = None, params={}):
+    def parse_transfers(self, transfers, currency: Currency = None, since: Int = None, limit: Int = None, params={}):
         transfers = self.to_array(transfers)
         result = []
         for i in range(0, len(transfers)):
@@ -3139,7 +3148,7 @@ class Exchange(object):
         code = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    def parse_ledger(self, data, currency: object = None, since: Int = None, limit: Int = None, params={}):
+    def parse_ledger(self, data, currency: Currency = None, since: Int = None, limit: Int = None, params={}):
         result = []
         arrayData = self.to_array(data)
         for i in range(0, len(arrayData)):
@@ -3314,7 +3323,7 @@ class Exchange(object):
         amount = self.safe_number(bidask, amountKey)
         return [price, amount]
 
-    def safe_currency(self, currencyId: String, currency: Currency = None):
+    def safe_currency(self, currencyId: Str, currency: Currency = None):
         if (currencyId is None) and (currency is not None):
             return currency
         if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
@@ -3325,53 +3334,14 @@ class Exchange(object):
         return {
             'id': currencyId,
             'code': code,
+            'precision': None,
         }
 
-    def safe_market(self, marketId: String, market: Market = None, delimiter: String = None, marketType: String = None):
-        result = {
-            'id': marketId,
+    def safe_market(self, marketId: Str, market: Market = None, delimiter: Str = None, marketType: Str = None):
+        result = self.safe_market_structure({
             'symbol': marketId,
-            'base': None,
-            'quote': None,
-            'baseId': None,
-            'quoteId': None,
-            'active': None,
-            'type': None,
-            'linear': None,
-            'inverse': None,
-            'spot': False,
-            'swap': False,
-            'future': False,
-            'option': False,
-            'margin': False,
-            'contract': False,
-            'contractSize': None,
-            'expiry': None,
-            'expiryDatetime': None,
-            'optionType': None,
-            'strike': None,
-            'settle': None,
-            'settleId': None,
-            'precision': {
-                'amount': None,
-                'price': None,
-            },
-            'limits': {
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            },
-            'info': None,
-        }
+            'marketId': marketId,
+        })
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 markets = self.markets_by_id[marketId]
@@ -3484,14 +3454,24 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
 
-    def fetch_borrow_rate(self, code: str, params={}):
+    def fetch_cross_borrow_rate(self, code: str, params={}):
         self.load_markets()
         if not self.has['fetchBorrowRates']:
-            raise NotSupported(self.id + ' fetchBorrowRate() is not supported yet')
-        borrowRates = self.fetch_borrow_rates(params)
+            raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
+        borrowRates = self.fetchCrossBorrowRates(params)
         rate = self.safe_value(borrowRates, code)
         if rate is None:
-            raise ExchangeError(self.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code)
+            raise ExchangeError(self.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code)
+        return rate
+
+    def fetch_isolated_borrow_rate(self, symbol: str, params={}):
+        self.load_markets()
+        if not self.has['fetchBorrowRates']:
+            raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
+        borrowRates = self.fetchIsolatedBorrowRates(params)
+        rate = self.safe_value(borrowRates, symbol)
+        if rate is None:
+            raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)
         return rate
 
     def handle_option_and_params(self, params, methodName, optionName, defaultValue=None):
@@ -3519,7 +3499,7 @@ class Exchange(object):
         result, empty = self.handle_option_and_params({}, methodName, optionName, defaultValue)
         return result
 
-    def handle_market_type_and_params(self, methodName, market=None, params={}):
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}):
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         methodOptions = self.safe_value(self.options, methodName)
         methodType = defaultType
@@ -3722,7 +3702,7 @@ class Exchange(object):
     def fetch_funding_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
-    def parse_last_price(self, price, market=None):
+    def parse_last_price(self, price, market: Market = None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
 
     def fetch_deposit_address(self, code: str, params={}):
@@ -3736,7 +3716,7 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
 
-    def account(self) -> Balance:
+    def account(self) -> Account:
         return {
             'free': None,
             'used': None,
@@ -3761,17 +3741,16 @@ class Exchange(object):
     def market(self, symbol: str):
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        if isinstance(symbol, str):
-            if symbol in self.markets:
-                return self.markets[symbol]
-            elif symbol in self.markets_by_id:
-                markets = self.markets_by_id[symbol]
-                defaultType = self.safe_string_2(self.options, 'defaultType', 'defaultSubType', 'spot')
-                for i in range(0, len(markets)):
-                    market = markets[i]
-                    if market[defaultType]:
-                        return market
-                return markets[0]
+        if symbol in self.markets:
+            return self.markets[symbol]
+        elif symbol in self.markets_by_id:
+            markets = self.markets_by_id[symbol]
+            defaultType = self.safe_string_2(self.options, 'defaultType', 'defaultSubType', 'spot')
+            for i in range(0, len(markets)):
+                market = markets[i]
+                if market[defaultType]:
+                    return market
+            return markets[0]
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def handle_withdraw_tag_and_params(self, tag, params):
@@ -3925,7 +3904,7 @@ class Exchange(object):
         query = self.extend(params, {'stopPrice': stopPrice})
         return self.create_order(symbol, 'market', side, amount, None, query)
 
-    def safe_currency_code(self, currencyId: str, currency: Any = None):
+    def safe_currency_code(self, currencyId: Str, currency: Currency = None):
         currency = self.safe_currency(currencyId, currency)
         return currency['code']
 
@@ -4022,7 +4001,7 @@ class Exchange(object):
             return self.index_by(result, 'currency')
         return result
 
-    def parse_borrow_interests(self, response, market=None):
+    def parse_borrow_interests(self, response, market: Market = None):
         interests = []
         for i in range(0, len(response)):
             row = response[i]
@@ -4038,14 +4017,14 @@ class Exchange(object):
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def safe_symbol(self, marketId, market=None, delimiter=None, marketType=None):
+    def safe_symbol(self, marketId: Str, market: Market = None, delimiter: Str = None, marketType: Str = None):
         market = self.safe_market(marketId, market, delimiter, marketType)
         return market['symbol']
 
-    def parse_funding_rate(self, contract: str, market=None):
+    def parse_funding_rate(self, contract: str, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
 
-    def parse_funding_rates(self, response, market=None):
+    def parse_funding_rates(self, response, market: Market = None):
         result = {}
         for i in range(0, len(response)):
             parsed = self.parse_funding_rate(response[i], market)
@@ -4120,7 +4099,7 @@ class Exchange(object):
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         return self.fetch_trading_fees(params)
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         raise NotSupported(self.id + ' parseOpenInterest() is not supported yet')
 
     def parse_open_interests(self, response, market=None, since: Int = None, limit: Int = None):
@@ -4295,7 +4274,7 @@ class Exchange(object):
                 depositWithdrawFees[code] = self.parseDepositWithdrawFee(dictionary, currency)
         return depositWithdrawFees
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         raise NotSupported(self.id + ' parseDepositWithdrawFee() is not supported yet')
 
     def deposit_withdraw_fee(self, info):
@@ -4334,7 +4313,7 @@ class Exchange(object):
                 fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
         return fee
 
-    def parse_income(self, info, market=None):
+    def parse_income(self, info, market: Market = None):
         raise NotSupported(self.id + ' parseIncome() is not supported yet')
 
     def parse_incomes(self, incomes, market=None, since: Int = None, limit: Int = None):
@@ -4642,7 +4621,7 @@ class Exchange(object):
             params = self.omit(params, ['until', 'till'])
         return [request, params]
 
-    def safe_open_interest(self, interest, market=None):
+    def safe_open_interest(self, interest, market: Market = None):
         return self.extend(interest, {
             'symbol': self.safe_string(market, 'symbol'),
             'baseVolume': self.safe_number(interest, 'baseVolume'),  # deprecated
@@ -4654,7 +4633,7 @@ class Exchange(object):
             'info': self.safe_value(interest, 'info'),
         })
 
-    def parse_liquidation(self, liquidation, market=None):
+    def parse_liquidation(self, liquidation, market: Market = None):
         raise NotSupported(self.id + ' parseLiquidation() is not supported yet')
 
     def parse_liquidations(self, liquidations, market=None, since: Int = None, limit: Int = None):
@@ -4676,5 +4655,5 @@ class Exchange(object):
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_greeks(self, greeks, market=None):
+    def parse_greeks(self, greeks, market: Market = None):
         raise NotSupported(self.id + ' parseGreeks() is not supported yet')

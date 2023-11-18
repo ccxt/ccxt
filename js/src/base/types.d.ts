@@ -1,6 +1,7 @@
 export declare type Int = number | undefined;
 export declare type Str = string | undefined;
 export declare type Strings = string[] | undefined;
+export declare type Num = number | undefined;
 export declare type Bool = boolean | undefined;
 export declare type Market = MarketInterface | undefined;
 export declare type Currency = CurrencyInterface | undefined;
@@ -9,8 +10,8 @@ export interface Dictionary<T> {
 }
 /** Request parameters */
 export interface MinMax {
-    min: number | undefined;
-    max: number | undefined;
+    min: Num;
+    max: Num;
 }
 export interface Fee {
     type?: 'taker' | 'maker' | string;
@@ -37,22 +38,22 @@ export interface MarketInterface {
     contract: boolean;
     settle: Str;
     settleId: Str;
-    contractSize: Int;
+    contractSize: Num;
     linear: Bool;
     inverse: Bool;
     quanto?: boolean;
     expiry: Int;
     expiryDatetime: Str;
-    strike: Int;
+    strike: Num;
     optionType: Str;
-    taker?: number | undefined;
-    maker?: number | undefined;
+    taker?: Num;
+    maker?: Num;
     percentage?: boolean | undefined;
     tierBased?: boolean | undefined;
     feeSide?: string | undefined;
     precision: {
-        amount: number | undefined;
-        price: number | undefined;
+        amount: Num;
+        price: Num;
     };
     limits: {
         amount?: MinMax;
@@ -65,7 +66,7 @@ export interface MarketInterface {
 }
 export interface Trade {
     info: any;
-    amount: Int;
+    amount: Num;
     datetime: Str;
     id: Str;
     order: Str;
@@ -75,7 +76,7 @@ export interface Trade {
     side: 'buy' | 'sell' | string;
     symbol: Str;
     takerOrMaker: 'taker' | 'maker' | string;
-    cost: Int;
+    cost: Num;
     fee: Fee;
 }
 export interface Order {
@@ -104,8 +105,8 @@ export interface Order {
     info: any;
 }
 export interface OrderBook {
-    asks: [number, number][];
-    bids: [number, number][];
+    asks: [Num, Num][];
+    bids: [Num, Num][];
     datetime: Str;
     timestamp: Int;
     nonce: Int;
@@ -145,7 +146,7 @@ export interface Transaction {
     tagFrom: Str;
     tagTo: Str;
     type: 'deposit' | 'withdrawal' | string;
-    amount: Int;
+    amount: Num;
     currency: Str;
     status: 'pending' | 'ok' | string;
     updated: Int;
@@ -290,9 +291,9 @@ export interface Greeks {
     info: any;
 }
 /** [ timestamp, open, high, low, close, volume ] */
-export declare type OHLCV = [Int, Int, Int, Int, Int, Int];
+export declare type OHLCV = [Num, Num, Num, Num, Num, Num];
 /** [ timestamp, open, high, low, close, volume, count ] */
-export declare type OHLCVC = [Int, Int, Int, Int, Int, Int, Int];
+export declare type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 export declare type implicitReturnType = any;
 export declare type IndexType = number | string;
 export declare type OrderSide = 'buy' | 'sell' | string;

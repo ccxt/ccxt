@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, String, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -506,7 +506,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         tickers = self.safe_value(response, 'tickers')
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #    {
         #        "tag": 'semiannual',  # 'month', 'quarter', "perpetual", "semiannual",
@@ -633,7 +633,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         candles = self.safe_value(response, 'candles')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    {
         #        "time": 1645198500000,
@@ -699,7 +699,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         history = self.safe_value(response, 'history')
         return self.parse_trades(history, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -973,7 +973,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         order['info'] = response
         return order
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-order
         Cancel an open order on the exchange
@@ -991,7 +991,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             order = self.parse_order(response['cancelStatus'])
         return self.extend({'info': response}, order)
 
-    async def cancel_orders(self, ids: List[str], symbol: String = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
@@ -1049,7 +1049,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         batchStatus = self.safe_value(response, 'batchStatus', [])
         return self.parse_orders(batchStatus)
 
-    async def cancel_all_orders(self, symbol: String = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
         Cancels all orders on the exchange, including trigger orders
@@ -1063,7 +1063,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         response = await self.privatePostCancelallorders(self.extend(request, params))
         return response
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders
         Gets all open orders, including trigger orders, for an account from the exchange api
@@ -1147,7 +1147,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # LIMIT
         #
@@ -1444,7 +1444,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'trades': trades,
         })
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills
@@ -1718,7 +1718,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             fundingRates.append(parsed)
         return self.index_by(fundingRates, 'symbol')
 
-    def parse_funding_rate(self, ticker, market=None):
+    def parse_funding_rate(self, ticker, market: Market = None):
         #
         # {"ask": 26.283,
         #  "askSize": 4.6,
@@ -1774,7 +1774,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-rates-historical-funding-rates
@@ -1858,7 +1858,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             result.append(position)
         return result
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         # cross
         #    {
         #        "side": "long",
@@ -1969,7 +1969,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'instruments')
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         """
          * @ignore
          * @param info Exchange market response for 1 market
@@ -2031,7 +2031,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             })
         return tiers
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # transfer
         #
@@ -2130,7 +2130,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    async def set_leverage(self, leverage, symbol: String = None, params={}):
+    async def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
@@ -2150,7 +2150,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #
         return await self.privatePutLeveragepreferences(self.extend(request, params))
 
-    async def fetch_leverage(self, symbol: String = None, params={}):
+    async def fetch_leverage(self, symbol: Str = None, params={}):
         """
         fetch the set leverage for a market
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market

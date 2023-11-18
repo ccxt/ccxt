@@ -625,10 +625,10 @@ class coinone extends coinone$1 {
         let base = undefined;
         let quote = undefined;
         if (baseId !== undefined) {
-            base = this.safeCurrencyCode(baseId, this.safeString(market, 'base'));
+            base = this.safeCurrencyCode(baseId);
         }
         if (quoteId !== undefined) {
-            quote = this.safeCurrencyCode(quoteId, this.safeString(market, 'quote'));
+            quote = this.safeCurrencyCode(quoteId);
         }
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {

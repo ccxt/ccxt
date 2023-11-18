@@ -105,7 +105,7 @@ class p2b extends Exchange {
             'urls' => array(
                 'extension' => '.json',
                 'referral' => 'https://p2pb2b.com?referral=ee784c53',
-                'logo' => 'https://cdn.worldvectorlogo.com/logos/p2b-1.svg',
+                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
                 'api' => array(
                     'public' => 'https://api.p2pb2b.com/api/v2/public',
                     'private' => 'https://api.p2pb2b.com/api/v2',
@@ -412,7 +412,7 @@ class p2b extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null) {
         //
         // parseTickers
         //
@@ -573,7 +573,7 @@ class p2b extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null) {
         //
         // fetchTrades
         //
@@ -690,7 +690,7 @@ class p2b extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    array(
         //        1699253400,       // Kline open time
@@ -1128,7 +1128,7 @@ class p2b extends Exchange {
         return $orders;
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //
