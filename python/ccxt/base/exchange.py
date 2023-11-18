@@ -30,7 +30,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, Str, Num
+from ccxt.base.types import Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, Str, Num
 
 # -----------------------------------------------------------------------------
 
@@ -1940,8 +1940,11 @@ class Exchange(object):
     def parse_order(self, order, market: Market = None):
         raise NotSupported(self.id + ' parseOrder() is not supported yet')
 
-    def fetch_borrow_rates(self, params={}):
-        raise NotSupported(self.id + ' fetchBorrowRates() is not supported yet')
+    def fetch_cross_borrow_rates(self, params={}):
+        raise NotSupported(self.id + ' fetchCrossBorrowRates() is not supported yet')
+
+    def fetch_isolated_borrow_rates(self, params={}):
+        raise NotSupported(self.id + ' fetchIsolatedBorrowRates() is not supported yet')
 
     def parse_market_leverage_tiers(self, info, market: Market = None):
         raise NotSupported(self.id + ' parseMarketLeverageTiers() is not supported yet')
@@ -3451,14 +3454,24 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
 
-    def fetch_borrow_rate(self, code: str, params={}):
+    def fetch_cross_borrow_rate(self, code: str, params={}):
         self.load_markets()
         if not self.has['fetchBorrowRates']:
-            raise NotSupported(self.id + ' fetchBorrowRate() is not supported yet')
-        borrowRates = self.fetch_borrow_rates(params)
+            raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
+        borrowRates = self.fetchCrossBorrowRates(params)
         rate = self.safe_value(borrowRates, code)
         if rate is None:
-            raise ExchangeError(self.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code)
+            raise ExchangeError(self.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code)
+        return rate
+
+    def fetch_isolated_borrow_rate(self, symbol: str, params={}):
+        self.load_markets()
+        if not self.has['fetchBorrowRates']:
+            raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
+        borrowRates = self.fetchIsolatedBorrowRates(params)
+        rate = self.safe_value(borrowRates, symbol)
+        if rate is None:
+            raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)
         return rate
 
     def handle_option_and_params(self, params, methodName, optionName, defaultValue=None):
@@ -3486,7 +3499,7 @@ class Exchange(object):
         result, empty = self.handle_option_and_params({}, methodName, optionName, defaultValue)
         return result
 
-    def handle_market_type_and_params(self, methodName, market=None, params={}):
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}):
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
         methodOptions = self.safe_value(self.options, methodName)
         methodType = defaultType
@@ -3703,7 +3716,7 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
 
-    def account(self) -> Balance:
+    def account(self) -> Account:
         return {
             'free': None,
             'used': None,
