@@ -514,7 +514,6 @@ export default class coinbasepro extends coinbaseproRest {
             'rate': feeRate,
             'cost': feeCost,
             'currency': feeCurrency,
-            'type': undefined,
         };
         return parsed;
     }

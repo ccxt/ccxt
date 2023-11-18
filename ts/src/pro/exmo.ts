@@ -158,19 +158,17 @@ export default class exmo extends exmoRest {
             for (let i = 0; i < currencies.length; i++) {
                 const currencyId = currencies[i];
                 const code = this.safeCurrencyCode (currencyId);
-                const free = balances[currencyId];
-                const used = reserved[currencyId];
                 const account = this.account ();
-                account['free'] = this.parseNumber (free);
-                account['used'] = this.parseNumber (used);
+                account['free'] = this.safeString (balances, currencyId);
+                account['used'] = this.safeString (reserved, currencyId);
                 this.balance[code] = account;
             }
         } else if (event === 'update') {
             const currencyId = this.safeString (data, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (data, 'balance');
-            account['used'] = this.safeNumber (data, 'reserved');
+            account['free'] = this.safeString (data, 'balance');
+            account['used'] = this.safeString (data, 'reserved');
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
@@ -199,9 +197,9 @@ export default class exmo extends exmoRest {
             const code = this.safeCurrencyCode (currencyId);
             const wallet = this.safeValue (data, currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (wallet, 'free');
-            account['used'] = this.safeNumber (wallet, 'used');
-            account['total'] = this.safeNumber (wallet, 'balance');
+            account['free'] = this.safeString (wallet, 'free');
+            account['used'] = this.safeString (wallet, 'used');
+            account['total'] = this.safeString (wallet, 'balance');
             this.balance[code] = account;
             this.balance = this.safeBalance (this.balance);
         }
