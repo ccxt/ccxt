@@ -300,7 +300,7 @@ export default class Exchange {
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
-    currencies_by_id = undefined
+    currencies_by_id: object = undefined;
     codes = undefined
 
     reloadingMarkets = undefined
@@ -1068,7 +1068,7 @@ export default class Exchange {
         return this.marketsLoading
     }
 
-    fetchCurrencies (params = {}) {
+    fetchCurrencies (params = {}): Promise<Dictionary<CurrencyInterface>> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -1867,7 +1867,7 @@ export default class Exchange {
         };
     }
 
-    safeCurrencyStructure (currency: object) {
+    safeCurrencyStructure (currency: object): CurrencyInterface {
         return this.extend ({
             'info': undefined,
             'id': undefined,
@@ -3899,7 +3899,7 @@ export default class Exchange {
         };
     }
 
-    commonCurrencyCode (currency: string) {
+    commonCurrencyCode (currency: string): string {
         if (!this.substituteCommonCurrencyCodes) {
             return currency;
         }
