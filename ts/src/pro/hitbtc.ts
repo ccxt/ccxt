@@ -156,7 +156,26 @@ export default class hitbtc extends hitbtcRest {
             'params': params,
             'id': this.nonce (),
         };
-        console.log ('watch test');
+        return await this.watch (url, messageHash, subscribe, messageHash);
+    }
+
+    async tradeRequest (name: string, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} name websocket endpoint name
+         * @param {string} [symbol] unified CCXT symbol
+         * @param {object} [params] extra parameters specific to the hitbtc api
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const messageHash = this.nonce ();
+        const subscribe = {
+            'method': name,
+            'params': params,
+            'id': messageHash,
+        };
         return await this.watch (url, messageHash, subscribe, messageHash);
     }
 
@@ -1009,7 +1028,7 @@ export default class hitbtc extends hitbtcRest {
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {
             return await this.subscribePrivate ('margin_new_order', symbol, request);
         } else {
-            return await this.subscribePrivate ('spot_new_order', symbol, request);
+            return await this.tradeRequest ('spot_new_order', request);
         }
     }
 
@@ -1071,10 +1090,12 @@ export default class hitbtc extends hitbtcRest {
         //        "id": 1700233093414
         //    }
         //
-        const messageHash = this.safeString (message, 'id');
+        const messageHash = this.safeInteger (message, 'id');
         const result = this.safeValue (message, 'result', {});
         const parsedOrder = this.parseWsOrder (result);
         client.resolve (parsedOrder, messageHash);
+        console.log (messageHash);
+        return message;
     }
 
     handleMessage (client: Client, message) {
