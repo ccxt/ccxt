@@ -3,12 +3,19 @@ import types
 from typing import Union, List, Optional, Any
 from decimal import Decimal
 
-if sys.version_info.minor > 7:
+
+if sys.version_info.minor >= 8:
     from typing import TypedDict, Literal, Dict
 else:
     from typing import Dict
     from typing_extensions import Literal
     TypedDict = Dict
+
+if sys.version_info.minor >= 11:
+    from typing import NotRequired
+else:
+    from typing_extensions import NotRequired
+
 
 OrderSide = Literal['buy', 'sell']
 OrderType = Literal['limit', 'market']
@@ -44,13 +51,20 @@ Str = Optional[str]
 Strings = Optional[List[str]]
 Int = Optional[int]
 Bool = Optional[bool]
-Fee = Optional[Dict[str, Any]]
+MarketType = Literal['spot', 'margin', 'swap', 'future', 'option']
+
+
+class FeeInterface(TypedDict):
+    currency: Str
+    cost: Num
+    rate: NotRequired[Num]
 
 
 class Balance(TypedDict):
     free: Num
     used: Num
     total: Num
+    debt: NotRequired[Num]
 
 
 class Account(TypedDict):

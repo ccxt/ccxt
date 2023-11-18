@@ -3,8 +3,11 @@ export type Str = string | undefined;
 export type Strings = string[] | undefined;
 export type Num = number | undefined;
 export type Bool = boolean | undefined;
-export type Market = MarketInterface | undefined;
-export type Currency = CurrencyInterface | undefined;
+// must be an integer in other langs
+export type IndexType = number | string;
+export type OrderSide = 'buy' | 'sell' | string;
+export type OrderType = 'limit' | 'market' | string;
+export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
 
 export interface Dictionary<T> {
     [key: string]: T;
@@ -17,12 +20,13 @@ export interface MinMax {
     max: Num;
 }
 
-export interface Fee {
-    type?: 'taker' | 'maker' | string;
-    currency: string;
-    rate?: number;
-    cost: number;
+export interface FeeInterface {
+    currency: Str;
+    cost: Num;
+    rate?: Num;
 }
+
+export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
     id: string;
@@ -34,7 +38,7 @@ export interface MarketInterface {
     baseId: string;
     quoteId: string;
     active: Bool;
-    type: 'spot' | 'margin' | 'swap' | 'future' | 'option';
+    type: MarketType;
     spot: boolean;
     margin: boolean;
     swap: boolean;
@@ -180,6 +184,7 @@ export interface Balance {
     free: Num,
     used: Num,
     total: Num,
+    debt?: Num,
 }
 
 export interface Account {
@@ -331,10 +336,5 @@ export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 
 export type implicitReturnType = any;
 
-// must be an integer in other langs
-export type IndexType = number | string;
-
-
-export type OrderSide = 'buy' | 'sell' | string;
-
-export type OrderType = 'limit' | 'market' | string;
+export type Market = MarketInterface | undefined;
+export type Currency = CurrencyInterface | undefined;

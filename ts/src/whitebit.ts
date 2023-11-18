@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -313,7 +313,7 @@ export default class whitebit extends Exchange {
         const active = this.safeValue (market, 'tradesEnabled');
         const isCollateral = this.safeValue (market, 'isCollateral');
         const typeId = this.safeString (market, 'type');
-        let type: string;
+        let type: MarketType;
         let settle: Str = undefined;
         let settleId: Str = undefined;
         let symbol = base + '/' + quote;
