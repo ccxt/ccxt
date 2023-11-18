@@ -282,7 +282,7 @@ class coinone extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bid', 'ask', 'price', 'qty');
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
@@ -327,7 +327,7 @@ class coinone extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "currency":"xec",
@@ -372,7 +372,7 @@ class coinone extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -566,7 +566,7 @@ class coinone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -616,10 +616,10 @@ class coinone extends Exchange {
         $base = null;
         $quote = null;
         if ($baseId !== null) {
-            $base = $this->safe_currency_code($baseId, $this->safe_string($market, 'base'));
+            $base = $this->safe_currency_code($baseId);
         }
         if ($quoteId !== null) {
-            $quote = $this->safe_currency_code($quoteId, $this->safe_string($market, 'quote'));
+            $quote = $this->safe_currency_code($quoteId);
         }
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {

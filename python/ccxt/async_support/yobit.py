@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.yobit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -439,7 +438,7 @@ class yobit(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://yobit.net/en/api
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -462,7 +461,7 @@ class yobit(Exchange, ImplicitAPI):
         orderbook = response[market['id']]
         return self.parse_order_book(orderbook, symbol)
 
-    async def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         """
         :see: https://yobit.net/en/api
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
@@ -497,7 +496,7 @@ class yobit(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[id], symbol)
         return result
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "high": 0.03497582,
@@ -536,7 +535,7 @@ class yobit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         :see: https://yobit.net/en/api
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -586,7 +585,7 @@ class yobit(Exchange, ImplicitAPI):
         tickers = await self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -660,7 +659,7 @@ class yobit(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://yobit.net/en/api
         get the list of most recent trades for a particular symbol
@@ -794,7 +793,7 @@ class yobit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'return')
         return self.parse_order(result, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://yobit.net/en/api
         cancels an open order
@@ -839,7 +838,7 @@ class yobit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder(private)
         #
@@ -941,7 +940,7 @@ class yobit(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://yobit.net/en/api
         fetches information on an order made by the user
@@ -974,7 +973,7 @@ class yobit(Exchange, ImplicitAPI):
         #
         return self.parse_order(self.extend({'id': id}, orders[id]))
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://yobit.net/en/api
         fetch all unfilled currently open orders
@@ -1018,7 +1017,7 @@ class yobit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'return', {})
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://yobit.net/en/api
         fetch all trades made by the user

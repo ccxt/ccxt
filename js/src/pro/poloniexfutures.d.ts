@@ -1,12 +1,12 @@
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniexfutures extends poloniexfuturesRest {
     describe(): any;
     negotiate(privateChannel: any, params?: {}): any;
     negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
     requestId(): any;
-    subscribe(name: string, isPrivate: boolean, symbol?: string, subscription?: any, params?: {}): Promise<any>;
+    subscribe(name: string, isPrivate: boolean, symbol?: Str, subscription?: any, params?: {}): Promise<any>;
     onClose(client: any, error: any): void;
     stream(url: any, subscriptionHash: any): Promise<string>;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
@@ -15,7 +15,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): any;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): any;
     watchBalance(params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): any;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
@@ -28,7 +28,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     handleLevel2(client: Client, message: any): void;
     handleL2OrderBook(client: Client, message: any): void;
     handeL2Snapshot(client: Client, message: any): void;
-    getSymbolFromTopic(topic: string): any;
+    getSymbolFromTopic(topic: string): string;
     getCacheIndex(orderbook: any, cache: any): any;
     handleDelta(orderbook: any, delta: any): void;
     handleBalance(client: Client, message: any): any;

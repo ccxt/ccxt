@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, MarginMode, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -78,7 +77,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': None,
                 'fetchLiquidations': False,
-                'fetchMarginMode': False,
+                'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -1042,7 +1041,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://api.hitbtc.com/#tickers
@@ -1083,7 +1082,7 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #       "ask": "62756.01",
@@ -1126,7 +1125,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://api.hitbtc.com/#trades
@@ -1162,7 +1161,7 @@ class hitbtc(Exchange, ImplicitAPI):
             trades = self.array_concat(trades, parsed)
         return trades
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1196,7 +1195,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # createOrder(market)
         #
@@ -1352,7 +1351,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # transaction
         #
@@ -1400,6 +1399,9 @@ class hitbtc(Exchange, ImplicitAPI):
         sender = self.safe_value(native, 'senders')
         addressFrom = self.safe_string(sender, 0)
         amount = self.safe_number(native, 'amount')
+        subType = self.safe_string(transaction, 'subtype')
+        internal = subType == 'OFFCHAIN'
+        # https://api.hitbtc.com/#check-if-offchain-is-available
         fee = {
             'currency': None,
             'cost': None,
@@ -1428,10 +1430,11 @@ class hitbtc(Exchange, ImplicitAPI):
             'tagTo': tagTo,
             'updated': updated,
             'comment': None,
+            'internal': internal,
             'fee': fee,
         }
 
-    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
@@ -1442,7 +1445,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1453,7 +1456,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1464,7 +1467,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
 
-    def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :see: https://api.hitbtc.com/#order-books
@@ -1491,7 +1494,7 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp, 'bid', 'ask')
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://api.hitbtc.com/#order-books
@@ -1511,7 +1514,7 @@ class hitbtc(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
         return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask')
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         #
         #     {
         #         "symbol":"ARVUSDT",  # returned from fetchTradingFees only
@@ -1584,7 +1587,7 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://api.hitbtc.com/#candles
@@ -1655,7 +1658,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         # Spot and Swap
         #
@@ -1688,7 +1691,7 @@ class hitbtc(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1723,7 +1726,7 @@ class hitbtc(Exchange, ImplicitAPI):
         parsed = self.parse_orders(response, market, since, limit)
         return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1772,7 +1775,7 @@ class hitbtc(Exchange, ImplicitAPI):
         order = self.safe_value(response, 0)
         return self.parse_order(order, market)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1842,7 +1845,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1891,7 +1894,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1921,7 +1924,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1949,7 +1952,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2103,7 +2106,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # limit
         #     {
@@ -2222,6 +2225,77 @@ class hitbtc(Exchange, ImplicitAPI):
             'stopLossPrice': None,
         }, market)
 
+    def fetch_margin_mode(self, symbol: Str = None, params={}) -> MarginMode:
+        """
+        fetches margin mode of the user
+        :see: https://api.hitbtc.com/#get-margin-position-parameters
+        :see: https://api.hitbtc.com/#get-futures-position-parameters
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :returns dict: Struct of MarginMode
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchMarginMode', market, params)
+        response = None
+        if marketType == 'margin':
+            response = self.privateGetMarginConfig(params)
+        elif marketType == 'swap':
+            response = self.privateGetFuturesConfig(params)
+        else:
+            raise BadSymbol(self.id + ' fetchMarginMode() supports swap contracts and margin only')
+        #
+        # margin
+        #     {
+        #         "config": [{
+        #             "symbol": "BTCUSD",
+        #             "margin_call_leverage_mul": "1.50",
+        #             "liquidation_leverage_mul": "2.00",
+        #             "max_initial_leverage": "10.00",
+        #             "margin_mode": "Isolated",
+        #             "force_close_fee": "0.05",
+        #             "enabled": True,
+        #             "active": True,
+        #             "limit_base": "50000.00",
+        #             "limit_power": "2.2",
+        #             "unlimited_threshold": "10.0"
+        #         }]
+        #     }
+        #
+        # swap
+        #     {
+        #         "config": [{
+        #             "symbol": "BTCUSD_PERP",
+        #             "margin_call_leverage_mul": "1.20",
+        #             "liquidation_leverage_mul": "2.00",
+        #             "max_initial_leverage": "100.00",
+        #             "margin_mode": "Isolated",
+        #             "force_close_fee": "0.001",
+        #             "enabled": True,
+        #             "active": False,
+        #             "limit_base": "5000000.000000000000",
+        #             "limit_power": "1.25",
+        #             "unlimited_threshold": "2.00"
+        #         }]
+        #     }
+        #
+        config = self.safe_value(response, 'config', [])
+        marginModes = []
+        for i in range(0, len(config)):
+            data = self.safe_value(config, i)
+            marketId = self.safe_string(data, 'symbol')
+            marketInner = self.safe_market(marketId)
+            marginModes.append({
+                'info': data,
+                'symbol': self.safe_string(marketInner, 'symbol'),
+                'marginMode': self.safe_string_lower(data, 'margin_mode'),
+            })
+        filteredMargin = self.filter_by_symbol(marginModes, symbol)
+        return self.safe_value(filteredMargin, 0)
+
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
@@ -2257,7 +2331,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # transfer
         #
@@ -2343,7 +2417,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetches funding rates for multiple markets
         :see: https://api.hitbtc.com/#futures-info
@@ -2392,7 +2466,7 @@ class hitbtc(Exchange, ImplicitAPI):
             fundingRates[symbol] = fundingRate
         return self.filter_by_array(fundingRates, 'symbol', symbols)
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://api.hitbtc.com/#funding-history
         fetches historical funding rate prices
@@ -2465,7 +2539,7 @@ class hitbtc(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: not used by hitbtc fetchPositions()
@@ -2581,7 +2655,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     [
         #         {
@@ -2665,7 +2739,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         #
         #     {
         #         "contract_type": "perpetual",
@@ -2758,7 +2832,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         #     {
         #         "contract_type": "perpetual",
@@ -2845,7 +2919,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None):
         currencies = self.safe_value(data, 'currencies', [])
         currencyInfo = self.safe_value(currencies, 0)
         return {
@@ -2938,7 +3012,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.safe_number(response, 'leverage')
 
-    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2965,7 +3039,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://api.hitbtc.com/#currencies
@@ -3002,7 +3076,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes)
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    {
         #         "full_name": "ConnectWealth",

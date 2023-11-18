@@ -68,7 +68,7 @@ class hitbtc extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => null,
                 'fetchLiquidations' => false,
-                'fetchMarginMode' => false,
+                'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
@@ -1069,7 +1069,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1115,7 +1115,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //       "ask" => "62756.01",
@@ -1244,7 +1244,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // createOrder ($market)
         //
@@ -1411,7 +1411,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // $transaction
         //
@@ -1459,6 +1459,9 @@ class hitbtc extends Exchange {
         $sender = $this->safe_value($native, 'senders');
         $addressFrom = $this->safe_string($sender, 0);
         $amount = $this->safe_number($native, 'amount');
+        $subType = $this->safe_string($transaction, 'subtype');
+        $internal = $subType === 'OFFCHAIN';
+        // https://api.hitbtc.com/#check-if-offchain-is-available
         $fee = array(
             'currency' => null,
             'cost' => null,
@@ -1488,6 +1491,7 @@ class hitbtc extends Exchange {
             'tagTo' => $tagTo,
             'updated' => $updated,
             'comment' => null,
+            'internal' => $internal,
             'fee' => $fee,
         );
     }
@@ -1591,7 +1595,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -1750,7 +1754,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         // Spot and Swap
         //
@@ -2261,7 +2265,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // limit
         //     {
@@ -2382,6 +2386,83 @@ class hitbtc extends Exchange {
         ), $market);
     }
 
+    public function fetch_margin_mode(?string $symbol = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches margin mode of the user
+             * @see https://api.hitbtc.com/#get-margin-position-parameters
+             * @see https://api.hitbtc.com/#get-futures-position-parameters
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @return {array} Struct of MarginMode
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchMarginMode', $market, $params);
+            $response = null;
+            if ($marketType === 'margin') {
+                $response = Async\await($this->privateGetMarginConfig ($params));
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->privateGetFuturesConfig ($params));
+            } else {
+                throw new BadSymbol($this->id . ' fetchMarginMode() supports swap contracts and margin only');
+            }
+            //
+            // margin
+            //     {
+            //         "config" => [array(
+            //             "symbol" => "BTCUSD",
+            //             "margin_call_leverage_mul" => "1.50",
+            //             "liquidation_leverage_mul" => "2.00",
+            //             "max_initial_leverage" => "10.00",
+            //             "margin_mode" => "Isolated",
+            //             "force_close_fee" => "0.05",
+            //             "enabled" => true,
+            //             "active" => true,
+            //             "limit_base" => "50000.00",
+            //             "limit_power" => "2.2",
+            //             "unlimited_threshold" => "10.0"
+            //         )]
+            //     }
+            //
+            // swap
+            //     {
+            //         "config" => [array(
+            //             "symbol" => "BTCUSD_PERP",
+            //             "margin_call_leverage_mul" => "1.20",
+            //             "liquidation_leverage_mul" => "2.00",
+            //             "max_initial_leverage" => "100.00",
+            //             "margin_mode" => "Isolated",
+            //             "force_close_fee" => "0.001",
+            //             "enabled" => true,
+            //             "active" => false,
+            //             "limit_base" => "5000000.000000000000",
+            //             "limit_power" => "1.25",
+            //             "unlimited_threshold" => "2.00"
+            //         )]
+            //     }
+            //
+            $config = $this->safe_value($response, 'config', array());
+            $marginModes = array();
+            for ($i = 0; $i < count($config); $i++) {
+                $data = $this->safe_value($config, $i);
+                $marketId = $this->safe_string($data, 'symbol');
+                $marketInner = $this->safe_market($marketId);
+                $marginModes[] = array(
+                    'info' => $data,
+                    'symbol' => $this->safe_string($marketInner, 'symbol'),
+                    'marginMode' => $this->safe_string_lower($data, 'margin_mode'),
+                );
+            }
+            $filteredMargin = $this->filter_by_symbol($marginModes, $symbol);
+            return $this->safe_value($filteredMargin, 0);
+        }) ();
+    }
+
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
@@ -2421,7 +2502,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -2783,7 +2864,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     array(
         //         {
@@ -2870,7 +2951,7 @@ class hitbtc extends Exchange {
         ));
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -2972,7 +3053,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3067,7 +3148,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         $currencies = $this->safe_value($data, 'currencies', array());
         $currencyInfo = $this->safe_value($currencies, 0);
         return array(
@@ -3245,7 +3326,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //         "full_name" => "ConnectWealth",

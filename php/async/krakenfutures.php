@@ -159,7 +159,7 @@ class krakenfutures extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     'apiLimitExceeded' => '\\ccxt\\RateLimitExceeded',
-                    'marketUnavailable' => '\\ccxt\\ExchangeNotAvailable',
+                    'marketUnavailable' => '\\ccxt\\ContractUnavailable',
                     'requiredArgumentMissing' => '\\ccxt\\BadRequest',
                     'unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'authenticationError' => '\\ccxt\\AuthenticationError',
@@ -169,6 +169,13 @@ class krakenfutures extends Exchange {
                     'insufficientFunds' => '\\ccxt\\InsufficientFunds',
                     'Bad Request' => '\\ccxt\\BadRequest',                     // The URL contains invalid characters. (Please encode the json URL parameter)
                     'Unavailable' => '\\ccxt\\InsufficientFunds',              // Insufficient funds in Futures account [withdraw]
+                    'invalidUnit' => '\\ccxt\\BadRequest',
+                    'Json Parse Error' => '\\ccxt\\ExchangeError',
+                    'nonceBelowThreshold' => '\\ccxt\\InvalidNonce',
+                    'nonceDuplicate' => '\\ccxt\\InvalidNonce',
+                    'notFound' => '\\ccxt\\BadRequest',
+                    'Server Error' => '\\ccxt\\ExchangeError',
+                    'unknownError' => '\\ccxt\\ExchangeError',
                 ),
                 'broad' => array(
                     'invalidArgument' => '\\ccxt\\BadRequest',
@@ -455,7 +462,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -503,7 +510,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //    {
         //        "tag" => 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
@@ -640,7 +647,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //    {
         //        "time" => 1645198500000,
@@ -712,7 +719,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1210,7 +1217,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // LIMIT
         //
@@ -1825,7 +1832,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($ticker, $market = null) {
+    public function parse_funding_rate($ticker, ?array $market = null) {
         //
         // {"ask" => 26.283,
         //  "askSize" => 4.6,
@@ -1976,7 +1983,7 @@ class krakenfutures extends Exchange {
         return $result;
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         // cross
         //    {
         //        "side" => "long",
@@ -2092,7 +2099,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @ignore
          * @param $info Exchange $market response for 1 $market
@@ -2157,7 +2164,7 @@ class krakenfutures extends Exchange {
         return $tiers;
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -2324,7 +2331,10 @@ class krakenfutures extends Exchange {
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
         }
-        $message = $this->safe_string($response, 'error');
+        $errors = $this->safe_value($response, 'errors');
+        $firstError = $this->safe_value($errors, 0);
+        $firtErrorMessage = $this->safe_string($firstError, 'message');
+        $message = $this->safe_string($response, 'error', $firtErrorMessage);
         if ($message === null) {
             return null;
         }

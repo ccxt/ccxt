@@ -61,6 +61,7 @@ class bybit extends bybit$1 {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchMarketLeverageTiers': true,
@@ -311,6 +312,7 @@ class bybit extends bybit$1 {
                         // user
                         'v5/user/query-sub-members': 5,
                         'v5/user/query-api': 5,
+                        'v5/user/sub-apikeys': 5,
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
@@ -435,6 +437,7 @@ class bybit extends bybit$1 {
                         // account
                         'v5/account/upgrade-to-uta': 5,
                         'v5/account/set-margin-mode': 5,
+                        'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
                         // asset
@@ -442,7 +445,7 @@ class bybit extends bybit$1 {
                         'v5/asset/transfer/save-transfer-sub-member': 150,
                         'v5/asset/transfer/universal-transfer': 10,
                         'v5/asset/deposit/deposit-to-account': 5,
-                        'v5/asset/withdraw/create': 300,
+                        'v5/asset/withdraw/create': 50,
                         'v5/asset/withdraw/cancel': 50,
                         // user
                         'v5/user/create-sub-member': 10,
@@ -3591,7 +3594,7 @@ class bybit extends bybit$1 {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
-        else if (isStopLoss || isTakeProfit) {
+        if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
                 const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
@@ -4400,11 +4403,6 @@ class bybit extends bybit$1 {
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
-        else {
-            if (since !== undefined) {
-                throw new errors.BadRequest(this.id + ' fetchOrders() requires until/endTime when since is provided.');
-            }
-        }
         const response = await this.privateGetV5OrderHistory(this.extend(request, params));
         //
         //     {
@@ -4779,11 +4777,6 @@ class bybit extends bybit$1 {
         params = this.omit(params, ['endTime', 'till', 'until']);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
-        }
-        else {
-            if (since !== undefined) {
-                throw new errors.BadRequest(this.id + ' fetchOrders() requires until/endTime when since is provided.');
-            }
         }
         const response = await this.privateGetV5ExecutionList(this.extend(request, params));
         //
@@ -5189,6 +5182,8 @@ class bybit extends bybit$1 {
             'status': status,
             'updated': updated,
             'fee': fee,
+            'internal': undefined,
+            'comment': undefined,
         };
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -7265,6 +7260,126 @@ class bybit extends bybit$1 {
             });
         }
         return result;
+    }
+    async fetchGreeks(symbol, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object} a [greeks structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'category': 'option',
+        };
+        const response = await this.publicGetV5MarketTickers(this.extend(request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "SUCCESS",
+        //         "result": {
+        //             "category": "option",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTC-26JAN24-39000-C",
+        //                     "bid1Price": "3205",
+        //                     "bid1Size": "7.1",
+        //                     "bid1Iv": "0.5478",
+        //                     "ask1Price": "3315",
+        //                     "ask1Size": "1.98",
+        //                     "ask1Iv": "0.5638",
+        //                     "lastPrice": "3230",
+        //                     "highPrice24h": "3255",
+        //                     "lowPrice24h": "3200",
+        //                     "markPrice": "3273.02263032",
+        //                     "indexPrice": "36790.96",
+        //                     "markIv": "0.5577",
+        //                     "underlyingPrice": "37649.67254894",
+        //                     "openInterest": "19.67",
+        //                     "turnover24h": "170140.33875912",
+        //                     "volume24h": "4.56",
+        //                     "totalVolume": "22",
+        //                     "totalTurnover": "789305",
+        //                     "delta": "0.49640971",
+        //                     "gamma": "0.00004131",
+        //                     "vega": "69.08651675",
+        //                     "theta": "-24.9443226",
+        //                     "predictedDeliveryPrice": "0",
+        //                     "change24h": "0.18532111"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1699584008326
+        //     }
+        //
+        const timestamp = this.safeInteger(response, 'time');
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'list', []);
+        const greeks = this.parseGreeks(data[0], market);
+        return this.extend(greeks, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        });
+    }
+    parseGreeks(greeks, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-26JAN24-39000-C",
+        //         "bid1Price": "3205",
+        //         "bid1Size": "7.1",
+        //         "bid1Iv": "0.5478",
+        //         "ask1Price": "3315",
+        //         "ask1Size": "1.98",
+        //         "ask1Iv": "0.5638",
+        //         "lastPrice": "3230",
+        //         "highPrice24h": "3255",
+        //         "lowPrice24h": "3200",
+        //         "markPrice": "3273.02263032",
+        //         "indexPrice": "36790.96",
+        //         "markIv": "0.5577",
+        //         "underlyingPrice": "37649.67254894",
+        //         "openInterest": "19.67",
+        //         "turnover24h": "170140.33875912",
+        //         "volume24h": "4.56",
+        //         "totalVolume": "22",
+        //         "totalTurnover": "789305",
+        //         "delta": "0.49640971",
+        //         "gamma": "0.00004131",
+        //         "vega": "69.08651675",
+        //         "theta": "-24.9443226",
+        //         "predictedDeliveryPrice": "0",
+        //         "change24h": "0.18532111"
+        //     }
+        //
+        const marketId = this.safeString(greeks, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        return {
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'delta': this.safeNumber(greeks, 'delta'),
+            'gamma': this.safeNumber(greeks, 'gamma'),
+            'theta': this.safeNumber(greeks, 'theta'),
+            'vega': this.safeNumber(greeks, 'vega'),
+            'rho': undefined,
+            'bidSize': this.safeNumber(greeks, 'bid1Size'),
+            'askSize': this.safeNumber(greeks, 'ask1Size'),
+            'bidImpliedVolatility': this.safeNumber(greeks, 'bid1Iv'),
+            'askImpliedVolatility': this.safeNumber(greeks, 'ask1Iv'),
+            'markImpliedVolatility': this.safeNumber(greeks, 'markIv'),
+            'bidPrice': this.safeNumber(greeks, 'bid1Price'),
+            'askPrice': this.safeNumber(greeks, 'ask1Price'),
+            'markPrice': this.safeNumber(greeks, 'markPrice'),
+            'lastPrice': this.safeNumber(greeks, 'lastPrice'),
+            'underlyingPrice': this.safeNumber(greeks, 'underlyingPrice'),
+            'info': greeks,
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;

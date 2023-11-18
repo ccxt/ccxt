@@ -43,6 +43,7 @@ class coinbase extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -194,6 +195,8 @@ class coinbase extends Exchange {
                         'post' => array(
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
+                            'brokerage/orders/edit',
+                            'brokerage/orders/edit_preview',
                         ),
                     ),
                 ),
@@ -665,7 +668,7 @@ class coinbase extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $market = null) {
+    public function parse_transaction($transaction, ?array $currency = null) {
         //
         // fiat deposit
         //
@@ -737,7 +740,7 @@ class coinbase extends Exchange {
         $type = $this->safe_string($transaction, 'resource');
         $amount = $this->safe_number($subtotalObject, 'amount');
         $currencyId = $this->safe_string($subtotalObject, 'currency');
-        $currency = $this->safe_currency_code($currencyId);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $feeCost = $this->safe_number($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
@@ -765,14 +768,14 @@ class coinbase extends Exchange {
             'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
-            'currency' => $currency,
+            'currency' => $code,
             'status' => $status,
             'updated' => $updated,
             'fee' => $fee,
         );
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchMyBuys, fetchMySells
         //
@@ -854,8 +857,13 @@ class coinbase extends Exchange {
         }
         $sizeInQuote = $this->safe_value($trade, 'size_in_quote');
         $v3Price = $this->safe_string($trade, 'price');
-        $v3Amount = ($sizeInQuote) ? null : $this->safe_string($trade, 'size');
-        $v3Cost = ($sizeInQuote) ? $this->safe_string($trade, 'size') : null;
+        $v3Cost = null;
+        $v3Amount = $this->safe_string($trade, 'size');
+        if ($sizeInQuote) {
+            // calculate $base size
+            $v3Cost = $v3Amount;
+            $v3Amount = Precise::string_div($v3Amount, $v3Price);
+        }
         $v3FeeCost = $this->safe_string($trade, 'commission');
         $amountString = $this->safe_string($amountObject, 'amount', $v3Amount);
         $costString = $this->safe_string($subtotalObject, 'amount', $v3Cost);
@@ -1193,7 +1201,7 @@ class coinbase extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1371,7 +1379,7 @@ class coinbase extends Exchange {
         return $ticker;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTickerV2
         //
@@ -1620,7 +1628,7 @@ class coinbase extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // crypto deposit transaction
         //
@@ -2140,7 +2148,7 @@ class coinbase extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -2345,6 +2353,51 @@ class coinbase extends Exchange {
             }
         }
         return $this->parse_orders($orders, $market);
+    }
+
+    public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder
+         * @param {string} $id cancel order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'order_id' => $id,
+        );
+        if ($amount !== null) {
+            $request['size'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $preview = $this->safe_value_2($params, 'preview', 'test', false);
+        $response = null;
+        if ($preview) {
+            $params = $this->omit($params, array( 'preview', 'test' ));
+            $response = $this->v3PrivatePostBrokerageOrdersEditPreview (array_merge($request, $params));
+        } else {
+            $response = $this->v3PrivatePostBrokerageOrdersEdit (array_merge($request, $params));
+        }
+        //
+        //     {
+        //         "success" => true,
+        //         "errors" => {
+        //           "edit_failure_reason" => "UNKNOWN_EDIT_ORDER_FAILURE_REASON",
+        //           "preview_failure_reason" => "UNKNOWN_PREVIEW_FAILURE_REASON"
+        //         }
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -2691,7 +2744,7 @@ class coinbase extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         array(

@@ -1757,8 +1757,8 @@ class kucoin extends kucoin$1 {
          * @method
          * @name kucoin#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.kucoin.com/#get-part-order-book-aggregated
-         * @see https://docs.kucoin.com/#get-full-order-book-aggregated
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
@@ -1768,7 +1768,6 @@ class kucoin extends kucoin$1 {
         const market = this.market(symbol);
         const level = this.safeInteger(params, 'level', 2);
         const request = { 'symbol': market['id'] };
-        let method = 'publicGetMarketOrderbookLevelLevelLimit';
         const isAuthenticated = this.checkRequiredCredentials(false);
         let response = undefined;
         if (!isAuthenticated || limit !== undefined) {
@@ -1784,11 +1783,11 @@ class kucoin extends kucoin$1 {
                 }
                 request['limit'] = limit ? limit : 100;
             }
+            response = await this.publicGetMarketOrderbookLevelLevelLimit(this.extend(request, params));
         }
         else {
-            method = 'privateGetMarketOrderbookLevel2'; // recommended (v3)
+            response = await this.privateGetMarketOrderbookLevel2(this.extend(request, params));
         }
-        response = await this[method](this.extend(request, params));
         //
         // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //
@@ -2148,7 +2147,7 @@ class kucoin extends kucoin$1 {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        const stop = this.safeValue(params, 'stop', false);
+        const stop = this.safeValue2(params, 'stop', 'trigger', false);
         const hf = this.safeValue(params, 'hf', false);
         if (hf) {
             if (symbol === undefined) {
@@ -2157,30 +2156,33 @@ class kucoin extends kucoin$1 {
             const market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        let method = 'privateDeleteOrdersOrderId';
+        let response = undefined;
+        params = this.omit(params, ['clientOid', 'clientOrderId', 'stop', 'hf', 'trigger']);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (stop) {
-                method = 'privateDeleteStopOrderCancelOrderByClientOid';
+                response = await this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, params));
             }
             else if (hf) {
-                method = 'privateDeleteHfOrdersClientOrderClientOid';
+                response = await this.privateDeleteHfOrdersClientOrderClientOid(this.extend(request, params));
             }
             else {
-                method = 'privateDeleteOrderClientOrderClientOid';
+                response = await this.privateDeleteOrderClientOrderClientOid(this.extend(request, params));
             }
         }
         else {
+            request['orderId'] = id;
             if (stop) {
-                method = 'privateDeleteStopOrderOrderId';
+                response = await this.privateDeleteStopOrderOrderId(this.extend(request, params));
             }
             else if (hf) {
-                method = 'privateDeleteHfOrdersOrderId';
+                response = await this.privateDeleteHfOrdersOrderId(this.extend(request, params));
             }
-            request['orderId'] = id;
+            else {
+                response = await this.privateDeleteOrdersOrderId(this.extend(request, params));
+            }
         }
-        params = this.omit(params, ['clientOid', 'clientOrderId', 'stop', 'hf']);
-        return await this[method](this.extend(request, params));
+        return response;
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -3160,6 +3162,7 @@ class kucoin extends kucoin$1 {
                 updated = updated * 1000;
             }
         }
+        const internal = this.safeValue(transaction, 'isInner');
         const tag = this.safeString(transaction, 'memo');
         return {
             'info': transaction,
@@ -3179,6 +3182,7 @@ class kucoin extends kucoin$1 {
             'type': type,
             'status': this.parseTransactionStatus(rawStatus),
             'comment': this.safeString(transaction, 'remark'),
+            'internal': internal,
             'fee': fee,
             'updated': updated,
         };

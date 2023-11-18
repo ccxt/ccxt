@@ -1,5 +1,5 @@
 import coinbaseproRest from '../coinbasepro.js';
-import { Int, Ticker } from '../base/types.js';
+import { Int, Ticker, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbasepro extends coinbaseproRest {
     describe(): any;
@@ -12,13 +12,13 @@ export default class coinbasepro extends coinbaseproRest {
     subscribe(name: any, symbol?: any, messageHashStart?: any, params?: {}): Promise<any>;
     subscribeMultiple(name: any, symbols?: any[], messageHashStart?: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchMyTradesForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchOrdersForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTradesForSymbols(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrdersForSymbols(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): any;

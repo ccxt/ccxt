@@ -488,7 +488,7 @@ class hollaex extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -530,7 +530,7 @@ class hollaex extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -618,7 +618,7 @@ class hollaex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -784,7 +784,7 @@ class hollaex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -1036,7 +1036,7 @@ class hollaex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
         //
@@ -1282,7 +1282,7 @@ class hollaex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "currency":"usdt",
@@ -1536,7 +1536,7 @@ class hollaex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchWithdrawals, fetchDeposits
         //
@@ -1629,6 +1629,8 @@ class hollaex extends Exchange {
             'currency' => $currency['code'],
             'status' => $status,
             'updated' => $updated,
+            'comment' => $this->safe_string($transaction, 'message'),
+            'internal' => null,
             'fee' => $fee,
         );
     }
@@ -1675,7 +1677,7 @@ class hollaex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    "bch":{
         //        "id":4,
@@ -1792,7 +1794,7 @@ class hollaex extends Exchange {
     }
 
     public function normalize_number_if_needed($number) {
-        if (fmod($number, 1) === 0) {
+        if ($this->is_round_number($number)) {
             $number = intval($number);
         }
         return $number;

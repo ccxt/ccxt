@@ -847,7 +847,7 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -1076,7 +1076,7 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -1161,7 +1161,7 @@ class tokocrypto extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
@@ -1223,7 +1223,7 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     array(
         //         1591478520000, // open time
@@ -1414,7 +1414,7 @@ class tokocrypto extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot
         //
@@ -2205,7 +2205,7 @@ class tokocrypto extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //

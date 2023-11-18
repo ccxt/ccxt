@@ -297,11 +297,7 @@ class timex extends Exchange {
             //         }
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $result[] = $this->parse_market($response[$i]);
-            }
-            return $result;
+            return $this->parse_markets($response);
         }) ();
     }
 
@@ -432,7 +428,7 @@ class timex extends Exchange {
         return null;
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -464,11 +460,13 @@ class timex extends Exchange {
             'currency' => $this->safe_currency_code(null, $currency),
             'status' => 'ok',
             'updated' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => null,
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1139,7 +1137,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "fee" => 0.0075,
@@ -1183,7 +1181,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -1213,7 +1211,7 @@ class timex extends Exchange {
         $minBase = $this->safe_string($market, 'baseMinSize');
         $minAmount = Precise::string_max($amountIncrement, $minBase);
         $priceIncrement = $this->safe_string($market, 'tickSize');
-        $minCost = $this->safe_string($market, 'quoteMinSize');
+        $minCost = $this->safe_number($market, 'quoteMinSize');
         return array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -1350,7 +1348,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "ask" => 0.017,
@@ -1395,7 +1393,7 @@ class timex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1464,7 +1462,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "timestamp":"2019-12-04T23:00:00",
@@ -1486,7 +1484,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1517,7 +1515,6 @@ class timex extends Exchange {
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'filledQuantity');
         $canceledQuantity = $this->omit_zero($this->safe_string($order, 'cancelledQuantity'));
-        $status = null;
         if (Precise::string_equals($filled, $amount)) {
             $status = 'closed';
         } elseif ($canceledQuantity !== null) {

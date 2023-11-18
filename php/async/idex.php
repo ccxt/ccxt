@@ -356,7 +356,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -388,7 +388,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         // {
         //   "market" => "DIL-ETH",
         //   "time" => 1598367493008,
@@ -478,7 +478,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // {
         //   "start" => 1598345580000,
         //   "open" => "0.09771286",
@@ -534,7 +534,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public trades
         //  {
@@ -1048,7 +1048,7 @@ class idex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "market" => "DIL-ETH",
@@ -1508,7 +1508,7 @@ class idex extends Exchange {
                 'depositId' => $id,
             );
             $response = Async\await($this->privateGetDeposits (array_merge($request, $params)));
-            return $this->parse_transaction($response, $code);
+            return $this->parse_transaction($response);
         }) ();
     }
 
@@ -1561,7 +1561,7 @@ class idex extends Exchange {
                 'withdrawalId' => $id,
             );
             $response = Async\await($this->privateGetWithdrawals (array_merge($request, $params)));
-            return $this->parse_transaction($response, $code);
+            return $this->parse_transaction($response);
         }) ();
     }
 
@@ -1625,7 +1625,7 @@ class idex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1704,6 +1704,8 @@ class idex extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
+            'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
     }

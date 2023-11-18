@@ -237,7 +237,7 @@ class bitso extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //         "eid" => "2510b3e2bc1c87f584500a18084f35ed",
@@ -560,7 +560,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "high":"37446.85",
@@ -694,7 +694,7 @@ class bitso extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "bucket_start_time":1648219140000,
@@ -719,7 +719,7 @@ class bitso extends Exchange {
         );
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1079,7 +1079,7 @@ class bitso extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //
         // canceledOrder
@@ -1635,7 +1635,7 @@ class bitso extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // deposit
         //     {
@@ -1699,6 +1699,7 @@ class bitso extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => null,
             'info' => $transaction,
         );

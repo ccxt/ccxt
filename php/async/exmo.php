@@ -263,7 +263,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         //
         //      array()
         //
@@ -547,7 +547,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    array(
         //        array(
@@ -907,7 +907,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "t":1584057600000,
@@ -1073,7 +1073,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "buy_price":"0.00002996",
@@ -1114,7 +1114,7 @@ class exmo extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1168,7 +1168,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1805,7 +1805,7 @@ class exmo extends Exchange {
         return $this->safe_string($side, $orderType, $orderType);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
@@ -2182,7 +2182,7 @@ class exmo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDepositsWithdrawals
         //
@@ -2313,6 +2313,7 @@ class exmo extends Exchange {
             'tagTo' => null,
             'updated' => $this->safe_timestamp($transaction, 'updated'),
             'comment' => $comment,
+            'internal' => null,
             'fee' => $fee,
         );
     }

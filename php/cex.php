@@ -489,7 +489,7 @@ class cex extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1591403940,
@@ -553,7 +553,7 @@ class cex extends Exchange {
         return null;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $volume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'high');
@@ -586,7 +586,7 @@ class cex extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
@@ -628,7 +628,7 @@ class cex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -819,7 +819,7 @@ class cex extends Exchange {
         return array_merge($this->parse_order(array()), array( 'info' => $response, 'type' => null, 'id' => $id, 'status' => 'canceled' ));
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         $timestamp = $this->safe_value($order, 'time');

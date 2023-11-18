@@ -779,7 +779,7 @@ class currencycom extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -894,7 +894,7 @@ class currencycom extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -924,7 +924,7 @@ class currencycom extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1590971040000,
@@ -978,7 +978,7 @@ class currencycom extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1092,7 +1092,7 @@ class currencycom extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1570,7 +1570,7 @@ class currencycom extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //    {
         //        "id" => "616769213",
@@ -1598,7 +1598,7 @@ class currencycom extends Exchange {
             $fee['currency'] = $code;
             $fee['cost'] = $feeCost;
         }
-        $result = array(
+        return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'blockchainTransactionHash'),
@@ -1616,10 +1616,10 @@ class currencycom extends Exchange {
             'tagFrom' => null,
             'tagTo' => null,
             'updated' => null,
+            'internal' => null,
             'comment' => null,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function parse_transaction_status($status) {
@@ -1690,7 +1690,7 @@ class currencycom extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         $id = $this->safe_string($item, 'id');
         $amountString = $this->safe_string($item, 'amount');
         $amount = Precise::string_abs($amountString);
@@ -1782,7 +1782,7 @@ class currencycom extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         $currency = $this->safe_currency(null, $currency);
@@ -1873,7 +1873,7 @@ class currencycom extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //    {
         //        "accountId" => "109698017416453793",

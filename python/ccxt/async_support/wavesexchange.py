@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
 import asyncio
 import json
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -32,7 +31,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],  # Switzerland
-            'certified': True,
+            'certified': False,
             'pro': False,
             'has': {
                 'CORS': None,
@@ -589,7 +588,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -616,7 +615,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'nonce': None,
         }
 
-    def parse_order_book_side(self, bookSide, market=None, limit: Optional[int] = None):
+    def parse_order_book_side(self, bookSide, market=None, limit: Int = None):
         precision = market['precision']
         wavesPrecision = self.safe_string(self.options, 'wavesPrecision', '8')
         amountPrecision = '1e' + self.number_to_string(precision['amount'])
@@ -746,7 +745,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             return self.options['accessToken']
         return None
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #       {
         #           "symbol": "WAVES/BTC",
@@ -861,7 +860,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         dataTicker = self.safe_value(ticker, 'data', {})
         return self.parse_ticker(dataTicker, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -900,7 +899,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -983,7 +982,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             result.append(ohlcvs[i])
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "__type": "candle",
@@ -1389,7 +1388,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             value = self.safe_value(response, 'message')
             return self.parse_order(value, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1435,7 +1434,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'trades': None,
         }
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1465,7 +1464,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         response = await self.matcherGetMatcherOrderbookPublicKeyOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1513,7 +1512,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #     "avgWeighedPrice": 0}, ...]
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1535,7 +1534,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         response = await self.forwardGetMatcherOrdersAddress(request)
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1592,7 +1591,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         quoteId = self.safe_string(assetPair, 'priceAsset', 'WAVES')
         return self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1865,7 +1864,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1954,7 +1953,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -2043,7 +2042,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # {__type: "transaction",
         #   "data":
@@ -2132,7 +2131,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None) -> Any:
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None) -> Any:
         depositWithdrawFees = {}
         codes = self.market_codes(codes)
         for i in range(0, len(response)):
@@ -2195,7 +2194,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                 depositWithdrawFees[code]['deposit'] = self.safe_value(network, 'deposit')
         return depositWithdrawFees
 
-    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://docs.wx.network/en/api/gateways/deposit/currencies
@@ -2412,7 +2411,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -2444,6 +2443,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': None,
+            'internal': None,
             'fee': None,
             'info': transaction,
         }

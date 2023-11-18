@@ -434,7 +434,7 @@ class coinmate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // deposits
         //
@@ -497,6 +497,7 @@ class coinmate extends Exchange {
             'tagTo' => null,
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'cost' => $this->safe_number($transaction, 'fee'),
                 'currency' => $code,
@@ -589,7 +590,7 @@ class coinmate extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchMyTrades (private)
         //
@@ -787,7 +788,7 @@ class coinmate extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // limit sell
         //

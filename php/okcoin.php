@@ -577,19 +577,10 @@ class okcoin extends Exchange {
         );
         $response = $this->publicGetPublicInstruments (array_merge($request, $params));
         $markets = $this->safe_value($response, 'data', array());
-        $result = $this->parse_markets($markets);
-        return $result;
+        return $this->parse_markets($markets);
     }
 
-    public function parse_markets($markets) {
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parse_market($markets[$i]);
-        }
-        return $result;
-    }
-
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         // $spot markets
         //
@@ -817,7 +808,7 @@ class okcoin extends Exchange {
         return $this->parse_order_book($first, $symbol, $timestamp);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "instType" => "SPOT",
@@ -918,7 +909,7 @@ class okcoin extends Exchange {
         return $this->parse_ticker($first, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-$data-get-tickers
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -935,7 +926,7 @@ class okcoin extends Exchange {
         return $this->parse_tickers($data, $symbols, $params);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -1042,7 +1033,7 @@ class okcoin extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1678928760000", // timestamp
@@ -1663,7 +1654,7 @@ class okcoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -2036,7 +2027,7 @@ class okcoin extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "addr" => "okbtothemoon",
@@ -2249,7 +2240,7 @@ class okcoin extends Exchange {
         return $this->parse_transfer($rawTransfer, $currency);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -2569,7 +2560,7 @@ class okcoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -2656,6 +2647,8 @@ class okcoin extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $feeCost,
@@ -2824,7 +2817,7 @@ class okcoin extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //

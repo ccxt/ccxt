@@ -126,9 +126,21 @@ class bitget extends bitget$1 {
                     'p2p': 'https://api.{hostname}',
                     'broker': 'https://api.{hostname}',
                     'margin': 'https://api.{hostname}',
+                    'common': 'https://api.{hostname}',
+                    'tax': 'https://api.{hostname}',
+                    'convert': 'https://api.{hostname}',
+                    'copy': 'https://api.{hostname}',
+                    'earn': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
+                    'https://www.bitget.com/api-doc/common/intro',
+                    'https://www.bitget.com/api-doc/spot/intro',
+                    'https://www.bitget.com/api-doc/contract/intro',
+                    'https://www.bitget.com/api-doc/broker/intro',
+                    'https://www.bitget.com/api-doc/margin/intro',
+                    'https://www.bitget.com/api-doc/copytrading/intro',
+                    'https://www.bitget.com/api-doc/earn/intro',
                     'https://bitgetlimited.github.io/apidoc/en/mix',
                     'https://bitgetlimited.github.io/apidoc/en/spot',
                     'https://bitgetlimited.github.io/apidoc/en/broker',
@@ -139,306 +151,577 @@ class bitget extends bitget$1 {
             },
             'api': {
                 'public': {
+                    'common': {
+                        'get': {
+                            'v2/public/annoucements': 1,
+                            'v2/public/time': 1,
+                            'v2/common/trade-rate': 2,
+                        },
+                    },
                     'spot': {
                         'get': {
-                            'notice/queryAllNotices': 1,
-                            'public/time': 1,
-                            'public/currencies': 6.6667,
-                            'public/products': 1,
-                            'public/product': 1,
-                            'market/ticker': 1,
-                            'market/tickers': 1,
-                            'market/fills': 2,
-                            'market/fills-history': 2,
-                            'market/candles': 1,
-                            'market/depth': 1,
-                            'market/spot-vip-level': 2,
-                            'market/merge-depth': 1,
-                            'market/history-candles': 1,
-                            'public/loan/coinInfos': 2,
-                            'public/loan/hour-interest': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'spot/v1/notice/queryAllNotices': 1,
+                            'spot/v1/public/time': 1,
+                            'spot/v1/public/currencies': 6.6667,
+                            'spot/v1/public/products': 1,
+                            'spot/v1/public/product': 1,
+                            'spot/v1/market/ticker': 1,
+                            'spot/v1/market/tickers': 1,
+                            'spot/v1/market/fills': 2,
+                            'spot/v1/market/fills-history': 2,
+                            'spot/v1/market/candles': 1,
+                            'spot/v1/market/depth': 1,
+                            'spot/v1/market/spot-vip-level': 2,
+                            'spot/v1/market/merge-depth': 1,
+                            'spot/v1/market/history-candles': 1,
+                            'spot/v1/public/loan/coinInfos': 2,
+                            'spot/v1/public/loan/hour-interest': 2,
+                            'v2/spot/public/coins': 6.6667,
+                            'v2/spot/public/symbols': 1,
+                            'v2/spot/market/vip-fee-rate': 2,
+                            'v2/spot/market/tickers': 1,
+                            'v2/spot/market/merge-depth': 1,
+                            'v2/spot/market/orderbook': 1,
+                            'v2/spot/market/candles': 1,
+                            'v2/spot/market/history-candles': 1,
+                            'v2/spot/market/fills': 2,
+                            'v2/spot/market/fills-history': 2,
                         },
                     },
                     'mix': {
                         'get': {
-                            'market/contracts': 1,
-                            'market/depth': 1,
-                            'market/ticker': 1,
-                            'market/tickers': 1,
-                            'market/contract-vip-level': 2,
-                            'market/fills': 1,
-                            'market/fills-history': 2,
-                            'market/candles': 1,
-                            'market/index': 1,
-                            'market/funding-time': 1,
-                            'market/history-fundRate': 1,
-                            'market/current-fundRate': 1,
-                            'market/open-interest': 1,
-                            'market/mark-price': 1,
-                            'market/symbol-leverage': 1,
-                            'market/queryPositionLever': 1,
-                            'market/open-limit': 1,
-                            'market/history-candles': 1,
-                            'market/history-index-candles': 1,
-                            'market/history-mark-candles': 1,
-                            'market/merge-depth': 1,
+                            'mix/v1/market/contracts': 1,
+                            'mix/v1/market/depth': 1,
+                            'mix/v1/market/ticker': 1,
+                            'mix/v1/market/tickers': 1,
+                            'mix/v1/market/contract-vip-level': 2,
+                            'mix/v1/market/fills': 1,
+                            'mix/v1/market/fills-history': 2,
+                            'mix/v1/market/candles': 1,
+                            'mix/v1/market/index': 1,
+                            'mix/v1/market/funding-time': 1,
+                            'mix/v1/market/history-fundRate': 1,
+                            'mix/v1/market/current-fundRate': 1,
+                            'mix/v1/market/open-interest': 1,
+                            'mix/v1/market/mark-price': 1,
+                            'mix/v1/market/symbol-leverage': 1,
+                            'mix/v1/market/queryPositionLever': 1,
+                            'mix/v1/market/open-limit': 1,
+                            'mix/v1/market/history-candles': 1,
+                            'mix/v1/market/history-index-candles': 1,
+                            'mix/v1/market/history-mark-candles': 1,
+                            'mix/v1/market/merge-depth': 1,
+                            'v2/mix/market/vip-fee-rate': 2,
+                            'v2/mix/market/merge-depth': 1,
+                            'v2/mix/market/ticker': 1,
+                            'v2/mix/market/tickers': 1,
+                            'v2/mix/market/fills': 1,
+                            'v2/mix/market/fills-history': 2,
+                            'v2/mix/market/candles': 1,
+                            'v2/mix/market/history-candles': 1,
+                            'v2/mix/market/history-index-candles': 1,
+                            'v2/mix/market/history-mark-candles': 1,
+                            'v2/mix/market/open-interest': 1,
+                            'v2/mix/market/funding-time': 1,
+                            'v2/mix/market/symbol-price': 1,
+                            'v2/mix/market/history-fund-rate': 1,
+                            'v2/mix/market/current-fund-rate': 1,
+                            'v2/mix/market/contracts': 1,
+                            'v2/mix/market/query-position-lever': 2,
                         },
                     },
                     'margin': {
                         'get': {
-                            'cross/public/interestRateAndLimit': 2,
-                            'isolated/public/interestRateAndLimit': 2,
-                            'cross/public/tierData': 2,
-                            'isolated/public/tierData': 2,
-                            'public/currencies': 1, // 20 times/1s (IP) => 20/20 = 1
+                            'margin/v1/cross/public/interestRateAndLimit': 2,
+                            'margin/v1/isolated/public/interestRateAndLimit': 2,
+                            'margin/v1/cross/public/tierData': 2,
+                            'margin/v1/isolated/public/tierData': 2,
+                            'margin/v1/public/currencies': 1,
+                            'v2/margin/currencies': 2,
+                        },
+                    },
+                    'earn': {
+                        'get': {
+                            'v2/earn/loan/public/coinInfos': 2,
+                            'v2/earn/loan/public/hour-interest': 2,
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'get': {
-                            'wallet/deposit-address': 4,
-                            'wallet/withdrawal-list': 1,
-                            'wallet/deposit-list': 1,
-                            'account/getInfo': 20,
-                            'account/assets': 2,
-                            'account/assets-lite': 2,
-                            'account/transferRecords': 1,
-                            'convert/currencies': 2,
-                            'convert/convert-record': 2,
-                            'loan/ongoing-orders': 2,
-                            'loan/repay-history': 2,
-                            'loan/revise-history': 2,
-                            'loan/borrow-history': 2,
-                            'loan/debts': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/wallet/deposit-address': 4,
+                            'spot/v1/wallet/withdrawal-list': 1,
+                            'spot/v1/wallet/deposit-list': 1,
+                            'spot/v1/account/getInfo': 20,
+                            'spot/v1/account/assets': 2,
+                            'spot/v1/account/assets-lite': 2,
+                            'spot/v1/account/transferRecords': 1,
+                            'spot/v1/convert/currencies': 2,
+                            'spot/v1/convert/convert-record': 2,
+                            'spot/v1/loan/ongoing-orders': 2,
+                            'spot/v1/loan/repay-history': 2,
+                            'spot/v1/loan/revise-history': 2,
+                            'spot/v1/loan/borrow-history': 2,
+                            'spot/v1/loan/debts': 2,
+                            'v2/spot/trade/orderInfo': 1,
+                            'v2/spot/trade/unfilled-orders': 1,
+                            'v2/spot/trade/history-orders': 1,
+                            'v2/spot/trade/fills': 2,
+                            'v2/spot/trade/current-plan-order': 1,
+                            'v2/spot/trade/history-plan-order': 1,
+                            'v2/spot/account/info': 20,
+                            'v2/spot/account/assets': 2,
+                            'v2/spot/account/subaccount-assets': 2,
+                            'v2/spot/account/bills': 2,
+                            'v2/spot/account/transferRecords': 1,
+                            'v2/spot/wallet/deposit-address': 2,
+                            'v2/spot/wallet/deposit-records': 2,
+                            'v2/spot/wallet/withdrawal-records': 2,
                         },
                         'post': {
-                            'wallet/transfer': 4,
-                            'wallet/transfer-v2': 4,
-                            'wallet/subTransfer': 10,
-                            'wallet/withdrawal': 4,
-                            'wallet/withdrawal-v2': 4,
-                            'wallet/withdrawal-inner': 4,
-                            'wallet/withdrawal-inner-v2': 4,
-                            'account/sub-account-spot-assets': 200,
-                            'account/bills': 2,
-                            'trade/orders': 2,
-                            'trade/batch-orders': 4,
-                            'trade/cancel-order': 2,
-                            'trade/cancel-order-v2': 2,
-                            'trade/cancel-symbol-order': 2,
-                            'trade/cancel-batch-orders': 4,
-                            'trade/cancel-batch-orders-v2': 4,
-                            'trade/orderInfo': 1,
-                            'trade/open-orders': 1,
-                            'trade/history': 1,
-                            'trade/fills': 1,
-                            'plan/placePlan': 1,
-                            'plan/modifyPlan': 1,
-                            'plan/cancelPlan': 1,
-                            'plan/currentPlan': 1,
-                            'plan/historyPlan': 1,
-                            'plan/batchCancelPlan': 2,
-                            'convert/quoted-price': 4,
-                            'convert/trade': 4,
-                            'loan/borrow': 2,
-                            'loan/repay': 2,
-                            'loan/revise-pledge': 2,
-                            'trace/order/orderCurrentList': 2,
-                            'trace/order/orderHistoryList': 2,
-                            'trace/order/closeTrackingOrder': 2,
-                            'trace/order/updateTpsl': 2,
-                            'trace/order/followerEndOrder': 2,
-                            'trace/order/spotInfoList': 2,
-                            'trace/config/getTraderSettings': 2,
-                            'trace/config/getFollowerSettings': 2,
-                            'trace/user/myTraders': 2,
-                            'trace/config/setFollowerConfig': 2,
-                            'trace/user/myFollowers': 2,
-                            'trace/config/setProductCode': 2,
-                            'trace/user/removeTrader': 2,
-                            'trace/getRemovableFollower': 2,
-                            'trace/user/removeFollower': 2,
-                            'trace/profit/totalProfitInfo': 2,
-                            'trace/profit/totalProfitList': 2,
-                            'trace/profit/profitHisList': 2,
-                            'trace/profit/profitHisDetailList': 2,
-                            'trace/profit/waitProfitDetailList': 2,
-                            'trace/user/getTraderInfo': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'spot/v1/wallet/transfer': 4,
+                            'spot/v1/wallet/transfer-v2': 4,
+                            'spot/v1/wallet/subTransfer': 10,
+                            'spot/v1/wallet/withdrawal': 4,
+                            'spot/v1/wallet/withdrawal-v2': 4,
+                            'spot/v1/wallet/withdrawal-inner': 4,
+                            'spot/v1/wallet/withdrawal-inner-v2': 4,
+                            'spot/v1/account/sub-account-spot-assets': 200,
+                            'spot/v1/account/bills': 2,
+                            'spot/v1/trade/orders': 2,
+                            'spot/v1/trade/batch-orders': 4,
+                            'spot/v1/trade/cancel-order': 2,
+                            'spot/v1/trade/cancel-order-v2': 2,
+                            'spot/v1/trade/cancel-symbol-order': 2,
+                            'spot/v1/trade/cancel-batch-orders': 4,
+                            'spot/v1/trade/cancel-batch-orders-v2': 4,
+                            'spot/v1/trade/orderInfo': 1,
+                            'spot/v1/trade/open-orders': 1,
+                            'spot/v1/trade/history': 1,
+                            'spot/v1/trade/fills': 1,
+                            'spot/v1/plan/placePlan': 1,
+                            'spot/v1/plan/modifyPlan': 1,
+                            'spot/v1/plan/cancelPlan': 1,
+                            'spot/v1/plan/currentPlan': 1,
+                            'spot/v1/plan/historyPlan': 1,
+                            'spot/v1/plan/batchCancelPlan': 2,
+                            'spot/v1/convert/quoted-price': 4,
+                            'spot/v1/convert/trade': 4,
+                            'spot/v1/loan/borrow': 2,
+                            'spot/v1/loan/repay': 2,
+                            'spot/v1/loan/revise-pledge': 2,
+                            'spot/v1/trace/order/orderCurrentList': 2,
+                            'spot/v1/trace/order/orderHistoryList': 2,
+                            'spot/v1/trace/order/closeTrackingOrder': 2,
+                            'spot/v1/trace/order/updateTpsl': 2,
+                            'spot/v1/trace/order/followerEndOrder': 2,
+                            'spot/v1/trace/order/spotInfoList': 2,
+                            'spot/v1/trace/config/getTraderSettings': 2,
+                            'spot/v1/trace/config/getFollowerSettings': 2,
+                            'spot/v1/trace/user/myTraders': 2,
+                            'spot/v1/trace/config/setFollowerConfig': 2,
+                            'spot/v1/trace/user/myFollowers': 2,
+                            'spot/v1/trace/config/setProductCode': 2,
+                            'spot/v1/trace/user/removeTrader': 2,
+                            'spot/v1/trace/getRemovableFollower': 2,
+                            'spot/v1/trace/user/removeFollower': 2,
+                            'spot/v1/trace/profit/totalProfitInfo': 2,
+                            'spot/v1/trace/profit/totalProfitList': 2,
+                            'spot/v1/trace/profit/profitHisList': 2,
+                            'spot/v1/trace/profit/profitHisDetailList': 2,
+                            'spot/v1/trace/profit/waitProfitDetailList': 2,
+                            'spot/v1/trace/user/getTraderInfo': 2,
+                            'v2/spot/trade/place-order': 2,
+                            'v2/spot/trade/cancel-order': 2,
+                            'v2/spot/trade/batch-orders': 20,
+                            'v2/spot/trade/batch-cancel-order': 2,
+                            'v2/spot/trade/cancel-symbol-order': 4,
+                            'v2/spot/trade/place-plan-order': 1,
+                            'v2/spot/trade/modify-plan-order': 1,
+                            'v2/spot/trade/cancel-plan-order': 1,
+                            'v2/spot/trade/batch-cancel-plan-order': 2,
+                            'v2/spot/wallet/transfer': 2,
+                            'v2/spot/wallet/subaccount-transfer': 2,
+                            'v2/spot/wallet/withdrawal': 2,
                         },
                     },
                     'mix': {
                         'get': {
-                            'account/account': 2,
-                            'account/accounts': 2,
-                            'position/singlePosition': 2,
-                            'position/singlePosition-v2': 2,
-                            'position/allPosition': 4,
-                            'position/allPosition-v2': 4,
-                            'position/history-position': 1,
-                            'account/accountBill': 2,
-                            'account/accountBusinessBill': 4,
-                            'order/current': 1,
-                            'order/marginCoinCurrent': 1,
-                            'order/history': 2,
-                            'order/historyProductType': 4,
-                            'order/detail': 2,
-                            'order/fills': 2,
-                            'order/allFills': 2,
-                            'plan/currentPlan': 1,
-                            'plan/historyPlan': 2,
-                            'trace/currentTrack': 2,
-                            'trace/followerOrder': 2,
-                            'trace/followerHistoryOrders': 2,
-                            'trace/historyTrack': 2,
-                            'trace/summary': 1,
-                            'trace/profitSettleTokenIdGroup': 1,
-                            'trace/profitDateGroupList': 1,
-                            'trade/profitDateList': 2,
-                            'trace/waitProfitDateList': 1,
-                            'trace/traderSymbols': 1,
-                            'trace/traderList': 2,
-                            'trace/traderDetail': 2,
-                            'trace/queryTraceConfig': 2,
+                            'mix/v1/account/account': 2,
+                            'mix/v1/account/accounts': 2,
+                            'mix/v1/position/singlePosition': 2,
+                            'mix/v1/position/singlePosition-v2': 2,
+                            'mix/v1/position/allPosition': 4,
+                            'mix/v1/position/allPosition-v2': 4,
+                            'mix/v1/position/history-position': 1,
+                            'mix/v1/account/accountBill': 2,
+                            'mix/v1/account/accountBusinessBill': 4,
+                            'mix/v1/order/current': 1,
+                            'mix/v1/order/marginCoinCurrent': 1,
+                            'mix/v1/order/history': 2,
+                            'mix/v1/order/historyProductType': 4,
+                            'mix/v1/order/detail': 2,
+                            'mix/v1/order/fills': 2,
+                            'mix/v1/order/allFills': 2,
+                            'mix/v1/plan/currentPlan': 1,
+                            'mix/v1/plan/historyPlan': 2,
+                            'mix/v1/trace/currentTrack': 2,
+                            'mix/v1/trace/followerOrder': 2,
+                            'mix/v1/trace/followerHistoryOrders': 2,
+                            'mix/v1/trace/historyTrack': 2,
+                            'mix/v1/trace/summary': 1,
+                            'mix/v1/trace/profitSettleTokenIdGroup': 1,
+                            'mix/v1/trace/profitDateGroupList': 1,
+                            'mix/v1/trade/profitDateList': 2,
+                            'mix/v1/trace/waitProfitDateList': 1,
+                            'mix/v1/trace/traderSymbols': 1,
+                            'mix/v1/trace/traderList': 2,
+                            'mix/v1/trace/traderDetail': 2,
+                            'mix/v1/trace/queryTraceConfig': 2,
+                            'v2/mix/account/account': 2,
+                            'v2/mix/account/accounts': 2,
+                            'v2/mix/account/sub-account-assets': 200,
+                            'v2/mix/account/open-count': 2,
+                            'v2/mix/account/bill': 2,
+                            'v2/mix/market/query-position-lever': 2,
+                            'v2/mix/position/single-position': 2,
+                            'v2/mix/position/all-position': 4,
+                            'v2/mix/position/history-position': 1,
+                            'v2/mix/order/detail': 2,
+                            'v2/mix/order/fills': 2,
+                            'v2/mix/order/fill-history': 2,
+                            'v2/mix/order/orders-pending': 2,
+                            'v2/mix/order/orders-history': 2,
+                            'v2/mix/order/orders-plan-pending': 2,
+                            'v2/mix/order/orders-plan-history': 2,
                         },
                         'post': {
-                            'account/sub-account-contract-assets': 200,
-                            'account/open-count': 1,
-                            'account/setLeverage': 4,
-                            'account/setMargin': 4,
-                            'account/setMarginMode': 4,
-                            'account/setPositionMode': 4,
-                            'order/placeOrder': 2,
-                            'order/batch-orders': 2,
-                            'order/cancel-order': 2,
-                            'order/cancel-batch-orders': 2,
-                            'order/modifyOrder': 2,
-                            'order/cancel-symbol-orders': 2,
-                            'order/cancel-all-orders': 2,
-                            'order/close-all-positions': 20,
-                            'plan/placePlan': 2,
-                            'plan/modifyPlan': 2,
-                            'plan/modifyPlanPreset': 2,
-                            'plan/placeTPSL': 2,
-                            'plan/placeTrailStop': 2,
-                            'plan/placePositionsTPSL': 2,
-                            'plan/modifyTPSLPlan': 2,
-                            'plan/cancelPlan': 2,
-                            'plan/cancelSymbolPlan': 2,
-                            'plan/cancelAllPlan': 2,
-                            'trace/closeTrackOrder': 2,
-                            'trace/modifyTPSL': 2,
-                            'trace/closeTrackOrderBySymbol': 2,
-                            'trace/setUpCopySymbols': 2,
-                            'trace/followerSetBatchTraceConfig': 2,
-                            'trace/followerCloseByTrackingNo': 2,
-                            'trace/followerCloseByAll': 2,
-                            'trace/followerSetTpsl': 2,
-                            'trace/cancelCopyTrader': 4,
-                            'trace/traderUpdateConfig': 2,
-                            'trace/myTraderList': 2,
-                            'trace/myFollowerList': 2,
-                            'trace/removeFollower': 2,
-                            'trace/public/getFollowerConfig': 2,
-                            'trace/report/order/historyList': 2,
-                            'trace/report/order/currentList': 2,
-                            'trace/queryTraderTpslRatioConfig': 2,
-                            'trace/traderUpdateTpslRatioConfig': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'mix/v1/account/sub-account-contract-assets': 200,
+                            'mix/v1/account/open-count': 1,
+                            'mix/v1/account/setLeverage': 4,
+                            'mix/v1/account/setMargin': 4,
+                            'mix/v1/account/setMarginMode': 4,
+                            'mix/v1/account/setPositionMode': 4,
+                            'mix/v1/order/placeOrder': 2,
+                            'mix/v1/order/batch-orders': 2,
+                            'mix/v1/order/cancel-order': 2,
+                            'mix/v1/order/cancel-batch-orders': 2,
+                            'mix/v1/order/modifyOrder': 2,
+                            'mix/v1/order/cancel-symbol-orders': 2,
+                            'mix/v1/order/cancel-all-orders': 2,
+                            'mix/v1/order/close-all-positions': 20,
+                            'mix/v1/plan/placePlan': 2,
+                            'mix/v1/plan/modifyPlan': 2,
+                            'mix/v1/plan/modifyPlanPreset': 2,
+                            'mix/v1/plan/placeTPSL': 2,
+                            'mix/v1/plan/placeTrailStop': 2,
+                            'mix/v1/plan/placePositionsTPSL': 2,
+                            'mix/v1/plan/modifyTPSLPlan': 2,
+                            'mix/v1/plan/cancelPlan': 2,
+                            'mix/v1/plan/cancelSymbolPlan': 2,
+                            'mix/v1/plan/cancelAllPlan': 2,
+                            'mix/v1/trace/closeTrackOrder': 2,
+                            'mix/v1/trace/modifyTPSL': 2,
+                            'mix/v1/trace/closeTrackOrderBySymbol': 2,
+                            'mix/v1/trace/setUpCopySymbols': 2,
+                            'mix/v1/trace/followerSetBatchTraceConfig': 2,
+                            'mix/v1/trace/followerCloseByTrackingNo': 2,
+                            'mix/v1/trace/followerCloseByAll': 2,
+                            'mix/v1/trace/followerSetTpsl': 2,
+                            'mix/v1/trace/cancelCopyTrader': 4,
+                            'mix/v1/trace/traderUpdateConfig': 2,
+                            'mix/v1/trace/myTraderList': 2,
+                            'mix/v1/trace/myFollowerList': 2,
+                            'mix/v1/trace/removeFollower': 2,
+                            'mix/v1/trace/public/getFollowerConfig': 2,
+                            'mix/v1/trace/report/order/historyList': 2,
+                            'mix/v1/trace/report/order/currentList': 2,
+                            'mix/v1/trace/queryTraderTpslRatioConfig': 2,
+                            'mix/v1/trace/traderUpdateTpslRatioConfig': 2,
+                            'v2/mix/account/set-leverage': 4,
+                            'v2/mix/account/set-margin': 4,
+                            'v2/mix/account/set-margin-mode': 4,
+                            'v2/mix/account/set-position-mode': 4,
+                            'v2/mix/order/place-order': 20,
+                            'v2/mix/order/click-backhand': 20,
+                            'v2/mix/order/batch-place-order': 20,
+                            'v2/mix/order/modify-order': 2,
+                            'v2/mix/order/cancel-order': 2,
+                            'v2/mix/order/batch-cancel-orders': 2,
+                            'v2/mix/order/close-positions': 20,
+                            'v2/mix/order/place-tpsl-order': 2,
+                            'v2/mix/order/place-plan-order': 2,
+                            'v2/mix/order/modify-tpsl-order': 2,
+                            'v2/mix/order/modify-plan-order': 2,
+                            'v2/mix/order/cancel-plan-order': 2,
                         },
                     },
                     'user': {
                         'get': {
-                            'fee/query': 2,
-                            'sub/virtual-list': 2,
-                            'sub/virtual-api-list': 2,
-                            'tax/spot-record': 1,
-                            'tax/future-record': 1,
-                            'tax/margin-record': 1,
-                            'tax/p2p-record': 1,
+                            'user/v1/fee/query': 2,
+                            'user/v1/sub/virtual-list': 2,
+                            'user/v1/sub/virtual-api-list': 2,
+                            'user/v1/tax/spot-record': 1,
+                            'user/v1/tax/future-record': 1,
+                            'user/v1/tax/margin-record': 1,
+                            'user/v1/tax/p2p-record': 1,
+                            'v2/user/virtual-subaccount-list': 2,
+                            'v2/user/virtual-subaccount-apikey-list': 2,
                         },
                         'post': {
-                            'sub/virtual-create': 4,
-                            'sub/virtual-modify': 4,
-                            'sub/virtual-api-batch-create': 20,
-                            'sub/virtual-api-create': 4,
-                            'sub/virtual-api-modify': 4,
+                            'user/v1/sub/virtual-create': 4,
+                            'user/v1/sub/virtual-modify': 4,
+                            'user/v1/sub/virtual-api-batch-create': 20,
+                            'user/v1/sub/virtual-api-create': 4,
+                            'user/v1/sub/virtual-api-modify': 4,
+                            'v2/user/create-virtual-subaccount': 4,
+                            'v2/user/modify-virtual-subaccount': 4,
+                            'v2/user/batch-create-subaccount-and-apikey': 20,
+                            'v2/user/create-virtual-subaccount-apikey': 4,
+                            'v2/user/modify-virtual-subaccount-apikey': 4,
                         },
                     },
                     'p2p': {
                         'get': {
-                            'merchant/merchantList': 2,
-                            'merchant/merchantInfo': 2,
-                            'merchant/advList': 2,
-                            'merchant/orderList': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'p2p/v1/merchant/merchantList': 2,
+                            'p2p/v1/merchant/merchantInfo': 2,
+                            'p2p/v1/merchant/advList': 2,
+                            'p2p/v1/merchant/orderList': 2,
+                            'v2/p2p/merchantList': 2,
+                            'v2/p2p/merchantInfo': 2,
+                            'v2/p2p/orderList': 2,
+                            'v2/p2p/advList': 2,
                         },
                     },
                     'broker': {
                         'get': {
-                            'account/info': 2,
-                            'account/sub-list': 20,
-                            'account/sub-email': 20,
-                            'account/sub-spot-assets': 2,
-                            'account/sub-future-assets': 2,
-                            'account/subaccount-transfer': 1,
-                            'account/subaccount-deposit': 1,
-                            'account/subaccount-withdrawal': 1,
-                            'account/sub-api-list': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/info': 2,
+                            'broker/v1/account/sub-list': 20,
+                            'broker/v1/account/sub-email': 20,
+                            'broker/v1/account/sub-spot-assets': 2,
+                            'broker/v1/account/sub-future-assets': 2,
+                            'broker/v1/account/subaccount-transfer': 1,
+                            'broker/v1/account/subaccount-deposit': 1,
+                            'broker/v1/account/subaccount-withdrawal': 1,
+                            'broker/v1/account/sub-api-list': 2,
+                            'v2/broker/account/info': 2,
+                            'v2/broker/account/subaccount-list': 20,
+                            'v2/broker/account/subaccount-email': 2,
+                            'v2/broker/account/subaccount-spot-assets': 2,
+                            'v2/broker/account/subaccount-future-assets': 2,
+                            'v2/broker/manage/subaccount-apikey-list': 2,
                         },
                         'post': {
-                            'account/sub-create': 20,
-                            'account/sub-modify': 20,
-                            'account/sub-modify-email': 20,
-                            'account/sub-address': 2,
-                            'account/sub-withdrawal': 2,
-                            'account/sub-auto-transfer': 4,
-                            'account/sub-api-create': 2,
-                            'account/sub-api-modify': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'broker/v1/account/sub-create': 20,
+                            'broker/v1/account/sub-modify': 20,
+                            'broker/v1/account/sub-modify-email': 20,
+                            'broker/v1/account/sub-address': 2,
+                            'broker/v1/account/sub-withdrawal': 2,
+                            'broker/v1/account/sub-auto-transfer': 4,
+                            'broker/v1/account/sub-api-create': 2,
+                            'broker/v1/account/sub-api-modify': 2,
+                            'v2/broker/account/modify-subaccount-email': 2,
+                            'v2/broker/account/create-subaccount': 20,
+                            'v2/broker/account/modify-subaccount': 20,
+                            'v2/broker/account/subaccount-address': 2,
+                            'v2/broker/account/subaccount-withdrawal': 2,
+                            'v2/broker/account/set-subaccount-autotransfer': 2,
+                            'v2/broker/manage/create-subaccount-apikey': 2,
+                            'v2/broker/manage/modify-subaccount-apikey': 2,
                         },
                     },
                     'margin': {
                         'get': {
-                            'cross/account/riskRate': 2,
-                            'cross/account/maxTransferOutAmount': 2,
-                            'isolated/account/maxTransferOutAmount': 2,
-                            'isolated/order/openOrders': 2,
-                            'isolated/order/history': 2,
-                            'isolated/order/fills': 2,
-                            'isolated/loan/list': 2,
-                            'isolated/repay/list': 2,
-                            'isolated/interest/list': 2,
-                            'isolated/liquidation/list': 2,
-                            'isolated/fin/list': 2,
-                            'cross/order/openOrders': 2,
-                            'cross/order/history': 2,
-                            'cross/order/fills': 2,
-                            'cross/loan/list': 2,
-                            'cross/repay/list': 2,
-                            'cross/interest/list': 2,
-                            'cross/liquidation/list': 2,
-                            'cross/fin/list': 2,
-                            'cross/account/assets': 2,
-                            'isolated/account/assets': 2, // 10 times/1s (IP) => 20/10 = 2
+                            'margin/v1/cross/account/riskRate': 2,
+                            'margin/v1/cross/account/maxTransferOutAmount': 2,
+                            'margin/v1/isolated/account/maxTransferOutAmount': 2,
+                            'margin/v1/isolated/order/openOrders': 2,
+                            'margin/v1/isolated/order/history': 2,
+                            'margin/v1/isolated/order/fills': 2,
+                            'margin/v1/isolated/loan/list': 2,
+                            'margin/v1/isolated/repay/list': 2,
+                            'margin/v1/isolated/interest/list': 2,
+                            'margin/v1/isolated/liquidation/list': 2,
+                            'margin/v1/isolated/fin/list': 2,
+                            'margin/v1/cross/order/openOrders': 2,
+                            'margin/v1/cross/order/history': 2,
+                            'margin/v1/cross/order/fills': 2,
+                            'margin/v1/cross/loan/list': 2,
+                            'margin/v1/cross/repay/list': 2,
+                            'margin/v1/cross/interest/list': 2,
+                            'margin/v1/cross/liquidation/list': 2,
+                            'margin/v1/cross/fin/list': 2,
+                            'margin/v1/cross/account/assets': 2,
+                            'margin/v1/isolated/account/assets': 2,
+                            'v2/margin/crossed/borrow-history': 2,
+                            'v2/margin/crossed/repay-history': 2,
+                            'v2/margin/crossed/interest-history': 2,
+                            'v2/margin/crossed/liquidation-history': 2,
+                            'v2/margin/crossed/financial-records': 2,
+                            'v2/margin/crossed/account-assets': 2,
+                            'v2/margin/crossed/account/risk-rate': 2,
+                            'v2/margin/crossed/account/max-borrowable-amount': 2,
+                            'v2/margin/crossed/account/max-transfer-out-amount': 2,
+                            'v2/margin/crossed/interest-rate-and-limit': 2,
+                            'v2/margin/crossed/tier-data': 2,
+                            'v2/margin/crossed/open-orders': 2,
+                            'v2/margin/crossed/history-orders': 2,
+                            'v2/margin/crossed/fills': 2,
+                            'v2/margin/isolated/borrow-history': 2,
+                            'v2/margin/isolated/repay-history': 2,
+                            'v2/margin/isolated/interest-history': 2,
+                            'v2/margin/isolated/liquidation-history': 2,
+                            'v2/margin/isolated/financial-records': 2,
+                            'v2/margin/isolated/account-assets': 2,
+                            'v2/margin/isolated/account/risk-rate': 2,
+                            'v2/margin/isolated/account/max-borrowable-amount': 2,
+                            'v2/margin/isolated/account/max-transfer-out-amount': 2,
+                            'v2/margin/isolated/interest-rate-and-limit': 2,
+                            'v2/margin/isolated/tier-data': 2,
+                            'v2/margin/isolated/open-orders': 2,
+                            'v2/margin/isolated/history-orders': 2,
+                            'v2/margin/isolated/fills': 2,
                         },
                         'post': {
-                            'cross/account/borrow': 2,
-                            'isolated/account/borrow': 2,
-                            'cross/account/repay': 2,
-                            'isolated/account/repay': 2,
-                            'isolated/account/riskRate': 2,
-                            'cross/account/maxBorrowableAmount': 2,
-                            'isolated/account/maxBorrowableAmount': 2,
-                            'isolated/account/flashRepay': 2,
-                            'isolated/account/queryFlashRepayStatus': 2,
-                            'cross/account/flashRepay': 2,
-                            'cross/account/queryFlashRepayStatus': 2,
-                            'isolated/order/placeOrder': 4,
-                            'isolated/order/batchPlaceOrder': 4,
-                            'isolated/order/cancelOrder': 2,
-                            'isolated/order/batchCancelOrder': 2,
-                            'cross/order/placeOrder': 2,
-                            'cross/order/batchPlaceOrder': 2,
-                            'cross/order/cancelOrder': 2,
-                            'cross/order/batchCancelOrder': 2, // 10 times/1s (UID) => 20/10 = 2
+                            'margin/v1/cross/account/borrow': 2,
+                            'margin/v1/isolated/account/borrow': 2,
+                            'margin/v1/cross/account/repay': 2,
+                            'margin/v1/isolated/account/repay': 2,
+                            'margin/v1/isolated/account/riskRate': 2,
+                            'margin/v1/cross/account/maxBorrowableAmount': 2,
+                            'margin/v1/isolated/account/maxBorrowableAmount': 2,
+                            'margin/v1/isolated/account/flashRepay': 2,
+                            'margin/v1/isolated/account/queryFlashRepayStatus': 2,
+                            'margin/v1/cross/account/flashRepay': 2,
+                            'margin/v1/cross/account/queryFlashRepayStatus': 2,
+                            'margin/v1/isolated/order/placeOrder': 4,
+                            'margin/v1/isolated/order/batchPlaceOrder': 4,
+                            'margin/v1/isolated/order/cancelOrder': 2,
+                            'margin/v1/isolated/order/batchCancelOrder': 2,
+                            'margin/v1/cross/order/placeOrder': 2,
+                            'margin/v1/cross/order/batchPlaceOrder': 2,
+                            'margin/v1/cross/order/cancelOrder': 2,
+                            'margin/v1/cross/order/batchCancelOrder': 2,
+                            'v2/margin/crossed/account/borrow': 2,
+                            'v2/margin/crossed/account/repay': 2,
+                            'v2/margin/crossed/account/flash-repay': 2,
+                            'v2/margin/crossed/account/query-flash-repay-status': 2,
+                            'v2/margin/crossed/place-order': 2,
+                            'v2/margin/crossed/batch-place-order': 2,
+                            'v2/margin/crossed/cancel-order': 2,
+                            'v2/margin/crossed/batch-cancel-order': 2,
+                            'v2/margin/isolated/account/borrow': 2,
+                            'v2/margin/isolated/account/repay': 2,
+                            'v2/margin/isolated/account/flash-repay': 2,
+                            'v2/margin/isolated/account/query-flash-repay-status': 2,
+                            'v2/margin/isolated/place-order': 2,
+                            'v2/margin/isolated/batch-place-order': 2,
+                            'v2/margin/isolated/cancel-order': 2,
+                            'v2/margin/isolated/batch-cancel-order': 2,
+                        },
+                    },
+                    'copy': {
+                        'get': {
+                            'v2/copy/mix-trader/order-current-track': 2,
+                            'v2/copy/mix-trader/order-history-track': 2,
+                            'v2/copy/mix-trader/order-total-detail': 2,
+                            'v2/copy/mix-trader/profit-history-summarys': 1,
+                            'v2/copy/mix-trader/profit-history-details': 1,
+                            'v2/copy/mix-trader/profit-details': 1,
+                            'v2/copy/mix-trader/profits-group-coin-date': 1,
+                            'v2/copy/mix-trader/config-query-symbols': 1,
+                            'v2/copy/mix-trader/config-query-followers': 2,
+                            'v2/copy/mix-follower/query-current-orders': 2,
+                            'v2/copy/mix-follower/query-history-orders': 1,
+                            'v2/copy/mix-follower/query-settings': 2,
+                            'v2/copy/mix-follower/query-traders': 2,
+                            'v2/copy/mix-follower/query-quantity-limit': 2,
+                            'v2/copy/mix-broker/query-traders': 2,
+                            'v2/copy/mix-broker/query-history-traces': 2,
+                            'v2/copy/mix-broker/query-current-traces': 2,
+                            'v2/copy/spot-trader/profit-summarys': 2,
+                            'v2/copy/spot-trader/profit-history-details': 2,
+                            'v2/copy/spot-trader/profit-details': 2,
+                            'v2/copy/spot-trader/order-total-detail': 2,
+                            'v2/copy/spot-trader/order-history-track': 2,
+                            'v2/copy/spot-trader/order-current-track': 2,
+                            'v2/copy/spot-trader/config-query-settings': 2,
+                            'v2/copy/spot-trader/config-query-followers': 2,
+                            'v2/copy/spot-follower/query-traders': 2,
+                            'v2/copy/spot-follower/query-trader-symbols': 2,
+                            'v2/copy/spot-follower/query-settings': 2,
+                            'v2/copy/spot-follower/query-history-orders': 2,
+                            'v2/copy/spot-follower/query-current-orders': 2,
+                        },
+                        'post': {
+                            'v2/copy/mix-trader/order-modify-tpsl': 2,
+                            'v2/copy/mix-trader/order-close-positions': 2,
+                            'v2/copy/mix-trader/config-setting-symbols': 2,
+                            'v2/copy/mix-trader/config-setting-base': 2,
+                            'v2/copy/mix-trader/config-remove-follower': 2,
+                            'v2/copy/mix-follower/setting-tpsl': 1,
+                            'v2/copy/mix-follower/settings': 2,
+                            'v2/copy/mix-follower/close-positions': 2,
+                            'v2/copy/mix-follower/cancel-trader': 4,
+                            'v2/copy/spot-trader/order-modify-tpsl': 2,
+                            'v2/copy/spot-trader/order-close-tracking': 2,
+                            'v2/copy/spot-trader/config-setting-symbols': 2,
+                            'v2/copy/spot-trader/config-remove-follower': 2,
+                            'v2/copy/spot-follower/stop-order': 2,
+                            'v2/copy/spot-follower/settings': 2,
+                            'v2/copy/spot-follower/setting-tpsl': 2,
+                            'v2/copy/spot-follower/order-close-tracking': 2,
+                            'v2/copy/spot-follower/cancel-trader': 2,
+                        },
+                    },
+                    'tax': {
+                        'get': {
+                            'v2/tax/spot-record': 20,
+                            'v2/tax/future-record': 20,
+                            'v2/tax/margin-record': 20,
+                            'v2/tax/p2p-record': 20,
+                        },
+                    },
+                    'convert': {
+                        'get': {
+                            'v2/convert/currencies': 2,
+                            'v2/convert/quoted-price': 2,
+                            'v2/convert/convert-record': 2,
+                        },
+                        'post': {
+                            'v2/convert/trade': 2,
+                        },
+                    },
+                    'earn': {
+                        'get': {
+                            'v2/earn/savings/product': 2,
+                            'v2/earn/savings/account': 2,
+                            'v2/earn/savings/assets': 2,
+                            'v2/earn/savings/records': 2,
+                            'v2/earn/savings/subscribe-info': 2,
+                            'v2/earn/savings/subscribe-result': 2,
+                            'v2/earn/savings/redeem-result': 2,
+                            'v2/earn/sharkfin/product': 2,
+                            'v2/earn/sharkfin/account': 2,
+                            'v2/earn/sharkfin/assets': 2,
+                            'v2/earn/sharkfin/records': 2,
+                            'v2/earn/sharkfin/subscribe-info': 2,
+                            'v2/earn/sharkfin/subscribe-result': 4,
+                            'v2/earn/loan/ongoing-orders': 2,
+                            'v2/earn/loan/repay-history': 2,
+                            'v2/earn/loan/revise-history': 2,
+                            'v2/earn/loan/borrow-history': 2,
+                            'v2/earn/loan/debts': 2,
+                            'v2/earn/loan/reduces': 2,
+                        },
+                        'post': {
+                            'v2/earn/savings/subscribe': 2,
+                            'v2/earn/savings/redeem': 2,
+                            'v2/earn/sharkfin/subscribe': 2,
+                            'v2/earn/loan/borrow': 2,
+                            'v2/earn/loan/repay': 2,
+                            'v2/earn/loan/revise-pledge': 2,
                         },
                     },
                 },
@@ -822,6 +1105,7 @@ class bitget extends bitget$1 {
                     '40017': errors.ExchangeError,
                     '40018': errors.PermissionDenied,
                     '40019': errors.BadRequest,
+                    '40031': errors.AccountSuspended,
                     '40037': errors.AuthenticationError,
                     '40102': errors.BadRequest,
                     '40103': errors.BadRequest,
@@ -1019,18 +1303,18 @@ class bitget extends bitget$1 {
                 },
                 'fetchOHLCV': {
                     'spot': {
-                        'method': 'publicSpotGetMarketCandles', // or publicSpotGetMarketHistoryCandles
+                        'method': 'publicSpotGetSpotV1MarketCandles', // or publicSpotGetSpotV1MarketHistoryCandles
                     },
                     'swap': {
-                        'method': 'publicMixGetMarketCandles', // or publicMixGetMarketHistoryCandles or publicMixGetMarketHistoryIndexCandles or publicMixGetMarketHistoryMarkCandles
+                        'method': 'publicMixGetMixV1MarketCandles', // or publicMixGetMixV1MarketHistoryCandles or publicMixGetMixV1MarketHistoryIndexCandles or publicMixGetMixV1MarketHistoryMarkCandles
                     },
                 },
                 'fetchTrades': {
                     'spot': {
-                        'method': 'publicSpotGetMarketFillsHistory', // or publicSpotGetMarketFills
+                        'method': 'publicSpotGetSpotV1MarketFillsHistory', // or publicSpotGetSpotV1MarketFills
                     },
                     'swap': {
-                        'method': 'publicMixGetMarketFillsHistory', // or publicMixGetMarketFills
+                        'method': 'publicMixGetMixV1MarketFillsHistory', // or publicMixGetMixV1MarketFills
                     },
                 },
                 'accountsByType': {
@@ -1057,7 +1341,7 @@ class bitget extends bitget$1 {
                     'BSC': 'BEP20',
                 },
                 'fetchPositions': {
-                    'method': 'privateMixGetPositionAllPositionV2', // or privateMixGetPositionHistoryPosition
+                    'method': 'privateMixGetMixV1PositionAllPositionV2', // or privateMixGetMixV1PositionHistoryPosition
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
@@ -1075,7 +1359,7 @@ class bitget extends bitget$1 {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicSpotGetPublicTime(params);
+        const response = await this.publicSpotGetSpotV1PublicTime(params);
         //
         //     {
         //       "code": "00000",
@@ -1127,13 +1411,6 @@ class bitget extends bitget$1 {
         let result = promises[0];
         for (let i = 1; i < promises.length; i++) {
             result = this.arrayConcat(result, promises[i]);
-        }
-        return result;
-    }
-    parseMarkets(markets) {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
         }
         return result;
     }
@@ -1306,10 +1583,10 @@ class bitget extends bitget$1 {
     async fetchMarketsByType(type, params = {}) {
         let response = undefined;
         if (type === 'spot') {
-            response = await this.publicSpotGetPublicProducts(params);
+            response = await this.publicSpotGetSpotV1PublicProducts(params);
         }
         else if (type === 'swap') {
-            response = await this.publicMixGetMarketContracts(params);
+            response = await this.publicMixGetMixV1MarketContracts(params);
         }
         else {
             throw new errors.NotSupported(this.id + ' does not support ' + type + ' market');
@@ -1376,7 +1653,7 @@ class bitget extends bitget$1 {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicSpotGetPublicCurrencies(params);
+        const response = await this.publicSpotGetSpotV1PublicCurrencies(params);
         //
         //     {
         //       "code": "00000",
@@ -1520,11 +1797,11 @@ class bitget extends bitget$1 {
             const productType = this.safeStringUpper(parts, 1);
             request['symbol'] = marketId;
             request['productType'] = productType;
-            response = await this.publicMixGetMarketQueryPositionLever(this.extend(request, params));
+            response = await this.publicMixGetMixV1MarketQueryPositionLever(this.extend(request, params));
         }
         else if (marginMode === 'isolated') {
             request['symbol'] = market['info']['symbolName'];
-            response = await this.publicMarginGetIsolatedPublicTierData(this.extend(request, params));
+            response = await this.publicMarginGetMarginV1IsolatedPublicTierData(this.extend(request, params));
         }
         else if (marginMode === 'cross') {
             const code = this.safeString(params, 'code');
@@ -1532,7 +1809,7 @@ class bitget extends bitget$1 {
             params = this.omit(params, 'code');
             const currency = this.currency(code);
             request['coin'] = currency['code'];
-            response = await this.publicMarginGetCrossPublicTierData(this.extend(request, params));
+            response = await this.publicMarginGetMarginV1CrossPublicTierData(this.extend(request, params));
         }
         else {
             throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
@@ -1700,7 +1977,7 @@ class bitget extends bitget$1 {
             request['pageSize'] = limit;
         }
         [request, params] = this.handleUntilOption('endTime', request, params);
-        const response = await this.privateSpotGetWalletDepositList(this.extend(request, params));
+        const response = await this.privateSpotGetSpotV1WalletDepositList(this.extend(request, params));
         //
         //      {
         //          "code": "00000",
@@ -1757,7 +2034,7 @@ class bitget extends bitget$1 {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.privateSpotPostWalletWithdrawalV2(this.extend(request, params));
+        const response = await this.privateSpotPostSpotV1WalletWithdrawalV2(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -1856,7 +2133,7 @@ class bitget extends bitget$1 {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateSpotGetWalletWithdrawalList(this.extend(request, params));
+        const response = await this.privateSpotGetSpotV1WalletWithdrawalList(this.extend(request, params));
         //
         //      {
         //          "code": "00000",
@@ -1932,6 +2209,7 @@ class bitget extends bitget$1 {
             'tag': tag,
             'tagTo': tag,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -1965,7 +2243,7 @@ class bitget extends bitget$1 {
         if (networkId !== undefined) {
             request['chain'] = networkId;
         }
-        const response = await this.privateSpotGetWalletDepositAddress(this.extend(request, params));
+        const response = await this.privateSpotGetSpotV1WalletDepositAddress(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -2025,10 +2303,10 @@ class bitget extends bitget$1 {
         }
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicSpotGetMarketDepth(this.extend(request, params));
+            response = await this.publicSpotGetSpotV1MarketDepth(this.extend(request, params));
         }
         else {
-            response = await this.publicMixGetMarketDepth(this.extend(request, params));
+            response = await this.publicMixGetMixV1MarketDepth(this.extend(request, params));
         }
         //
         //     {
@@ -2182,10 +2460,10 @@ class bitget extends bitget$1 {
         let response = undefined;
         const extended = this.extend(request, params);
         if (market['spot']) {
-            response = await this.publicSpotGetMarketTicker(extended);
+            response = await this.publicSpotGetSpotV1MarketTicker(extended);
         }
         else {
-            response = await this.publicMixGetMarketTicker(extended);
+            response = await this.publicMixGetMixV1MarketTicker(extended);
         }
         //
         //     {
@@ -2242,10 +2520,10 @@ class bitget extends bitget$1 {
         const extended = this.extend(request, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.publicSpotGetMarketTickers(extended);
+            response = await this.publicSpotGetSpotV1MarketTickers(extended);
         }
         else {
-            response = await this.publicMixGetMarketTickers(extended);
+            response = await this.publicMixGetMixV1MarketTickers(extended);
         }
         //
         // spot
@@ -2447,23 +2725,23 @@ class bitget extends bitget$1 {
         let response = undefined;
         if (market['spot']) {
             const spotOptions = this.safeValue(options, 'spot', {});
-            const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetMarketFillsHistory');
+            const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetSpotV1MarketFillsHistory');
             const spotMethod = this.safeString(params, 'method', defaultSpotMethod);
             params = this.omit(params, 'method');
-            if (spotMethod === 'publicSpotGetMarketFillsHistory') {
-                response = await this.publicSpotGetMarketFillsHistory(this.extend(request, params));
+            if (spotMethod === 'publicSpotGetSpotV1MarketFillsHistory') {
+                response = await this.publicSpotGetSpotV1MarketFillsHistory(this.extend(request, params));
             }
-            else if (spotMethod === 'publicSpotGetMarketFills') {
-                response = await this.publicSpotGetMarketFills(this.extend(request, params));
+            else if (spotMethod === 'publicSpotGetSpotV1MarketFills') {
+                response = await this.publicSpotGetSpotV1MarketFills(this.extend(request, params));
             }
         }
         else {
             const swapOptions = this.safeValue(options, 'swap', {});
-            const defaultSwapMethod = this.safeString(swapOptions, 'method', 'publicMixGetMarketFillsHistory');
+            const defaultSwapMethod = this.safeString(swapOptions, 'method', 'publicMixGetMixV1MarketFillsHistory');
             const swapMethod = this.safeString(params, 'method', defaultSwapMethod);
             params = this.omit(params, 'method');
-            if (swapMethod === 'publicMixGetMarketFillsHistory') {
-                response = await this.publicMixGetMarketFillsHistory(this.extend(request, params));
+            if (swapMethod === 'publicMixGetMixV1MarketFillsHistory') {
+                response = await this.publicMixGetMixV1MarketFillsHistory(this.extend(request, params));
                 //
                 //     {
                 //         "tradeId": "1084459062491590657",
@@ -2475,8 +2753,8 @@ class bitget extends bitget$1 {
                 //     }
                 //
             }
-            else if (swapMethod === 'publicMixGetMarketFills') {
-                response = await this.publicMixGetMarketFills(this.extend(request, params));
+            else if (swapMethod === 'publicMixGetMixV1MarketFills') {
+                response = await this.publicMixGetMixV1MarketFills(this.extend(request, params));
             }
         }
         //
@@ -2534,7 +2812,7 @@ class bitget extends bitget$1 {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicSpotGetPublicProduct(this.extend(request, params));
+        const response = await this.publicSpotGetSpotV1PublicProduct(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -2568,7 +2846,7 @@ class bitget extends bitget$1 {
          * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
-        const response = await this.publicSpotGetPublicProducts(params);
+        const response = await this.publicSpotGetSpotV1PublicProducts(params);
         //
         //     {
         //         "code": "00000",
@@ -2722,39 +3000,39 @@ class bitget extends bitget$1 {
         let response = undefined;
         if (market['spot']) {
             const spotOptions = this.safeValue(options, 'spot', {});
-            const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetMarketCandles');
+            const defaultSpotMethod = this.safeString(spotOptions, 'method', 'publicSpotGetSpotV1MarketCandles');
             const method = this.safeString(params, 'method', defaultSpotMethod);
             params = this.omit(params, 'method');
-            if (method === 'publicSpotGetMarketCandles') {
+            if (method === 'publicSpotGetSpotV1MarketCandles') {
                 if (limitIsUndefined) {
                     request['limit'] = 1000;
                 }
-                response = await this.publicSpotGetMarketCandles(this.extend(request, params));
+                response = await this.publicSpotGetSpotV1MarketCandles(this.extend(request, params));
             }
-            else if (method === 'publicSpotGetMarketHistoryCandles') {
-                response = await this.publicSpotGetMarketHistoryCandles(this.extend(request, params));
+            else if (method === 'publicSpotGetSpotV1MarketHistoryCandles') {
+                response = await this.publicSpotGetSpotV1MarketHistoryCandles(this.extend(request, params));
             }
         }
         else {
             const swapOptions = this.safeValue(options, 'swap', {});
-            const defaultSwapMethod = this.safeString(swapOptions, 'method', 'publicMixGetMarketCandles');
+            const defaultSwapMethod = this.safeString(swapOptions, 'method', 'publicMixGetMixV1MarketCandles');
             const swapMethod = this.safeString(params, 'method', defaultSwapMethod);
             const priceType = this.safeString(params, 'price');
             params = this.omit(params, ['method', 'price']);
-            if ((priceType === 'mark') || (swapMethod === 'publicMixGetMarketHistoryMarkCandles')) {
-                response = await this.publicMixGetMarketHistoryMarkCandles(this.extend(request, params));
+            if ((priceType === 'mark') || (swapMethod === 'publicMixGetMixV1MarketHistoryMarkCandles')) {
+                response = await this.publicMixGetMixV1MarketHistoryMarkCandles(this.extend(request, params));
             }
-            else if ((priceType === 'index') || (swapMethod === 'publicMixGetMarketHistoryIndexCandles')) {
-                response = await this.publicMixGetMarketHistoryIndexCandles(this.extend(request, params));
+            else if ((priceType === 'index') || (swapMethod === 'publicMixGetMixV1MarketHistoryIndexCandles')) {
+                response = await this.publicMixGetMixV1MarketHistoryIndexCandles(this.extend(request, params));
             }
-            else if (swapMethod === 'publicMixGetMarketCandles') {
+            else if (swapMethod === 'publicMixGetMixV1MarketCandles') {
                 if (limitIsUndefined) {
                     request['limit'] = 1000;
                 }
-                response = await this.publicMixGetMarketCandles(this.extend(request, params));
+                response = await this.publicMixGetMixV1MarketCandles(this.extend(request, params));
             }
-            else if (swapMethod === 'publicMixGetMarketHistoryCandles') {
-                response = await this.publicMixGetMarketHistoryCandles(this.extend(request, params));
+            else if (swapMethod === 'publicMixGetMixV1MarketHistoryCandles') {
+                response = await this.publicMixGetMixV1MarketHistoryCandles(this.extend(request, params));
             }
         }
         if (response === '') {
@@ -2792,16 +3070,16 @@ class bitget extends bitget$1 {
                 productType = 'S' + productType;
             }
             request['productType'] = productType;
-            response = await this.privateMixGetAccountAccounts(this.extend(request, params));
+            response = await this.privateMixGetMixV1AccountAccounts(this.extend(request, params));
         }
         else if (marginMode === 'isolated') {
-            response = await this.privateMarginGetIsolatedAccountAssets(this.extend(request, params));
+            response = await this.privateMarginGetMarginV1IsolatedAccountAssets(this.extend(request, params));
         }
         else if (marginMode === 'cross') {
-            response = await this.privateMarginGetCrossAccountAssets(this.extend(request, params));
+            response = await this.privateMarginGetMarginV1CrossAccountAssets(this.extend(request, params));
         }
         else if (marketType === 'spot') {
-            response = await this.privateSpotGetAccountAssets(this.extend(request, params));
+            response = await this.privateSpotGetSpotV1AccountAssets(this.extend(request, params));
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchBalance() does not support ' + marketType + ' accounts');
@@ -3200,8 +3478,8 @@ class bitget extends bitget$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        const marginParams = this.handleMarginModeAndParams('createOrder', params);
+        const marginMode = marginParams[0];
         const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
@@ -3213,27 +3491,27 @@ class bitget extends bitget$1 {
         let response = undefined;
         if (market['spot']) {
             if (isTriggerOrder) {
-                response = await this.privateSpotPostPlanPlacePlan(request);
+                response = await this.privateSpotPostSpotV1PlanPlacePlan(request);
             }
             else if (marginMode === 'isolated') {
-                response = await this.privateMarginPostIsolatedOrderPlaceOrder(request);
+                response = await this.privateMarginPostMarginV1IsolatedOrderPlaceOrder(request);
             }
             else if (marginMode === 'cross') {
-                response = await this.privateMarginPostCrossOrderPlaceOrder(request);
+                response = await this.privateMarginPostMarginV1CrossOrderPlaceOrder(request);
             }
             else {
-                response = await this.privateSpotPostTradeOrders(request);
+                response = await this.privateSpotPostSpotV1TradeOrders(request);
             }
         }
         else {
             if (isTriggerOrder) {
-                response = await this.privateMixPostPlanPlacePlan(request);
+                response = await this.privateMixPostMixV1PlanPlacePlan(request);
             }
             else if (isStopLossOrTakeProfitTrigger) {
-                response = await this.privateMixPostPlanPlacePositionsTPSL(request);
+                response = await this.privateMixPostMixV1PlanPlacePositionsTPSL(request);
             }
             else {
-                response = await this.privateMixPostOrderPlaceOrder(request);
+                response = await this.privateMixPostMixV1OrderPlaceOrder(request);
             }
         }
         //
@@ -3466,7 +3744,7 @@ class bitget extends bitget$1 {
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeValue(rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams('createOrders', params);
+            const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {
@@ -3493,16 +3771,16 @@ class bitget extends bitget$1 {
         if ((market['swap']) || (market['future'])) {
             request['orderDataList'] = ordersRequests;
             request['marginCoin'] = market['settleId'];
-            response = await this.privateMixPostOrderBatchOrders(request);
+            response = await this.privateMixPostMixV1OrderBatchOrders(request);
         }
         else if (marginMode === 'isolated') {
-            response = await this.privateMarginPostIsolatedOrderBatchPlaceOrder(request);
+            response = await this.privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder(request);
         }
         else if (marginMode === 'cross') {
-            response = await this.privateMarginPostCrossOrderBatchPlaceOrder(request);
+            response = await this.privateMarginPostMarginV1CrossOrderBatchPlaceOrder(request);
         }
         else {
-            response = await this.privateSpotPostTradeBatchOrders(request);
+            response = await this.privateSpotPostSpotV1TradeBatchOrders(request);
         }
         //
         // {
@@ -3599,7 +3877,7 @@ class bitget extends bitget$1 {
             else {
                 request['size'] = this.amountToPrecision(symbol, amount);
             }
-            response = await this.privateSpotPostPlanModifyPlan(this.extend(request, omitted));
+            response = await this.privateSpotPostSpotV1PlanModifyPlan(this.extend(request, omitted));
         }
         else {
             request['symbol'] = market['id'];
@@ -3620,10 +3898,10 @@ class bitget extends bitget$1 {
                     request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
                     request['planType'] = 'profit_plan';
                 }
-                response = await this.privateMixPostPlanModifyTPSLPlan(this.extend(request, omitted));
+                response = await this.privateMixPostMixV1PlanModifyTPSLPlan(this.extend(request, omitted));
             }
             else {
-                response = await this.privateMixPostPlanModifyPlan(this.extend(request, omitted));
+                response = await this.privateMixPostMixV1PlanModifyPlan(this.extend(request, omitted));
             }
         }
         //
@@ -3681,27 +3959,27 @@ class bitget extends bitget$1 {
                     throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan');
                 }
                 request['planType'] = planType;
-                response = await this.privateMixPostPlanCancelPlan(this.extend(request, params));
+                response = await this.privateMixPostMixV1PlanCancelPlan(this.extend(request, params));
             }
             else {
-                response = await this.privateMixPostOrderCancelOrder(this.extend(request, params));
+                response = await this.privateMixPostMixV1OrderCancelOrder(this.extend(request, params));
             }
         }
         else if (marketType === 'spot') {
             if (marginMode !== undefined) {
                 if (marginMode === 'isolated') {
-                    response = await this.privateMarginPostIsolatedOrderCancelOrder(this.extend(request, params));
+                    response = await this.privateMarginPostMarginV1IsolatedOrderCancelOrder(this.extend(request, params));
                 }
                 else if (marginMode === 'cross') {
-                    response = await this.privateMarginPostCrossOrderCancelOrder(this.extend(request, params));
+                    response = await this.privateMarginPostMarginV1CrossOrderCancelOrder(this.extend(request, params));
                 }
             }
             else {
                 if (stop) {
-                    response = await this.privateSpotPostPlanCancelPlan(this.extend(request, params));
+                    response = await this.privateSpotPostSpotV1PlanCancelPlan(this.extend(request, params));
                 }
                 else {
-                    response = await this.privateSpotPostTradeCancelOrder(this.extend(request, params));
+                    response = await this.privateSpotPostSpotV1TradeCancelOrder(this.extend(request, params));
                 }
             }
         }
@@ -3804,21 +4082,21 @@ class bitget extends bitget$1 {
             request['orderIds'] = ids;
             if (marginMode !== undefined) {
                 if (marginMode === 'cross') {
-                    response = await this.privateMarginPostCrossOrderBatchCancelOrder(this.extend(request, params));
+                    response = await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder(this.extend(request, params));
                 }
                 else {
-                    response = await this.privateMarginPostIsolatedOrderBatchCancelOrder(this.extend(request, params));
+                    response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.extend(request, params));
                 }
             }
             else {
-                response = await this.privateSpotPostTradeCancelBatchOrdersV2(this.extend(request, params));
+                response = await this.privateSpotPostSpotV1TradeCancelBatchOrdersV2(this.extend(request, params));
             }
         }
         else {
             request['symbol'] = market['id'];
             request['marginCoin'] = market['quote'];
             request['orderIds'] = ids;
-            response = await this.privateMixPostOrderCancelBatchOrders(this.extend(request, params));
+            response = await this.privateMixPostMixV1OrderCancelBatchOrders(this.extend(request, params));
         }
         //
         //     spot
@@ -3897,10 +4175,10 @@ class bitget extends bitget$1 {
                 'symbol': market['info']['symbolName'], // regular id like LTCUSDT_SPBL does not work here
             };
             if (marginMode === 'cross') {
-                return await this.privateMarginPostCrossOrderBatchCancelOrder(this.extend(spotMarginRequest, params));
+                return await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder(this.extend(spotMarginRequest, params));
             }
             else {
-                return await this.privateMarginPostIsolatedOrderBatchCancelOrder(this.extend(spotMarginRequest, params));
+                return await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.extend(spotMarginRequest, params));
             }
         }
         const request = {
@@ -3915,10 +4193,10 @@ class bitget extends bitget$1 {
             if (planType === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
             }
-            response = await this.privateMixPostPlanCancelAllPlan(this.extend(request, params));
+            response = await this.privateMixPostMixV1PlanCancelAllPlan(this.extend(request, params));
         }
         else {
-            response = await this.privateMixPostOrderCancelAllOrders(this.extend(request, params));
+            response = await this.privateMixPostMixV1OrderCancelAllOrders(this.extend(request, params));
         }
         //
         //     {
@@ -3961,10 +4239,10 @@ class bitget extends bitget$1 {
         };
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateSpotPostTradeOrderInfo(this.extend(request, query));
+            response = await this.privateSpotPostSpotV1TradeOrderInfo(this.extend(request, query));
         }
         else if ((marketType === 'swap') || (marketType === 'future')) {
-            response = await this.privateMixGetOrderDetail(this.extend(request, query));
+            response = await this.privateMixGetMixV1OrderDetail(this.extend(request, query));
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchOrder() does not support ' + marketType + ' market');
@@ -4067,10 +4345,10 @@ class bitget extends bitget$1 {
                 if (limit !== undefined) {
                     request['pageSize'] = limit;
                 }
-                response = await this.privateSpotPostPlanCurrentPlan(this.extend(request, params));
+                response = await this.privateSpotPostSpotV1PlanCurrentPlan(this.extend(request, params));
             }
             else {
-                response = await this.privateMixGetPlanCurrentPlan(this.extend(request, params));
+                response = await this.privateMixGetMixV1PlanCurrentPlan(this.extend(request, params));
             }
         }
         else {
@@ -4092,14 +4370,14 @@ class bitget extends bitget$1 {
                         request['pageSize'] = limit;
                     }
                     if (marginMode === 'isolated') {
-                        response = await this.privateMarginGetIsolatedOrderOpenOrders(this.extend(request, params));
+                        response = await this.privateMarginGetMarginV1IsolatedOrderOpenOrders(this.extend(request, params));
                     }
                     else if (marginMode === 'cross') {
-                        response = await this.privateMarginGetCrossOrderOpenOrders(this.extend(request, params));
+                        response = await this.privateMarginGetMarginV1CrossOrderOpenOrders(this.extend(request, params));
                     }
                 }
                 else {
-                    response = await this.privateSpotPostTradeOpenOrders(this.extend(request, params));
+                    response = await this.privateSpotPostSpotV1TradeOpenOrders(this.extend(request, params));
                 }
             }
             else {
@@ -4112,11 +4390,11 @@ class bitget extends bitget$1 {
                         productType = 'S' + productType;
                     }
                     request['productType'] = productType;
-                    response = await this.privateMixGetOrderMarginCoinCurrent(this.extend(request, params));
+                    response = await this.privateMixGetMixV1OrderMarginCoinCurrent(this.extend(request, params));
                 }
                 else {
                     this.checkRequiredSymbol('fetchOpenOrders', symbol);
-                    response = await this.privateMixGetOrderCurrent(this.extend(request, params));
+                    response = await this.privateMixGetMixV1OrderCurrent(this.extend(request, params));
                 }
             }
         }
@@ -4387,15 +4665,15 @@ class bitget extends bitget$1 {
         }
         if (stop) {
             if (marketType === 'spot') {
-                response = await this.privateSpotPostPlanHistoryPlan(this.extend(request, params));
+                response = await this.privateSpotPostSpotV1PlanHistoryPlan(this.extend(request, params));
             }
             else {
-                response = await this.privateMixGetPlanHistoryPlan(this.extend(request, params));
+                response = await this.privateMixGetMixV1PlanHistoryPlan(this.extend(request, params));
             }
         }
         else {
             if ((marketType === 'swap') || (marketType === 'future')) {
-                response = await this.privateMixGetOrderHistory(this.extend(request, params));
+                response = await this.privateMixGetMixV1OrderHistory(this.extend(request, params));
             }
             else {
                 if (marginMode !== undefined) {
@@ -4410,10 +4688,10 @@ class bitget extends bitget$1 {
                         request['pageSize'] = limit;
                     }
                     if (marginMode === 'isolated') {
-                        response = await this.privateMarginGetIsolatedOrderHistory(this.extend(request, params));
+                        response = await this.privateMarginGetMarginV1IsolatedOrderHistory(this.extend(request, params));
                     }
                     else if (marginMode === 'cross') {
-                        response = await this.privateMarginGetCrossOrderHistory(this.extend(request, params));
+                        response = await this.privateMarginGetMarginV1CrossOrderHistory(this.extend(request, params));
                     }
                 }
                 else {
@@ -4427,7 +4705,7 @@ class bitget extends bitget$1 {
                         params = this.omit(params, 'endTime');
                         request['before'] = endTime;
                     }
-                    response = await this.privateSpotPostTradeHistory(this.extend(request, params));
+                    response = await this.privateSpotPostSpotV1TradeHistory(this.extend(request, params));
                 }
             }
         }
@@ -4639,7 +4917,7 @@ class bitget extends bitget$1 {
             request['before'] = since;
         }
         [request, params] = this.handleUntilOption('after', request, params);
-        const response = await this.privateSpotPostAccountBills(this.extend(request, params));
+        const response = await this.privateSpotPostSpotV1AccountBills(this.extend(request, params));
         //
         //     {
         //       "code": "00000",
@@ -4722,7 +5000,7 @@ class bitget extends bitget$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {int} [params.until] *swap only* the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
@@ -4760,21 +5038,18 @@ class bitget extends bitget$1 {
                     request['pageSize'] = limit;
                 }
                 if (marginMode === 'isolated') {
-                    response = await this.privateMarginGetIsolatedOrderFills(this.extend(request, params));
+                    response = await this.privateMarginGetMarginV1IsolatedOrderFills(this.extend(request, params));
                 }
                 else if (marginMode === 'cross') {
-                    response = await this.privateMarginGetCrossOrderFills(this.extend(request, params));
+                    response = await this.privateMarginGetMarginV1CrossOrderFills(this.extend(request, params));
                 }
             }
             else {
                 [request, params] = this.handleUntilOption('before', request, params);
-                if (since !== undefined) {
-                    request['after'] = since;
-                }
                 if (limit !== undefined) {
                     request['limit'] = limit;
                 }
-                response = await this.privateSpotPostTradeFills(this.extend(request, params));
+                response = await this.privateSpotPostSpotV1TradeFills(this.extend(request, params));
             }
         }
         else {
@@ -4789,7 +5064,7 @@ class bitget extends bitget$1 {
             if (!('endTime' in request) && (orderId === undefined)) {
                 request['endTime'] = this.milliseconds();
             }
-            response = await this.privateMixGetOrderFills(this.extend(request, params));
+            response = await this.privateMixGetMixV1OrderFills(this.extend(request, params));
         }
         //
         // spot
@@ -4900,10 +5175,10 @@ class bitget extends bitget$1 {
         };
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateSpotPostTradeFills(this.extend(request, query));
+            response = await this.privateSpotPostSpotV1TradeFills(this.extend(request, query));
         }
         else if ((marketType === 'swap') || (marketType === 'future')) {
-            response = await this.privateMixGetOrderFills(this.extend(request, query));
+            response = await this.privateMixGetMixV1OrderFills(this.extend(request, query));
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchOrderTrades() does not support ' + marketType + ' market');
@@ -4950,7 +5225,7 @@ class bitget extends bitget$1 {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         };
-        const response = await this.privateMixGetPositionSinglePositionV2(this.extend(request, params));
+        const response = await this.privateMixGetMixV1PositionSinglePositionV2(this.extend(request, params));
         //
         //     {
         //       "code": "00000",
@@ -4998,7 +5273,7 @@ class bitget extends bitget$1 {
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         await this.loadMarkets();
         const fetchPositionsOptions = this.safeValue(this.options, 'fetchPositions', {});
-        const method = this.safeString(fetchPositionsOptions, 'method', 'privateMixGetPositionAllPositionV2');
+        const method = this.safeString(fetchPositionsOptions, 'method', 'privateMixGetMixV1PositionAllPositionV2');
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString(symbols, 0);
@@ -5013,7 +5288,7 @@ class bitget extends bitget$1 {
         const request = {
             'productType': productType,
         };
-        if (method === 'privateMixGetPositionHistoryPosition') {
+        if (method === 'privateMixGetMixV1PositionHistoryPosition') {
             // endTime and startTime mandatory
             let since = this.safeInteger2(params, 'startTime', 'since');
             if (since === undefined) {
@@ -5028,12 +5303,12 @@ class bitget extends bitget$1 {
         }
         let response = undefined;
         let isHistory = false;
-        if (method === 'privateMixGetPositionAllPositionV2') {
-            response = await this.privateMixGetPositionAllPositionV2(this.extend(request, params));
+        if (method === 'privateMixGetMixV1PositionAllPositionV2') {
+            response = await this.privateMixGetMixV1PositionAllPositionV2(this.extend(request, params));
         }
         else {
             isHistory = true;
-            response = await this.privateMixGetPositionHistoryPosition(this.extend(request, params));
+            response = await this.privateMixGetMixV1PositionHistoryPosition(this.extend(request, params));
         }
         //
         //     {
@@ -5276,7 +5551,7 @@ class bitget extends bitget$1 {
             request['pageSize'] = limit;
         }
         request['nextPage'] = true;
-        const response = await this.publicMixGetMarketHistoryFundRate(this.extend(request, params));
+        const response = await this.publicMixGetMixV1MarketHistoryFundRate(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -5327,7 +5602,7 @@ class bitget extends bitget$1 {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicMixGetMarketCurrentFundRate(this.extend(request, params));
+        const response = await this.publicMixGetMixV1MarketCurrentFundRate(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -5401,7 +5676,7 @@ class bitget extends bitget$1 {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateMixGetAccountAccountBill(this.extend(request, params));
+        const response = await this.privateMixGetMixV1AccountAccountBill(this.extend(request, params));
         //
         //    {
         //        "code": "00000",
@@ -5485,7 +5760,7 @@ class bitget extends bitget$1 {
             'holdSide': holdSide, // long or short
         };
         params = this.omit(params, 'holdSide');
-        const response = await this.privateMixPostAccountSetMargin(this.extend(request, params));
+        const response = await this.privateMixPostMixV1AccountSetMargin(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -5567,7 +5842,7 @@ class bitget extends bitget$1 {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         };
-        const response = await this.privateMixGetAccountAccount(this.extend(request, params));
+        const response = await this.privateMixGetMixV1AccountAccount(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -5616,7 +5891,7 @@ class bitget extends bitget$1 {
             'leverage': leverage,
             // 'holdSide': 'long',
         };
-        return await this.privateMixPostAccountSetLeverage(this.extend(request, params));
+        return await this.privateMixPostMixV1AccountSetLeverage(this.extend(request, params));
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         /**
@@ -5647,7 +5922,7 @@ class bitget extends bitget$1 {
             'marginCoin': market['settleId'],
             'marginMode': marginMode,
         };
-        return await this.privateMixPostAccountSetMarginMode(this.extend(request, params));
+        return await this.privateMixPostMixV1AccountSetMarginMode(this.extend(request, params));
     }
     async setPositionMode(hedged, symbol = undefined, params = {}) {
         /**
@@ -5678,7 +5953,7 @@ class bitget extends bitget$1 {
             productType = 'S' + productType;
         }
         request['productType'] = productType;
-        const response = await this.privateMixPostAccountSetPositionMode(this.extend(request, params));
+        const response = await this.privateMixPostMixV1AccountSetPositionMode(this.extend(request, params));
         //
         //    {
         //         "code": "40919",
@@ -5707,7 +5982,7 @@ class bitget extends bitget$1 {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicMixGetMarketOpenInterest(this.extend(request, params));
+        const response = await this.publicMixGetMixV1MarketOpenInterest(this.extend(request, params));
         //
         //     {
         //         "code": "00000",
@@ -5764,7 +6039,7 @@ class bitget extends bitget$1 {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('after', request, params);
-        const response = await this.privateSpotGetAccountTransferRecords(this.extend(request, params));
+        const response = await this.privateSpotGetSpotV1AccountTransferRecords(this.extend(request, params));
         //
         //     {
         //         "code":"00000",
@@ -5818,7 +6093,7 @@ class bitget extends bitget$1 {
             'amount': amount,
             'coin': currency['info']['coinName'],
         };
-        const response = await this.privateSpotPostWalletTransferV2(this.extend(request, params));
+        const response = await this.privateSpotPostSpotV1WalletTransferV2(this.extend(request, params));
         //
         //    {
         //        "code": "00000",
@@ -5957,7 +6232,7 @@ class bitget extends bitget$1 {
          * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets();
-        const response = await this.publicSpotGetPublicCurrencies(params);
+        const response = await this.publicSpotGetSpotV1PublicCurrencies(params);
         const data = this.safeValue(response, 'data');
         return this.parseDepositWithdrawFees(data, codes, 'coinName');
     }
@@ -6019,10 +6294,10 @@ class bitget extends bitget$1 {
             const parts = marketId.split('_');
             const marginMarketId = this.safeStringUpper(parts, 0);
             request['symbol'] = marginMarketId;
-            response = await this.privateMarginPostIsolatedAccountBorrow(this.extend(request, params));
+            response = await this.privateMarginPostMarginV1IsolatedAccountBorrow(this.extend(request, params));
         }
         else {
-            response = await this.privateMarginPostCrossAccountBorrow(this.extend(request, params));
+            response = await this.privateMarginPostMarginV1CrossAccountBorrow(this.extend(request, params));
         }
         //
         // isolated
@@ -6085,10 +6360,10 @@ class bitget extends bitget$1 {
             const parts = marketId.split('_');
             const marginMarketId = this.safeStringUpper(parts, 0);
             request['symbol'] = marginMarketId;
-            response = await this.privateMarginPostIsolatedAccountRepay(this.extend(request, params));
+            response = await this.privateMarginPostMarginV1IsolatedAccountRepay(this.extend(request, params));
         }
         else {
-            response = await this.privateMarginPostCrossAccountRepay(this.extend(request, params));
+            response = await this.privateMarginPostMarginV1CrossAccountRepay(this.extend(request, params));
         }
         //
         // isolated
@@ -6219,10 +6494,10 @@ class bitget extends bitget$1 {
         if (marginMode === 'isolated') {
             this.checkRequiredSymbol('fetchMyLiquidations', symbol);
             request['symbol'] = market['info']['symbolName'];
-            response = await this.privateMarginGetIsolatedLiquidationList(this.extend(request, params));
+            response = await this.privateMarginGetMarginV1IsolatedLiquidationList(this.extend(request, params));
         }
         else if (marginMode === 'cross') {
-            response = await this.privateMarginGetCrossLiquidationList(this.extend(request, params));
+            response = await this.privateMarginGetMarginV1CrossLiquidationList(this.extend(request, params));
         }
         //
         // isolated
@@ -6351,11 +6626,11 @@ class bitget extends bitget$1 {
         if ((symbol !== undefined) || (marginMode === 'isolated')) {
             this.checkRequiredSymbol('fetchBorrowRate', symbol);
             request['symbol'] = market['info']['symbolName'];
-            response = await this.publicMarginGetIsolatedPublicInterestRateAndLimit(this.extend(request, params));
+            response = await this.publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(this.extend(request, params));
         }
         else if (marginMode === 'cross') {
             request['coin'] = currency['code'];
-            response = await this.publicMarginGetCrossPublicInterestRateAndLimit(this.extend(request, params));
+            response = await this.publicMarginGetMarginV1CrossPublicInterestRateAndLimit(this.extend(request, params));
         }
         //
         // isolated
@@ -6559,10 +6834,10 @@ class bitget extends bitget$1 {
         if (marginMode === 'isolated') {
             this.checkRequiredSymbol('fetchBorrowInterest', symbol);
             request['symbol'] = market['info']['symbolName'];
-            response = await this.privateMarginGetIsolatedInterestList(this.extend(request, params));
+            response = await this.privateMarginGetMarginV1IsolatedInterestList(this.extend(request, params));
         }
         else if (marginMode === 'cross') {
-            response = await this.privateMarginGetCrossInterestList(this.extend(request, params));
+            response = await this.privateMarginGetMarginV1CrossInterestList(this.extend(request, params));
         }
         //
         // isolated
@@ -6708,25 +6983,7 @@ class bitget extends bitget$1 {
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
-        let pathPart = '';
-        if (endpoint === 'spot') {
-            pathPart = '/api/spot/v1';
-        }
-        else if (endpoint === 'mix') {
-            pathPart = '/api/mix/v1';
-        }
-        else if (endpoint === 'user') {
-            pathPart = '/api/user/v1';
-        }
-        else if (endpoint === 'broker') {
-            pathPart = '/api/broker/v1';
-        }
-        else if (endpoint === 'margin') {
-            pathPart = '/api/margin/v1';
-        }
-        else {
-            pathPart = '/api/p2p/v1';
-        }
+        const pathPart = '/api';
         const request = '/' + this.implodeParams(path, params);
         const payload = pathPart + request;
         let url = this.implodeHostname(this.urls['api'][endpoint]) + payload;

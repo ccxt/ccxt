@@ -241,7 +241,7 @@ class probit extends Exchange {
          * @see https://docs-en.probit.com/reference/market
          * retrieves data on all $markets for probit
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetMarket ($params);
         //
@@ -269,73 +269,71 @@ class probit extends Exchange {
         //     }
         //
         $markets = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'id');
-            $baseId = $this->safe_string($market, 'base_currency_id');
-            $quoteId = $this->safe_string($market, 'quote_currency_id');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $closed = $this->safe_value($market, 'closed', false);
-            $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
-            $taker = Precise::string_div($takerFeeRate, '100');
-            $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
-            $maker = Precise::string_div($makerFeeRate, '100');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => !$closed,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $this->parse_number($taker),
-                'maker' => $this->parse_number($maker),
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_precision'))),
-                    'price' => $this->safe_number($market, 'price_increment'),
-                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'cost_precision'))),
+        return $this->parse_markets($markets);
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'id');
+        $baseId = $this->safe_string($market, 'base_currency_id');
+        $quoteId = $this->safe_string($market, 'quote_currency_id');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $closed = $this->safe_value($market, 'closed', false);
+        $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
+        $taker = Precise::string_div($takerFeeRate, '100');
+        $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
+        $maker = Precise::string_div($makerFeeRate, '100');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => !$closed,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'taker' => $this->parse_number($taker),
+            'maker' => $this->parse_number($maker),
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_precision'))),
+                'price' => $this->safe_number($market, 'price_increment'),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'min_quantity'),
-                        'max' => $this->safe_number($market, 'max_quantity'),
-                    ),
-                    'price' => array(
-                        'min' => $this->safe_number($market, 'min_price'),
-                        'max' => $this->safe_number($market, 'max_price'),
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'min_cost'),
-                        'max' => $this->safe_number($market, 'max_cost'),
-                    ),
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'min_quantity'),
+                    'max' => $this->safe_number($market, 'max_quantity'),
                 ),
-                'created' => null,
-                'info' => $market,
-            );
-        }
-        return $result;
+                'price' => array(
+                    'min' => $this->safe_number($market, 'min_price'),
+                    'max' => $this->safe_number($market, 'max_price'),
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'min_cost'),
+                    'max' => $this->safe_number($market, 'max_cost'),
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function fetch_currencies($params = array ()) {
@@ -574,7 +572,7 @@ class probit extends Exchange {
         return $this->parse_order_book($dataBySide, $market['symbol'], null, 'buy', 'sell', 'price', 'quantity');
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/ticker
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -647,7 +645,7 @@ class probit extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "last":"0.022902",
@@ -795,7 +793,7 @@ class probit extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -979,7 +977,7 @@ class probit extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1094,7 +1092,7 @@ class probit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         $id,
@@ -1275,7 +1273,7 @@ class probit extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'destination_tag');
         $currencyId = $this->safe_string($depositAddress, 'currency_id');
@@ -1511,7 +1509,7 @@ class probit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "id" => "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1569,6 +1567,8 @@ class probit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'updated' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => $fee,
             'info' => $transaction,
         );
@@ -1657,7 +1657,7 @@ class probit extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'id');
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         // {
         //     "id" => "USDT",

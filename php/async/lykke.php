@@ -352,7 +352,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -475,7 +475,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -555,7 +555,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         //  public fetchTrades
         //
@@ -721,7 +721,7 @@ class lykke extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -1131,7 +1131,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
@@ -1186,6 +1186,8 @@ class lykke extends Exchange {
             'currency' => $code,
             'status' => null,
             'updated' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => $fee,
         );
     }

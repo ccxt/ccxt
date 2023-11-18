@@ -3,9 +3,9 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Trade } from '../base/types';
+import { Str, Trade } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError } from '../base/errors.js';
 
@@ -111,7 +111,7 @@ export default class hitbtc extends hitbtcRest {
         return future;
     }
 
-    async subscribePublic (name: string, symbols: string[] = undefined, params = {}) {
+    async subscribePublic (name: string, symbols: Strings = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -134,7 +134,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async subscribePrivate (name: string, symbol: string = undefined, params = {}) {
+    async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -471,7 +471,7 @@ export default class hitbtc extends hitbtcRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -706,7 +706,7 @@ export default class hitbtc extends hitbtcRest {
         ];
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOrders
@@ -909,7 +909,7 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const timestamp = this.safeString (order, 'created_at');
-        const marketId = this.safeSymbol (order, 'symbol');
+        const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'trade_id');
         let trades = undefined;

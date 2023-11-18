@@ -71,6 +71,7 @@ class binance extends binance$1 {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
@@ -152,6 +153,7 @@ class binance extends binance$1 {
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivateV2': 'https://testnet.binancefuture.com/dapi/v2',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
+                    'fapiPublicV2': 'https://testnet.binancefuture.com/fapi/v2',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
                     'public': 'https://testnet.binance.vision/api/v3',
@@ -170,6 +172,7 @@ class binance extends binance$1 {
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
+                    'fapiPublicV2': 'https://fapi.binance.com/fapi/v2',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'fapiData': 'https://fapi.binance.com/futures/data',
                     'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
@@ -787,6 +790,11 @@ class binance extends binance$1 {
                         'listenKey': 1,
                     },
                 },
+                'fapiPublicV2': {
+                    'get': {
+                        'ticker/price': 0,
+                    },
+                },
                 'fapiPrivateV2': {
                     'get': {
                         'account': 1,
@@ -960,7 +968,9 @@ class binance extends binance$1 {
                     },
                     'post': {
                         'um/order': 1,
+                        'um/conditional/order': 1,
                         'cm/order': 1,
+                        'cm/conditional/order': 1,
                         'margin/order': 0.0133,
                         'marginLoan': 0.1333,
                         'repayLoan': 0.1333,
@@ -981,9 +991,13 @@ class binance extends binance$1 {
                     },
                     'delete': {
                         'um/order': 1,
+                        'um/conditional/order': 1,
                         'um/allOpenOrders': 1,
+                        'um/conditional/allOpenOrders': 1,
                         'cm/order': 1,
+                        'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1,
+                        'cm/conditional/allOpenOrders': 1,
                         'margin/order': 1,
                         'margin/allOpenOrders': 5,
                         'margin/orderList': 2,
@@ -3123,7 +3137,7 @@ class binance extends binance$1 {
         [type, params] = this.handleMarketTypeAndParams('fetchLastPrices', market, params);
         let response = undefined;
         if (this.isLinear(type, subType)) {
-            response = await this.fapiPublicGetTickerPrice(params);
+            response = await this.fapiPublicV2GetTickerPrice(params);
             //
             //     [
             //         {
@@ -5954,6 +5968,7 @@ class binance extends binance$1 {
             'status': status,
             'updated': updated,
             'internal': internal,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -7146,7 +7161,7 @@ class binance extends binance$1 {
         const initialMarginString = this.safeString(position, 'initialMargin');
         const initialMargin = this.parseNumber(initialMarginString);
         let initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
-        const rational = (1000 % leverage) === 0;
+        const rational = this.isRoundNumber(1000 % leverage);
         if (!rational) {
             initialMarginPercentageString = Precise["default"].stringDiv(Precise["default"].stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
         }
@@ -7432,7 +7447,7 @@ class binance extends binance$1 {
         const maintenanceMarginString = Precise["default"].stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
         let initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
-        const rational = (1000 % leverage) === 0;
+        const rational = this.isRoundNumber(1000 % leverage);
         if (!rational) {
             initialMarginPercentageString = Precise["default"].stringAdd(initialMarginPercentageString, '1e-8');
         }
@@ -8899,9 +8914,9 @@ class binance extends binance$1 {
         //    }
         //
         const timestamp = this.safeNumber(info, 'timestamp');
-        currency = this.safeString(info, 'asset');
+        const currencyId = this.safeString(info, 'asset');
         return {
-            'currency': this.safeCurrencyCode(currency),
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'rate': this.safeNumber(info, 'dailyInterestRate'),
             'period': 86400000,
             'timestamp': timestamp,
@@ -9537,6 +9552,81 @@ class binance extends binance$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         });
+    }
+    async fetchGreeks(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object} a [greeks structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.eapiPublicGetMark(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-231229-40000-C",
+        //             "markPrice": "2012",
+        //             "bidIV": "0.60236275",
+        //             "askIV": "0.62267244",
+        //             "markIV": "0.6125176",
+        //             "delta": "0.39111646",
+        //             "theta": "-32.13948531",
+        //             "gamma": "0.00004656",
+        //             "vega": "51.70062218",
+        //             "highPriceLimit": "6474",
+        //             "lowPriceLimit": "5"
+        //         }
+        //     ]
+        //
+        return this.parseGreeks(response[0], market);
+    }
+    parseGreeks(greeks, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-231229-40000-C",
+        //         "markPrice": "2012",
+        //         "bidIV": "0.60236275",
+        //         "askIV": "0.62267244",
+        //         "markIV": "0.6125176",
+        //         "delta": "0.39111646",
+        //         "theta": "-32.13948531",
+        //         "gamma": "0.00004656",
+        //         "vega": "51.70062218",
+        //         "highPriceLimit": "6474",
+        //         "lowPriceLimit": "5"
+        //     }
+        //
+        const marketId = this.safeString(greeks, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        return {
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'delta': this.safeNumber(greeks, 'delta'),
+            'gamma': this.safeNumber(greeks, 'gamma'),
+            'theta': this.safeNumber(greeks, 'theta'),
+            'vega': this.safeNumber(greeks, 'vega'),
+            'rho': undefined,
+            'bidSize': undefined,
+            'askSize': undefined,
+            'bidImpliedVolatility': this.safeNumber(greeks, 'bidIV'),
+            'askImpliedVolatility': this.safeNumber(greeks, 'askIV'),
+            'markImpliedVolatility': this.safeNumber(greeks, 'markIV'),
+            'bidPrice': undefined,
+            'askPrice': undefined,
+            'markPrice': this.safeNumber(greeks, 'markPrice'),
+            'lastPrice': undefined,
+            'underlyingPrice': undefined,
+            'info': greeks,
+        };
     }
 }
 

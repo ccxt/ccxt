@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -77,6 +76,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,  # emulated in exchange
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchMarketLeverageTiers': True,
@@ -327,6 +327,7 @@ class bybit(Exchange, ImplicitAPI):
                         # user
                         'v5/user/query-sub-members': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/user/sub-apikeys': 5,
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
@@ -451,6 +452,7 @@ class bybit(Exchange, ImplicitAPI):
                         # account
                         'v5/account/upgrade-to-uta': 5,
                         'v5/account/set-margin-mode': 5,
+                        'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
                         # asset
@@ -458,7 +460,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/transfer/save-transfer-sub-member': 150,  # 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account': 5,
-                        'v5/asset/withdraw/create': 300,  # 1/6/s => cost = 50 / 1/6 = 300
+                        'v5/asset/withdraw/create': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel': 50,  # 1/s => cost = 50 / 1 = 50
                         # user
                         'v5/user/create-sub-member': 10,  # 5/s => cost = 50 / 5 = 10
@@ -1831,7 +1833,7 @@ class bybit(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # spot
         #
@@ -2017,7 +2019,7 @@ class bybit(Exchange, ImplicitAPI):
         rawTicker = self.safe_value(tickers, 0)
         return self.parse_ticker(rawTicker, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://bybit-exchange.github.io/docs/v5/market/tickers
@@ -2103,7 +2105,7 @@ class bybit(Exchange, ImplicitAPI):
                 tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         "1621162800",
@@ -2125,7 +2127,7 @@ class bybit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://bybit-exchange.github.io/docs/v5/market/kline
@@ -2223,7 +2225,7 @@ class bybit(Exchange, ImplicitAPI):
         ohlcvs = self.safe_value(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_funding_rate(self, ticker, market=None):
+    def parse_funding_rate(self, ticker, market: Market = None):
         #     {
         #         "symbol": "BTCUSDT",
         #         "bidPrice": "19255",
@@ -2276,7 +2278,7 @@ class bybit(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}):
         """
         fetches funding rates for multiple markets
         :see: https://bybit-exchange.github.io/docs/v5/market/tickers
@@ -2350,7 +2352,7 @@ class bybit(Exchange, ImplicitAPI):
             fundingRates[symbol] = ticker
         return self.filter_by_array(fundingRates, 'symbol', symbols)
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
         :see: https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
@@ -2432,7 +2434,7 @@ class bybit(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public https://bybit-exchange.github.io/docs/v5/market/recent-trade
         #
@@ -2601,7 +2603,7 @@ class bybit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://bybit-exchange.github.io/docs/v5/market/recent-trade
@@ -2655,7 +2657,7 @@ class bybit(Exchange, ImplicitAPI):
         trades = self.safe_value(result, 'list', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bybit-exchange.github.io/docs/v5/market/orderbook
@@ -3047,7 +3049,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # v1 for usdc normal account
         #     {
@@ -3244,7 +3246,7 @@ class bybit(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
@@ -3413,7 +3415,7 @@ class bybit(Exchange, ImplicitAPI):
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
-        elif isStopLoss or isTakeProfit:
+        if isStopLoss or isTakeProfit:
             if isStopLoss:
                 slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
                 request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
@@ -3787,7 +3789,7 @@ class bybit(Exchange, ImplicitAPI):
             'id': self.safe_string(result, 'orderId'),
         })
 
-    def cancel_usdc_order(self, id, symbol: Optional[str] = None, params={}):
+    def cancel_usdc_order(self, id, symbol: Str = None, params={}):
         self.check_required_symbol('cancelUsdcOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
@@ -3822,7 +3824,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://bybit-exchange.github.io/docs/v5/order/cancel-order
@@ -3879,7 +3881,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order(result, market)
 
-    def cancel_all_usdc_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_usdc_orders(self, symbol: Str = None, params={}):
         self.check_required_symbol('cancelAllUsdcOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
@@ -3919,7 +3921,7 @@ class bybit(Exchange, ImplicitAPI):
             return response
         return self.parse_orders(result, market)
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :see: https://bybit-exchange.github.io/docs/v5/order/cancel-all
@@ -3992,7 +3994,7 @@ class bybit(Exchange, ImplicitAPI):
             return response
         return self.parse_orders(orders, market)
 
-    def fetch_usdc_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_usdc_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         market = None
         request = {
@@ -4074,7 +4076,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'dataList', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
@@ -4125,9 +4127,6 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, ['endTime', 'till', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
-        else:
-            if since is not None:
-                raise BadRequest(self.id + ' fetchOrders() requires until/endTime when since is provided.')
         response = self.privateGetV5OrderHistory(self.extend(request, params))
         #
         #     {
@@ -4182,7 +4181,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
@@ -4198,7 +4197,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
@@ -4217,7 +4216,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_usdc_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_usdc_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -4258,7 +4257,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://bybit-exchange.github.io/docs/v5/order/open-order
@@ -4358,7 +4357,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://bybit-exchange.github.io/docs/v5/position/execution
@@ -4379,7 +4378,7 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientOrderId', 'orderLinkId'])
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def fetch_my_usdc_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_usdc_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         market = None
         request = {}
@@ -4422,7 +4421,7 @@ class bybit(Exchange, ImplicitAPI):
         dataList = self.safe_value(result, 'dataList', [])
         return self.parse_trades(dataList, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://bybit-exchange.github.io/docs/v5/position/execution
@@ -4471,9 +4470,6 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, ['endTime', 'till', 'until'])
         if endTime is not None:
             request['endTime'] = endTime
-        else:
-            if since is not None:
-                raise BadRequest(self.id + ' fetchOrders() requires until/endTime when since is provided.')
         response = self.privateGetV5ExecutionList(self.extend(request, params))
         #
         #     {
@@ -4518,7 +4514,7 @@ class bybit(Exchange, ImplicitAPI):
         trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
         #         "chainType": "ERC20",
@@ -4626,7 +4622,7 @@ class bybit(Exchange, ImplicitAPI):
         addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
         return self.parse_deposit_address(addressObject, currency)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://bybit-exchange.github.io/docs/v5/asset/deposit-record
@@ -4691,7 +4687,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
@@ -4786,7 +4782,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchWithdrawals
         #
@@ -4860,9 +4856,11 @@ class bybit(Exchange, ImplicitAPI):
             'status': status,
             'updated': updated,
             'fee': fee,
+            'internal': None,
+            'comment': None,
         }
 
-    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://bybit-exchange.github.io/docs/v5/account/transaction-log
@@ -5018,7 +5016,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_ledger(data, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #     {
         #         "id": 234467,
@@ -5230,7 +5228,7 @@ class bybit(Exchange, ImplicitAPI):
         position['datetime'] = self.iso8601(timestamp)
         return position
 
-    def fetch_usdc_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_usdc_positions(self, symbols: Strings = None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -5300,7 +5298,7 @@ class bybit(Exchange, ImplicitAPI):
             results.append(self.parse_position(rawPosition, market))
         return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
         :see: https://bybit-exchange.github.io/docs/v5/position
@@ -5397,7 +5395,7 @@ class bybit(Exchange, ImplicitAPI):
             results.append(self.parse_position(rawPosition))
         return self.filter_by_array_positions(results, 'symbol', symbols, False)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         # linear swap
         #
@@ -5595,7 +5593,7 @@ class bybit(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_number_2(position, 'take_profit', 'takeProfit'),
         })
 
-    def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+    def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
         """
         set margin mode(account) or trade mode(symbol)
         :see: https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
@@ -5677,7 +5675,7 @@ class bybit(Exchange, ImplicitAPI):
                 response = self.privatePostV5PositionSwitchIsolated(self.extend(request, params))
         return response
 
-    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://bybit-exchange.github.io/docs/v5/position/leverage
@@ -5720,7 +5718,7 @@ class bybit(Exchange, ImplicitAPI):
             response = self.privatePostV5PositionSetLeverage(self.extend(request, params))
         return response
 
-    def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
+    def set_position_mode(self, hedged, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://bybit-exchange.github.io/docs/v5/position/position-mode
@@ -5764,7 +5762,7 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         return response
 
-    def fetch_derivatives_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_derivatives_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         subType = 'linear' if market['linear'] else 'inverse'
@@ -5872,7 +5870,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_open_interest(data[0], market)
 
-    def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
         """
         Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
         :see: https://bybit-exchange.github.io/docs/v5/market/open-interest
@@ -5900,7 +5898,7 @@ class bybit(Exchange, ImplicitAPI):
             request['limit'] = limit
         return self.fetch_derivatives_open_interest_history(symbol, timeframe, since, limit, params)
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         #
         #    {
         #        "openInterest": 64757.62400000,
@@ -5949,7 +5947,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'result', {})
         return self.parse_borrow_rate(data, currency)
 
-    def parse_borrow_rate(self, info, currency=None):
+    def parse_borrow_rate(self, info, currency: Currency = None):
         #
         #     {
         #         "coin": "USDT",
@@ -5969,7 +5967,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
@@ -6013,7 +6011,7 @@ class bybit(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, None)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market=None):
+    def parse_borrow_interest(self, info, market: Market = None):
         #
         #     {
         #         "tokenId": "BTC",
@@ -6087,7 +6085,7 @@ class bybit(Exchange, ImplicitAPI):
             'status': status,
         })
 
-    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :see: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
@@ -6140,7 +6138,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_transfers(data, currency, since, limit)
 
-    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         create a loan to borrow margin
         :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
@@ -6178,7 +6176,7 @@ class bybit(Exchange, ImplicitAPI):
             'amount': amount,
         })
 
-    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
@@ -6216,7 +6214,7 @@ class bybit(Exchange, ImplicitAPI):
             'amount': amount,
         })
 
-    def parse_margin_loan(self, info, currency=None):
+    def parse_margin_loan(self, info, currency: Currency = None):
         #
         # borrowMargin
         #
@@ -6248,7 +6246,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # transfer
         #
@@ -6342,7 +6340,7 @@ class bybit(Exchange, ImplicitAPI):
         request['symbol'] = market['id']
         return self.fetch_derivatives_market_leverage_tiers(symbol, params)
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         #
         #     {
         #         "id": 1,
@@ -6371,7 +6369,7 @@ class bybit(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -6466,7 +6464,7 @@ class bybit(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #    {
         #        "name": "BTC",
@@ -6516,7 +6514,7 @@ class bybit(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
@@ -6561,7 +6559,7 @@ class bybit(Exchange, ImplicitAPI):
         rows = self.safe_value(data, 'rows', [])
         return self.parse_deposit_withdraw_fees(rows, codes, 'coin')
 
-    def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
         :see: https://bybit-exchange.github.io/docs/v5/market/delivery-price
@@ -6612,7 +6610,7 @@ class bybit(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def fetch_my_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records of the user
         :see: https://bybit-exchange.github.io/docs/v5/asset/delivery
@@ -6785,6 +6783,124 @@ class bybit(Exchange, ImplicitAPI):
                 'volatility': self.safe_number(entry, 'value'),
             })
         return result
+
+    def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+        :see: https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the bybit api endpoint
+        :returns dict: a `greeks structure <https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'category': 'option',
+        }
+        response = self.publicGetV5MarketTickers(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "SUCCESS",
+        #         "result": {
+        #             "category": "option",
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTC-26JAN24-39000-C",
+        #                     "bid1Price": "3205",
+        #                     "bid1Size": "7.1",
+        #                     "bid1Iv": "0.5478",
+        #                     "ask1Price": "3315",
+        #                     "ask1Size": "1.98",
+        #                     "ask1Iv": "0.5638",
+        #                     "lastPrice": "3230",
+        #                     "highPrice24h": "3255",
+        #                     "lowPrice24h": "3200",
+        #                     "markPrice": "3273.02263032",
+        #                     "indexPrice": "36790.96",
+        #                     "markIv": "0.5577",
+        #                     "underlyingPrice": "37649.67254894",
+        #                     "openInterest": "19.67",
+        #                     "turnover24h": "170140.33875912",
+        #                     "volume24h": "4.56",
+        #                     "totalVolume": "22",
+        #                     "totalTurnover": "789305",
+        #                     "delta": "0.49640971",
+        #                     "gamma": "0.00004131",
+        #                     "vega": "69.08651675",
+        #                     "theta": "-24.9443226",
+        #                     "predictedDeliveryPrice": "0",
+        #                     "change24h": "0.18532111"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1699584008326
+        #     }
+        #
+        timestamp = self.safe_integer(response, 'time')
+        result = self.safe_value(response, 'result', {})
+        data = self.safe_value(result, 'list', [])
+        greeks = self.parse_greeks(data[0], market)
+        return self.extend(greeks, {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
+
+    def parse_greeks(self, greeks, market: Market = None):
+        #
+        #     {
+        #         "symbol": "BTC-26JAN24-39000-C",
+        #         "bid1Price": "3205",
+        #         "bid1Size": "7.1",
+        #         "bid1Iv": "0.5478",
+        #         "ask1Price": "3315",
+        #         "ask1Size": "1.98",
+        #         "ask1Iv": "0.5638",
+        #         "lastPrice": "3230",
+        #         "highPrice24h": "3255",
+        #         "lowPrice24h": "3200",
+        #         "markPrice": "3273.02263032",
+        #         "indexPrice": "36790.96",
+        #         "markIv": "0.5577",
+        #         "underlyingPrice": "37649.67254894",
+        #         "openInterest": "19.67",
+        #         "turnover24h": "170140.33875912",
+        #         "volume24h": "4.56",
+        #         "totalVolume": "22",
+        #         "totalTurnover": "789305",
+        #         "delta": "0.49640971",
+        #         "gamma": "0.00004131",
+        #         "vega": "69.08651675",
+        #         "theta": "-24.9443226",
+        #         "predictedDeliveryPrice": "0",
+        #         "change24h": "0.18532111"
+        #     }
+        #
+        marketId = self.safe_string(greeks, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'delta': self.safe_number(greeks, 'delta'),
+            'gamma': self.safe_number(greeks, 'gamma'),
+            'theta': self.safe_number(greeks, 'theta'),
+            'vega': self.safe_number(greeks, 'vega'),
+            'rho': None,
+            'bidSize': self.safe_number(greeks, 'bid1Size'),
+            'askSize': self.safe_number(greeks, 'ask1Size'),
+            'bidImpliedVolatility': self.safe_number(greeks, 'bid1Iv'),
+            'askImpliedVolatility': self.safe_number(greeks, 'ask1Iv'),
+            'markImpliedVolatility': self.safe_number(greeks, 'markIv'),
+            'bidPrice': self.safe_number(greeks, 'bid1Price'),
+            'askPrice': self.safe_number(greeks, 'ask1Price'),
+            'markPrice': self.safe_number(greeks, 'markPrice'),
+            'lastPrice': self.safe_number(greeks, 'lastPrice'),
+            'underlyingPrice': self.safe_number(greeks, 'underlyingPrice'),
+            'info': greeks,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path

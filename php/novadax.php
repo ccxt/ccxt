@@ -217,7 +217,7 @@ class novadax extends Exchange {
          * retrieves $data on all markets for novadax
          * @see https://doc.novadax.com/en-US/#get-all-supported-trading-symbol
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market $data
+         * @return {array[]} an array of objects representing market $data
          */
         $response = $this->publicGetCommonSymbols ($params);
         //
@@ -239,71 +239,70 @@ class novadax extends Exchange {
         //         "message":"Success"
         //     }
         //
-        $result = array();
         $data = $this->safe_value($response, 'data', array());
-        for ($i = 0; $i < count($data); $i++) {
-            $market = $data[$i];
-            $baseId = $this->safe_string($market, 'baseCurrency');
-            $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $id = $this->safe_string($market, 'symbol');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $status = $this->safe_string($market, 'status');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => ($status === 'ONLINE'),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountPrecision'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
-                    'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'valuePrecision'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'minOrderAmount'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'minOrderValue'),
-                        'max' => null,
-                    ),
-                ),
-                'created' => null,
-                'info' => $market,
-            );
-        }
-        return $result;
+        return $this->parse_markets($data);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_market($market): array {
+        $baseId = $this->safe_string($market, 'baseCurrency');
+        $quoteId = $this->safe_string($market, 'quoteCurrency');
+        $id = $this->safe_string($market, 'symbol');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $status = $this->safe_string($market, 'status');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'ONLINE'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amountPrecision'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'pricePrecision'))),
+                // 'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'valuePrecision'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'minOrderAmount'),
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'minOrderValue'),
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
+    }
+
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -387,7 +386,7 @@ class novadax extends Exchange {
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://doc.novadax.com/en-US/#get-latest-tickers-for-all-trading-pairs
@@ -470,7 +469,7 @@ class novadax extends Exchange {
         return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks');
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -637,7 +636,7 @@ class novadax extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "amount" => 8.25709100,
@@ -1016,7 +1015,7 @@ class novadax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, fetchOrders, fetchOrder
         //
@@ -1135,7 +1134,7 @@ class novadax extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //    {
         //        "code":"A10000",
@@ -1338,7 +1337,7 @@ class novadax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1400,6 +1399,7 @@ class novadax extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => null,
                 'cost' => null,

@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -639,78 +638,74 @@ class bitrue(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
         markets = self.safe_value(response, 'symbols', [])
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'symbol')
-            lowercaseId = self.safe_string_lower(market, 'symbol')
-            baseId = self.safe_string(market, 'baseAsset')
-            quoteId = self.safe_string(market, 'quoteAsset')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            filters = self.safe_value(market, 'filters', [])
-            filtersByType = self.index_by(filters, 'filterType')
-            status = self.safe_string(market, 'status')
-            priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-            amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-            defaultPricePrecision = self.safe_string(market, 'pricePrecision')
-            defaultAmountPrecision = self.safe_string(market, 'quantityPrecision')
-            pricePrecision = self.safe_string(priceFilter, 'priceScale', defaultPricePrecision)
-            amountPrecision = self.safe_string(amountFilter, 'volumeScale', defaultAmountPrecision)
-            entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (status == 'TRADING'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(amountPrecision)),
-                    'price': self.parse_number(self.parse_precision(pricePrecision)),
-                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
-                    'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+        return self.parse_markets(markets)
+
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'symbol')
+        lowercaseId = self.safe_string_lower(market, 'symbol')
+        baseId = self.safe_string(market, 'baseAsset')
+        quoteId = self.safe_string(market, 'quoteAsset')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        filters = self.safe_value(market, 'filters', [])
+        filtersByType = self.index_by(filters, 'filterType')
+        status = self.safe_string(market, 'status')
+        priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+        amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
+        defaultPricePrecision = self.safe_string(market, 'pricePrecision')
+        defaultAmountPrecision = self.safe_string(market, 'quantityPrecision')
+        pricePrecision = self.safe_string(priceFilter, 'priceScale', defaultPricePrecision)
+        amountPrecision = self.safe_string(amountFilter, 'volumeScale', defaultAmountPrecision)
+        return {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (status == 'TRADING'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(amountPrecision)),
+                'price': self.parse_number(self.parse_precision(pricePrecision)),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(amountFilter, 'minQty'),
-                        'max': self.safe_number(amountFilter, 'maxQty'),
-                    },
-                    'price': {
-                        'min': self.safe_number(priceFilter, 'minPrice'),
-                        'max': self.safe_number(priceFilter, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': self.safe_number(amountFilter, 'minVal'),
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.safe_number(amountFilter, 'minQty'),
+                    'max': self.safe_number(amountFilter, 'maxQty'),
                 },
-                'created': None,
-                'info': market,
-            }
-            result.append(entry)
-        return result
+                'price': {
+                    'min': self.safe_number(priceFilter, 'minPrice'),
+                    'max': self.safe_number(priceFilter, 'maxPrice'),
+                },
+                'cost': {
+                    'min': self.safe_number(amountFilter, 'minVal'),
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     def parse_balance(self, response) -> Balances:
         result = {
@@ -757,7 +752,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -792,7 +787,7 @@ class bitrue(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # fetchBidsAsks
         #
@@ -887,7 +882,7 @@ class bitrue(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchTicker() could not find the ticker for ' + market['symbol'])
         return self.parse_ticker(ticker, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -926,7 +921,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #      {
         #         "i":"1660825020",
@@ -947,7 +942,7 @@ class bitrue(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
@@ -975,7 +970,7 @@ class bitrue(Exchange, ImplicitAPI):
         data[market['id']] = response
         return self.parse_tickers(data, symbols)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1018,7 +1013,7 @@ class bitrue(Exchange, ImplicitAPI):
             tickers[marketId] = data[marketIds[i]]
         return self.parse_tickers(tickers, symbols)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # aggregate trades
         #  - "T" is timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual timestamp of trades matter
@@ -1104,7 +1099,7 @@ class bitrue(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1175,7 +1170,7 @@ class bitrue(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -1324,7 +1319,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1346,7 +1341,7 @@ class bitrue(Exchange, ImplicitAPI):
         response = self.v1PrivateGetOrder(self.extend(request, query))
         return self.parse_order(response, market)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1394,7 +1389,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1434,7 +1429,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1468,7 +1463,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1517,7 +1512,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1583,7 +1578,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1642,7 +1637,7 @@ class bitrue(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1758,6 +1753,7 @@ class bitrue(Exchange, ImplicitAPI):
             'status': status,
             'updated': updated,
             'internal': False,
+            'comment': None,
             'fee': fee,
         }
 
@@ -1816,7 +1812,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         #   {
         #       "coin": "adx",
@@ -1854,7 +1850,7 @@ class bitrue(Exchange, ImplicitAPI):
                     result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint

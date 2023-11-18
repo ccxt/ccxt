@@ -1487,7 +1487,7 @@ class idex extends idex$1 {
             'depositId': id,
         };
         const response = await this.privateGetDeposits(this.extend(request, params));
-        return this.parseTransaction(response, code);
+        return this.parseTransaction(response);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1537,7 +1537,7 @@ class idex extends idex$1 {
             'withdrawalId': id,
         };
         const response = await this.privateGetWithdrawals(this.extend(request, params));
-        return this.parseTransaction(response, code);
+        return this.parseTransaction(response);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1674,6 +1674,8 @@ class idex extends idex$1 {
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

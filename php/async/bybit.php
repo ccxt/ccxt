@@ -68,6 +68,7 @@ class bybit extends Exchange {
                 'fetchFundingRate' => true, // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchMarketLeverageTiers' => true,
@@ -318,6 +319,7 @@ class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/user/sub-apikeys' => 5,
                         'v5/user/get-member-type' => 5,
                         'v5/user/aff-customer-info' => 5,
                         'v5/user/del-submember' => 5,
@@ -442,6 +444,7 @@ class bybit extends Exchange {
                         // account
                         'v5/account/upgrade-to-uta' => 5,
                         'v5/account/set-margin-mode' => 5,
+                        'v5/account/set-hedging-mode' => 5,
                         'v5/account/mmp-modify' => 5,
                         'v5/account/mmp-reset' => 5,
                         // asset
@@ -449,7 +452,7 @@ class bybit extends Exchange {
                         'v5/asset/transfer/save-transfer-sub-member' => 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account' => 5,
-                        'v5/asset/withdraw/create' => 300, // 1/6/s => cost = 50 / 1/6 = 300
+                        'v5/asset/withdraw/create' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel' => 50, // 1/s => cost = 50 / 1 = 50
                         // user
                         'v5/user/create-sub-member' => 10, // 5/s => cost = 50 / 5 = 10
@@ -1892,7 +1895,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot
         //
@@ -2084,7 +2087,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -2178,7 +2181,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1621162800",
@@ -2309,7 +2312,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($ticker, $market = null) {
+    public function parse_funding_rate($ticker, ?array $market = null) {
         //     {
         //         "symbol" => "BTCUSDT",
         //         "bidPrice" => "19255",
@@ -2536,7 +2539,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public https://bybit-exchange.github.io/docs/v5/market/recent-$trade
         //
@@ -3192,7 +3195,7 @@ class bybit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // v1 for usdc normal account
         //     {
@@ -3588,7 +3591,8 @@ class bybit extends Exchange {
             $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['reduceOnly'] = true;
-        } elseif ($isStopLoss || $isTakeProfit) {
+        }
+        if ($isStopLoss || $isTakeProfit) {
             if ($isStopLoss) {
                 $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                 $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
@@ -4394,10 +4398,6 @@ class bybit extends Exchange {
             $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
-            } else {
-                if ($since !== null) {
-                    throw new BadRequest($this->id . ' fetchOrders() requires until/endTime when $since is provided.');
-                }
             }
             $response = Async\await($this->privateGetV5OrderHistory (array_merge($request, $params)));
             //
@@ -4780,10 +4780,6 @@ class bybit extends Exchange {
             $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
-            } else {
-                if ($since !== null) {
-                    throw new BadRequest($this->id . ' fetchOrders() requires until/endTime when $since is provided.');
-                }
             }
             $response = Async\await($this->privateGetV5ExecutionList (array_merge($request, $params)));
             //
@@ -4831,7 +4827,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "chainType" => "ERC20",
@@ -5122,7 +5118,7 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchWithdrawals
         //
@@ -5197,6 +5193,8 @@ class bybit extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'fee' => $fee,
+            'internal' => null,
+            'comment' => null,
         );
     }
 
@@ -5365,7 +5363,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //         "id" => 234467,
@@ -5778,7 +5776,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         // linear swap
         //
@@ -6334,7 +6332,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //    {
         //        "openInterest" => 64757.62400000,
@@ -6387,7 +6385,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_borrow_rate($info, ?array $currency = null) {
         //
         //     {
         //         "coin" => "USDT",
@@ -6455,7 +6453,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     array(
         //         "tokenId" => "BTC",
@@ -6677,7 +6675,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         // borrowMargin
         //
@@ -6711,7 +6709,7 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -6814,7 +6812,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         //
         //     {
         //         "id" => 1,
@@ -6845,7 +6843,7 @@ class bybit extends Exchange {
         return $tiers;
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -6950,7 +6948,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "name" => "BTC",
@@ -7295,6 +7293,128 @@ class bybit extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches an option contracts $greeks, financial metrics used to measure the factors that affect the price of an options contract
+             * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+             * @param {string} $symbol unified $symbol of the $market to fetch $greeks for
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$greeks-structure $greeks structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'category' => 'option',
+            );
+            $response = Async\await($this->publicGetV5MarketTickers (array_merge($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "SUCCESS",
+            //         "result" => {
+            //             "category" => "option",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "BTC-26JAN24-39000-C",
+            //                     "bid1Price" => "3205",
+            //                     "bid1Size" => "7.1",
+            //                     "bid1Iv" => "0.5478",
+            //                     "ask1Price" => "3315",
+            //                     "ask1Size" => "1.98",
+            //                     "ask1Iv" => "0.5638",
+            //                     "lastPrice" => "3230",
+            //                     "highPrice24h" => "3255",
+            //                     "lowPrice24h" => "3200",
+            //                     "markPrice" => "3273.02263032",
+            //                     "indexPrice" => "36790.96",
+            //                     "markIv" => "0.5577",
+            //                     "underlyingPrice" => "37649.67254894",
+            //                     "openInterest" => "19.67",
+            //                     "turnover24h" => "170140.33875912",
+            //                     "volume24h" => "4.56",
+            //                     "totalVolume" => "22",
+            //                     "totalTurnover" => "789305",
+            //                     "delta" => "0.49640971",
+            //                     "gamma" => "0.00004131",
+            //                     "vega" => "69.08651675",
+            //                     "theta" => "-24.9443226",
+            //                     "predictedDeliveryPrice" => "0",
+            //                     "change24h" => "0.18532111"
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1699584008326
+            //     }
+            //
+            $timestamp = $this->safe_integer($response, 'time');
+            $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'list', array());
+            $greeks = $this->parse_greeks($data[0], $market);
+            return array_merge($greeks, array(
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            ));
+        }) ();
+    }
+
+    public function parse_greeks($greeks, ?array $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTC-26JAN24-39000-C",
+        //         "bid1Price" => "3205",
+        //         "bid1Size" => "7.1",
+        //         "bid1Iv" => "0.5478",
+        //         "ask1Price" => "3315",
+        //         "ask1Size" => "1.98",
+        //         "ask1Iv" => "0.5638",
+        //         "lastPrice" => "3230",
+        //         "highPrice24h" => "3255",
+        //         "lowPrice24h" => "3200",
+        //         "markPrice" => "3273.02263032",
+        //         "indexPrice" => "36790.96",
+        //         "markIv" => "0.5577",
+        //         "underlyingPrice" => "37649.67254894",
+        //         "openInterest" => "19.67",
+        //         "turnover24h" => "170140.33875912",
+        //         "volume24h" => "4.56",
+        //         "totalVolume" => "22",
+        //         "totalTurnover" => "789305",
+        //         "delta" => "0.49640971",
+        //         "gamma" => "0.00004131",
+        //         "vega" => "69.08651675",
+        //         "theta" => "-24.9443226",
+        //         "predictedDeliveryPrice" => "0",
+        //         "change24h" => "0.18532111"
+        //     }
+        //
+        $marketId = $this->safe_string($greeks, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'delta' => $this->safe_number($greeks, 'delta'),
+            'gamma' => $this->safe_number($greeks, 'gamma'),
+            'theta' => $this->safe_number($greeks, 'theta'),
+            'vega' => $this->safe_number($greeks, 'vega'),
+            'rho' => null,
+            'bidSize' => $this->safe_number($greeks, 'bid1Size'),
+            'askSize' => $this->safe_number($greeks, 'ask1Size'),
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bid1Iv'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'ask1Iv'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'markIv'),
+            'bidPrice' => $this->safe_number($greeks, 'bid1Price'),
+            'askPrice' => $this->safe_number($greeks, 'ask1Price'),
+            'markPrice' => $this->safe_number($greeks, 'markPrice'),
+            'lastPrice' => $this->safe_number($greeks, 'lastPrice'),
+            'underlyingPrice' => $this->safe_number($greeks, 'underlyingPrice'),
+            'info' => $greeks,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

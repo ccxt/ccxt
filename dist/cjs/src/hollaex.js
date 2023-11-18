@@ -1651,6 +1651,8 @@ class hollaex extends hollaex$1 {
             'currency': currency['code'],
             'status': status,
             'updated': updated,
+            'comment': this.safeString(transaction, 'message'),
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -1814,7 +1816,7 @@ class hollaex extends hollaex$1 {
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
     }
     normalizeNumberIfNeeded(number) {
-        if (number % 1 === 0) {
+        if (this.isRoundNumber(number)) {
             number = parseInt(number);
         }
         return number;

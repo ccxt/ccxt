@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paymium import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, OrderBook, OrderSide, OrderType, Ticker, Trade
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -142,7 +141,7 @@ class paymium(Exchange, ImplicitAPI):
         response = await self.privateGetUser(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1depth/get
@@ -159,7 +158,7 @@ class paymium(Exchange, ImplicitAPI):
         response = await self.publicGetDataCurrencyDepth(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # {
         #     "high":"33740.82",
@@ -241,7 +240,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'created_at_int')
         id = self.safe_string(trade, 'uuid')
         market = self.safe_market(None, market)
@@ -265,7 +264,7 @@ class paymium(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1trades/get
@@ -348,7 +347,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
         #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -395,7 +394,7 @@ class paymium(Exchange, ImplicitAPI):
             'id': response['uuid'],
         }, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D/delete
@@ -468,7 +467,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         #     {
         #         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",

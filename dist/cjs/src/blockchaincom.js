@@ -883,7 +883,7 @@ class blockchaincom extends blockchaincom$1 {
         }
         const address = this.safeString(transaction, 'address');
         const txid = this.safeString(transaction, 'txhash');
-        const result = {
+        return {
             'info': transaction,
             'id': id,
             'txid': txid,
@@ -902,9 +902,9 @@ class blockchaincom extends blockchaincom$1 {
             'status': this.parseTransactionState(state),
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
-        return result;
     }
     async fetchWithdrawalWhitelist(params = {}) {
         /**

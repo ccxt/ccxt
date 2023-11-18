@@ -65,6 +65,7 @@ class okx extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => true,
@@ -177,6 +178,7 @@ class okx extends Exchange {
                         'market/open-oracle' => 50,
                         'market/exchange-rate' => 20,
                         'market/index-components' => 1,
+                        'public/economic-calendar' => 50,
                         'market/block-tickers' => 1,
                         'market/block-ticker' => 1,
                         'public/block-trades' => 1,
@@ -308,7 +310,6 @@ class okx extends Exchange {
                         'asset/subaccount/bills' => 5 / 3,
                         'asset/subaccount/managed-subaccount-bills' => 5 / 3,
                         'users/entrust-subaccount-list' => 10,
-                        'users/partner/if-rebate' => 1,
                         'account/subaccount/interest-limits' => 4,
                         // grid trading
                         'tradingBot/grid/orders-algo-pending' => 1,
@@ -355,6 +356,9 @@ class okx extends Exchange {
                         'finance/sfp/dcd/orders' => 2,
                         'broker/fd/rebate-per-orders' => 300,
                         'broker/fd/if-rebate' => 5,
+                        // affiliate
+                        'affiliate/invitee/detail' => 1,
+                        'users/partner/if-rebate' => 1,
                     ),
                     'post' => array(
                         // rfq
@@ -1287,15 +1291,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function parse_markets($markets) {
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parse_market($markets[$i]);
-        }
-        return $result;
-    }
-
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         //     {
         //         "alias" => "", // this_week, next_week, quarter, next_quarter
@@ -1694,7 +1690,7 @@ class okx extends Exchange {
         return $this->parse_order_book($first, $symbol, $timestamp);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "instType" => "SPOT",
@@ -1840,7 +1836,7 @@ class okx extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-tickers
@@ -1859,7 +1855,7 @@ class okx extends Exchange {
         return $this->fetch_tickers_by_type($type, $symbols, $query);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -2027,7 +2023,7 @@ class okx extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1678928760000", // timestamp
@@ -2278,7 +2274,7 @@ class okx extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         // https://www.okx.com/docs-v5/en/#rest-api-account-get-$fee-rates
         //
         //     {
@@ -2597,7 +2593,8 @@ class okx extends Exchange {
             $request['ordType'] = 'ioc';
         } elseif ($fok) {
             $request['ordType'] = 'fok';
-        } elseif ($stopLossDefined || $takeProfitDefined) {
+        }
+        if ($stopLossDefined || $takeProfitDefined) {
             if ($stopLossDefined) {
                 $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
                 if ($stopLossTriggerPrice === null) {
@@ -3072,7 +3069,7 @@ class okx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -4141,7 +4138,7 @@ class okx extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -4220,7 +4217,7 @@ class okx extends Exchange {
         );
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "addr" => "okbtothemoon",
@@ -4733,7 +4730,7 @@ class okx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -4820,6 +4817,8 @@ class okx extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'internal' => null,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $feeCost,
@@ -5027,7 +5026,7 @@ class okx extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //        "adl" => "3",
@@ -5229,7 +5228,7 @@ class okx extends Exchange {
         return $this->parse_transfer($rawTransfer, $currency);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // $transfer
         //
@@ -5470,7 +5469,7 @@ class okx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //    {
         //        "fundingRate" => "0.00027815",
@@ -5916,7 +5915,7 @@ class okx extends Exchange {
         return $this->parse_borrow_rate($rate);
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_borrow_rate($info, ?array $currency = null) {
         //
         //    {
         //        "amt" => "992.10341195",
@@ -6094,7 +6093,7 @@ class okx extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         $innerData = $this->safe_value($data, 'data', array());
         $entry = $this->safe_value($innerData, 0, array());
         $errorCode = $this->safe_string($data, 'code');
@@ -6196,7 +6195,7 @@ class okx extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @ignore
          * @param {array} $info Exchange response for 1 $market
@@ -6298,7 +6297,7 @@ class okx extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         $instId = $this->safe_string($info, 'instId');
         if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
@@ -6403,7 +6402,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         //     {
         //         "amt" => "102",
@@ -6535,7 +6534,7 @@ class okx extends Exchange {
         return $this->parse_open_interests($data, null, $since, $limit);
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         // fetchOpenInterestHistory
         //
@@ -6853,6 +6852,113 @@ class okx extends Exchange {
         //
         $underlyings = $this->safe_value($response, 'data', array());
         return $underlyings[0];
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+        /**
+         * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-option-$market-$data
+         * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure greeks structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marketId = $market['id'];
+        $optionParts = explode('-', $marketId);
+        $request = array(
+            'uly' => $market['info']['uly'],
+            'instFamily' => $market['info']['instFamily'],
+            'expTime' => $this->safe_string($optionParts, 2),
+        );
+        $response = $this->publicGetPublicOptSummary (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "askVol" => "0",
+        //                 "bidVol" => "0",
+        //                 "delta" => "0.5105464486882039",
+        //                 "deltaBS" => "0.7325502184143025",
+        //                 "fwdPx" => "37675.80158694987186",
+        //                 "gamma" => "-0.13183515090501083",
+        //                 "gammaBS" => "0.000024139685826358558",
+        //                 "instId" => "BTC-USD-240329-32000-C",
+        //                 "instType" => "OPTION",
+        //                 "lever" => "4.504428015946619",
+        //                 "markVol" => "0.5916253554539876",
+        //                 "realVol" => "0",
+        //                 "theta" => "-0.0004202992014012855",
+        //                 "thetaBS" => "-18.52354631567909",
+        //                 "ts" => "1699586421976",
+        //                 "uly" => "BTC-USD",
+        //                 "vega" => "0.0020207455080045846",
+        //                 "vegaBS" => "74.44022302387287",
+        //                 "volLv" => "0.5948549730405797"
+        //             ),
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $entryMarketId = $this->safe_string($entry, 'instId');
+            if ($entryMarketId === $marketId) {
+                return $this->parse_greeks($entry, $market);
+            }
+        }
+    }
+
+    public function parse_greeks($greeks, ?array $market = null) {
+        //
+        //     {
+        //         "askVol" => "0",
+        //         "bidVol" => "0",
+        //         "delta" => "0.5105464486882039",
+        //         "deltaBS" => "0.7325502184143025",
+        //         "fwdPx" => "37675.80158694987186",
+        //         "gamma" => "-0.13183515090501083",
+        //         "gammaBS" => "0.000024139685826358558",
+        //         "instId" => "BTC-USD-240329-32000-C",
+        //         "instType" => "OPTION",
+        //         "lever" => "4.504428015946619",
+        //         "markVol" => "0.5916253554539876",
+        //         "realVol" => "0",
+        //         "theta" => "-0.0004202992014012855",
+        //         "thetaBS" => "-18.52354631567909",
+        //         "ts" => "1699586421976",
+        //         "uly" => "BTC-USD",
+        //         "vega" => "0.0020207455080045846",
+        //         "vegaBS" => "74.44022302387287",
+        //         "volLv" => "0.5948549730405797"
+        //     }
+        //
+        $timestamp = $this->safe_integer($greeks, 'ts');
+        $marketId = $this->safe_string($greeks, 'instId');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'delta' => $this->safe_number($greeks, 'delta'),
+            'gamma' => $this->safe_number($greeks, 'gamma'),
+            'theta' => $this->safe_number($greeks, 'theta'),
+            'vega' => $this->safe_number($greeks, 'vega'),
+            'rho' => null,
+            'bidSize' => null,
+            'askSize' => null,
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bidVol'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'askVol'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'markVol'),
+            'bidPrice' => null,
+            'askPrice' => null,
+            'markPrice' => null,
+            'lastPrice' => null,
+            'underlyingPrice' => null,
+            'info' => $greeks,
+        );
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

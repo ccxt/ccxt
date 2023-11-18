@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Greeks, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -92,6 +91,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchL3OrderBook': False,
                 'fetchLedger': True,
@@ -204,6 +204,7 @@ class okx(Exchange, ImplicitAPI):
                         'market/open-oracle': 50,
                         'market/exchange-rate': 20,
                         'market/index-components': 1,
+                        'public/economic-calendar': 50,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
                         'public/block-trades': 1,
@@ -335,7 +336,6 @@ class okx(Exchange, ImplicitAPI):
                         'asset/subaccount/bills': 5 / 3,
                         'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/entrust-subaccount-list': 10,
-                        'users/partner/if-rebate': 1,
                         'account/subaccount/interest-limits': 4,
                         # grid trading
                         'tradingBot/grid/orders-algo-pending': 1,
@@ -382,6 +382,9 @@ class okx(Exchange, ImplicitAPI):
                         'finance/sfp/dcd/orders': 2,
                         'broker/fd/rebate-per-orders': 300,
                         'broker/fd/if-rebate': 5,
+                        # affiliate
+                        'affiliate/invitee/detail': 1,
+                        'users/partner/if-rebate': 1,
                     },
                     'post': {
                         # rfq
@@ -1292,13 +1295,7 @@ class okx(Exchange, ImplicitAPI):
             result = self.array_concat(result, promises[i])
         return result
 
-    def parse_markets(self, markets):
-        result = []
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
-
-    def parse_market(self, market):
+    def parse_market(self, market) -> Market:
         #
         #     {
         #         "alias": "",  # self_week, next_week, quarter, next_quarter
@@ -1635,7 +1632,7 @@ class okx(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
@@ -1679,7 +1676,7 @@ class okx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(first, 'ts')
         return self.parse_order_book(first, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "instType": "SPOT",
@@ -1778,7 +1775,7 @@ class okx(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, {})
         return self.parse_ticker(first, market)
 
-    async def fetch_tickers_by_type(self, type, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers_by_type(self, type, symbols: Strings = None, params={}):
         await self.load_markets()
         request = {
             'instType': self.convert_to_instrument_type(type),
@@ -1820,7 +1817,7 @@ class okx(Exchange, ImplicitAPI):
         tickers = self.safe_value(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
@@ -1837,7 +1834,7 @@ class okx(Exchange, ImplicitAPI):
         type, query = self.handle_market_type_and_params('fetchTickers', market, params)
         return await self.fetch_tickers_by_type(type, symbols, query)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1927,7 +1924,7 @@ class okx(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
@@ -1997,7 +1994,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         "1678928760000",  # timestamp
@@ -2023,7 +2020,7 @@ class okx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks
@@ -2115,7 +2112,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
         :see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history
@@ -2224,7 +2221,7 @@ class okx(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         # https://www.okx.com/docs-v5/en/#rest-api-account-get-fee-rates
         #
         #     {
@@ -2524,7 +2521,7 @@ class okx(Exchange, ImplicitAPI):
             request['ordType'] = 'ioc'
         elif fok:
             request['ordType'] = 'fok'
-        elif stopLossDefined or takeProfitDefined:
+        if stopLossDefined or takeProfitDefined:
             if stopLossDefined:
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
@@ -2812,7 +2809,7 @@ class okx(Exchange, ImplicitAPI):
         order['side'] = side
         return order
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-order
@@ -2856,7 +2853,7 @@ class okx(Exchange, ImplicitAPI):
         else:
             return ids
 
-    async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
@@ -2948,7 +2945,7 @@ class okx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder
         #
@@ -3148,7 +3145,7 @@ class okx(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
         }, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetch an order by the id
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-details
@@ -3285,7 +3282,7 @@ class okx(Exchange, ImplicitAPI):
         order = self.safe_value(data, 0)
         return self.parse_order(order, market)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         Fetch orders that are still open
         fetch all unfilled currently open orders
@@ -3434,7 +3431,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
@@ -3599,7 +3596,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
@@ -3761,7 +3758,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
@@ -3825,7 +3822,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit, query)
 
-    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-transaction-details-last-3-months
@@ -3845,7 +3842,7 @@ class okx(Exchange, ImplicitAPI):
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
@@ -3967,7 +3964,7 @@ class okx(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         # privateGetAccountBills, privateGetAccountBillsArchive
         #
@@ -4044,7 +4041,7 @@ class okx(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
         #         "addr": "okbtothemoon",
@@ -4279,7 +4276,7 @@ class okx(Exchange, ImplicitAPI):
         transaction = self.safe_value(data, 0)
         return self.parse_transaction(transaction, currency)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -4354,7 +4351,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
         :see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -4376,7 +4373,7 @@ class okx(Exchange, ImplicitAPI):
         deposit = self.safe_value(data, 0, {})
         return self.parse_transaction(deposit, currency)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
@@ -4443,7 +4440,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
@@ -4523,7 +4520,7 @@ class okx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -4608,6 +4605,8 @@ class okx(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'internal': None,
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
@@ -4724,7 +4723,7 @@ class okx(Exchange, ImplicitAPI):
             return None
         return self.parse_position(position)
 
-    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
         fetch all open positions
@@ -4803,7 +4802,7 @@ class okx(Exchange, ImplicitAPI):
             result.append(self.parse_position(positions[i]))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     {
         #        "adl": "3",
@@ -4992,7 +4991,7 @@ class okx(Exchange, ImplicitAPI):
         rawTransfer = self.safe_value(data, 0, {})
         return self.parse_transfer(rawTransfer, currency)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # transfer
         #
@@ -5074,7 +5073,7 @@ class okx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_transfer(self, id: str, code: Optional[str] = None, params={}):
+    async def fetch_transfer(self, id: str, code: Str = None, params={}):
         await self.load_markets()
         request = {
             'transId': id,
@@ -5105,7 +5104,7 @@ class okx(Exchange, ImplicitAPI):
         transfer = self.safe_value(data, 0)
         return self.parse_transfer(transfer)
 
-    async def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
@@ -5214,7 +5213,7 @@ class okx(Exchange, ImplicitAPI):
             headers['OK-ACCESS-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         #    {
         #        "fundingRate": "0.00027815",
@@ -5290,7 +5289,7 @@ class okx(Exchange, ImplicitAPI):
         entry = self.safe_value(data, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
@@ -5440,7 +5439,7 @@ class okx(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    async def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-set-leverage
@@ -5492,7 +5491,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
+    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
@@ -5523,7 +5522,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+    async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
@@ -5635,7 +5634,7 @@ class okx(Exchange, ImplicitAPI):
         rate = self.safe_value(data, 0)
         return self.parse_borrow_rate(rate)
 
-    def parse_borrow_rate(self, info, currency=None):
+    def parse_borrow_rate(self, info, currency: Currency = None):
         #
         #    {
         #        "amt": "992.10341195",
@@ -5691,7 +5690,7 @@ class okx(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_currency_since_limit(sorted, code, since, limit)
 
-    async def fetch_borrow_rate_histories(self, codes=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_rate_histories(self, codes=None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
         :see: https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
@@ -5730,7 +5729,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_borrow_rate_histories(data, codes, since, limit)
 
-    async def fetch_borrow_rate_history(self, code: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
         :see: https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
@@ -5798,7 +5797,7 @@ class okx(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None):
         innerData = self.safe_value(data, 'data', [])
         entry = self.safe_value(innerData, 0, {})
         errorCode = self.safe_string(data, 'code')
@@ -5892,7 +5891,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         """
          * @ignore
         :param dict info: Exchange response for 1 market
@@ -5930,7 +5929,7 @@ class okx(Exchange, ImplicitAPI):
             })
         return tiers
 
-    async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-interest-accrued-data
@@ -5986,7 +5985,7 @@ class okx(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(data)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market=None):
+    def parse_borrow_interest(self, info, market: Market = None):
         instId = self.safe_string(info, 'instId')
         if instId is not None:
             market = self.safe_market(instId, market)
@@ -6003,7 +6002,7 @@ class okx(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         create a loan to borrow margin
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
@@ -6045,7 +6044,7 @@ class okx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    async def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
@@ -6087,7 +6086,7 @@ class okx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def parse_margin_loan(self, info, currency=None):
+    def parse_margin_loan(self, info, currency: Currency = None):
         #
         #     {
         #         "amt": "102",
@@ -6148,7 +6147,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_open_interest(data[0], market)
 
-    async def fetch_open_interest_history(self, symbol: str, timeframe='1d', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe='1d', since: Int = None, limit: Int = None, params={}):
         """
         Retrieves the open interest history of a currency
         :see: https://www.okx.com/docs-v5/en/#rest-api-trading-data-get-contracts-open-interest-and-volume
@@ -6210,7 +6209,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_open_interests(data, None, since, limit)
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         #
         # fetchOpenInterestHistory
         #
@@ -6269,7 +6268,7 @@ class okx(Exchange, ImplicitAPI):
         elif 'x-simulated-trading' in self.headers:
             self.headers = self.omit(self.headers, 'x-simulated-trading')
 
-    async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
@@ -6382,7 +6381,7 @@ class okx(Exchange, ImplicitAPI):
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
 
-    async def fetch_settlement_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
         :see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-delivery-exercise-history
@@ -6507,6 +6506,109 @@ class okx(Exchange, ImplicitAPI):
         #
         underlyings = self.safe_value(response, 'data', [])
         return underlyings[0]
+
+    async def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+        :see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :returns dict: a `greeks structure <https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        marketId = market['id']
+        optionParts = marketId.split('-')
+        request = {
+            'uly': market['info']['uly'],
+            'instFamily': market['info']['instFamily'],
+            'expTime': self.safe_string(optionParts, 2),
+        }
+        response = await self.publicGetPublicOptSummary(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "askVol": "0",
+        #                 "bidVol": "0",
+        #                 "delta": "0.5105464486882039",
+        #                 "deltaBS": "0.7325502184143025",
+        #                 "fwdPx": "37675.80158694987186",
+        #                 "gamma": "-0.13183515090501083",
+        #                 "gammaBS": "0.000024139685826358558",
+        #                 "instId": "BTC-USD-240329-32000-C",
+        #                 "instType": "OPTION",
+        #                 "lever": "4.504428015946619",
+        #                 "markVol": "0.5916253554539876",
+        #                 "realVol": "0",
+        #                 "theta": "-0.0004202992014012855",
+        #                 "thetaBS": "-18.52354631567909",
+        #                 "ts": "1699586421976",
+        #                 "uly": "BTC-USD",
+        #                 "vega": "0.0020207455080045846",
+        #                 "vegaBS": "74.44022302387287",
+        #                 "volLv": "0.5948549730405797"
+        #             },
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            entryMarketId = self.safe_string(entry, 'instId')
+            if entryMarketId == marketId:
+                return self.parse_greeks(entry, market)
+
+    def parse_greeks(self, greeks, market: Market = None):
+        #
+        #     {
+        #         "askVol": "0",
+        #         "bidVol": "0",
+        #         "delta": "0.5105464486882039",
+        #         "deltaBS": "0.7325502184143025",
+        #         "fwdPx": "37675.80158694987186",
+        #         "gamma": "-0.13183515090501083",
+        #         "gammaBS": "0.000024139685826358558",
+        #         "instId": "BTC-USD-240329-32000-C",
+        #         "instType": "OPTION",
+        #         "lever": "4.504428015946619",
+        #         "markVol": "0.5916253554539876",
+        #         "realVol": "0",
+        #         "theta": "-0.0004202992014012855",
+        #         "thetaBS": "-18.52354631567909",
+        #         "ts": "1699586421976",
+        #         "uly": "BTC-USD",
+        #         "vega": "0.0020207455080045846",
+        #         "vegaBS": "74.44022302387287",
+        #         "volLv": "0.5948549730405797"
+        #     }
+        #
+        timestamp = self.safe_integer(greeks, 'ts')
+        marketId = self.safe_string(greeks, 'instId')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'delta': self.safe_number(greeks, 'delta'),
+            'gamma': self.safe_number(greeks, 'gamma'),
+            'theta': self.safe_number(greeks, 'theta'),
+            'vega': self.safe_number(greeks, 'vega'),
+            'rho': None,
+            'bidSize': None,
+            'askSize': None,
+            'bidImpliedVolatility': self.safe_number(greeks, 'bidVol'),
+            'askImpliedVolatility': self.safe_number(greeks, 'askVol'),
+            'markImpliedVolatility': self.safe_number(greeks, 'markVol'),
+            'bidPrice': None,
+            'askPrice': None,
+            'markPrice': None,
+            'lastPrice': None,
+            'underlyingPrice': None,
+            'info': greeks,
+        }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

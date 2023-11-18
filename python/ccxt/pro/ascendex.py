@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
 
@@ -76,7 +76,7 @@ class ascendex(ccxt.async_support.ascendex):
         await self.authenticate(url, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -136,7 +136,7 @@ class ascendex(ccxt.async_support.ascendex):
         client.resolve(stored, messageHash)
         return message
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -191,7 +191,7 @@ class ascendex(ccxt.async_support.ascendex):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -208,7 +208,7 @@ class ascendex(ccxt.async_support.ascendex):
         orderbook = await self.watch_public(channel, params)
         return orderbook.limit()
 
-    async def watch_order_book_snapshot(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book_snapshot(self, symbol: str, limit: Int = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         action = 'depth-snapshot-realtime'
@@ -443,7 +443,7 @@ class ascendex(ccxt.async_support.ascendex):
         messageHash = 'balance' + ':' + type
         client.resolve(self.safe_balance(result), messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
         watches information on multiple orders made by the user

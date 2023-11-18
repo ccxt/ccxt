@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Trade
+from ccxt.base.types import Int, Str, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
@@ -59,7 +58,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -237,7 +236,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -419,13 +418,13 @@ class bitfinex(ccxt.async_support.bitfinex):
             if method in client.subscriptions:
                 del client.subscriptions[method]
 
-    async def watch_order(self, id, symbol: Optional[str] = None, params={}):
+    async def watch_order(self, id, symbol: Str = None, params={}):
         await self.load_markets()
         url = self.urls['api']['ws']['private']
         await self.authenticate()
         return await self.watch(url, id, None, 1)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in

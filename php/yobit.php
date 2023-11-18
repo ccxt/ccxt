@@ -496,7 +496,7 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "high" => 0.03497582,
@@ -536,7 +536,7 @@ class yobit extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -592,7 +592,7 @@ class yobit extends Exchange {
         return $tickers[$symbol];
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -860,7 +860,7 @@ class yobit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder (private)
         //

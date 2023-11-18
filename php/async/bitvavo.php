@@ -22,7 +22,7 @@ class bitvavo extends Exchange {
             'countries' => array( 'NL' ), // Netherlands
             'rateLimit' => 60, // 1000 requests per minute
             'version' => 'v2',
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -318,8 +318,6 @@ class bitvavo extends Exchange {
              * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetMarkets ($params));
-            $currencies = Async\await($this->fetch_currencies());
-            $currenciesById = $this->index_by($currencies, 'id');
             //
             //     array(
             //         {
@@ -334,7 +332,10 @@ class bitvavo extends Exchange {
             //         }
             //     )
             //
+            $currencies = $this->currencies;
+            $currenciesById = $this->index_by($currencies, 'id');
             $result = array();
+            $fees = $this->fees;
             for ($i = 0; $i < count($response); $i++) {
                 $market = $response[$i];
                 $id = $this->safe_string($market, 'market');
@@ -369,6 +370,8 @@ class bitvavo extends Exchange {
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
+                    'taker' => $fees['trading']['taker'],
+                    'maker' => $fees['trading']['maker'],
                     'precision' => array(
                         'amount' => $this->safe_integer($baseCurrency, 'decimals', $basePrecision),
                         'price' => $this->safe_integer($market, 'pricePrecision'),
@@ -503,6 +506,8 @@ class bitvavo extends Exchange {
                     ),
                 );
             }
+            // set currencies here to avoid calling publicGetAssets twice
+            $this->currencies = $this->deep_extend($this->currencies, $result);
             return $result;
         }) ();
     }
@@ -542,7 +547,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -592,7 +597,7 @@ class bitvavo extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -675,7 +680,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -850,7 +855,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1590383700000,
@@ -1417,7 +1422,7 @@ class bitvavo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // cancelOrder, cancelAllOrders
         //
@@ -1724,7 +1729,7 @@ class bitvavo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1800,10 +1805,12 @@ class bitvavo extends Exchange {
             'updated' => null,
             'fee' => $fee,
             'network' => null,
+            'comment' => null,
+            'internal' => null,
         );
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //   {
         //       "symbol" => "1INCH",

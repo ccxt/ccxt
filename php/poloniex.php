@@ -369,7 +369,7 @@ class poloniex extends Exchange {
         ));
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         array(
@@ -470,7 +470,7 @@ class poloniex extends Exchange {
          * retrieves data on all $markets for poloniex
          * @see https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $markets = $this->publicGetMarkets ($params);
         //
@@ -496,65 +496,64 @@ class poloniex extends Exchange {
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $this->safe_value($markets, $i);
-            $id = $this->safe_string($market, 'symbol');
-            $baseId = $this->safe_string($market, 'baseCurrencyName');
-            $quoteId = $this->safe_string($market, 'quoteCurrencyName');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $state = $this->safe_string($market, 'state');
-            $active = $state === 'NORMAL';
-            $symbolTradeLimit = $this->safe_value($market, 'symbolTradeLimit');
-            // these are known defaults
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => $active,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'quantityScale'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'priceScale'))),
+        return $this->parse_markets($markets);
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $baseId = $this->safe_string($market, 'baseCurrencyName');
+        $quoteId = $this->safe_string($market, 'quoteCurrencyName');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $state = $this->safe_string($market, 'state');
+        $active = $state === 'NORMAL';
+        $symbolTradeLimit = $this->safe_value($market, 'symbolTradeLimit');
+        // these are known defaults
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => $active,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'quantityScale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'priceScale'))),
+            ),
+            'limits' => array(
+                'amount' => array(
+                    'min' => $this->safe_number($symbolTradeLimit, 'minQuantity'),
+                    'max' => null,
                 ),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $this->safe_number($symbolTradeLimit, 'minQuantity'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($symbolTradeLimit, 'minAmount'),
-                        'max' => null,
-                    ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'created' => $this->safe_integer($market, 'tradableStartTime'),
-                'info' => $market,
-            );
-        }
-        return $result;
+                'cost' => array(
+                    'min' => $this->safe_number($symbolTradeLimit, 'minAmount'),
+                    'max' => null,
+                ),
+            ),
+            'created' => $this->safe_integer($market, 'tradableStartTime'),
+            'info' => $market,
+        );
     }
 
     public function fetch_time($params = array ()) {
@@ -568,7 +567,7 @@ class poloniex extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" : "BTC_USDT",
@@ -624,7 +623,7 @@ class poloniex extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
@@ -833,7 +832,7 @@ class poloniex extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -1032,7 +1031,7 @@ class poloniex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOpenOrder
         //
@@ -1812,7 +1811,7 @@ class poloniex extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //    {
         //        "transferId" : "168041074"
@@ -2073,7 +2072,8 @@ class poloniex extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $feeInfo = $response[$currencyId];
             if (($codes === null) || ($this->in_array($code, $codes))) {
-                $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $code);
+                $currency = $this->currency($code);
+                $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $currency);
                 $childChains = $this->safe_value($feeInfo, 'childChains');
                 $chainsLength = count($childChains);
                 if ($chainsLength > 0) {
@@ -2102,9 +2102,9 @@ class poloniex extends Exchange {
         return $depositWithdrawFees;
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         $depositWithdrawFee = $this->deposit_withdraw_fee(array());
-        $depositWithdrawFee['info'][$currency] = $fee;
+        $depositWithdrawFee['info'][$currency['code']] = $fee;
         $networkId = $this->safe_string($fee, 'blockchain');
         $withdrawFee = $this->safe_number($fee, 'withdrawalFee');
         $withdrawResult = array(
@@ -2159,7 +2159,7 @@ class poloniex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // deposits
         //
@@ -2229,6 +2229,7 @@ class poloniex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCostString),

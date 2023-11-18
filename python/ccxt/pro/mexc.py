@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -191,7 +191,7 @@ class mexc(ccxt.async_support.mexc):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -331,7 +331,7 @@ class mexc(ccxt.async_support.mexc):
             self.safe_number_2(ohlcv, 'v', 'q'),
         ]
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -482,7 +482,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_bookside_delta(asksOrderSide, asks)
         self.handle_bookside_delta(bidsOrderSide, bids)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
         get the list of most recent trades for a particular symbol
@@ -562,7 +562,7 @@ class mexc(ccxt.async_support.mexc):
             stored.append(parsedTrade)
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
         watches information on multiple trades made by the user
@@ -679,7 +679,7 @@ class mexc(ccxt.async_support.mexc):
             'fee': None,
         }, market)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders

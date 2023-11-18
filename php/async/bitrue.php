@@ -597,7 +597,7 @@ class bitrue extends Exchange {
             /**
              * retrieves data on all $markets for bitrue
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->v1PublicGetExchangeInfo ($params));
             //
@@ -645,80 +645,76 @@ class bitrue extends Exchange {
                 Async\await($this->load_time_difference());
             }
             $markets = $this->safe_value($response, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'symbol');
-                $lowercaseId = $this->safe_string_lower($market, 'symbol');
-                $baseId = $this->safe_string($market, 'baseAsset');
-                $quoteId = $this->safe_string($market, 'quoteAsset');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $filters = $this->safe_value($market, 'filters', array());
-                $filtersByType = $this->index_by($filters, 'filterType');
-                $status = $this->safe_string($market, 'status');
-                $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-                $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
-                $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
-                $defaultAmountPrecision = $this->safe_string($market, 'quantityPrecision');
-                $pricePrecision = $this->safe_string($priceFilter, 'priceScale', $defaultPricePrecision);
-                $amountPrecision = $this->safe_string($amountFilter, 'volumeScale', $defaultAmountPrecision);
-                $entry = array(
-                    'id' => $id,
-                    'lowercaseId' => $lowercaseId,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => ($status === 'TRADING'),
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($amountPrecision)),
-                        'price' => $this->parse_number($this->parse_precision($pricePrecision)),
-                        'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
-                        'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $this->safe_number($amountFilter, 'minQty'),
-                            'max' => $this->safe_number($amountFilter, 'maxQty'),
-                        ),
-                        'price' => array(
-                            'min' => $this->safe_number($priceFilter, 'minPrice'),
-                            'max' => $this->safe_number($priceFilter, 'maxPrice'),
-                        ),
-                        'cost' => array(
-                            'min' => $this->safe_number($amountFilter, 'minVal'),
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                );
-                $result[] = $entry;
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $lowercaseId = $this->safe_string_lower($market, 'symbol');
+        $baseId = $this->safe_string($market, 'baseAsset');
+        $quoteId = $this->safe_string($market, 'quoteAsset');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $filters = $this->safe_value($market, 'filters', array());
+        $filtersByType = $this->index_by($filters, 'filterType');
+        $status = $this->safe_string($market, 'status');
+        $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+        $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
+        $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
+        $defaultAmountPrecision = $this->safe_string($market, 'quantityPrecision');
+        $pricePrecision = $this->safe_string($priceFilter, 'priceScale', $defaultPricePrecision);
+        $amountPrecision = $this->safe_string($amountFilter, 'volumeScale', $defaultAmountPrecision);
+        return array(
+            'id' => $id,
+            'lowercaseId' => $lowercaseId,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'TRADING'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($amountPrecision)),
+                'price' => $this->parse_number($this->parse_precision($pricePrecision)),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($amountFilter, 'minQty'),
+                    'max' => $this->safe_number($amountFilter, 'maxQty'),
+                ),
+                'price' => array(
+                    'min' => $this->safe_number($priceFilter, 'minPrice'),
+                    'max' => $this->safe_number($priceFilter, 'maxPrice'),
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($amountFilter, 'minVal'),
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function parse_balance($response): array {
@@ -810,7 +806,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchBidsAsks
         //
@@ -953,7 +949,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //      {
         //         "i":"1660825020",
@@ -1007,7 +1003,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1054,7 +1050,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // aggregate trades
         //  - "T" is $timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual $timestamp of trades matter
@@ -1221,7 +1217,7 @@ class bitrue extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1737,7 +1733,7 @@ class bitrue extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1859,6 +1855,7 @@ class bitrue extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'internal' => false,
+            'comment' => null,
             'fee' => $fee,
         );
     }
@@ -1924,7 +1921,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //   {
         //       "coin" => "adx",

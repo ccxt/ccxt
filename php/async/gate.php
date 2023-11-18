@@ -111,6 +111,7 @@ class gate extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
@@ -1814,7 +1815,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //    {
         //        "name" => "BTC_USDT",
@@ -2058,7 +2059,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($info, $market = null) {
+    public function parse_trading_fee($info, ?array $market = null) {
         //
         //    {
         //        "user_id" => 1486602,
@@ -2180,7 +2181,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "currency" => "MTN",
@@ -2290,7 +2291,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_funding_history($info, $market = null) {
+    public function parse_funding_history($info, ?array $market = null) {
         //
         //    {
         //        "time" => 1646899200,
@@ -2471,7 +2472,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // SPOT
         //
@@ -2584,7 +2585,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -2988,7 +2989,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         // Spot $market candles
         //
@@ -3319,7 +3320,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public
         //
@@ -3611,7 +3612,7 @@ class gate extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // deposits
         //
@@ -3686,6 +3687,8 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'updated' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCostString),
@@ -4107,6 +4110,7 @@ class gate extends Exchange {
             /**
              * edit a trade order, gate currently only supports the modification of the $price or $amount fields
              * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+             * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -4118,9 +4122,6 @@ class gate extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if (!$market['spot']) {
-                throw new BadRequest($this->id . ' editOrder() supports only spot markets');
-            }
             list($marketType, $query) = $this->handle_market_type_and_params('editOrder', $market, $params);
             $account = $this->convert_type_to_account($marketType);
             $isLimitOrder = ($type === 'limit');
@@ -4141,7 +4142,13 @@ class gate extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privateSpotPatchOrdersOrderId (array_merge($request, $query)));
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->privateSpotPatchOrdersOrderId (array_merge($request, $query)));
+            } else {
+                $request['settle'] = $market['settleId'];
+                $response = Async\await($this->privateFuturesPutSettleOrdersOrderId (array_merge($request, $query)));
+            }
             //
             //     {
             //         "id" => "243233276443",
@@ -4193,7 +4200,7 @@ class gate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // SPOT
         // createOrder/cancelOrder/fetchOrder/editOrder
@@ -4974,7 +4981,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         $timestamp = $this->milliseconds();
         return array(
             'id' => $this->safe_string($transfer, 'tx_id'),
@@ -5058,7 +5065,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         // swap and future
         //
@@ -5468,7 +5475,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
          * @ignore
          * https://www.gate.io/help/futures/perpetual/22162/instrctions-of-risk-limit
@@ -5750,7 +5757,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         // Cross
         //
@@ -5892,7 +5899,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         //
         //     {
         //         "value" => "11.9257",
@@ -6022,7 +6029,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //    {
         //        "long_liq_size" => "0",
@@ -6346,7 +6353,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // spot
         //
@@ -6653,7 +6660,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_liquidation($liquidation, $market = null) {
+    public function parse_liquidation($liquidation, ?array $market = null) {
         //
         // fetchLiquidations
         //
@@ -6716,6 +6723,100 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+             * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure greeks structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'underlying' => $market['info']['underlying'],
+            );
+            $response = Async\await($this->publicOptionsGetTickers (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "vega" => "1.78992",
+            //             "leverage" => "6.2096777055417",
+            //             "ask_iv" => "0.6245",
+            //             "delta" => "-0.69397",
+            //             "last_price" => "0",
+            //             "theta" => "-2.5723",
+            //             "bid1_price" => "222.9",
+            //             "mark_iv" => "0.5909",
+            //             "name" => "ETH_USDT-20231201-2300-P",
+            //             "bid_iv" => "0.5065",
+            //             "ask1_price" => "243.6",
+            //             "mark_price" => "236.57",
+            //             "position_size" => 0,
+            //             "bid1_size" => 368,
+            //             "ask1_size" => -335,
+            //             "gamma" => "0.00116"
+            //         ),
+            //     )
+            //
+            $marketId = $market['id'];
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $entryMarketId = $this->safe_string($entry, 'name');
+                if ($entryMarketId === $marketId) {
+                    return $this->parse_greeks($entry, $market);
+                }
+            }
+        }) ();
+    }
+
+    public function parse_greeks($greeks, ?array $market = null) {
+        //
+        //     {
+        //         "vega" => "1.78992",
+        //         "leverage" => "6.2096777055417",
+        //         "ask_iv" => "0.6245",
+        //         "delta" => "-0.69397",
+        //         "last_price" => "0",
+        //         "theta" => "-2.5723",
+        //         "bid1_price" => "222.9",
+        //         "mark_iv" => "0.5909",
+        //         "name" => "ETH_USDT-20231201-2300-P",
+        //         "bid_iv" => "0.5065",
+        //         "ask1_price" => "243.6",
+        //         "mark_price" => "236.57",
+        //         "position_size" => 0,
+        //         "bid1_size" => 368,
+        //         "ask1_size" => -335,
+        //         "gamma" => "0.00116"
+        //     }
+        //
+        $marketId = $this->safe_string($greeks, 'name');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'delta' => $this->safe_number($greeks, 'delta'),
+            'gamma' => $this->safe_number($greeks, 'gamma'),
+            'theta' => $this->safe_number($greeks, 'theta'),
+            'vega' => $this->safe_number($greeks, 'vega'),
+            'rho' => null,
+            'bidSize' => $this->safe_number($greeks, 'bid1_size'),
+            'askSize' => $this->safe_number($greeks, 'ask1_size'),
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bid_iv'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'ask_iv'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'mark_iv'),
+            'bidPrice' => $this->safe_number($greeks, 'bid1_price'),
+            'askPrice' => $this->safe_number($greeks, 'ask1_price'),
+            'markPrice' => $this->safe_number($greeks, 'mark_price'),
+            'lastPrice' => $this->safe_number($greeks, 'last_price'),
+            'underlyingPrice' => $this->parse_number($market['info']['underlying_price']),
+            'info' => $greeks,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

@@ -224,7 +224,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOpenOrders
         //
@@ -293,7 +293,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // {
         //     "last":4192632.0,
@@ -364,7 +364,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -731,7 +731,7 @@ class coincheck extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -792,6 +792,7 @@ class coincheck extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
+            'comment' => null,
             'internal' => null,
             'fee' => $fee,
         );

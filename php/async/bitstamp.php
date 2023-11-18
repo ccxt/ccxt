@@ -675,7 +675,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // {
         //     "timestamp" => "1686068944",
@@ -756,7 +756,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -854,7 +854,7 @@ class bitstamp extends Exchange {
         return null;
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1024,7 +1024,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "high" => "9064.77",
@@ -1169,7 +1169,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         $market = $this->safe_market(null, $market);
         $feeString = $this->safe_string($fee, $market['id'] . '_fee');
         $dividedFeeString = Precise::string_div($feeString, '100');
@@ -1618,7 +1618,7 @@ class bitstamp extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDepositsWithdrawals
         //
@@ -1736,6 +1736,7 @@ class bitstamp extends Exchange {
             'tagTo' => $tag,
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
     }
@@ -1755,7 +1756,7 @@ class bitstamp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //   from fetch $order:
         //     { $status => "Finished",
@@ -1845,7 +1846,7 @@ class bitstamp extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     array(
         //         array(

@@ -193,12 +193,6 @@ class kraken extends kraken$1 {
                         'WithdrawInfo': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
-                        // staking
-                        'Stake': 3,
-                        'Unstake': 3,
-                        'Staking/Assets': 3,
-                        'Staking/Pending': 3,
-                        'Staking/Transactions': 3,
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
@@ -492,7 +486,7 @@ class kraken extends kraken$1 {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber(market, 'costmin'),
                         'max': undefined,
                     },
                 },
@@ -978,7 +972,6 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#fetchLedger
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @param {string} code unified currency code, default is undefined
@@ -1264,7 +1257,7 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#createOrder
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1607,7 +1600,7 @@ class kraken extends kraken$1 {
          * @method
          * @name kraken#editOrder
          * @description edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1717,9 +1710,7 @@ class kraken extends kraken$1 {
         if (!(id in result)) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
-        const order = this.parseOrder(this.extend({ 'id': id }, result[id]));
-        order['info'] = order;
-        return order;
+        return this.parseOrder(this.extend({ 'id': id }, result[id]));
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1954,7 +1945,6 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#fetchOpenOrders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @param {string} symbol unified market symbol
@@ -1987,7 +1977,6 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#fetchClosedOrders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} symbol unified market symbol of the market orders were made in
@@ -2168,6 +2157,8 @@ class kraken extends kraken$1 {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
@@ -2188,7 +2179,6 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#fetchDeposits
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @description fetch all deposits made to an account
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @param {string} code unified currency code
@@ -2206,6 +2196,9 @@ class kraken extends kraken$1 {
         const request = {
             'asset': currency['id'],
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         const response = await this.privatePostDepositStatus(this.extend(request, params));
         //
         //     {  error: [],
@@ -2432,7 +2425,7 @@ class kraken extends kraken$1 {
             const request = {
                 'asset': currency['id'],
                 'amount': amount,
-                // 'address': address, // they don't allow withdrawals to direct addresses
+                'address': address,
             };
             const response = await this.privatePostWithdraw(this.extend(request, params));
             //

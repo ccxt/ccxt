@@ -274,9 +274,9 @@ class whitebit extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for whitebit
-             * @see https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#$market-info
+             * @see https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#market-info
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $markets = Async\await($this->v4PublicGetMarkets ());
             //
@@ -288,13 +288,13 @@ class whitebit extends Exchange {
             //          "stockPrec" => "3",          // Stock currency precision
             //          "moneyPrec" => "2",          // Precision of money currency
             //          "feePrec" => "4",            // Fee precision
-            //          "makerFee" => "0.1",         // Default $maker fee ratio
-            //          "takerFee" => "0.1",         // Default $taker fee ratio
+            //          "makerFee" => "0.1",         // Default maker fee ratio
+            //          "takerFee" => "0.1",         // Default taker fee ratio
             //          "minAmount" => "0.001",      // Minimal amount of stock to trade
             //          "minTotal" => "0.001",       // Minimal amount of money to trade
             //          "tradesEnabled" => true,     // Is trading enabled
-            //          "isCollateral" => true,      // Is $margin trading enabled
-            //          "type" => "spot",            // Market $type-> Possible values => "spot", "futures"
+            //          "isCollateral" => true,      // Is margin trading enabled
+            //          "type" => "spot",            // Market type. Possible values => "spot", "futures"
             //          "maxTotal" => "1000000000"   // Maximum total(amount * price) of money to trade
             //        ),
             //        {
@@ -302,99 +302,96 @@ class whitebit extends Exchange {
             //        }
             //    )
             //
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'name');
-                $baseId = $this->safe_string($market, 'stock');
-                $quoteId = $this->safe_string($market, 'money');
-                $quoteId = ($quoteId === 'PERP') ? 'USDT' : $quoteId;
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $active = $this->safe_value($market, 'tradesEnabled');
-                $isCollateral = $this->safe_value($market, 'isCollateral');
-                $typeId = $this->safe_string($market, 'type');
-                $type = null;
-                $settle = null;
-                $settleId = null;
-                $symbol = $base . '/' . $quote;
-                $swap = $typeId === 'futures';
-                $margin = $isCollateral && !$swap;
-                $contract = false;
-                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
-                $contractSize = $amountPrecision;
-                $linear = null;
-                $inverse = null;
-                if ($swap) {
-                    $settleId = $quoteId;
-                    $settle = $this->safe_currency_code($settleId);
-                    $symbol = $symbol . ':' . $settle;
-                    $type = 'swap';
-                    $contract = true;
-                    $linear = true;
-                    $inverse = false;
-                } else {
-                    $type = 'spot';
-                }
-                $takerFeeRate = $this->safe_string($market, 'takerFee');
-                $taker = Precise::string_div($takerFeeRate, '100');
-                $makerFeeRate = $this->safe_string($market, 'makerFee');
-                $maker = Precise::string_div($makerFeeRate, '100');
-                $entry = array(
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => $settle,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => $settleId,
-                    'type' => $type,
-                    'spot' => !$swap,
-                    'margin' => $margin,
-                    'swap' => $swap,
-                    'future' => false,
-                    'option' => false,
-                    'active' => $active,
-                    'contract' => $contract,
-                    'linear' => $linear,
-                    'inverse' => $inverse,
-                    'taker' => $this->parse_number($taker),
-                    'maker' => $this->parse_number($maker),
-                    'contractSize' => $contractSize,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $amountPrecision,
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'moneyPrec'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $this->safe_number($market, 'minAmount'),
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => $this->safe_number($market, 'minTotal'),
-                            'max' => $this->safe_number($market, 'maxTotal'),
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                );
-                $result[] = $entry;
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'name');
+        $baseId = $this->safe_string($market, 'stock');
+        $quoteId = $this->safe_string($market, 'money');
+        $quoteId = ($quoteId === 'PERP') ? 'USDT' : $quoteId;
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $active = $this->safe_value($market, 'tradesEnabled');
+        $isCollateral = $this->safe_value($market, 'isCollateral');
+        $typeId = $this->safe_string($market, 'type');
+        $settle = null;
+        $settleId = null;
+        $symbol = $base . '/' . $quote;
+        $swap = $typeId === 'futures';
+        $margin = $isCollateral && !$swap;
+        $contract = false;
+        $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
+        $contractSize = $amountPrecision;
+        $linear = null;
+        $inverse = null;
+        if ($swap) {
+            $settleId = $quoteId;
+            $settle = $this->safe_currency_code($settleId);
+            $symbol = $symbol . ':' . $settle;
+            $type = 'swap';
+            $contract = true;
+            $linear = true;
+            $inverse = false;
+        } else {
+            $type = 'spot';
+        }
+        $takerFeeRate = $this->safe_string($market, 'takerFee');
+        $taker = Precise::string_div($takerFeeRate, '100');
+        $makerFeeRate = $this->safe_string($market, 'makerFee');
+        $maker = Precise::string_div($makerFeeRate, '100');
+        return array(
+            'id' => $id,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => $settleId,
+            'type' => $type,
+            'spot' => !$swap,
+            'margin' => $margin,
+            'swap' => $swap,
+            'future' => false,
+            'option' => false,
+            'active' => $active,
+            'contract' => $contract,
+            'linear' => $linear,
+            'inverse' => $inverse,
+            'taker' => $this->parse_number($taker),
+            'maker' => $this->parse_number($maker),
+            'contractSize' => $contractSize,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $amountPrecision,
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'moneyPrec'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'minAmount'),
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($market, 'minTotal'),
+                    'max' => $this->safe_number($market, 'maxTotal'),
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function fetch_currencies($params = array ()) {
@@ -746,7 +743,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //  FetchTicker (v1)
         //
@@ -800,7 +797,7 @@ class whitebit extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -983,7 +980,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTradesV4
         //
@@ -1110,7 +1107,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1591488000,
@@ -1212,7 +1209,6 @@ class whitebit extends Exchange {
             if ($postOnly) {
                 $request['postOnly'] = true;
             }
-            $method = null;
             if ($marginMode !== null && $marginMode !== 'cross') {
                 throw new NotSupported($this->id . ' createOrder() is only available for cross margin');
             }
@@ -1457,7 +1453,7 @@ class whitebit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, fetchOpenOrders
         //
@@ -1730,7 +1726,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //    array()
         //
@@ -1791,7 +1787,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //     {
         //         "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit $address
@@ -1845,6 +1841,7 @@ class whitebit extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => $this->safe_string($transaction, 'description'),
+            'internal' => null,
             'fee' => array(
                 'cost' => $this->safe_number($transaction, 'fee'),
                 'currency' => $this->safe_currency_code($currencyId, $currency),
@@ -2053,7 +2050,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     {
         //         "positionId" => 191823,
@@ -2167,7 +2164,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         // {
         //     "ticker_id":"ADA_PERP",

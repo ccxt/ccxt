@@ -545,7 +545,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -626,7 +626,7 @@ class coinbasepro extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -716,7 +716,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         //     {
         //         "type" => "match",
@@ -898,7 +898,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1591514160,
@@ -961,7 +961,7 @@ class coinbasepro extends Exchange {
                 }
                 if ($until === null) {
                     $parsedTimeframeMilliseconds = $parsedTimeframe * 1000;
-                    if (fmod($since, $parsedTimeframeMilliseconds) === 0) {
+                    if ($this->is_round_number(fmod($since, $parsedTimeframeMilliseconds))) {
                         $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframeMilliseconds, $since));
                     } else {
                         $request['end'] = $this->iso8601($this->sum($limit * $parsedTimeframeMilliseconds, $since));
@@ -1012,7 +1012,7 @@ class coinbasepro extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1460,7 +1460,7 @@ class coinbasepro extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //  {
         //      "id" => "12087495079",
         //      "amount" => "-0.0100000000000000",
@@ -1737,7 +1737,7 @@ class coinbasepro extends Exchange {
         }
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // privateGetTransfers
         //
@@ -1813,6 +1813,7 @@ class coinbasepro extends Exchange {
             'tagTo' => null,
             'updated' => $this->parse8601($this->safe_string($transaction, 'processed_at')),
             'comment' => null,
+            'internal' => false,
             'fee' => $fee,
         );
     }

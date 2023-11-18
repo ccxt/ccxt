@@ -391,7 +391,7 @@ class blockchaincom extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'px', 'qty');
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //     "symbol" => "BTC-USD",
@@ -445,7 +445,7 @@ class blockchaincom extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
@@ -469,7 +469,7 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "clOrdId" => "00001",
@@ -714,7 +714,7 @@ class blockchaincom extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         //     {
         //         "exOrdId":281685751028507,
@@ -824,7 +824,7 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // deposit
         //
@@ -871,7 +871,7 @@ class blockchaincom extends Exchange {
         }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'txhash');
-        $result = array(
+        return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
@@ -890,9 +890,9 @@ class blockchaincom extends Exchange {
             'status' => $this->parse_transaction_state($state), // 'status' =>   'pending',   // 'ok', 'failed', 'canceled', string
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function fetch_withdrawal_whitelist($params = array ()) {

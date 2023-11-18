@@ -363,7 +363,7 @@ class luno extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
         //         "base" => "string",
@@ -515,7 +515,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         // {
         //     "pair":"XBTAUD",
         //     "timestamp":1642201439301,
@@ -553,7 +553,7 @@ class luno extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -605,7 +605,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -975,7 +975,7 @@ class luno extends Exchange {
         );
     }
 
-    public function parse_ledger_entry($entry, $currency = null) {
+    public function parse_ledger_entry($entry, ?array $currency = null) {
         // $details = $this->safe_value($entry, 'details', array());
         $id = $this->safe_string($entry, 'row_index');
         $account_id = $this->safe_string($entry, 'account_id');

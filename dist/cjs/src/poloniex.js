@@ -498,65 +498,63 @@ class poloniex extends poloniex$1 {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = this.safeValue(markets, i);
-            const id = this.safeString(market, 'symbol');
-            const baseId = this.safeString(market, 'baseCurrencyName');
-            const quoteId = this.safeString(market, 'quoteCurrencyName');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const state = this.safeString(market, 'state');
-            const active = state === 'NORMAL';
-            const symbolTradeLimit = this.safeValue(market, 'symbolTradeLimit');
-            // these are known defaults
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(symbolTradeLimit, 'quantityScale'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(symbolTradeLimit, 'priceScale'))),
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'symbol');
+        const baseId = this.safeString(market, 'baseCurrencyName');
+        const quoteId = this.safeString(market, 'quoteCurrencyName');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const state = this.safeString(market, 'state');
+        const active = state === 'NORMAL';
+        const symbolTradeLimit = this.safeValue(market, 'symbolTradeLimit');
+        // these are known defaults
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(symbolTradeLimit, 'quantityScale'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(symbolTradeLimit, 'priceScale'))),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(symbolTradeLimit, 'minQuantity'),
+                    'max': undefined,
                 },
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(symbolTradeLimit, 'minQuantity'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber(symbolTradeLimit, 'minAmount'),
-                        'max': undefined,
-                    },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'created': this.safeInteger(market, 'tradableStartTime'),
-                'info': market,
-            });
-        }
-        return result;
+                'cost': {
+                    'min': this.safeNumber(symbolTradeLimit, 'minAmount'),
+                    'max': undefined,
+                },
+            },
+            'created': this.safeInteger(market, 'tradableStartTime'),
+            'info': market,
+        };
     }
     async fetchTime(params = {}) {
         /**
@@ -2096,7 +2094,8 @@ class poloniex extends poloniex$1 {
             const code = this.safeCurrencyCode(currencyId);
             const feeInfo = response[currencyId];
             if ((codes === undefined) || (this.inArray(code, codes))) {
-                depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, code);
+                const currency = this.currency(code);
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, currency);
                 const childChains = this.safeValue(feeInfo, 'childChains');
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
@@ -2126,7 +2125,7 @@ class poloniex extends poloniex$1 {
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         const depositWithdrawFee = this.depositWithdrawFee({});
-        depositWithdrawFee['info'][currency] = fee;
+        depositWithdrawFee['info'][currency['code']] = fee;
         const networkId = this.safeString(fee, 'blockchain');
         const withdrawFee = this.safeNumber(fee, 'withdrawalFee');
         const withdrawResult = {
@@ -2250,6 +2249,7 @@ class poloniex extends poloniex$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCostString),

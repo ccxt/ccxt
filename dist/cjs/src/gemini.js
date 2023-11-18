@@ -1598,6 +1598,8 @@ class gemini extends gemini$1 {
             'currency': code,
             'status': this.parseTransactionStatus(statusRaw),
             'updated': undefined,
+            'internal': undefined,
+            'comment': this.safeString(transaction, 'message'),
             'fee': fee,
         };
     }
