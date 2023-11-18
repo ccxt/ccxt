@@ -230,6 +230,10 @@ public partial class Exchange
             {
                 return Convert.ToInt64(a) == Convert.ToInt64(b);
             }
+            if (a.GetType() == typeof(decimal) || b.GetType() == typeof(decimal))
+            {
+                return Convert.ToDecimal(a) == Convert.ToDecimal(b);
+            }
             else if (a.GetType() == typeof(int))
             {
                 return (int)a == (int)b;
