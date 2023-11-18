@@ -1,7 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
-import { Fee, Market } from '../ccxt.js';
+import { Market } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
