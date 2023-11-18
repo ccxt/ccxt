@@ -49,14 +49,13 @@ export default class okx extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
-                'fetchBorrowRates': true,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
@@ -72,6 +71,8 @@ export default class okx extends Exchange {
                 'fetchFundingRates': false,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
@@ -5935,10 +5936,10 @@ export default class okx extends Exchange {
         return response;
     }
 
-    async fetchBorrowRates (params = {}) {
+    async fetchCrossBorrowRates (params = {}) {
         /**
          * @method
-         * @name okx#fetchBorrowRates
+         * @name okx#fetchCrossBorrowRates
          * @description fetch the borrow interest rates of all currencies
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
          * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -5958,28 +5959,18 @@ export default class okx extends Exchange {
         //        ],
         //    }
         //
-        const timestamp = this.milliseconds ();
-        const data = this.safeValue (response, 'data');
-        const rates = {};
+        const data = this.safeValue (response, 'data', []);
+        const rates = [];
         for (let i = 0; i < data.length; i++) {
-            const rate = data[i];
-            const code = this.safeCurrencyCode (this.safeString (rate, 'ccy'));
-            rates[code] = {
-                'currency': code,
-                'rate': this.safeNumber (rate, 'interestRate'),
-                'period': 86400000,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'info': rate,
-            };
+            rates.push (this.parseBorrowRate (data[i]));
         }
         return rates;
     }
 
-    async fetchBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}) {
         /**
          * @method
-         * @name okx#fetchBorrowRate
+         * @name okx#fetchCrossBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
          * @param {string} code unified currency code
