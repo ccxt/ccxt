@@ -223,8 +223,7 @@
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/liq_orders?contract=BTC_USDT",
                 "input": [
                   "BTC/USDT:USDT"
-                ],
-                "output": "[{info:{contract:\"BTC_USDT\",left:\"0\",size:\"-99\",fill_price:\"36205\",order_price:\"36348.5\",time:\"1700178349\",},symbol:\"BTC/USDT:USDT\",contracts:99,contractSize:undefined,price:36205,baseValue:0.0099,quoteValue:358.4295,timestamp:1700178349000,datetime:\"2023-11-16T23:45:49.000Z\",},{info:{contract:\"BTC_USDT\",left:\"0\",size:\"-23\",fill_price:\"36295.2\",order_price:\"36470.3\",time:\"1700181591\",},symbol:\"BTC/USDT:USDT\",contracts:23,contractSize:undefined,price:36295.2,baseValue:0.0023,quoteValue:83.47896,timestamp:1700181591000,datetime:\"2023-11-17T00:39:51.000Z\",},{info:{contract:\"BTC_USDT\",left:\"0\",size:\"-109\",fill_price:\"36295.2\",order_price:\"36422.3\",time:\"1700181591\",},symbol:\"BTC/USDT:USDT\",contracts:109,contractSize:undefined,price:36295.2,baseValue:0.0109,quoteValue:395.61768,timestamp:1700181591000,datetime:\"2023-11-17T00:39:51.000Z\",},]"
+                ]
             }
         ]
     }
