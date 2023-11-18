@@ -684,13 +684,20 @@ class Exchange extends \ccxt\Exchange {
     public function parse_to_numeric($number) {
         $stringVersion = $this->number_to_string($number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS => 1 == 1.0 is true
+        // in JS => 1 == 1.0 is true;  1 === 1.0 is true
         // in Python => 1 == 1.0 is true
-        // in PHP 1 == 1.0 is false
-        if (mb_strpos($stringVersion, '.') > 0) {
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        if (mb_strpos($stringVersion, '.') !== false) {
             return floatval($stringVersion);
         }
         return intval($stringVersion);
+    }
+
+    public function is_round_number($value) {
+        // this method is similar to isInteger, but this is more loyal and does not check for types.
+        // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
+        $res = $this->parse_to_numeric((fmod($value, 1)));
+        return $res === 0;
     }
 
     public function after_construct() {

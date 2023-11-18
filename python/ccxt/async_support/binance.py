@@ -6658,7 +6658,7 @@ class binance(Exchange, ImplicitAPI):
         initialMarginString = self.safe_string(position, 'initialMargin')
         initialMargin = self.parse_number(initialMarginString)
         initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
-        rational = (1000 % leverage) == 0
+        rational = self.is_round_number(1000 % leverage)
         if not rational:
             initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
         # to notionalValue
@@ -6913,7 +6913,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMarginString = Precise.string_mul(maintenanceMarginPercentageString, notionalStringAbs)
         maintenanceMargin = self.parse_number(maintenanceMarginString)
         initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
-        rational = (1000 % leverage) == 0
+        rational = self.is_round_number(1000 % leverage)
         if not rational:
             initialMarginPercentageString = Precise.string_add(initialMarginPercentageString, '1e-8')
         initialMarginString = Precise.string_div(Precise.string_mul(notionalStringAbs, initialMarginPercentageString), '1', 8)

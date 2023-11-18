@@ -41,10 +41,10 @@ export default class digifinex extends Exchange {
                 'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': true,
+                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -55,6 +55,8 @@ export default class digifinex extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
@@ -2992,7 +2994,16 @@ export default class digifinex extends Exchange {
         };
     }
 
-    async fetchBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchCrossBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         const response = await this.privateSpotGetMarginAssets (this.extend (request, params));
@@ -3025,11 +3036,12 @@ export default class digifinex extends Exchange {
         return this.parseBorrowRate (result, currency);
     }
 
-    async fetchBorrowRates (params = {}) {
+    async fetchCrossBorrowRates (params = {}) {
         /**
          * @method
-         * @name digifinex#fetchBorrowRates
+         * @name digifinex#fetchCrossBorrowRates
          * @description fetch the borrow interest rates of all currencies
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
          */
@@ -3052,7 +3064,7 @@ export default class digifinex extends Exchange {
         //         "equity": 45.133305540922
         //     }
         //
-        const result = this.safeValue (response, 'list');
+        const result = this.safeValue (response, 'list', []);
         return this.parseBorrowRates (result, 'currency');
     }
 

@@ -290,6 +290,24 @@
                     "USDT"
                 ]
             }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "Fetch cross borrow rate",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://openapi.digifinex.com/v3/margin/assets",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchCrossBorrowRates": [
+            {
+                "description": "Fetch cross borrow rates",
+                "method": "fetchCrossBorrowRates",
+                "url": "https://openapi.digifinex.com/v3/margin/assets",
+                "input": []
+            }
         ]
     }
 }

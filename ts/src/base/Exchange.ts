@@ -142,7 +142,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface } from './types.js';
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js'
 
 // ----------------------------------------------------------------------------
@@ -480,13 +480,12 @@ export default class Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
-                'fetchBorrowRates': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
+                'fetchCrossBorrowRate': undefined,
+                'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
@@ -501,6 +500,8 @@ export default class Exchange {
                 'fetchFundingRateHistory': undefined,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
+                'fetchIsolatedBorrowRate': undefined,
+                'fetchIsolatedBorrowRates': undefined,
                 'fetchL2OrderBook': true,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -1656,7 +1657,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
-    async fetchTime (params = {}): Promise<number> {
+    async fetchTime (params = {}): Promise<Int> {
         throw new NotSupported (this.id + ' fetchTime() is not supported yet');
     }
 
@@ -1708,8 +1709,12 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
-    async fetchBorrowRates (params = {}): Promise<any> {
-        throw new NotSupported (this.id + ' fetchBorrowRates() is not supported yet');
+    async fetchCrossBorrowRates (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchCrossBorrowRates() is not supported yet');
+    }
+
+    async fetchIsolatedBorrowRates (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchIsolatedBorrowRates() is not supported yet');
     }
 
     parseMarketLeverageTiers (info, market: Market = undefined) {
@@ -1779,13 +1784,20 @@ export default class Exchange {
     parseToNumeric (number) {
         const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true
+        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is false
-        if (stringVersion.indexOf ('.') > 0) {
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        if (stringVersion.indexOf ('.') >= 0) {
             return parseFloat (stringVersion);
         }
         return parseInt (stringVersion);
+    }
+
+    isRoundNumber (value) {
+        // this method is similar to isInteger, but this is more loyal and does not check for types.
+        // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
+        const res = this.parseToNumeric ((value % 1));
+        return res === 0;
     }
 
     afterConstruct () {
@@ -3541,15 +3553,28 @@ export default class Exchange {
         }
     }
 
-    async fetchBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}) {
         await this.loadMarkets ();
         if (!this.has['fetchBorrowRates']) {
-            throw new NotSupported (this.id + ' fetchBorrowRate() is not supported yet');
+            throw new NotSupported (this.id + ' fetchCrossBorrowRate() is not supported yet');
         }
-        const borrowRates = await this.fetchBorrowRates (params);
+        const borrowRates = await this.fetchCrossBorrowRates (params);
         const rate = this.safeValue (borrowRates, code);
         if (rate === undefined) {
-            throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+            throw new ExchangeError (this.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code);
+        }
+        return rate;
+    }
+
+    async fetchIsolatedBorrowRate (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        if (!this.has['fetchBorrowRates']) {
+            throw new NotSupported (this.id + ' fetchIsolatedBorrowRate() is not supported yet');
+        }
+        const borrowRates = await this.fetchIsolatedBorrowRates (params);
+        const rate = this.safeValue (borrowRates, symbol);
+        if (rate === undefined) {
+            throw new ExchangeError (this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
         return rate;
     }
@@ -3584,7 +3609,7 @@ export default class Exchange {
         return result;
     }
 
-    handleMarketTypeAndParams (methodName, market = undefined, params = {}): any {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}): any {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
         let methodType = defaultType;
@@ -3866,7 +3891,7 @@ export default class Exchange {
         }
     }
 
-    account (): Balance {
+    account (): Account {
         return {
             'free': undefined,
             'used': undefined,

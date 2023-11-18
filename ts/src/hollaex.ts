@@ -45,12 +45,11 @@ export default class hollaex extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
@@ -60,6 +59,8 @@ export default class hollaex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -1849,7 +1850,7 @@ export default class hollaex extends Exchange {
     }
 
     normalizeNumberIfNeeded (number) {
-        if (number % 1 === 0) {
+        if (this.isRoundNumber (number)) {
             number = parseInt (number);
         }
         return number;
