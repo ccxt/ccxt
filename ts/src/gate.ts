@@ -6686,8 +6686,9 @@ export default class gate extends Exchange {
         //
         const marketId = this.safeString (liquidation, 'contract');
         const timestamp = this.safeTimestamp (liquidation, 'time');
-        const contractsStringRaw = this.safeString2 (liquidation, 'size', 'settle_size');
-        const contractsString = Precise.stringAbs (contractsStringRaw);
+        const size = this.safeString2 (liquidation, 'size', 'settle_size');
+        const left = this.safeString (liquidation, 'left', '0');
+        const contractsString = Precise.stringAbs (Precise.stringSub (size, left));
         const contractSizeString = this.safeString (market, 'contractSize');
         const priceString = this.safeString2 (liquidation, 'liq_price', 'fill_price');
         const baseValueString = Precise.stringMul (contractsString, contractSizeString);
