@@ -821,7 +821,7 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
@@ -1089,12 +1089,12 @@ export default class coinex extends Exchange {
         } else if (takerOrMaker === '2') {
             takerOrMaker = 'taker';
         }
-        let side = undefined;
+        let side: Str = undefined;
         if (market['type'] === 'swap') {
-            side = this.safeInteger (trade, 'side');
-            if (side === 1) {
+            const rawSide = this.safeInteger (trade, 'side');
+            if (rawSide === 1) {
                 side = 'sell';
-            } else if (side === 2) {
+            } else if (rawSide === 2) {
                 side = 'buy';
             }
             if (side === undefined) {
@@ -1329,7 +1329,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets ();
         const symbol = this.safeString (params, 'symbol');
         let marketId = this.safeString (params, 'market');
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             marketId = market['id'];
@@ -1800,7 +1800,7 @@ export default class coinex extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const rawSide = this.safeInteger (order, 'side');
-        let side = undefined;
+        let side: Str = undefined;
         if (rawSide === 1) {
             side = 'sell';
         } else if (rawSide === 2) {
@@ -1809,12 +1809,12 @@ export default class coinex extends Exchange {
             side = this.safeString (order, 'type');
         }
         const rawType = this.safeString (order, 'order_type');
-        let type = undefined;
+        let type: Str = undefined;
         if (rawType === undefined) {
-            type = this.safeInteger (order, 'type');
-            if (type === 1) {
+            const typeInteger = this.safeInteger (order, 'type');
+            if (typeInteger === 1) {
                 type = 'limit';
-            } else if (type === 2) {
+            } else if (typeInteger === 2) {
                 type = 'market';
             }
         } else {
@@ -2192,6 +2192,9 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const stop = this.safeValue (params, 'stop');
@@ -2350,7 +2353,7 @@ export default class coinex extends Exchange {
         };
         const swap = market['swap'];
         const stop = this.safeValue (params, 'stop');
-        let method = undefined;
+        let method: string;
         if (swap) {
             method = 'perpetualPrivatePostOrderCancelAll';
             if (stop) {
