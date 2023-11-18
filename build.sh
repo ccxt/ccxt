@@ -60,7 +60,7 @@ build_and_test_all () {
   if [ "$IS_TRAVIS" == "TRUE" ]; then
     merged_pull_request="$(git show --format="%s" -s HEAD | sed -nE 's/Merge pull request #([0-9]{5}).+$/\1/p')"
     echo "DEBUG: $merged_pull_request" # for debugging
-    if [ -z "$merged_pull_request" ]; then
+    if [ -n "$merged_pull_request" ]; then
       echo "Travis is building merge commit #$merged_pull_request"
       # run every 3 merged pull requests
       if [ $(("${merged_pull_request:0-1}" % 3)) -eq 0 ]; then
@@ -73,13 +73,18 @@ build_and_test_all () {
         pyenv install -s 3.10.13
         pyenv install -s 3.11.6
         pyenv global 3.7 3.8 3.9 3.10 3.11
-        cd python && tox run-parallel && cd ..
+        cd python
+        if ! tox run-parallel; then
+          exit 1
+        fi
+        cd ..
       fi
     fi
     npm run test-base
     npm run test-base-ws
     run_tests
   fi
+  exit
 }
 
 ### CHECK IF THIS IS A PR ###

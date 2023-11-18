@@ -49,11 +49,11 @@ export default class coinex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': true,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressByNetwork': false,
@@ -66,6 +66,8 @@ export default class coinex extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': true,
+                'fetchIsolatedBorrowRates': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -4409,7 +4411,7 @@ export default class coinex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseBorrowRate (info, market: Market = undefined) {
+    parseIsolatedBorrowRate (info, market: Market = undefined) {
         //
         //     {
         //         "market": "BTCUSDT",
@@ -4429,15 +4431,13 @@ export default class coinex extends Exchange {
         const marketId = this.safeString (info, 'market');
         market = this.safeMarket (marketId, market, undefined, 'spot');
         const baseInfo = this.safeValue (info, market['baseId']);
-        const baseRate = this.safeNumber (baseInfo, 'day_rate');
         const quoteInfo = this.safeValue (info, market['quoteId']);
-        const quoteRate = this.safeNumber (quoteInfo, 'day_rate');
         return {
             'symbol': market['symbol'],
             'base': market['base'],
-            'baseRate': baseRate,
+            'baseRate': this.safeNumber (baseInfo, 'day_rate'),
             'quote': market['quote'],
-            'quoteRate': quoteRate,
+            'quoteRate': this.safeNumber (quoteInfo, 'day_rate'),
             'period': 86400000,
             'timestamp': undefined,
             'datetime': undefined,
@@ -4448,19 +4448,17 @@ export default class coinex extends Exchange {
     async fetchIsolatedBorrowRate (symbol: string, params = {}) {
         /**
          * @method
-         * @name coinex#fetchBorrowRate
+         * @name coinex#fetchIsolatedBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
-         * @param {string} code unified currency code
+         * @param {string} symbol unified symbol of the market to fetch the borrow rate for
          * @param {object} [params] extra parameters specific to the coinex api endpoint
-         * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         * @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
         const response = await this.privateGetMarginConfig (this.extend (request, params));
         //
         //     {
@@ -4483,16 +4481,16 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseBorrowRate (data, market);
+        return this.parseIsolatedBorrowRate (data, market);
     }
 
     async fetchIsolatedBorrowRates (params = {}) {
         /**
          * @method
-         * @name coinex#fetchBorrowRates
+         * @name coinex#fetchIsolatedBorrowRates
          * @description fetch the borrow interest rates of all currencies
          * @param {object} [params] extra parameters specific to the coinex api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         * @returns {object} a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetMarginConfig (params);
@@ -4518,10 +4516,10 @@ export default class coinex extends Exchange {
         //         "message": "Success"
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
-            rates.push (this.parseBorrowRate (data[i]));
+            rates.push (this.parseIsolatedBorrowRate (data[i]));
         }
         return rates;
     }
