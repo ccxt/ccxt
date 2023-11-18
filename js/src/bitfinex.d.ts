@@ -5,39 +5,39 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class bitfinex extends Exchange {
-    describe(): any;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
+    describe(): undefined;
+    fetchTransactionFees(codes?: undefined, params?: {}): Promise<{}>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         withdraw: {
             fee: number;
-            percentage: any;
+            percentage: undefined;
         };
         deposit: {
-            fee: any;
-            percentage: any;
+            fee: undefined;
+            percentage: undefined;
         };
         networks: {};
         info: any;
     };
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<never[]>;
     amountToPrecision(symbol: any, amount: any): any;
     priceToPrecision(symbol: any, price: any): any;
     fetchBalance(params?: {}): Promise<Balances>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
-        id: any;
+        id: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
+        amount: undefined;
+        fromAccount: undefined;
+        toAccount: undefined;
+        status: Str;
     };
-    parseTransferStatus(status: any): string;
+    parseTransferStatus(status: any): Str;
     convertDerivativesId(currencyId: any, type: any): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -46,8 +46,8 @@ export default class bitfinex extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: number, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: undefined, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     parseOrder(order: any, market?: Market): Order;
@@ -60,28 +60,28 @@ export default class bitfinex extends Exchange {
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: any;
-        tag: any;
-        network: any;
+        tag: undefined;
+        network: undefined;
         info: any;
     }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: any;
-        tag: any;
-        network: any;
+        tag: undefined;
+        network: undefined;
         info: any;
     }>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    parseTransactionStatus(status: any): Str;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<any>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

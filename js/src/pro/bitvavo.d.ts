@@ -2,7 +2,7 @@ import bitvavoRest from '../bitvavo.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitvavo extends bitvavoRest {
-    describe(): any;
+    describe(): undefined;
     watchPublic(name: any, symbol: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;

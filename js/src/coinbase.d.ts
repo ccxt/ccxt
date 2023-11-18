@@ -5,21 +5,21 @@ import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str,
  * @extends Exchange
  */
 export default class coinbase extends Exchange {
-    describe(): any;
-    fetchTime(params?: {}): Promise<number>;
+    describe(): undefined;
+    fetchTime(params?: {}): Promise<number | undefined>;
     fetchAccounts(params?: {}): Promise<any>;
     fetchAccountsV2(params?: {}): Promise<any>;
     fetchAccountsV3(params?: {}): Promise<any>;
     parseAccount(account: any): {
-        id: string;
-        type: string;
+        id: Str;
+        type: Str;
         code: string;
         info: any;
     };
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        tag: string;
-        address: string;
+        tag: Str;
+        address: Str;
         info: any;
     }>;
     fetchMySells(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -27,34 +27,34 @@ export default class coinbase extends Exchange {
     fetchTransactionsWithMethod(method: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: any): Str;
     parseTransaction(transaction: any, currency?: Currency): {
         info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: any;
-        address: any;
-        addressTo: any;
-        addressFrom: any;
-        tag: any;
-        tagTo: any;
-        tagFrom: any;
-        type: string;
-        amount: number;
+        id: Str;
+        txid: Str;
+        timestamp: number | undefined;
+        datetime: string | undefined;
+        network: undefined;
+        address: undefined;
+        addressTo: undefined;
+        addressFrom: undefined;
+        tag: undefined;
+        tagTo: undefined;
+        tagFrom: undefined;
+        type: Str;
+        amount: import("./base/types.js").Num;
         currency: string;
         status: string;
-        updated: number;
+        updated: number | undefined;
         fee: {
-            cost: number;
+            cost: import("./base/types.js").Num;
             currency: string;
         };
     };
     parseTrade(trade: any, market?: Market): Trade;
     fetchMarkets(params?: {}): Promise<any>;
-    fetchMarketsV2(params?: {}): Promise<any[]>;
-    fetchMarketsV3(params?: {}): Promise<any[]>;
+    fetchMarketsV2(params?: {}): Promise<never[]>;
+    fetchMarketsV3(params?: {}): Promise<never[]>;
     fetchCurrenciesFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -67,24 +67,24 @@ export default class coinbase extends Exchange {
     parseBalance(response: any, params?: {}): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntryStatus(status: any): string;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryStatus(status: any): Str;
+    parseLedgerEntryType(type: any): Str;
     parseLedgerEntry(item: any, currency?: Currency): {
         info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        direction: any;
-        account: any;
-        referenceId: any;
-        referenceAccount: any;
-        type: string;
+        id: Str;
+        timestamp: number | undefined;
+        datetime: string | undefined;
+        direction: undefined;
+        account: undefined;
+        referenceId: undefined;
+        referenceAccount: undefined;
+        type: Str;
         currency: string;
         amount: number;
-        before: any;
-        after: any;
-        status: string;
-        fee: any;
+        before: undefined;
+        after: undefined;
+        status: Str;
+        fee: undefined;
     };
     findAccountId(code: any): Promise<any>;
     prepareAccountRequest(limit?: Int, params?: {}): {
@@ -93,14 +93,14 @@ export default class coinbase extends Exchange {
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{
         account_id: string;
     }>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
-    parseOrderType(type: any): string;
-    parseTimeInForce(timeInForce: any): string;
+    parseOrderStatus(status: any): Str;
+    parseOrderType(type: any): Str;
+    parseTimeInForce(timeInForce: any): Str;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: undefined, price?: undefined, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrders(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -113,11 +113,11 @@ export default class coinbase extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: never[], method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

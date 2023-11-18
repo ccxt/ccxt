@@ -2,7 +2,7 @@ import ndaxRest from '../ndax.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class ndax extends ndaxRest {
-    describe(): any;
+    describe(): undefined;
     requestId(): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;

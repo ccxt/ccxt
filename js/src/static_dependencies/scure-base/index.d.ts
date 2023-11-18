@@ -58,18 +58,18 @@ export declare const bech32: {
     encode: (prefix: string, words: number[] | Uint8Array, limit?: number | false) => string;
     decode: (str: string, limit?: number | false) => Bech32Decoded;
     decodeToBytes: (str: string) => Bech32DecodedWithArray;
-    decodeUnsafe: (str: string, limit?: number | false) => Bech32Decoded;
+    decodeUnsafe: (str: string, limit?: number | false | undefined) => Bech32Decoded | undefined;
     fromWords: (to: number[]) => Uint8Array;
-    fromWordsUnsafe: (to: number[]) => Uint8Array;
+    fromWordsUnsafe: (to: number[]) => Uint8Array | undefined;
     toWords: (from: Uint8Array) => number[];
 };
 export declare const bech32m: {
     encode: (prefix: string, words: number[] | Uint8Array, limit?: number | false) => string;
     decode: (str: string, limit?: number | false) => Bech32Decoded;
     decodeToBytes: (str: string) => Bech32DecodedWithArray;
-    decodeUnsafe: (str: string, limit?: number | false) => Bech32Decoded;
+    decodeUnsafe: (str: string, limit?: number | false | undefined) => Bech32Decoded | undefined;
     fromWords: (to: number[]) => Uint8Array;
-    fromWordsUnsafe: (to: number[]) => Uint8Array;
+    fromWordsUnsafe: (to: number[]) => Uint8Array | undefined;
     toWords: (from: Uint8Array) => number[];
 };
 export declare const utf8: BytesCoder;

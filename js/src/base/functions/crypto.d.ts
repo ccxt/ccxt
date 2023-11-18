@@ -8,7 +8,7 @@ declare const hmac: (request: Input, secret: Input, hash: CHash, digest?: Digest
 declare function ecdsa(request: Hex, secret: Hex, curve: CurveFn, prehash?: CHash): {
     r: string;
     s: string;
-    v: number;
+    v: number | undefined;
 };
 declare function axolotl(request: Hex, secret: Hex, curve: CurveFnEDDSA): string;
 declare function eddsa(request: Hex, secret: string, curve: CurveFnEDDSA): string;

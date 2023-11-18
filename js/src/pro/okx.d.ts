@@ -2,7 +2,7 @@ import okxRest from '../okx.js';
 import { Int, OrderSide, OrderType, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class okx extends okxRest {
-    describe(): any;
+    describe(): undefined;
     getUrl(channel: string, access?: string): string;
     subscribeMultiple(access: any, channel: any, symbols?: Strings, params?: {}): Promise<any>;
     subscribe(access: any, messageHash: any, channel: any, symbol: any, params?: {}): Promise<any>;
@@ -23,12 +23,12 @@ export default class okx extends okxRest {
     authenticate(params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
-    orderToTrade(order: any, market?: any): import("../base/types.js").Trade;
+    orderToTrade(order: any, market?: undefined): import("../base/types.js").Trade;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handlePositions(client: any, message: any): void;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    handleOrders(client: Client, message: any, subscription?: any): void;
+    handleOrders(client: Client, message: any, subscription?: undefined): void;
     handleMyTrades(client: Client, message: any): void;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
     handlePlaceOrders(client: Client, message: any): void;

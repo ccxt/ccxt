@@ -613,8 +613,12 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseOrder() is not supported yet');
     }
 
-    public function fetch_borrow_rates($params = array ()) {
-        throw new NotSupported($this->id . ' fetchBorrowRates() is not supported yet');
+    public function fetch_cross_borrow_rates($params = array ()) {
+        throw new NotSupported($this->id . ' fetchCrossBorrowRates() is not supported yet');
+    }
+
+    public function fetch_isolated_borrow_rates($params = array ()) {
+        throw new NotSupported($this->id . ' fetchIsolatedBorrowRates() is not supported yet');
     }
 
     public function parse_market_leverage_tiers($info, ?array $market = null) {
@@ -2485,16 +2489,31 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function fetch_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             Async\await($this->load_markets());
             if (!$this->has['fetchBorrowRates']) {
-                throw new NotSupported($this->id . ' fetchBorrowRate() is not supported yet');
+                throw new NotSupported($this->id . ' fetchCrossBorrowRate() is not supported yet');
             }
-            $borrowRates = Async\await($this->fetch_borrow_rates($params));
+            $borrowRates = Async\await($this->fetchCrossBorrowRates ($params));
             $rate = $this->safe_value($borrowRates, $code);
             if ($rate === null) {
-                throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow $rate for currency $code ' . $code);
+                throw new ExchangeError($this->id . ' fetchCrossBorrowRate() could not find the borrow $rate for currency $code ' . $code);
+            }
+            return $rate;
+        }) ();
+    }
+
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            if (!$this->has['fetchBorrowRates']) {
+                throw new NotSupported($this->id . ' fetchIsolatedBorrowRate() is not supported yet');
+            }
+            $borrowRates = Async\await($this->fetchIsolatedBorrowRates ($params));
+            $rate = $this->safe_value($borrowRates, $symbol);
+            if ($rate === null) {
+                throw new ExchangeError($this->id . ' fetchIsolatedBorrowRate() could not find the borrow $rate for market $symbol ' . $symbol);
             }
             return $rate;
         }) ();
@@ -2530,7 +2549,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
         $methodOptions = $this->safe_value($this->options, $methodName);
         $methodType = $defaultType;

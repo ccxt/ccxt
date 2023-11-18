@@ -15,8 +15,8 @@ export default class Response extends Body {
      */
     static redirect(url: string, status?: number): Response;
     static error(): Response;
-    static json(data?: any, init?: {}): Response;
-    constructor(body?: any, options?: {});
+    static json(data?: undefined, init?: {}): Response;
+    constructor(body?: null, options?: {});
     get type(): string;
     get url(): any;
     get status(): any;

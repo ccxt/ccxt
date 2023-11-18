@@ -22,10 +22,10 @@ export default class Headers extends URLSearchParams {
      * @constructor
      * @param {HeadersInit} [init] - Response headers
      */
-    constructor(init?: HeadersInit);
-    get(name: any): string;
-    forEach(callback: any, thisArg?: any): void;
-    values(): Generator<string, void, unknown>;
+    constructor(init?: HeadersInit | undefined);
+    get(name: any): string | null;
+    forEach(callback: any, thisArg?: undefined): void;
+    values(): Generator<string | null, void, unknown>;
     /**
      * Node-fetch non-spec method
      * returning all headers and their values as array

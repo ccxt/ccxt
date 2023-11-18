@@ -5,9 +5,9 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
  * @extends Exchange
  */
 export default class lykke extends Exchange {
-    describe(): any;
+    describe(): undefined;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<never[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -16,9 +16,9 @@ export default class lykke extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -28,19 +28,19 @@ export default class lykke extends Exchange {
     parseBidAsk(bidask: any, priceKey?: number, amountKey?: number): number[];
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: string;
-        network: any;
+        address: Str;
+        tag: Str;
+        network: undefined;
         info: any;
     }>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

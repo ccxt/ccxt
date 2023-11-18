@@ -10,10 +10,10 @@ export class FetchError extends FetchBaseError {
      * @param  {string} [type] -        Error type for machine
      * @param  {SystemError} [systemError] - For Node.js system error
      */
-    constructor(message: string, type?: string, systemError?: SystemError);
-    code: string;
-    errno: string;
-    erroredSysCall: string;
+    constructor(message: string, type?: string | undefined, systemError?: SystemError | undefined);
+    code: string | undefined;
+    errno: string | undefined;
+    erroredSysCall: string | undefined;
 }
 export type SystemError = {
     address?: string;

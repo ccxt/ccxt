@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Num, Str, Bool, Strings, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarketType, Market, Order, OrderBook, OrderSide, OrderType, Num, Str, Bool, Strings, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -339,9 +339,16 @@ class woo(Exchange, ImplicitAPI):
     def parse_market(self, market) -> Market:
         marketId = self.safe_string(market, 'symbol')
         parts = marketId.split('_')
-        marketType = self.safe_string_lower(parts, 0)
-        isSpot = marketType == 'spot'
-        isSwap = marketType == 'perp'
+        first = self.safe_string(parts, 0)
+        marketType: MarketType
+        spot = False
+        swap = False
+        if first == 'SPOT':
+            spot = True
+            marketType = 'spot'
+        elif first == 'PERP':
+            swap = True
+            marketType = 'swap'
         baseId = self.safe_string(parts, 1)
         quoteId = self.safe_string(parts, 2)
         base = self.safe_currency_code(baseId)
@@ -352,14 +359,13 @@ class woo(Exchange, ImplicitAPI):
         contractSize: Num = None
         linear: Bool = None
         margin = True
-        contract = isSwap
+        contract = swap
         if contract:
             margin = False
             settleId = self.safe_string(parts, 2)
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             contractSize = self.parse_number('1')
-            marketType = 'swap'
             linear = True
         return {
             'id': marketId,
@@ -371,9 +377,9 @@ class woo(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': marketType,
-            'spot': isSpot,
+            'spot': spot,
             'margin': margin,
-            'swap': isSwap,
+            'swap': swap,
             'future': False,
             'option': False,
             'active': None,

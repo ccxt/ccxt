@@ -2,7 +2,7 @@ import bitfinex2Rest from '../bitfinex2.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitfinex2 extends bitfinex2Rest {
-    describe(): any;
+    describe(): undefined;
     subscribe(channel: any, symbol: any, params?: {}): Promise<any>;
     subscribePrivate(messageHash: any): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -12,22 +12,22 @@ export default class bitfinex2 extends bitfinex2Rest {
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleMyTrade(client: Client, message: any, subscription?: {}): void;
     handleTrades(client: Client, message: any, subscription: any): any;
-    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: undefined): import("../base/types.js").Trade;
     handleTicker(client: Client, message: any, subscription: any): void;
-    parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
+    parseWsTicker(ticker: any, market?: undefined): import("../base/types.js").Ticker;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any, subscription: any): void;
     handleChecksum(client: Client, message: any, subscription: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any, subscription: any): void;
-    parseWsBalance(balance: any): import("../base/types.js").Balance;
+    parseWsBalance(balance: any): import("../base/types.js").Account;
     handleSystemStatus(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
     authenticate(params?: {}): Promise<any>;
     handleAuthenticationMessage(client: Client, message: any): void;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription: any): void;
-    parseWsOrderStatus(status: any): string;
-    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
+    parseWsOrderStatus(status: any): Str;
+    parseWsOrder(order: any, market?: undefined): import("../base/types.js").Order;
     handleMessage(client: Client, message: any): any;
 }

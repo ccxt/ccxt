@@ -564,7 +564,7 @@ class bingx(Exchange, ImplicitAPI):
         isActive = self.safe_string(market, 'status') == '1'
         isInverse = None if (spot) else False
         isLinear = None if (spot) else swap
-        entry = {
+        return {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -593,8 +593,6 @@ class bingx(Exchange, ImplicitAPI):
             'precision': {
                 'amount': quantityPrecision,
                 'price': pricePrecision,
-                'base': None,
-                'quote': None,
             },
             'limits': {
                 'leverage': {
@@ -617,7 +615,6 @@ class bingx(Exchange, ImplicitAPI):
             'created': None,
             'info': market,
         }
-        return entry
 
     async def fetch_markets(self, params={}):
         """

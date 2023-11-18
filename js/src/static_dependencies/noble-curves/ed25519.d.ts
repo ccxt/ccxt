@@ -7,7 +7,7 @@ export declare const ed25519: import("./abstract/edwards.js").CurveFn;
 export declare const ed25519ctx: import("./abstract/edwards.js").CurveFn;
 export declare const ed25519ph: import("./abstract/edwards.js").CurveFn;
 export declare const x25519: import("./abstract/montgomery.js").CurveFn;
-declare const hashToCurve: (msg: Uint8Array, options?: htf.htfBasicOpts) => htf.H2CPoint<bigint>, encodeToCurve: (msg: Uint8Array, options?: htf.htfBasicOpts) => htf.H2CPoint<bigint>;
+declare const hashToCurve: (msg: Uint8Array, options?: htf.htfBasicOpts | undefined) => htf.H2CPoint<bigint>, encodeToCurve: (msg: Uint8Array, options?: htf.htfBasicOpts | undefined) => htf.H2CPoint<bigint>;
 export { hashToCurve, encodeToCurve };
 declare type ExtendedPoint = ExtPointType;
 /**

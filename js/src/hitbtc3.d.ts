@@ -4,5 +4,5 @@ import hitbtc from './hitbtc.js';
  * @extends Exchange
  */
 export default class hitbtc3 extends hitbtc {
-    describe(): any;
+    describe(): undefined;
 }

@@ -2,7 +2,7 @@ import exmoRest from '../exmo.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class exmo extends exmoRest {
-    describe(): any;
+    describe(): undefined;
     requestId(): any;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;

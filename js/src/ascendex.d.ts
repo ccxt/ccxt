@@ -1,20 +1,20 @@
 import Exchange from './abstract/ascendex.js';
-import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
+import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market } from './base/types.js';
 /**
  * @class ascendex
  * @extends Exchange
  */
 export default class ascendex extends Exchange {
-    describe(): any;
+    describe(): undefined;
     getAccount(params?: {}): string;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTime(params?: {}): Promise<number>;
+    fetchMarkets(params?: {}): Promise<never[]>;
+    fetchTime(params?: {}): Promise<Int>;
     fetchAccounts(params?: {}): Promise<{
-        id: string;
-        type: any;
-        currency: any;
-        info: any;
+        id: Str;
+        type: undefined;
+        currency: undefined;
+        info: undefined;
     }[]>;
     parseBalance(response: any): Balances;
     parseMarginBalance(response: any): Balances;
@@ -28,11 +28,11 @@ export default class ascendex extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
     fetchTradingFees(params?: {}): Promise<{}>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -40,46 +40,46 @@ export default class ascendex extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
+        currency: string | undefined;
+        address: Str;
+        tag: Str;
+        network: Str;
         info: any;
     };
-    safeNetwork(networkId: any): string;
+    safeNetwork(networkId: any): Str;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: any): Str;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        markPrice: number;
-        indexPrice: number;
+        markPrice: Num;
+        indexPrice: Num;
         interestRate: number;
-        estimatedSettlePrice: any;
-        timestamp: number;
-        datetime: string;
-        previousFundingRate: any;
-        nextFundingRate: any;
-        previousFundingTimestamp: any;
-        nextFundingTimestamp: any;
-        previousFundingDatetime: any;
-        nextFundingDatetime: any;
-        fundingRate: number;
-        fundingTimestamp: number;
-        fundingDatetime: string;
+        estimatedSettlePrice: undefined;
+        timestamp: Int;
+        datetime: string | undefined;
+        previousFundingRate: undefined;
+        nextFundingRate: undefined;
+        previousFundingTimestamp: undefined;
+        nextFundingTimestamp: undefined;
+        previousFundingDatetime: undefined;
+        nextFundingDatetime: undefined;
+        fundingRate: Num;
+        fundingTimestamp: Int;
+        fundingDatetime: string | undefined;
     };
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: Market): {
         info: any;
-        type: any;
-        amount: any;
+        type: undefined;
+        amount: undefined;
         code: string;
         symbol: string;
         status: string;
@@ -89,40 +89,40 @@ export default class ascendex extends Exchange {
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     setMarginMode(marginMode: any, symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
-    parseMarketLeverageTiers(info: any, market?: Market): any[];
+    parseMarketLeverageTiers(info: any, market?: Market): never[];
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {
-            fee: any;
-            percentage: any;
+            fee: undefined;
+            percentage: undefined;
         };
         deposit: {
-            fee: any;
-            percentage: any;
+            fee: undefined;
+            percentage: undefined;
         };
         networks: {};
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
-        id: any;
+        id: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
+        amount: undefined;
+        fromAccount: undefined;
+        toAccount: undefined;
         status: string;
     }>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
-        id: any;
+        id: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
+        amount: undefined;
+        fromAccount: undefined;
+        toAccount: undefined;
         status: string;
     };
     parseTransferStatus(status: any): "ok" | "failed";
@@ -131,16 +131,16 @@ export default class ascendex extends Exchange {
         info: any;
         symbol: string;
         code: string;
-        timestamp: number;
-        datetime: string;
-        id: any;
-        amount: number;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: undefined;
+        amount: Num;
     };
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

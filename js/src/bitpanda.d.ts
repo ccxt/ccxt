@@ -5,17 +5,17 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class bitpanda extends Exchange {
-    describe(): any;
-    fetchTime(params?: {}): Promise<number>;
+    describe(): undefined;
+    fetchTime(params?: {}): Promise<Int>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchTradingFees(params?: {}): Promise<any>;
     fetchPublicTradingFees(params?: {}): Promise<{}>;
     fetchPrivateTradingFees(params?: {}): Promise<{}>;
     parseFeeTiers(feeTiers: any, market?: Market): {
-        maker: any[];
-        taker: any[];
+        maker: never[];
+        taker: never[];
     };
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -28,34 +28,34 @@ export default class bitpanda extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
+        currency: undefined;
+        address: Str;
+        tag: Str;
+        network: undefined;
         info: any;
     };
     createDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
+        currency: undefined;
+        address: Str;
+        tag: Str;
+        network: undefined;
         info: any;
     }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
+        currency: undefined;
+        address: Str;
+        tag: Str;
+        network: undefined;
         info: any;
     }>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
-    parseTimeInForce(timeInForce: any): string;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    parseTimeInForce(timeInForce: any): Str;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
@@ -64,11 +64,11 @@ export default class bitpanda extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

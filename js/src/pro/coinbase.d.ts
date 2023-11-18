@@ -1,17 +1,17 @@
 import coinbaseRest from '../coinbase.js';
 export default class coinbase extends coinbaseRest {
-    describe(): any;
-    subscribe(name: any, symbol?: any, params?: {}): Promise<any>;
+    describe(): undefined;
+    subscribe(name: any, symbol?: undefined, params?: {}): Promise<any>;
     watchTicker(symbol: any, params?: {}): Promise<any>;
-    watchTickers(symbols?: any, params?: {}): Promise<any>;
+    watchTickers(symbols?: undefined, params?: {}): Promise<any>;
     handleTickers(client: any, message: any): any;
-    parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
-    watchTrades(symbol: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchOrders(symbol?: any, since?: any, limit?: any, params?: {}): Promise<any>;
-    watchOrderBook(symbol: any, limit?: any, params?: {}): Promise<any>;
+    parseWsTicker(ticker: any, market?: undefined): import("../base/types.js").Ticker;
+    watchTrades(symbol: any, since?: undefined, limit?: undefined, params?: {}): Promise<any>;
+    watchOrders(symbol?: undefined, since?: undefined, limit?: undefined, params?: {}): Promise<any>;
+    watchOrderBook(symbol: any, limit?: undefined, params?: {}): Promise<any>;
     handleTrade(client: any, message: any): any;
     handleOrder(client: any, message: any): any;
-    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
+    parseWsOrder(order: any, market?: undefined): import("../base/types.js").Order;
     handleOrderBookHelper(orderbook: any, updates: any): void;
     handleOrderBook(client: any, message: any): any;
     handleSubscriptionStatus(client: any, message: any): any;

@@ -5,27 +5,27 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class bitso extends Exchange {
-    describe(): any;
+    describe(): undefined;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryType(type: any): Str;
     parseLedgerEntry(item: any, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
-        direction: string;
-        account: string;
-        referenceId: string;
-        referenceAccount: string;
-        type: string;
+        id: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        direction: Str;
+        account: Str;
+        referenceId: Str;
+        referenceAccount: Str;
+        type: Str;
         currency: string;
         amount: number;
         before: number;
         after: number;
-        status: string;
+        status: Str;
         fee: any;
         info: object;
     };
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<never[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -37,11 +37,11 @@ export default class bitso extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Trade[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any[]>;
-    parseOrderStatus(status: any): string;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<never[]>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<never[]>;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -50,24 +50,24 @@ export default class bitso extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: any;
-        network: any;
+        address: Str;
+        tag: undefined;
+        network: undefined;
         info: any;
     }>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
+    fetchTransactionFees(codes?: undefined, params?: {}): Promise<{}>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    safeNetwork(networkId: any): string;
+    parseDepositWithdrawFees(response: any, codes?: undefined, currencyIdKey?: undefined): {};
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
+    safeNetwork(networkId: any): Str;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: any): Str;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

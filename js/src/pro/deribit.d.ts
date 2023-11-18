@@ -2,7 +2,7 @@ import deribitRest from '../deribit.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class deribit extends deribitRest {
-    describe(): any;
+    describe(): undefined;
     requestId(): any;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;

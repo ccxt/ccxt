@@ -2,7 +2,7 @@ import huobijpRest from '../huobijp.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class huobijp extends huobijpRest {
-    describe(): any;
+    describe(): undefined;
     requestId(): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;

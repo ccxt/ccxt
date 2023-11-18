@@ -5,19 +5,19 @@ import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest,
  * @extends Exchange
  */
 export default class kucoin extends Exchange {
-    describe(): any;
+    describe(): undefined;
     nonce(): number;
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: any;
-        eta: any;
-        url: any;
+        updated: undefined;
+        eta: undefined;
+        url: undefined;
         info: any;
     }>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<never[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchAccounts(params?: {}): Promise<any[]>;
+    fetchAccounts(params?: {}): Promise<never[]>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
         info: any;
         withdraw: {};
@@ -26,24 +26,24 @@ export default class kucoin extends Exchange {
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<{
         info: any;
         withdraw: {
-            fee: any;
-            percentage: any;
+            fee: undefined;
+            percentage: undefined;
         };
         deposit: {
-            fee: any;
-            percentage: any;
+            fee: undefined;
+            percentage: undefined;
         };
         networks: {};
     }>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {
-            fee: any;
-            percentage: any;
+            fee: undefined;
+            percentage: undefined;
         };
         deposit: {
-            fee: any;
-            percentage: any;
+            fee: undefined;
+            percentage: undefined;
         };
         networks: {};
     };
@@ -55,33 +55,33 @@ export default class kucoin extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     createDepositAddress(code: string, params?: {}): Promise<{
         info: any;
-        currency: any;
-        address: string;
-        tag: string;
-        network: string;
+        currency: undefined;
+        address: Str;
+        tag: Str;
+        network: Str;
     }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
-        currency: any;
-        address: string;
-        tag: string;
-        network: string;
+        currency: undefined;
+        address: Str;
+        tag: Str;
+        network: Str;
     }>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         info: any;
-        currency: any;
-        address: string;
-        tag: string;
-        network: string;
+        currency: undefined;
+        address: Str;
+        tag: Str;
+        network: Str;
     };
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleTriggerPrices(params: any): any[];
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): any;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: undefined, price?: undefined, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<undefined>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -95,57 +95,57 @@ export default class kucoin extends Exchange {
     fetchTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
-        maker: number;
-        taker: number;
+        maker: import("./base/types.js").Num;
+        taker: import("./base/types.js").Num;
         percentage: boolean;
         tierBased: boolean;
     }>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    parseTransactionStatus(status: any): string;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
+    parseTransactionStatus(status: any): Str;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    parseBalanceHelper(entry: any): import("./base/types.js").Account;
     fetchBalance(params?: {}): Promise<Balances>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        id: string;
+        id: Str;
         currency: string;
-        timestamp: number;
-        datetime: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
+        timestamp: Int;
+        datetime: string | undefined;
+        amount: import("./base/types.js").Num;
+        fromAccount: Str;
+        toAccount: Str;
+        status: Str;
         info: any;
     }>;
     parseTransfer(transfer: any, currency?: Currency): {
-        id: string;
+        id: Str;
         currency: string;
-        timestamp: number;
-        datetime: string;
-        amount: number;
-        fromAccount: string;
-        toAccount: string;
-        status: string;
+        timestamp: Int;
+        datetime: string | undefined;
+        amount: import("./base/types.js").Num;
+        fromAccount: Str;
+        toAccount: Str;
+        status: Str;
         info: any;
     };
-    parseTransferStatus(status: any): string;
-    parseLedgerEntryType(type: any): string;
+    parseTransferStatus(status: any): Str;
+    parseLedgerEntryType(type: any): Str;
     parseLedgerEntry(item: any, currency?: Currency): {
-        id: string;
-        direction: string;
-        account: string;
-        referenceId: any;
-        referenceAccount: string;
-        type: string;
+        id: Str;
+        direction: Str;
+        account: Str;
+        referenceId: undefined;
+        referenceAccount: Str;
+        type: Str;
         currency: string;
-        amount: number;
-        timestamp: number;
-        datetime: string;
-        before: any;
-        after: any;
-        status: any;
-        fee: any;
+        amount: import("./base/types.js").Num;
+        timestamp: Int;
+        datetime: string | undefined;
+        before: undefined;
+        after: undefined;
+        status: undefined;
+        fee: undefined;
         info: any;
     };
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -153,57 +153,57 @@ export default class kucoin extends Exchange {
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
-        rate: number;
+        rate: import("./base/types.js").Num;
         period: number;
-        timestamp: string;
-        datetime: string;
+        timestamp: string | undefined;
+        datetime: string | undefined;
         info: any;
     };
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<never[]>;
     parseBorrowInterest(info: any, market?: Market): {
-        symbol: string;
+        symbol: Str;
         marginMode: string;
         currency: string;
-        interest: any;
-        interestRate: number;
-        amountBorrowed: any;
-        timestamp: number;
-        datetime: string;
+        interest: undefined;
+        interestRate: import("./base/types.js").Num;
+        amountBorrowed: undefined;
+        timestamp: Int;
+        datetime: string | undefined;
         info: any;
     };
     borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
-        id: string;
+        id: Str;
         currency: string;
-        amount: number;
-        symbol: any;
+        amount: import("./base/types.js").Num;
+        symbol: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         info: any;
     }>;
     repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
-        id: string;
+        id: Str;
         currency: string;
-        amount: number;
-        symbol: any;
+        amount: import("./base/types.js").Num;
+        symbol: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         info: any;
     }>;
     parseMarginLoan(info: any, currency?: Currency): {
-        id: string;
+        id: Str;
         currency: string;
-        amount: number;
-        symbol: any;
+        amount: import("./base/types.js").Num;
+        symbol: undefined;
         timestamp: number;
-        datetime: string;
+        datetime: string | undefined;
         info: any;
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
+        url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

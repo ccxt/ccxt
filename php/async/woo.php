@@ -339,9 +339,16 @@ class woo extends Exchange {
     public function parse_market($market): array {
         $marketId = $this->safe_string($market, 'symbol');
         $parts = explode('_', $marketId);
-        $marketType = $this->safe_string_lower($parts, 0);
-        $isSpot = $marketType === 'spot';
-        $isSwap = $marketType === 'perp';
+        $first = $this->safe_string($parts, 0);
+        $spot = false;
+        $swap = false;
+        if ($first === 'SPOT') {
+            $spot = true;
+            $marketType = 'spot';
+        } elseif ($first === 'PERP') {
+            $swap = true;
+            $marketType = 'swap';
+        }
         $baseId = $this->safe_string($parts, 1);
         $quoteId = $this->safe_string($parts, 2);
         $base = $this->safe_currency_code($baseId);
@@ -352,14 +359,13 @@ class woo extends Exchange {
         $contractSize = null;
         $linear = null;
         $margin = true;
-        $contract = $isSwap;
+        $contract = $swap;
         if ($contract) {
             $margin = false;
             $settleId = $this->safe_string($parts, 2);
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote . ':' . $settle;
             $contractSize = $this->parse_number('1');
-            $marketType = 'swap';
             $linear = true;
         }
         return array(
@@ -372,9 +378,9 @@ class woo extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => $marketType,
-            'spot' => $isSpot,
+            'spot' => $spot,
             'margin' => $margin,
-            'swap' => $isSwap,
+            'swap' => $swap,
             'future' => false,
             'option' => false,
             'active' => null,

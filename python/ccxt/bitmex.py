@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, MarketType, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -393,12 +393,10 @@ class bitmex(Exchange, ImplicitAPI):
         finalAmount = Precise.string_div(amountString, precision)
         return self.parse_number(finalAmount)
 
-    def convert_to_real_amount(self, code, amount):
+    def convert_to_real_amount(self, code: str, amount: str):
         currency = self.currency(code)
         precision = self.safe_string(currency, 'precision')
-        amountString = self.number_to_string(amount)
-        finalAmount = Precise.string_mul(amountString, precision)
-        return self.parse_number(finalAmount)
+        return Precise.string_mul(amount, precision)
 
     def amount_to_precision(self, symbol, amount):
         symbol = self.safe_symbol(symbol)
@@ -417,7 +415,7 @@ class bitmex(Exchange, ImplicitAPI):
             return self.parse_number(rawQuantity)
         market = self.market(symbol)
         if market['spot']:
-            return self.convert_to_real_amount(market[currencySide], rawQuantity)
+            return self.parse_number(self.convert_to_real_amount(market[currencySide], rawQuantity))
         return self.parse_number(rawQuantity)
 
     def convert_from_raw_cost(self, symbol, rawQuantity):
@@ -429,7 +427,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetInstrumentActiveAndIndices(params)
+        response = self.publicGetInstrumentActive(params)
         #
         #  [
         #    {
@@ -548,27 +546,31 @@ class bitmex(Exchange, ImplicitAPI):
         baseId = self.safe_string(market, 'underlying')
         quoteId = self.safe_string(market, 'quoteCurrency')
         settleId = self.safe_string(market, 'settlCurrency')
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
         settle = self.safe_currency_code(settleId)
         # 'positionCurrency' may be empty("", currently returns for ETHUSD)
         # so let's take the settlCurrency first and then adjust if needed
         typ = self.safe_string(market, 'typ')  # type definitions at: https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_get
-        types = {
-            'FFWCSX': 'swap',
-            'FFWCSF': 'swap',
-            'IFXXXP': 'spot',
-            'FFCCSX': 'future',
-            'MRBXXX': 'index',
-            'MRCXXX': 'index',
-            'MRFXXX': 'index',
-            'MRRXXX': 'index',
-            'MRIXXX': 'index',
-        }
-        type = self.safe_string(types, typ, typ)
-        swap = type == 'swap'
-        future = type == 'future'
-        spot = type == 'spot'
+        type: MarketType
+        swap = False
+        spot = False
+        future = False
+        if typ == 'FFWCSX':
+            type = 'swap'
+            swap = True
+        elif typ == 'IFXXXP':
+            type = 'spot'
+            spot = True
+        elif typ == 'FFCCSX':
+            type = 'future'
+            future = True
+        elif typ == 'FFICSX':
+            # prediction markets(without any volume)
+            quoteId = baseId
+            baseId = self.safe_string(market, 'rootSymbol')
+            type = 'future'
+            future = True
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         contract = swap or future
         contractSize = None
         isInverse = self.safe_value(market, 'isInverse')  # self is True when BASE and SETTLE are same, i.e. BTC/XXX:BTC
@@ -583,10 +585,11 @@ class bitmex(Exchange, ImplicitAPI):
             symbol = base + '/' + quote
         elif contract:
             symbol = base + '/' + quote + ':' + settle
-            multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
             if linear:
-                contractSize = self.parse_number(Precise.string_div('1', market['underlyingToPositionMultiplier']))
+                multiplierString = self.safe_string_2(market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier')
+                contractSize = self.parse_number(Precise.string_div('1', multiplierString))
             else:
+                multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
                 contractSize = self.parse_number(multiplierString)
             if future:
                 expiryDatetime = self.safe_string(market, 'expiry')
@@ -1059,14 +1062,14 @@ class bitmex(Exchange, ImplicitAPI):
             # set the timestamp to zero, 1970 Jan 1 00:00:00
             # for unrealized pnl and other transactions without a timestamp
             timestamp = 0  # see comments above
-        feeCost = self.safe_number(item, 'fee', 0)
+        feeCost = self.safe_string(item, 'fee')
         if feeCost is not None:
             feeCost = self.convert_to_real_amount(code, feeCost)
         fee = {
-            'cost': feeCost,
+            'cost': self.parse_number(feeCost),
             'currency': code,
         }
-        after = self.safe_number(item, 'walletBalance')
+        after = self.safe_string(item, 'walletBalance')
         if after is not None:
             after = self.convert_to_real_amount(code, after)
         before = self.parse_number(Precise.string_sub(self.number_to_string(after), self.number_to_string(amount)))
@@ -1090,7 +1093,7 @@ class bitmex(Exchange, ImplicitAPI):
             'currency': code,
             'amount': amount,
             'before': before,
-            'after': after,
+            'after': self.parse_number(after),
             'status': status,
             'fee': fee,
         }
@@ -1233,7 +1236,7 @@ class bitmex(Exchange, ImplicitAPI):
             'type': type,
             'currency': currency['code'],
             'network': self.network_id_to_code(self.safe_string(transaction, 'network'), currency['code']),
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'status': status,
             'timestamp': transactTime,
             'datetime': self.iso8601(transactTime),
@@ -1248,7 +1251,7 @@ class bitmex(Exchange, ImplicitAPI):
             'comment': None,
             'fee': {
                 'currency': currency['code'],
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }

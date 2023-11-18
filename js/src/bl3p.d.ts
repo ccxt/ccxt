@@ -5,7 +5,7 @@ import { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Tr
  * @extends Exchange
  */
 export default class bl3p extends Exchange {
-    describe(): any;
+    describe(): undefined;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBidAsk(bidask: any, priceKey?: number, amountKey?: number): number[];
@@ -15,12 +15,12 @@ export default class bl3p extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
 }

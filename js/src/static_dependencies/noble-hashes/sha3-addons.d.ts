@@ -5,13 +5,13 @@ export declare type cShakeOpts = ShakeOpts & {
     NISTfn?: Input;
 };
 export declare const cshake128: {
-    (msg: Input, opts?: cShakeOpts): Uint8Array;
+    (msg: Input, opts?: cShakeOpts | undefined): Uint8Array;
     outputLen: number;
     blockLen: number;
     create(opts: cShakeOpts): Hash<Keccak>;
 };
 export declare const cshake256: {
-    (msg: Input, opts?: cShakeOpts): Uint8Array;
+    (msg: Input, opts?: cShakeOpts | undefined): Uint8Array;
     outputLen: number;
     blockLen: number;
     create(opts: cShakeOpts): Hash<Keccak>;
@@ -110,13 +110,13 @@ declare class KangarooTwelve extends Keccak implements HashXOF<KangarooTwelve> {
     clone(): KangarooTwelve;
 }
 export declare const k12: {
-    (msg: Input, opts?: KangarooOpts): Uint8Array;
+    (msg: Input, opts?: KangarooOpts | undefined): Uint8Array;
     outputLen: number;
     blockLen: number;
     create(opts: KangarooOpts): Hash<KangarooTwelve>;
 };
 export declare const m14: {
-    (msg: Input, opts?: KangarooOpts): Uint8Array;
+    (msg: Input, opts?: KangarooOpts | undefined): Uint8Array;
     outputLen: number;
     blockLen: number;
     create(opts: KangarooOpts): Hash<KangarooTwelve>;

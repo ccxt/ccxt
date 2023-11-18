@@ -5,7 +5,7 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
  * @extends Exchange
  */
 export default class bit2c extends Exchange {
-    describe(): any;
+    describe(): undefined;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -13,7 +13,7 @@ export default class bit2c extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -24,24 +24,24 @@ export default class bit2c extends Exchange {
     isFiat(code: any): boolean;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        network: any;
-        address: string;
-        tag: any;
+        network: undefined;
+        address: Str;
+        tag: undefined;
         info: any;
     }>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
-        network: any;
-        address: string;
-        tag: any;
+        network: undefined;
+        address: Str;
+        tag: undefined;
         info: any;
     };
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

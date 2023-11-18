@@ -4,11 +4,11 @@ export declare class RSAKey {
     doPublic(x: BigInteger): BigInteger;
     doPrivate(x: BigInteger): BigInteger;
     setPublic(N: string, E: string): void;
-    encrypt(text: string): string;
+    encrypt(text: string): string | null;
     setPrivate(N: string, E: string, D: string): void;
     setPrivateEx(N: string, E: string, D: string, P: string, Q: string, DP: string, DQ: string, C: string): void;
     generate(B: number, E: string): void;
-    decrypt(ctext: string): string;
+    decrypt(ctext: string): string | null;
     generateAsync(B: number, E: string, callback: () => void): void;
     sign(text: string, digestMethod: (str: string) => string, digestName: string): string;
     verify(text: string, signature: string, digestMethod: (str: string) => string): boolean;

@@ -2,7 +2,7 @@ import currencycomRest from '../currencycom.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class currencycom extends currencycomRest {
-    describe(): any;
+    describe(): undefined;
     ping(client: any): {
         destination: string;
         correlationId: any;
@@ -11,23 +11,23 @@ export default class currencycom extends currencycomRest {
     handlePong(client: Client, message: any): any;
     handleBalance(client: Client, message: any, subscription: any): void;
     handleTicker(client: Client, message: any, subscription: any): void;
-    handleTrade(trade: any, market?: any): {
+    handleTrade(trade: any, market?: undefined): {
         info: any;
-        timestamp: number;
-        datetime: string;
+        timestamp: Int;
+        datetime: string | undefined;
         symbol: string;
-        id: string;
-        order: string;
-        type: any;
-        takerOrMaker: any;
+        id: import("../base/types.js").Str;
+        order: import("../base/types.js").Str;
+        type: undefined;
+        takerOrMaker: undefined;
         side: string;
         price: number;
         amount: number;
         cost: number;
-        fee: any;
+        fee: undefined;
     };
     handleTrades(client: Client, message: any, subscription: any): void;
-    findTimeframe(timeframe: any, defaultTimeframes?: any): string;
+    findTimeframe(timeframe: any, defaultTimeframes?: undefined): string | undefined;
     handleOHLCV(client: Client, message: any): void;
     requestId(): any;
     watchPublic(destination: any, symbol: any, params?: {}): Promise<any>;

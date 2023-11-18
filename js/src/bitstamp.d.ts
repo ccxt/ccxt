@@ -5,8 +5,8 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class bitstamp extends Exchange {
-    describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    describe(): undefined;
+    fetchMarkets(params?: {}): Promise<never[]>;
     constructCurrencyObject(id: any, code: any, name: any, precision: any, minCost: any, originalPayload: any): {
         id: any;
         code: any;
@@ -14,26 +14,26 @@ export default class bitstamp extends Exchange {
         type: string;
         name: any;
         active: boolean;
-        deposit: any;
-        withdraw: any;
-        fee: number;
+        deposit: undefined;
+        withdraw: undefined;
+        fee: import("./base/types.js").Num;
         precision: number;
         limits: {
             amount: {
                 min: number;
-                max: any;
+                max: undefined;
             };
             price: {
                 min: number;
-                max: any;
+                max: undefined;
             };
             cost: {
                 min: any;
-                max: any;
+                max: undefined;
             };
             withdraw: {
-                min: any;
-                max: any;
+                min: undefined;
+                max: undefined;
             };
         };
         networks: {};
@@ -44,8 +44,8 @@ export default class bitstamp extends Exchange {
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    getCurrencyIdFromTransaction(transaction: any): string;
-    getMarketFromTrade(trade: any): import("./base/types.js").MarketInterface;
+    getCurrencyIdFromTransaction(transaction: any): string | undefined;
+    getMarketFromTrade(trade: any): import("./base/types.js").MarketInterface | undefined;
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
@@ -70,53 +70,53 @@ export default class bitstamp extends Exchange {
     fetchTradingFees(params?: {}): Promise<{
         info: any;
     }>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    parseTransactionFees(response: any, codes?: any): {};
+    fetchTransactionFees(codes?: undefined, params?: {}): Promise<{}>;
+    parseTransactionFees(response: any, codes?: undefined): {};
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    parseDepositWithdrawFees(response: any, codes?: undefined, currencyIdKey?: undefined): {};
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    parseOrderStatus(status: any): string;
-    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<string>;
+    parseOrderStatus(status: any): Str;
+    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<Str>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
-    parseLedgerEntryType(type: any): string;
+    parseLedgerEntryType(type: any): Str;
     parseLedgerEntry(item: any, currency?: Currency): {
-        id: string;
+        id: Str;
         info: any;
-        timestamp: number;
-        datetime: string;
+        timestamp: Int;
+        datetime: Str;
         direction: string;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
+        account: undefined;
+        referenceId: Str;
+        referenceAccount: undefined;
         type: string;
         currency: any;
-        amount: number;
-        before: any;
-        after: any;
+        amount: import("./base/types.js").Num;
+        before: undefined;
+        after: undefined;
         status: string;
         fee: import("./base/types.js").Fee;
     } | {
-        id: string;
+        id: Str;
         info: any;
-        timestamp: number;
-        datetime: string;
-        direction: any;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
-        type: string;
-        currency: string;
-        amount: number;
-        before: any;
-        after: any;
+        timestamp: Int;
+        datetime: Str;
+        direction: undefined;
+        account: undefined;
+        referenceId: Str;
+        referenceAccount: undefined;
+        type: Str;
+        currency: Str;
+        amount: import("./base/types.js").Num;
+        before: undefined;
+        after: undefined;
         status: string;
         fee: import("./base/types.js").Fee;
     };
@@ -126,18 +126,18 @@ export default class bitstamp extends Exchange {
     isFiat(code: any): boolean;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: string;
-        network: any;
+        address: Str;
+        tag: Str;
+        network: undefined;
         info: any;
     }>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

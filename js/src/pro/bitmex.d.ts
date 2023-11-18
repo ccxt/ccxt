@@ -2,7 +2,7 @@ import bitmexRest from '../bitmex.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmex extends bitmexRest {
-    describe(): any;
+    describe(): undefined;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;
     watchBalance(params?: {}): Promise<any>;

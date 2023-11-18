@@ -2,9 +2,9 @@ import geminiRest from '../gemini.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gemini extends geminiRest {
-    describe(): any;
+    describe(): undefined;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: undefined): import("../base/types.js").Trade;
     handleTrade(client: Client, message: any): void;
     handleTrades(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -16,9 +16,9 @@ export default class gemini extends geminiRest {
     handleHeartbeat(client: Client, message: any): any;
     handleSubscription(client: Client, message: any): any;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
-    parseWsOrderStatus(status: any): string;
-    parseWsOrderType(type: any): string;
+    parseWsOrder(order: any, market?: undefined): import("../base/types.js").Order;
+    parseWsOrderStatus(status: any): Str;
+    parseWsOrderType(type: any): Str;
     handleError(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;
     authenticate(params?: {}): Promise<void>;

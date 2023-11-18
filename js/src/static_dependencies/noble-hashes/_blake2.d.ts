@@ -19,7 +19,7 @@ export declare abstract class BLAKE2<T extends BLAKE2<T>> extends Hash<T> {
     protected pos: number;
     protected finished: boolean;
     protected destroyed: boolean;
-    constructor(blockLen: number, outputLen: number, opts: BlakeOpts, keyLen: number, saltLen: number, persLen: number);
+    constructor(blockLen: number, outputLen: number, opts: BlakeOpts | undefined, keyLen: number, saltLen: number, persLen: number);
     update(data: Input): this;
     digestInto(out: Uint8Array): void;
     digest(): Uint8Array;

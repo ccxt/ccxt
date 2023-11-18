@@ -24,8 +24,8 @@ export declare class ASN1 {
     private length;
     private tag;
     sub: ASN1[];
-    typeName(): string;
-    content(maxLength: number): string | 0 | -1;
+    typeName(): string | undefined;
+    content(maxLength: number): string | 0 | -1 | null;
     toString(): string;
     toPrettyString(indent: string): string;
     posStart(): number;

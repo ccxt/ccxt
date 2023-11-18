@@ -556,8 +556,11 @@ class Exchange(BaseExchange):
     async def fetch_trading_limits(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchTradingLimits() is not supported yet')
 
-    async def fetch_borrow_rates(self, params={}):
-        raise NotSupported(self.id + ' fetchBorrowRates() is not supported yet')
+    async def fetch_cross_borrow_rates(self, params={}):
+        raise NotSupported(self.id + ' fetchCrossBorrowRates() is not supported yet')
+
+    async def fetch_isolated_borrow_rates(self, params={}):
+        raise NotSupported(self.id + ' fetchIsolatedBorrowRates() is not supported yet')
 
     async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchLeverageTiers() is not supported yet')
@@ -773,14 +776,24 @@ class Exchange(BaseExchange):
         fees = await self.fetchDepositWithdrawFees([code], params)
         return self.safe_value(fees, code)
 
-    async def fetch_borrow_rate(self, code: str, params={}):
+    async def fetch_cross_borrow_rate(self, code: str, params={}):
         await self.load_markets()
         if not self.has['fetchBorrowRates']:
-            raise NotSupported(self.id + ' fetchBorrowRate() is not supported yet')
-        borrowRates = await self.fetch_borrow_rates(params)
+            raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
+        borrowRates = await self.fetchCrossBorrowRates(params)
         rate = self.safe_value(borrowRates, code)
         if rate is None:
-            raise ExchangeError(self.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code)
+            raise ExchangeError(self.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code)
+        return rate
+
+    async def fetch_isolated_borrow_rate(self, symbol: str, params={}):
+        await self.load_markets()
+        if not self.has['fetchBorrowRates']:
+            raise NotSupported(self.id + ' fetchIsolatedBorrowRate() is not supported yet')
+        borrowRates = await self.fetchIsolatedBorrowRates(params)
+        rate = self.safe_value(borrowRates, symbol)
+        if rate is None:
+            raise ExchangeError(self.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol)
         return rate
 
     async def fetch_ticker(self, symbol: str, params={}):

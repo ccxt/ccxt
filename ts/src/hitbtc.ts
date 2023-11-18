@@ -3248,7 +3248,9 @@ export default class hitbtc extends Exchange {
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         await this.loadMarkets ();
         if (params['margin_balance'] === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');

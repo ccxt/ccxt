@@ -2,7 +2,7 @@ import gateRest from '../gate.js';
 import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gate extends gateRest {
-    describe(): any;
+    describe(): undefined;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleOrderBook(client: Client, message: any): void;
@@ -28,7 +28,7 @@ export default class gate extends gateRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleBalanceSubscription(client: Client, message: any, subscription?: any): void;
+    handleBalanceSubscription(client: Client, message: any, subscription?: undefined): void;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     getUrlByMarket(market: any): any;
@@ -36,6 +36,6 @@ export default class gate extends gateRest {
     getUrlByMarketType(type: any, isInverse?: boolean): any;
     getMarketTypeByUrl(url: string): any;
     requestId(): any;
-    subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: any): Promise<any>;
+    subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: undefined): Promise<any>;
     subscribePrivate(url: any, messageHash: any, payload: any, channel: any, params: any, requiresUid?: boolean): Promise<any>;
 }

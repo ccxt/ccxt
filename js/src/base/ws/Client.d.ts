@@ -28,7 +28,7 @@ export default class Client {
     constructor(url: any, onMessageCallback: any, onErrorCallback: any, onCloseCallback: any, onConnectedCallback: any, config?: {});
     future(messageHash: any): any;
     resolve(result: any, messageHash: any): any;
-    reject(result: any, messageHash?: any): any;
+    reject(result: any, messageHash?: undefined): any;
     log(...args: any[]): void;
     connect(backoffDelay?: number): void;
     isOpen(): boolean;

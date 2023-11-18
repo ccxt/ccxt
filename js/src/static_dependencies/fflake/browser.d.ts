@@ -13,7 +13,7 @@ export function inflate(data: any, opts: any, cb: any): () => void;
  * @param out Where to write the data. Saves memory if you know the decompressed size and provide an output buffer of that length.
  * @returns The decompressed version of the data
  */
-export function inflateSync(data: any, out?: any): any;
+export function inflateSync(data: any, out?: undefined): any;
 export function gzip(data: any, opts: any, cb: any): () => void;
 /**
  * Compresses data with GZIP
@@ -29,7 +29,7 @@ export function gunzip(data: any, opts: any, cb: any): () => void;
  * @param out Where to write the data. GZIP already encodes the output size, so providing this doesn't save memory.
  * @returns The decompressed version of the data
  */
-export function gunzipSync(data: any, out?: any): any;
+export function gunzipSync(data: any, out?: undefined): any;
 export function zlib(data: any, opts: any, cb: any): () => void;
 /**
  * Compress data with Zlib

@@ -5,13 +5,13 @@ import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transact
  * @extends Exchange
  */
 export default class coinbasepro extends Exchange {
-    describe(): any;
+    describe(): undefined;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
-    fetchAccounts(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<never[]>;
+    fetchAccounts(params?: {}): Promise<never[]>;
     parseAccount(account: any): {
-        id: string;
-        type: any;
+        id: Str;
+        type: undefined;
         code: string;
         info: any;
     };
@@ -27,15 +27,15 @@ export default class coinbasepro extends Exchange {
     fetchTradingFees(params?: {}): Promise<{}>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    fetchTime(params?: {}): Promise<number>;
-    parseOrderStatus(status: any): string;
+    fetchTime(params?: {}): Promise<number | undefined>;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchPaymentMethods(params?: {}): Promise<any>;
@@ -43,23 +43,23 @@ export default class coinbasepro extends Exchange {
         info: any;
         id: any;
     }>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    parseLedgerEntryType(type: any): string;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
+    parseLedgerEntryType(type: any): Str;
     parseLedgerEntry(item: any, currency?: Currency): {
-        id: string;
+        id: Str;
         currency: string;
-        account: any;
-        referenceAccount: any;
-        referenceId: any;
+        account: undefined;
+        referenceAccount: undefined;
+        referenceId: undefined;
         status: string;
         amount: number;
         before: number;
         after: number;
-        fee: any;
-        direction: any;
-        timestamp: number;
-        datetime: string;
-        type: string;
+        fee: undefined;
+        direction: undefined;
+        timestamp: number | undefined;
+        datetime: string | undefined;
+        type: Str;
         info: any;
     };
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -71,15 +71,15 @@ export default class coinbasepro extends Exchange {
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: any;
-        tag: string;
+        tag: Str;
         info: any;
     }>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
+    request(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined, config?: {}): Promise<any>;
 }

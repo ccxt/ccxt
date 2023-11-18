@@ -84,13 +84,13 @@ export declare type ShakeOpts = {
     dkLen?: number;
 };
 export declare const shake128: {
-    (msg: Input, opts?: ShakeOpts): Uint8Array;
+    (msg: Input, opts?: ShakeOpts | undefined): Uint8Array;
     outputLen: number;
     blockLen: number;
     create(opts: ShakeOpts): Hash<Keccak>;
 };
 export declare const shake256: {
-    (msg: Input, opts?: ShakeOpts): Uint8Array;
+    (msg: Input, opts?: ShakeOpts | undefined): Uint8Array;
     outputLen: number;
     blockLen: number;
     create(opts: ShakeOpts): Hash<Keccak>;

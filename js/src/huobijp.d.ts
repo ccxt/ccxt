@@ -5,15 +5,15 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class huobijp extends Exchange {
-    describe(): any;
-    fetchTime(params?: {}): Promise<number>;
+    describe(): undefined;
+    fetchTime(params?: {}): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
     fetchTradingLimitsById(id: string, params?: {}): Promise<{
         info: any;
         limits: {
             amount: {
-                min: number;
-                max: number;
+                min: import("./base/types.js").Num;
+                max: import("./base/types.js").Num;
             };
         };
     }>;
@@ -21,13 +21,13 @@ export default class huobijp extends Exchange {
         info: any;
         limits: {
             amount: {
-                min: number;
-                max: number;
+                min: import("./base/types.js").Num;
+                max: import("./base/types.js").Num;
             };
         };
     };
     costToPrecision(symbol: any, cost: any): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<never[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -49,31 +49,31 @@ export default class huobijp extends Exchange {
     fetchOpenOrdersV1(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrdersV2(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    currencyToPrecision(code: any, fee: any, networkCode?: any): any;
-    safeNetwork(networkId: any): string;
+    currencyToPrecision(code: any, fee: any, networkCode?: undefined): any;
+    safeNetwork(networkId: any): Str;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
-        address: string;
-        tag: string;
-        network: string;
+        address: Str;
+        tag: Str;
+        network: Str;
         info: any;
     };
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    parseTransactionStatus(status: any): Str;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

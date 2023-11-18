@@ -5,9 +5,9 @@ import { Int, OrderSide, OrderType, OHLCV, Order, Trade, Balances, Str, Transact
  * @extends Exchange
  */
 export default class bittrex extends Exchange {
-    describe(): any;
+    describe(): undefined;
     feeToPrecision(symbol: any, fee: any): any;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -18,13 +18,13 @@ export default class bittrex extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     parseTrade(trade: any, market?: Market): Trade;
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
-        maker: number;
-        taker: number;
+        maker: import("./base/types.js").Num;
+        taker: import("./base/types.js").Num;
     }>;
     fetchTradingFees(params?: {}): Promise<{
         info: any;
@@ -32,8 +32,8 @@ export default class bittrex extends Exchange {
     parseTradingFee(fee: any, market?: Market): {
         info: any;
         symbol: string;
-        maker: number;
-        taker: number;
+        maker: import("./base/types.js").Num;
+        taker: import("./base/types.js").Num;
     };
     parseTradingFees(fees: any): {
         info: any;
@@ -42,7 +42,7 @@ export default class bittrex extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<any>;
@@ -52,46 +52,46 @@ export default class bittrex extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchPendingWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTimeInForce(timeInForce: any): string;
+    parseTimeInForce(timeInForce: any): Str;
     parseOrder(order: any, market?: Market): Order;
-    parseOrders(orders: any, market?: any, since?: Int, limit?: Int, params?: {}): Order[];
-    parseOrderStatus(status: any): string;
+    parseOrders(orders: any, market?: undefined, since?: Int, limit?: Int, params?: {}): Order[];
+    parseOrderStatus(status: any): Str;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
-        tag: string;
-        network: any;
+        tag: Str;
+        network: undefined;
         info: any;
     }>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
-        tag: string;
-        network: any;
+        tag: Str;
+        network: undefined;
         info: any;
     }>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
         withdraw: {
-            fee: number;
+            fee: import("./base/types.js").Num;
             percentage: boolean;
         };
         deposit: {
-            fee: any;
-            percentage: any;
+            fee: undefined;
+            percentage: undefined;
         };
         networks: {};
     };
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

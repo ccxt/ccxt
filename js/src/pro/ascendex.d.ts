@@ -2,7 +2,7 @@ import ascendexRest from '../ascendex.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class ascendex extends ascendexRest {
-    describe(): any;
+    describe(): undefined;
     watchPublic(messageHash: any, params?: {}): Promise<any>;
     watchPrivate(channel: any, messageHash: any, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -20,7 +20,7 @@ export default class ascendex extends ascendexRest {
     handleBalance(client: Client, message: any): void;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
+    parseWsOrder(order: any, market?: undefined): import("../base/types.js").Order;
     handleErrorMessage(client: Client, message: any): boolean;
     handleAuthenticate(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;

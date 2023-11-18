@@ -5,11 +5,11 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class lbank extends Exchange {
-    describe(): any;
-    fetchTime(params?: {}): Promise<number>;
+    describe(): undefined;
+    fetchTime(params?: {}): Promise<Int>;
     fetchMarkets(params?: {}): Promise<any>;
-    fetchSpotMarkets(params?: {}): Promise<any[]>;
-    fetchSwapMarkets(params?: {}): Promise<any[]>;
+    fetchSpotMarkets(params?: {}): Promise<never[]>;
+    fetchSwapMarkets(params?: {}): Promise<never[]>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -23,13 +23,13 @@ export default class lbank extends Exchange {
     parseTradingFee(fee: any, market?: Market): {
         info: any;
         symbol: string;
-        maker: number;
-        taker: number;
+        maker: import("./base/types.js").Num;
+        taker: import("./base/types.js").Num;
     };
     fetchTradingFee(symbol: string, params?: {}): Promise<{}>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    parseOrderStatus(status: any): string;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderSupplement(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -39,31 +39,31 @@ export default class lbank extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
-    getNetworkCodeForCurrency(currencyCode: any, params: any): string;
+    getNetworkCodeForCurrency(currencyCode: any, params: any): Str;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDepositAddressDefault(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: string;
-        network: string;
+        address: Str;
+        tag: Str;
+        network: Str;
         info: any;
     }>;
     fetchDepositAddressSupplement(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: string;
-        network: string;
+        address: Str;
+        tag: Str;
+        network: Str;
         info: any;
     }>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<{
         info: any;
-        id: string;
+        id: Str;
     }>;
-    parseTransactionStatus(status: any, type: any): string;
+    parseTransactionStatus(status: any, type: any): Str;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<any>;
+    fetchTransactionFees(codes?: undefined, params?: {}): Promise<undefined>;
     fetchPrivateTransactionFees(params?: {}): Promise<{
         withdraw: {};
         deposit: {};
@@ -75,16 +75,16 @@ export default class lbank extends Exchange {
         info: any;
     }>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
-    fetchPrivateDepositWithdrawFees(codes?: any, params?: {}): Promise<any>;
-    fetchPublicDepositWithdrawFees(codes?: any, params?: {}): Promise<{}>;
-    parsePublicDepositWithdrawFees(response: any, codes?: any): {};
+    fetchPrivateDepositWithdrawFees(codes?: undefined, params?: {}): Promise<any>;
+    fetchPublicDepositWithdrawFees(codes?: undefined, params?: {}): Promise<{}>;
+    parsePublicDepositWithdrawFees(response: any, codes?: undefined): {};
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
     convertSecretToPem(secret: any): string;
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

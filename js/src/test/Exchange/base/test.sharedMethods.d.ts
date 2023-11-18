@@ -1,11 +1,11 @@
 declare function logTemplate(exchange: any, method: any, entry: any): string;
-declare function assertType(exchange: any, skippedProperties: any, entry: any, key: any, format: any): boolean;
-declare function assertStructure(exchange: any, skippedProperties: any, method: any, entry: any, format: any, emptyAllowedFor?: any[]): void;
-declare function assertTimestamp(exchange: any, skippedProperties: any, method: any, entry: any, nowToCheck?: any, keyNameOrIndex?: any): void;
-declare function assertTimestampAndDatetime(exchange: any, skippedProperties: any, method: any, entry: any, nowToCheck?: any, keyNameOrIndex?: any): void;
-declare function assertCurrencyCode(exchange: any, skippedProperties: any, method: any, entry: any, actualCode: any, expectedCode?: any): void;
+declare function assertType(exchange: any, skippedProperties: any, entry: any, key: any, format: any): boolean | undefined;
+declare function assertStructure(exchange: any, skippedProperties: any, method: any, entry: any, format: any, emptyAllowedFor?: never[]): void;
+declare function assertTimestamp(exchange: any, skippedProperties: any, method: any, entry: any, nowToCheck?: undefined, keyNameOrIndex?: any): void;
+declare function assertTimestampAndDatetime(exchange: any, skippedProperties: any, method: any, entry: any, nowToCheck?: undefined, keyNameOrIndex?: any): void;
+declare function assertCurrencyCode(exchange: any, skippedProperties: any, method: any, entry: any, actualCode: any, expectedCode?: undefined): void;
 declare function assertValidCurrencyIdAndCode(exchange: any, skippedProperties: any, method: any, entry: any, currencyId: any, currencyCode: any): void;
-declare function assertSymbol(exchange: any, skippedProperties: any, method: any, entry: any, key: any, expectedSymbol?: any): void;
+declare function assertSymbol(exchange: any, skippedProperties: any, method: any, entry: any, key: any, expectedSymbol?: undefined): void;
 declare function assertGreater(exchange: any, skippedProperties: any, method: any, entry: any, key: any, compareTo: any): void;
 declare function assertGreaterOrEqual(exchange: any, skippedProperties: any, method: any, entry: any, key: any, compareTo: any): void;
 declare function assertLess(exchange: any, skippedProperties: any, method: any, entry: any, key: any, compareTo: any): void;

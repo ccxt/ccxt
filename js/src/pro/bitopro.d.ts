@@ -2,7 +2,7 @@ import bitoproRest from '../bitopro.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitopro extends bitoproRest {
-    describe(): any;
+    describe(): undefined;
     watchPublic(path: any, messageHash: any, marketId: any): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;

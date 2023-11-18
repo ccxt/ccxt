@@ -1,6 +1,6 @@
 declare class Throttler {
     constructor(config: any);
     loop(): Promise<void>;
-    throttle(cost?: any): Promise<unknown>;
+    throttle(cost?: undefined): Promise<unknown>;
 }
 export { Throttler, };

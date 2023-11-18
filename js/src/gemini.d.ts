@@ -5,13 +5,13 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class gemini extends Exchange {
-    describe(): any;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchCurrenciesFromWeb(params?: {}): Promise<{}>;
+    describe(): undefined;
+    fetchCurrencies(params?: {}): Promise<{} | undefined>;
+    fetchCurrenciesFromWeb(params?: {}): Promise<{} | undefined>;
     fetchMarkets(params?: {}): Promise<any>;
-    fetchMarketsFromWeb(params?: {}): Promise<any[]>;
+    fetchMarketsFromWeb(params?: {}): Promise<never[]>;
     parseMarketActive(status: any): any;
-    fetchUSDTMarkets(params?: {}): Promise<any[]>;
+    fetchUSDTMarkets(params?: {}): Promise<never[]>;
     fetchMarketsFromAPI(params?: {}): Promise<unknown[]>;
     parseMarket(response: any): Market;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -29,34 +29,34 @@ export default class gemini extends Exchange {
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
     nonce(): number;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: any): Str;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
-        network: any;
-        address: string;
-        tag: any;
+        network: undefined;
+        address: Str;
+        tag: undefined;
         info: any;
     };
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: any;
+        address: Str;
+        tag: undefined;
         info: any;
     }>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;

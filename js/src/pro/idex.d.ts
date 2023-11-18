@@ -2,14 +2,14 @@ import idexRest from '../idex.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class idex extends idexRest {
-    describe(): any;
+    describe(): undefined;
     subscribe(subscribeObject: any, messageHash: any, subscription?: boolean): Promise<any>;
     subscribePrivate(subscribeObject: any, messageHash: any): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: undefined): import("../base/types.js").Trade;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     handleSubscribeMessage(client: Client, message: any): void;

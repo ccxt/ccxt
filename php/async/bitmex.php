@@ -397,12 +397,10 @@ class bitmex extends Exchange {
         return $this->parse_number($finalAmount);
     }
 
-    public function convert_to_real_amount($code, $amount) {
+    public function convert_to_real_amount(string $code, string $amount) {
         $currency = $this->currency($code);
         $precision = $this->safe_string($currency, 'precision');
-        $amountString = $this->number_to_string($amount);
-        $finalAmount = Precise::string_mul($amountString, $precision);
-        return $this->parse_number($finalAmount);
+        return Precise::string_mul($amount, $precision);
     }
 
     public function amount_to_precision($symbol, $amount) {
@@ -426,7 +424,7 @@ class bitmex extends Exchange {
         }
         $market = $this->market($symbol);
         if ($market['spot']) {
-            return $this->convert_to_real_amount($market[$currencySide], $rawQuantity);
+            return $this->parse_number($this->convert_to_real_amount($market[$currencySide], $rawQuantity));
         }
         return $this->parse_number($rawQuantity);
     }
@@ -442,7 +440,7 @@ class bitmex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $response = Async\await($this->publicGetInstrumentActiveAndIndices ($params));
+            $response = Async\await($this->publicGetInstrumentActive ($params));
             //
             //  array(
             //    {
@@ -563,27 +561,31 @@ class bitmex extends Exchange {
         $baseId = $this->safe_string($market, 'underlying');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $settleId = $this->safe_string($market, 'settlCurrency');
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
         $settle = $this->safe_currency_code($settleId);
         // 'positionCurrency' may be empty ("", currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         $typ = $this->safe_string($market, 'typ'); // $type definitions at => https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        $types = array(
-            'FFWCSX' => 'swap',
-            'FFWCSF' => 'swap',
-            'IFXXXP' => 'spot',
-            'FFCCSX' => 'future',
-            'MRBXXX' => 'index',
-            'MRCXXX' => 'index',
-            'MRFXXX' => 'index',
-            'MRRXXX' => 'index',
-            'MRIXXX' => 'index',
-        );
-        $type = $this->safe_string($types, $typ, $typ);
-        $swap = $type === 'swap';
-        $future = $type === 'future';
-        $spot = $type === 'spot';
+        $swap = false;
+        $spot = false;
+        $future = false;
+        if ($typ === 'FFWCSX') {
+            $type = 'swap';
+            $swap = true;
+        } elseif ($typ === 'IFXXXP') {
+            $type = 'spot';
+            $spot = true;
+        } elseif ($typ === 'FFCCSX') {
+            $type = 'future';
+            $future = true;
+        } elseif ($typ === 'FFICSX') {
+            // prediction markets (without any volume)
+            $quoteId = $baseId;
+            $baseId = $this->safe_string($market, 'rootSymbol');
+            $type = 'future';
+            $future = true;
+        }
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         $contract = $swap || $future;
         $contractSize = null;
         $isInverse = $this->safe_value($market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
@@ -598,10 +600,11 @@ class bitmex extends Exchange {
             $symbol = $base . '/' . $quote;
         } elseif ($contract) {
             $symbol = $base . '/' . $quote . ':' . $settle;
-            $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
             if ($linear) {
-                $contractSize = $this->parse_number(Precise::string_div('1', $market['underlyingToPositionMultiplier']));
+                $multiplierString = $this->safe_string_2($market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
+                $contractSize = $this->parse_number(Precise::string_div('1', $multiplierString));
             } else {
+                $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
                 $contractSize = $this->parse_number($multiplierString);
             }
             if ($future) {
@@ -1119,15 +1122,15 @@ class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a $timestamp
             $timestamp = 0; // see comments above
         }
-        $feeCost = $this->safe_number($item, 'fee', 0);
+        $feeCost = $this->safe_string($item, 'fee');
         if ($feeCost !== null) {
             $feeCost = $this->convert_to_real_amount($code, $feeCost);
         }
         $fee = array(
-            'cost' => $feeCost,
+            'cost' => $this->parse_number($feeCost),
             'currency' => $code,
         );
-        $after = $this->safe_number($item, 'walletBalance');
+        $after = $this->safe_string($item, 'walletBalance');
         if ($after !== null) {
             $after = $this->convert_to_real_amount($code, $after);
         }
@@ -1153,7 +1156,7 @@ class bitmex extends Exchange {
             'currency' => $code,
             'amount' => $amount,
             'before' => $before,
-            'after' => $after,
+            'after' => $this->parse_number($after),
             'status' => $status,
             'fee' => $fee,
         );
@@ -1310,7 +1313,7 @@ class bitmex extends Exchange {
             'type' => $type,
             'currency' => $currency['code'],
             'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $currency['code']),
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'status' => $status,
             'timestamp' => $transactTime,
             'datetime' => $this->iso8601($transactTime),
@@ -1325,7 +1328,7 @@ class bitmex extends Exchange {
             'comment' => null,
             'fee' => array(
                 'currency' => $currency['code'],
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCost),
                 'rate' => null,
             ),
         );

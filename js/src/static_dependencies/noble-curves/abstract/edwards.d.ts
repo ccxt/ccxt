@@ -21,22 +21,22 @@ declare function validateOpts(curve: CurveType): Readonly<{
     readonly Fp: import("./modular.js").Field<bigint>;
     readonly n: bigint;
     readonly h: bigint;
-    readonly hEff?: bigint;
+    readonly hEff?: bigint | undefined;
     readonly Gx: bigint;
     readonly Gy: bigint;
-    readonly allowInfinityPoint?: boolean;
+    readonly allowInfinityPoint?: boolean | undefined;
     readonly a: bigint;
     readonly d: bigint;
     readonly hash: ut.FHash;
-    readonly randomBytes: (bytesLength?: number) => Uint8Array;
-    readonly adjustScalarBytes?: (bytes: Uint8Array) => Uint8Array;
-    readonly domain?: (data: Uint8Array, ctx: Uint8Array, phflag: boolean) => Uint8Array;
-    readonly uvRatio?: (u: bigint, v: bigint) => {
+    readonly randomBytes: (bytesLength?: number | undefined) => Uint8Array;
+    readonly adjustScalarBytes?: ((bytes: Uint8Array) => Uint8Array) | undefined;
+    readonly domain?: ((data: Uint8Array, ctx: Uint8Array, phflag: boolean) => Uint8Array) | undefined;
+    readonly uvRatio?: ((u: bigint, v: bigint) => {
         isValid: boolean;
         value: bigint;
-    };
-    readonly preHash?: ut.FHash;
-    readonly mapToCurve?: (scalar: bigint[]) => AffinePoint<bigint>;
+    }) | undefined;
+    readonly preHash?: ut.FHash | undefined;
+    readonly mapToCurve?: ((scalar: bigint[]) => AffinePoint<bigint>) | undefined;
 }>;
 export interface ExtPointType extends Group<ExtPointType> {
     readonly ex: bigint;

@@ -5,46 +5,46 @@ import { Balances, Currency, Dictionary, Int, Market, OHLCV, Order, OrderBook, O
  * @extends Exchange
  */
 export default class upbit extends Exchange {
-    describe(): any;
+    describe(): undefined;
     fetchCurrency(code: string, params?: {}): Promise<{
         info: any;
-        id: string;
+        id: Str;
         code: string;
         name: string;
         active: boolean;
-        fee: number;
-        precision: any;
+        fee: import("./base/types.js").Num;
+        precision: undefined;
         limits: {
             withdraw: {
-                min: number;
-                max: any;
+                min: import("./base/types.js").Num;
+                max: undefined;
             };
         };
     }>;
     fetchCurrencyById(id: string, params?: {}): Promise<{
         info: any;
-        id: string;
+        id: Str;
         code: string;
         name: string;
         active: boolean;
-        fee: number;
-        precision: any;
+        fee: import("./base/types.js").Num;
+        precision: undefined;
         limits: {
             withdraw: {
-                min: number;
-                max: any;
+                min: import("./base/types.js").Num;
+                max: undefined;
             };
         };
     }>;
     fetchMarket(symbol: string, params?: {}): Promise<{
-        id: string;
+        id: Str;
         symbol: string;
         base: string;
         quote: string;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: any;
+        settle: undefined;
+        baseId: Str;
+        quoteId: Str;
+        settleId: undefined;
         type: string;
         spot: boolean;
         margin: boolean;
@@ -53,48 +53,48 @@ export default class upbit extends Exchange {
         option: boolean;
         active: boolean;
         contract: boolean;
-        linear: any;
-        inverse: any;
+        linear: undefined;
+        inverse: undefined;
         taker: number;
         maker: number;
-        contractSize: any;
-        expiry: any;
-        expiryDatetime: any;
-        strike: any;
-        optionType: any;
+        contractSize: undefined;
+        expiry: undefined;
+        expiryDatetime: undefined;
+        strike: undefined;
+        optionType: undefined;
         precision: {
             amount: number;
             price: number;
         };
         limits: {
             leverage: {
-                min: any;
-                max: any;
+                min: undefined;
+                max: undefined;
             };
             amount: {
-                min: number;
-                max: any;
+                min: import("./base/types.js").Num;
+                max: undefined;
             };
             price: {
-                min: any;
-                max: any;
+                min: undefined;
+                max: undefined;
             };
             cost: {
-                min: number;
-                max: number;
+                min: import("./base/types.js").Num;
+                max: import("./base/types.js").Num;
             };
             info: any;
         };
     }>;
     fetchMarketById(id: string, params?: {}): Promise<{
-        id: string;
+        id: Str;
         symbol: string;
         base: string;
         quote: string;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: any;
+        settle: undefined;
+        baseId: Str;
+        quoteId: Str;
+        settleId: undefined;
         type: string;
         spot: boolean;
         margin: boolean;
@@ -103,40 +103,40 @@ export default class upbit extends Exchange {
         option: boolean;
         active: boolean;
         contract: boolean;
-        linear: any;
-        inverse: any;
+        linear: undefined;
+        inverse: undefined;
         taker: number;
         maker: number;
-        contractSize: any;
-        expiry: any;
-        expiryDatetime: any;
-        strike: any;
-        optionType: any;
+        contractSize: undefined;
+        expiry: undefined;
+        expiryDatetime: undefined;
+        strike: undefined;
+        optionType: undefined;
         precision: {
             amount: number;
             price: number;
         };
         limits: {
             leverage: {
-                min: any;
-                max: any;
+                min: undefined;
+                max: undefined;
             };
             amount: {
-                min: number;
-                max: any;
+                min: import("./base/types.js").Num;
+                max: undefined;
             };
             price: {
-                min: any;
-                max: any;
+                min: undefined;
+                max: undefined;
             };
             cost: {
-                min: number;
-                max: number;
+                min: import("./base/types.js").Num;
+                max: import("./base/types.js").Num;
             };
             info: any;
         };
     }>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -157,48 +157,48 @@ export default class upbit extends Exchange {
     }>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: any): Str;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
     fetchOrdersByState(state: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
+    fetchDepositAddresses(codes?: undefined, params?: {}): Promise<{}>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
-        address: string;
-        tag: string;
-        network: any;
+        address: Str;
+        tag: Str;
+        network: undefined;
         info: any;
     };
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: string;
-        network: any;
+        address: Str;
+        tag: Str;
+        network: undefined;
         info: any;
     }>;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: string;
-        network: any;
+        address: Str;
+        tag: Str;
+        network: undefined;
         info: any;
     }>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: any;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

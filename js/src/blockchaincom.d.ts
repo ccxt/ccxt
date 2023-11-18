@@ -5,23 +5,23 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
  * @extends Exchange
  */
 export default class blockchaincom extends Exchange {
-    describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    describe(): undefined;
+    fetchMarkets(params?: {}): Promise<never[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseOrderState(state: any): string;
+    parseOrderState(state: any): Str;
     parseOrder(order: any, market?: Market): Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{
         id: string;
         info: any;
     }>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<{
-        symbol: string;
+        symbol: Str;
         info: any;
     }>;
     fetchTradingFees(params?: {}): Promise<{}>;
@@ -34,22 +34,22 @@ export default class blockchaincom extends Exchange {
     fetchDepositAddress(code: string, params?: {}): Promise<{
         info: any;
     }>;
-    parseTransactionState(state: any): string;
+    parseTransactionState(state: any): Str;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    fetchWithdrawalWhitelist(params?: {}): Promise<any[]>;
-    fetchWithdrawalWhitelistByCurrency(code: string, params?: {}): Promise<any[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    fetchWithdrawalWhitelist(params?: {}): Promise<never[]>;
+    fetchWithdrawalWhitelistByCurrency(code: string, params?: {}): Promise<never[]>;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

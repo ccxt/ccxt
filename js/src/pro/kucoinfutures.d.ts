@@ -2,7 +2,7 @@ import kucoinfuturesRest from '../kucoinfutures.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoinfutures extends kucoinfuturesRest {
-    describe(): any;
+    describe(): undefined;
     negotiate(privateChannel: any, params?: {}): any;
     negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
     requestId(): any;
@@ -27,8 +27,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
     handleSubscriptionStatus(client: Client, message: any): any;
     handleSystemStatus(client: Client, message: any): any;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseWsOrderStatus(status: any): string;
-    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
+    parseWsOrderStatus(status: any): Str;
+    parseWsOrder(order: any, market?: undefined): import("../base/types.js").Order;
     handleOrder(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;

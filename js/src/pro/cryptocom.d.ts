@@ -2,7 +2,7 @@ import cryptocomRest from '../cryptocom.js';
 import { Int, OrderSide, OrderType, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cryptocom extends cryptocomRest {
-    describe(): any;
+    describe(): undefined;
     pong(client: any, message: any): Promise<void>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
@@ -16,7 +16,7 @@ export default class cryptocom extends cryptocomRest {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    handleOrders(client: Client, message: any, subscription?: any): void;
+    handleOrders(client: Client, message: any, subscription?: undefined): void;
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
     setPositionsCache(client: Client, type: any, symbols?: Strings): void;
     loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;

@@ -5,14 +5,14 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class currencycom extends Exchange {
-    describe(): any;
+    describe(): undefined;
     nonce(): number;
-    fetchTime(params?: {}): Promise<number>;
-    fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
-    fetchAccounts(params?: {}): Promise<any[]>;
+    fetchTime(params?: {}): Promise<Int>;
+    fetchCurrencies(params?: {}): Promise<{} | undefined>;
+    fetchMarkets(params?: {}): Promise<never[]>;
+    fetchAccounts(params?: {}): Promise<never[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    parseBalance(response: any, type?: any): Balances;
+    parseBalance(response: any, type?: undefined): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: Market): Ticker;
@@ -23,11 +23,11 @@ export default class currencycom extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
-    parseOrderType(status: any): string;
-    parseOrderTimeInForce(status: any): string;
-    parseOrderSide(status: any): string;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    parseOrderStatus(status: any): Str;
+    parseOrderType(status: any): Str;
+    parseOrderTimeInForce(status: any): Str;
+    parseOrderSide(status: any): Str;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
@@ -37,50 +37,50 @@ export default class currencycom extends Exchange {
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchTransactionsByMethod(method: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
-    parseTransactionType(type: any): string;
+    parseTransactionStatus(status: any): Str;
+    parseTransactionType(type: any): Str;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: Currency): {
-        id: string;
-        timestamp: number;
-        datetime: string;
+        id: Str;
+        timestamp: Int;
+        datetime: string | undefined;
         direction: string;
-        account: any;
-        referenceId: string;
-        referenceAccount: any;
-        type: string;
+        account: undefined;
+        referenceId: Str;
+        referenceAccount: undefined;
+        type: Str;
         currency: string;
-        amount: string;
-        before: any;
-        after: string;
-        status: string;
-        fee: any;
+        amount: string | undefined;
+        before: undefined;
+        after: Str;
+        status: Str;
+        fee: undefined;
         info: any;
     };
-    parseLedgerEntryStatus(status: any): string;
-    parseLedgerEntryType(type: any): string;
-    fetchLeverage(symbol: string, params?: {}): Promise<number>;
+    parseLedgerEntryStatus(status: any): Str;
+    parseLedgerEntryType(type: any): Str;
+    fetchLeverage(symbol: string, params?: {}): Promise<import("./base/types.js").Num>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: any;
-        network: any;
+        address: Str;
+        tag: undefined;
+        network: undefined;
         info: any;
     }>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
-        address: string;
-        tag: any;
-        network: any;
+        address: Str;
+        tag: undefined;
+        network: undefined;
         info: any;
     };
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: Market): import("./base/types.js").Position;
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

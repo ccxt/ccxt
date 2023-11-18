@@ -18,7 +18,7 @@ declare class BLAKE3 extends BLAKE2<BLAKE3> implements HashXOF<BLAKE3> {
     private chunkOut;
     private enableXOF;
     constructor(opts?: Blake3Opts, flags?: number);
-    protected get(): any[];
+    protected get(): never[];
     protected set(): void;
     private b2Compress;
     protected compress(buf: Uint32Array, bufPos?: number, isLast?: boolean): void;
@@ -38,7 +38,7 @@ declare class BLAKE3 extends BLAKE2<BLAKE3> implements HashXOF<BLAKE3> {
  * @param opts - dkLen, key, context
  */
 export declare const blake3: {
-    (msg: Input, opts?: Blake3Opts): Uint8Array;
+    (msg: Input, opts?: Blake3Opts | undefined): Uint8Array;
     outputLen: number;
     blockLen: number;
     create(opts: Blake3Opts): import("./utils.js").Hash<BLAKE3>;

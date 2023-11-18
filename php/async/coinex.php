@@ -53,11 +53,11 @@ class coinex extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => true,
-                'fetchBorrowRate' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => true,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressByNetwork' => false,
@@ -70,6 +70,8 @@ class coinex extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => true,
+                'fetchIsolatedBorrowRates' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
@@ -1099,10 +1101,10 @@ class coinex extends Exchange {
         }
         $side = null;
         if ($market['type'] === 'swap') {
-            $side = $this->safe_integer($trade, 'side');
-            if ($side === 1) {
+            $rawSide = $this->safe_integer($trade, 'side');
+            if ($rawSide === 1) {
                 $side = 'sell';
-            } elseif ($side === 2) {
+            } elseif ($rawSide === 2) {
                 $side = 'buy';
             }
             if ($side === null) {
@@ -1827,10 +1829,10 @@ class coinex extends Exchange {
         $rawType = $this->safe_string($order, 'order_type');
         $type = null;
         if ($rawType === null) {
-            $type = $this->safe_integer($order, 'type');
-            if ($type === 1) {
+            $typeInteger = $this->safe_integer($order, 'type');
+            if ($typeInteger === 1) {
                 $type = 'limit';
-            } elseif ($type === 2) {
+            } elseif ($typeInteger === 2) {
                 $type = 'market';
             }
         } else {
@@ -2207,6 +2209,9 @@ class coinex extends Exchange {
              * @param {array} [$params] extra parameters specific to the coinex api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $stop = $this->safe_value($params, 'stop');
@@ -2365,7 +2370,6 @@ class coinex extends Exchange {
             );
             $swap = $market['swap'];
             $stop = $this->safe_value($params, 'stop');
-            $method = null;
             if ($swap) {
                 $method = 'perpetualPrivatePostOrderCancelAll';
                 if ($stop) {
@@ -4429,7 +4433,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate($info, ?array $market = null) {
         //
         //     {
         //         "market" => "BTCUSDT",
@@ -4449,15 +4453,13 @@ class coinex extends Exchange {
         $marketId = $this->safe_string($info, 'market');
         $market = $this->safe_market($marketId, $market, null, 'spot');
         $baseInfo = $this->safe_value($info, $market['baseId']);
-        $baseRate = $this->safe_number($baseInfo, 'day_rate');
         $quoteInfo = $this->safe_value($info, $market['quoteId']);
-        $quoteRate = $this->safe_number($quoteInfo, 'day_rate');
         return array(
             'symbol' => $market['symbol'],
             'base' => $market['base'],
-            'baseRate' => $baseRate,
+            'baseRate' => $this->safe_number($baseInfo, 'day_rate'),
             'quote' => $market['quote'],
-            'quoteRate' => $quoteRate,
+            'quoteRate' => $this->safe_number($quoteInfo, 'day_rate'),
             'period' => 86400000,
             'timestamp' => null,
             'datetime' => null,
@@ -4469,17 +4471,15 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
-             * @param {string} code unified currency code
+             * @param {string} $symbol unified $symbol of the $market to fetch the borrow rate for
              * @param {array} [$params] extra parameters specific to the coinex api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structure}
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structure}
              */
             Async\await($this->load_markets());
-            $market = null;
-            $request = array();
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['market'] = $market['id'];
-            }
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
             $response = Async\await($this->privateGetMarginConfig (array_merge($request, $params)));
             //
             //     {
@@ -4502,7 +4502,7 @@ class coinex extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            return $this->parse_borrow_rate($data, $market);
+            return $this->parse_isolated_borrow_rate($data, $market);
         }) ();
     }
 
@@ -4511,7 +4511,7 @@ class coinex extends Exchange {
             /**
              * fetch the borrow interest $rates of all currencies
              * @param {array} [$params] extra parameters specific to the coinex api endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structures}
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure isolated borrow rate structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetMarginConfig ($params));
@@ -4540,7 +4540,7 @@ class coinex extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             $rates = array();
             for ($i = 0; $i < count($data); $i++) {
-                $rates[] = $this->parse_borrow_rate($data[$i]);
+                $rates[] = $this->parse_isolated_borrow_rate($data[$i]);
             }
             return $rates;
         }) ();

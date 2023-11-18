@@ -5,10 +5,10 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
  * @extends Exchange
  */
 export default class bitflyer extends Exchange {
-    describe(): any;
-    parseExpiryDate(expiry: any): number;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): import("./base/types.js").MarketInterface;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    describe(): undefined;
+    parseExpiryDate(expiry: any): number | undefined;
+    safeMarket(marketId?: undefined, market?: undefined, delimiter?: undefined, marketType?: undefined): import("./base/types.js").MarketInterface;
+    fetchMarkets(params?: {}): Promise<never[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -19,12 +19,12 @@ export default class bitflyer extends Exchange {
     fetchTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
-        maker: number;
-        taker: number;
+        maker: import("./base/types.js").Num;
+        taker: import("./base/types.js").Num;
     }>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
     fetchOrders(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
@@ -32,16 +32,16 @@ export default class bitflyer extends Exchange {
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<any>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseDepositStatus(status: any): string;
-    parseWithdrawalStatus(status: any): string;
+    parseDepositStatus(status: any): Str;
+    parseWithdrawalStatus(status: any): Str;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
 }

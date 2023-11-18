@@ -19,10 +19,10 @@ export declare function validateOpts(opts: PoseidonOpts): Readonly<{
     t: number;
     roundsFull: number;
     roundsPartial: number;
-    sboxPower?: number;
-    reversePartialPowIdx?: boolean;
+    sboxPower?: number | undefined;
+    reversePartialPowIdx?: boolean | undefined;
 }>;
-export declare function splitConstants(rc: bigint[], t: number): any[];
+export declare function splitConstants(rc: bigint[], t: number): never[];
 export declare function poseidon(opts: PoseidonOpts): {
     (values: bigint[]): bigint[];
     roundConstants: bigint[][];

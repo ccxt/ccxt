@@ -5,11 +5,11 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class coinlist extends Exchange {
-    describe(): any;
+    describe(): undefined;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): number;
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<number | undefined>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -21,14 +21,14 @@ export default class coinlist extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchTradingFees(params?: {}): Promise<{}>;
     parseFeeTiers(feeTiers: any, market?: Market): {
-        maker: any[];
-        taker: any[];
+        maker: never[];
+        taker: never[];
     };
-    fetchAccounts(params?: {}): Promise<any[]>;
+    fetchAccounts(params?: {}): Promise<never[]>;
     parseAccount(account: any): {
-        id: string;
+        id: Str;
         type: string;
-        code: any;
+        code: undefined;
         info: any;
     };
     fetchBalance(params?: {}): Promise<Balances>;
@@ -43,63 +43,63 @@ export default class coinlist extends Exchange {
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: undefined, price?: undefined, params?: {}): Promise<Order>;
     parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
-    parseOrderType(status: any): string;
+    parseOrderStatus(status: any): Str;
+    parseOrderType(status: any): Str;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
+        id: Str;
+        timestamp: number | undefined;
+        datetime: string | undefined;
         currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
+        amount: undefined;
+        fromAccount: undefined;
+        toAccount: undefined;
+        status: Str;
     }>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
+        id: Str;
+        timestamp: number | undefined;
+        datetime: string | undefined;
         currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: string;
+        amount: undefined;
+        fromAccount: undefined;
+        toAccount: undefined;
+        status: Str;
     };
-    parseTransferStatus(status: any): string;
+    parseTransferStatus(status: any): Str;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionType(type: any): string;
+    parseTransactionType(type: any): Str;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: Currency): {
         info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        direction: any;
+        id: Str;
+        timestamp: number | undefined;
+        datetime: string | undefined;
+        direction: undefined;
         account: string;
-        referenceId: any;
-        referenceAccount: any;
-        type: string;
+        referenceId: undefined;
+        referenceAccount: undefined;
+        type: Str;
         currency: string;
         amount: number;
-        before: any;
-        after: any;
+        before: undefined;
+        after: undefined;
         status: string;
-        fee: any;
+        fee: undefined;
     };
-    parseLedgerEntryType(type: any): string;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    parseLedgerEntryType(type: any): Str;
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

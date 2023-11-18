@@ -11,7 +11,7 @@
  */
 export default class Body {
     constructor(body: any, { size }?: {
-        size?: number;
+        size?: number | undefined;
     });
     size: number;
     get body(): any;
@@ -44,9 +44,9 @@ export default class Body {
     [INTERNALS]: {
         body: any;
         stream: any;
-        boundary: any;
+        boundary: null;
         disturbed: boolean;
-        error: any;
+        error: null;
     };
 }
 export function clone(instance: any, highWaterMark: any): any;

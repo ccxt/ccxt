@@ -39,7 +39,7 @@ declare class BLAKE2s extends BLAKE2<BLAKE2s> {
  * @param opts - dkLen, key, salt, personalization
  */
 export declare const blake2s: {
-    (msg: import("./utils.js").Input, opts?: BlakeOpts): Uint8Array;
+    (msg: import("./utils.js").Input, opts?: BlakeOpts | undefined): Uint8Array;
     outputLen: number;
     blockLen: number;
     create(opts: BlakeOpts): import("./utils.js").Hash<BLAKE2s>;

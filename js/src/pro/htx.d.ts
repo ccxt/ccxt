@@ -2,7 +2,7 @@ import htxRest from '../htx.js';
 import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class htx extends htxRest {
-    describe(): any;
+    describe(): undefined;
     requestId(): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;
@@ -19,11 +19,11 @@ export default class htx extends htxRest {
     handleOrderBook(client: Client, message: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    getOrderChannelAndMessageHash(type: any, subType: any, market?: any, params?: {}): any[];
+    getOrderChannelAndMessageHash(type: any, subType: any, market?: undefined, params?: {}): undefined[];
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
-    parseOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseWsOrder(order: any, market?: undefined): import("../base/types.js").Order;
+    parseOrderTrade(trade: any, market?: undefined): import("../base/types.js").Trade;
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handlePositions(client: any, message: any): void;
     watchBalance(params?: {}): Promise<any>;
@@ -37,9 +37,9 @@ export default class htx extends htxRest {
     handleErrorMessage(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any, extendParams?: {}): void;
-    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean): any;
-    subscribePublic(url: any, symbol: any, messageHash: any, method?: any, params?: {}): Promise<any>;
+    parseWsTrade(trade: any, market?: undefined): import("../base/types.js").Trade;
+    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean): undefined;
+    subscribePublic(url: any, symbol: any, messageHash: any, method?: undefined, params?: {}): Promise<any>;
     subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: {}, subscriptionParams?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
 }

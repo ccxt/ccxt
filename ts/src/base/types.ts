@@ -35,8 +35,8 @@ export interface MarketInterface {
     symbol: string;
     base: string;
     quote: string;
-    baseId: string;
-    quoteId: string;
+    baseId: Str;
+    quoteId: Str;
     active: Bool;
     type: MarketType;
     spot: boolean;

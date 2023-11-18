@@ -5,16 +5,16 @@ import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType
  * @extends Exchange
  */
 export default class luno extends Exchange {
-    describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
-    fetchAccounts(params?: {}): Promise<any[]>;
+    describe(): undefined;
+    fetchMarkets(params?: {}): Promise<never[]>;
+    fetchAccounts(params?: {}): Promise<never[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: any): Str;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrdersByState(state?: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersByState(state?: undefined, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -27,39 +27,39 @@ export default class luno extends Exchange {
     fetchTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
-        maker: number;
-        taker: number;
+        maker: import("./base/types.js").Num;
+        taker: import("./base/types.js").Num;
     }>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    fetchLedgerByEntries(code?: Str, entry?: any, limit?: any, params?: {}): Promise<any>;
+    fetchLedgerByEntries(code?: Str, entry?: undefined, limit?: undefined, params?: {}): Promise<any>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerComment(comment: any): {
-        type: string;
-        referenceId: any;
+        type: Str;
+        referenceId: undefined;
     };
     parseLedgerEntry(entry: any, currency?: Currency): {
-        id: string;
-        direction: any;
-        account: string;
-        referenceId: any;
-        referenceAccount: any;
-        type: string;
+        id: Str;
+        direction: undefined;
+        account: Str;
+        referenceId: undefined;
+        referenceAccount: undefined;
+        type: Str;
         currency: string;
         amount: number;
-        timestamp: number;
-        datetime: string;
+        timestamp: Int;
+        datetime: string | undefined;
         before: number;
         after: number;
-        status: any;
-        fee: any;
+        status: undefined;
+        fee: undefined;
         info: any;
     };
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

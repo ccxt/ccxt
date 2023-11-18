@@ -577,7 +577,7 @@ class bingx extends Exchange {
         $isActive = $this->safe_string($market, 'status') === '1';
         $isInverse = ($spot) ? null : false;
         $isLinear = ($spot) ? null : $swap;
-        $entry = array(
+        return array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -606,8 +606,6 @@ class bingx extends Exchange {
             'precision' => array(
                 'amount' => $quantityPrecision,
                 'price' => $pricePrecision,
-                'base' => null,
-                'quote' => null,
             ),
             'limits' => array(
                 'leverage' => array(
@@ -630,7 +628,6 @@ class bingx extends Exchange {
             'created' => null,
             'info' => $market,
         );
-        return $entry;
     }
 
     public function fetch_markets($params = array ()) {

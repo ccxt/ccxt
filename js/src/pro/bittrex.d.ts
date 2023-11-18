@@ -2,22 +2,22 @@ import bittrexRest from '../bittrex.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bittrex extends bittrexRest {
-    describe(): any;
+    describe(): undefined;
     getSignalRUrl(negotiation: any): string;
     makeRequest(requestId: any, method: any, args: any): {
-        H: string;
+        H: Str;
         M: any;
         A: any;
         I: any;
     };
     makeRequestToSubscribe(requestId: any, args: any): {
-        H: string;
+        H: Str;
         M: any;
         A: any;
         I: any;
     };
     makeRequestToAuthenticate(requestId: any): {
-        H: string;
+        H: Str;
         M: any;
         A: any;
         I: any;

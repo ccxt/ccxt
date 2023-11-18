@@ -11,7 +11,7 @@
  * @param {string} URL
  * @param {boolean} [originOnly=false]
  */
-export function stripURLForUseAsAReferrer(url: any, originOnly?: boolean): any;
+export function stripURLForUseAsAReferrer(url: any, originOnly?: boolean | undefined): any;
 /**
  * @see {@link https://w3c.github.io/webappsec-referrer-policy/#referrer-policies|Referrer Policy §3. Referrer Policies}
  * @param {string} referrerPolicy

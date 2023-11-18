@@ -2346,7 +2346,9 @@ export default class mexc extends Exchange {
          * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('fetchOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3674,7 +3676,9 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol ('fetchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
@@ -4070,7 +4074,9 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the mexc api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
-        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -5060,7 +5066,9 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        this.checkRequiredSymbol ('borrowMargin', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
@@ -5095,7 +5103,9 @@ export default class mexc extends Exchange {
          * @param {string} [params.borrowId] transaction id '762407666453712896'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        this.checkRequiredSymbol ('repayMargin', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const id = this.safeString2 (params, 'id', 'borrowId');
         if (id === undefined) {

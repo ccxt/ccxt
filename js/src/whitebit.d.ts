@@ -5,17 +5,17 @@ import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, Or
  * @extends Exchange
  */
 export default class whitebit extends Exchange {
-    describe(): any;
-    fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
+    describe(): undefined;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchTransactionFees(codes?: any, params?: {}): Promise<{
+    fetchTransactionFees(codes?: undefined, params?: {}): Promise<{
         withdraw: {};
         deposit: {};
         info: any;
     }>;
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    parseDepositWithdrawFees(response: any, codes?: undefined, currencyIdKey?: undefined): {};
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: Market): Ticker;
@@ -27,55 +27,55 @@ export default class whitebit extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: any;
-        url: any;
+        status: Str;
+        updated: undefined;
+        eta: undefined;
+        url: undefined;
         info: any;
     }>;
-    fetchTime(params?: {}): Promise<number>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    fetchTime(params?: {}): Promise<Int>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: undefined, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrderType(type: any): string;
+    parseOrderType(type: any): Str;
     parseOrder(order: any, market?: Market): Order;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        address: string;
-        tag: string;
-        network: any;
+        address: Str;
+        tag: Str;
+        network: undefined;
         info: any;
     }>;
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
+        id: undefined;
+        timestamp: undefined;
+        datetime: undefined;
         currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
+        amount: undefined;
+        fromAccount: undefined;
+        toAccount: undefined;
+        status: undefined;
     }>;
     parseTransfer(transfer: any, currency?: Currency): {
         info: any;
-        id: any;
-        timestamp: any;
-        datetime: any;
+        id: undefined;
+        timestamp: undefined;
+        datetime: undefined;
         currency: string;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
+        amount: undefined;
+        fromAccount: undefined;
+        toAccount: undefined;
+        status: undefined;
     };
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: any, address: any, tag?: undefined, params?: {}): Promise<any>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: any): Str;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -83,11 +83,11 @@ export default class whitebit extends Exchange {
         symbol: string;
         marginMode: string;
         currency: string;
-        interest: number;
+        interest: import("./base/types.js").Num;
         interestRate: number;
-        amountBorrowed: number;
-        timestamp: number;
-        datetime: string;
+        amountBorrowed: import("./base/types.js").Num;
+        timestamp: number | undefined;
+        datetime: string | undefined;
         info: any;
     };
     fetchFundingRate(symbol: string, params?: {}): Promise<any>;
@@ -95,28 +95,28 @@ export default class whitebit extends Exchange {
     parseFundingRate(contract: any, market?: Market): {
         info: any;
         symbol: string;
-        markPrice: number;
-        indexPrice: number;
-        interestRate: number;
-        timestamp: any;
-        datetime: any;
-        fundingRate: number;
-        fundingTimestamp: any;
-        fundingDatetime: string;
-        nextFundingRate: any;
-        nextFundingTimestamp: number;
-        nextFundingDatetime: string;
-        previousFundingRate: any;
-        previousFundingTimestamp: any;
-        previousFundingDatetime: any;
+        markPrice: import("./base/types.js").Num;
+        indexPrice: import("./base/types.js").Num;
+        interestRate: import("./base/types.js").Num;
+        timestamp: undefined;
+        datetime: undefined;
+        fundingRate: import("./base/types.js").Num;
+        fundingTimestamp: undefined;
+        fundingDatetime: string | undefined;
+        nextFundingRate: undefined;
+        nextFundingTimestamp: Int;
+        nextFundingDatetime: string | undefined;
+        previousFundingRate: undefined;
+        previousFundingTimestamp: undefined;
+        previousFundingDatetime: undefined;
     };
     isFiat(currency: any): any;
     nonce(): number;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: string, method?: string, params?: {}, headers?: undefined, body?: undefined): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: undefined;
+        headers: undefined;
     };
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

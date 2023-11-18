@@ -2,7 +2,7 @@ import probitRest from '../probit.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class probit extends probitRest {
-    describe(): any;
+    describe(): undefined;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     parseWSBalance(message: any): void;
