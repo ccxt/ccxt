@@ -176,8 +176,21 @@ export interface Tickers extends Dictionary<Ticker> {
 export interface CurrencyInterface {
     id: string;
     code: string;
+    name?: string;
+    type?: 'crypto' | 'fiat' | 'other' | string;
+    deposit?: boolean;
+    withdraw?: boolean;
+    fee?: number;
+    active?: boolean;
     numericId?: number;
     precision: number;
+    limits?: {
+        amount?: MinMax,
+        deposit?: MinMax,
+        withdraw?: MinMax,
+    };
+    networks?: any[] | {};
+    info: any;
 }
 
 export interface Balance {
