@@ -326,10 +326,6 @@ class bitvavo(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetMarkets(params)
-        currencies = self.currencies
-        if self.currencies is None:
-            currencies = await self.fetch_currencies()
-        currenciesById = self.index_by(currencies, 'id')
         #
         #     [
         #         {
@@ -344,6 +340,8 @@ class bitvavo(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
+        currencies = self.currencies
+        currenciesById = self.index_by(currencies, 'id')
         result = []
         fees = self.fees
         for i in range(0, len(response)):
@@ -510,6 +508,8 @@ class bitvavo(Exchange, ImplicitAPI):
                     },
                 },
             }
+        # set currencies here to avoid calling publicGetAssets twice
+        self.currencies = self.deep_extend(self.currencies, result)
         return result
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:

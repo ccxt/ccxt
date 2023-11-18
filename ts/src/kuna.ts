@@ -44,12 +44,11 @@ export default class kuna extends Exchange {
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
@@ -60,6 +59,8 @@ export default class kuna extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
                 'fetchL3OrderBook': true,
                 'fetchLeverage': false,
@@ -622,7 +623,7 @@ export default class kuna extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] 5, 10, 20, 50, 100, 500, or 1000 (default)
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -710,7 +711,7 @@ export default class kuna extends Exchange {
          * @see https://docs.kuna.io/docs/get-market-info-by-tickers
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         if (symbols === undefined) {
@@ -754,7 +755,7 @@ export default class kuna extends Exchange {
          * @see https://docs.kuna.io/docs/get-market-info-by-tickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -796,7 +797,7 @@ export default class kuna extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} an [order book structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure}
+         * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
          */
         return await this.fetchOrderBook (symbol, limit, params);
     }
@@ -811,7 +812,7 @@ export default class kuna extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] between 1 and 100, 25 by default
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -928,7 +929,7 @@ export default class kuna extends Exchange {
          * @name kuna#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.v4PrivateGetPrivateGetBalance (params);
@@ -962,7 +963,7 @@ export default class kuna extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.id] id must be a UUID format, if you do not specify id, it will be generated automatically.
          * @param {float} [params.quoteQuantity] the max quantity of the quote asset to use for selling/buying
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1015,7 +1016,7 @@ export default class kuna extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1047,7 +1048,7 @@ export default class kuna extends Exchange {
          * @param {string} ids order ids
          * @param {string} symbol not used by kuna cancelOrder
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1171,7 +1172,7 @@ export default class kuna extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {boolean} [params.withTrades] default == true, specify if the response should include trades associated with the order
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1231,7 +1232,7 @@ export default class kuna extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.sort] asc (oldest-on-top) or desc (newest-on-top)
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const until = this.safeInteger (params, 'until');
@@ -1292,7 +1293,7 @@ export default class kuna extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.sort] asc (oldest-on-top) or desc (newest-on-top)
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
@@ -1312,7 +1313,7 @@ export default class kuna extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.sort] asc (oldest-on-top) or desc (newest-on-top)
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         if (status === 'open') {
@@ -1378,7 +1379,7 @@ export default class kuna extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.orderId] UUID of an order, to receive trades for this order only
          * @param {string} [params.sort] asc (oldest-on-top) or desc (newest-on-top)
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1427,7 +1428,7 @@ export default class kuna extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.id] id must be a uuid format, if you do not specify id, it will be generated automatically
          * @param {boolean} [params.withdrawAll] this field says that the amount should also include a fee
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         this.checkAddress (address);
         let chain = this.safeString2 (params, 'chain', 'network');
@@ -1482,7 +1483,7 @@ export default class kuna extends Exchange {
          * @param {string} [params.sortOrder] asc (oldest-on-top), or desc (newest-on-top, default)
          * @param {int} [params.skip] 0 - ... Select the number of transactions to skip
          * @param {string} [params.address]
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const until = this.safeInteger (params, 'until');
@@ -1542,7 +1543,7 @@ export default class kuna extends Exchange {
          * @param {string} id withdrawal id
          * @param {string} code not used by kuna.fetchWithdrawal
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1582,7 +1583,7 @@ export default class kuna extends Exchange {
          * @see https://docs.kuna.io/docs/generate-a-constant-crypto-address-for-deposit
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1611,7 +1612,7 @@ export default class kuna extends Exchange {
          * @see https://docs.kuna.io/docs/find-crypto-address-for-deposit
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1682,7 +1683,7 @@ export default class kuna extends Exchange {
          * @param {string} [params.sortOrder] asc (oldest-on-top), or desc (newest-on-top, default)
          * @param {int} [params.skip] 0 - ... Select the number of transactions to skip
          * @param {string} [params.address]
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const until = this.safeInteger (params, 'until');
@@ -1742,7 +1743,7 @@ export default class kuna extends Exchange {
          * @param {string} id deposit id
          * @param {string} code filter by currency code
          * @param {object} [params] extra parameters specific to the kuna api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;

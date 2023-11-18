@@ -66,15 +66,18 @@ export default class coinbasepro extends Exchange {
         type: string;
         info: any;
     };
-    parseLedgerEntryType(type: any): string;
-    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
-    parseTicker(ticker: any, market?: Market): Ticker;
-    parseTrade(trade: any, market?: Market): Trade;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    parseTransactionStatus(transaction: any): "canceled" | "pending" | "ok" | "failed";
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(transaction: any): "ok" | "canceled" | "failed" | "pending";
-    request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
+    createDepositAddress(code: string, params?: {}): Promise<{
+        currency: string;
+        address: any;
+        tag: string;
+        info: any;
+    }>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

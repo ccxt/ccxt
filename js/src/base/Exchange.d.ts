@@ -181,32 +181,15 @@ export default class Exchange {
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
     }, digest?: "hex" | "base64" | "binary") => any;
+    arrayConcat: (a: any, b: any) => any;
+    encode: (str: string) => Uint8Array;
+    urlencode: (object: any) => string;
     hmac: (request: import("../static_dependencies/noble-hashes/utils.js").Input, secret: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
         (message: import("../static_dependencies/noble-hashes/utils.js").Input): Uint8Array;
         outputLen: number;
         blockLen: number;
         create(): import("../static_dependencies/noble-hashes/utils.js").Hash<import("../static_dependencies/noble-hashes/utils.js").Hash<any>>;
     }, digest?: "hex" | "base64" | "binary") => any;
-    implodeParams: (string: any, params: any) => any;
-    inArray: (needle: any, haystack: any) => any;
-    indexBy: (x: any, k: any, out?: {}) => {};
-    isEmpty: (object: any) => boolean;
-    isJsonEncodedObject: (object: any) => boolean;
-    isNode: boolean;
-    iso8601: (timestamp: any) => string;
-    json: (data: any, params?: any) => string;
-    keys: {
-        (o: object): string[];
-        (o: {}): string[];
-    };
-    keysort: (x: any, out?: {}) => {};
-    merge: (target: any, ...args: any[]) => any;
-    microseconds: () => number;
-    milliseconds: () => number;
-    newUpdates: boolean;
-    now: () => number;
-    numberToBE: (n: number, padding: number) => Uint8Array;
-    numberToLE: (n: number, padding: number) => Uint8Array;
     numberToString: typeof functions.numberToString;
     omit: (x: any, ...args: any[]) => any;
     omitZero: typeof functions.omitZero;
@@ -581,6 +564,7 @@ export default class Exchange {
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
     parseToNumeric(number: any): number;
+    isRoundNumber(value: any): boolean;
     afterConstruct(): void;
     createNetworksByIdObject(): void;
     getDefaultOptions(): {
