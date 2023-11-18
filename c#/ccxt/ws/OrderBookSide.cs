@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 
 namespace ccxt;
 
@@ -32,28 +33,30 @@ public class OrderBookSide : List<object>
 
     public List<decimal> _index = new List<decimal>();
 
-    public int Count = 0;
+    // public int Count = 0;
     public int _depth;
 
     public object n;
 
-    public OrderBookSide(object deltas2, object depth = null) : base()
+    public OrderBookSide(object deltas2, object depth = null, bool side = false) : base()
     {
-
-        var deltas = (object[])deltas2;
-        for (var i = 0; i < deltas.Length; i++)
-        {
-            this.storeArray(deltas[i]); // do we need to copy here??
-        }
+        this.side = side;
+        this._depth = (depth == null) ? Int32.MaxValue : (int)depth;
+        // var deltas = (List<object>)deltas2;
+        // for (var i = 0; i < deltas.Count; i++)
+        // {
+        //     this.storeArray(deltas[i]); // do we need to copy here??
+        // }
     }
 
-    public void storeArray(object delta)
+    public void storeArray(object delta2)
     {
-        var price = ((decimal[])delta)[0];
-        var amount = ((decimal[])delta)[1];
+        var delta = (List<object>)delta2;
+        var price = Convert.ToDecimal(delta[0]);
+        var amount = Convert.ToDecimal(delta[1]);
         var index_price = (this.side) ? -price : price;
         var index = Exchange.bisectLeft(this._index, index_price);
-        if (amount != null)
+        if (amount != null && amount != 0)
         { // check this out does not make sense right now we have to consider null amounts?
             if (index < this._index.Count && this._index[index] == index_price)
             {
@@ -62,7 +65,7 @@ public class OrderBookSide : List<object>
             else
             {
                 this._index.Insert(index, index_price);
-                this.Insert(index, index_price);
+                this.Insert(index, delta);
             }
         }
         else if (index < this._index.Count && this._index[index] == index_price)
@@ -76,7 +79,7 @@ public class OrderBookSide : List<object>
 
     public void store(object price, object amount)
     {
-        this.storeArray(new object[] { price, amount });
+        this.storeArray(new List<object> { price, amount });
     }
 
     public void limit()
@@ -84,35 +87,57 @@ public class OrderBookSide : List<object>
         var different = this.Count - this._depth;
         for (var i = 0; i < different; i++)
         {
-            this.RemoveAt(this.Count - 1);
-            this._index.RemoveAt(this.Count - 1);
+            var length = this.Count;
+            this.RemoveAt(length - 1);
+            this._index.RemoveAt(length - 1); // don't use this.Count because it mutates from one line to the other
         }
+    }
+}
+
+
+public class NormalOrderBookSide : OrderBookSide
+{
+    public NormalOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
+    {
+        var deltas = (List<object>)deltas2;
+        for (var i = 0; i < deltas.Count; i++)
+        {
+            this.storeArray(deltas[i]); // do we need to copy here??
+        }
+
     }
 }
 
 public class CountedOrderBookSide : OrderBookSide
 {
 
-    public CountedOrderBookSide(object deltas2, object depth = null) : base(deltas2, depth)
+    public CountedOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
     {
+
+        var deltas = (List<object>)deltas2;
+        for (var i = 0; i < deltas.Count; i++)
+        {
+            this.storeArray(deltas[i]); // do we need to copy here??
+        }
     }
 
     public void store(object price, object size, object count)
     {
-        this.storeArray(new object[] { price, size, count });
+        this.storeArray(new List<object> { price, size, count });
     }
 
     public void storeArray(object deltaArra2)
     {
-        var deltaArray = (object[])deltaArra2;
+        var deltaArray = (List<object>)deltaArra2;
         var price = deltaArray[0];
-        var size = deltaArray[1];
-        var count = deltaArray[2];
-        var index_price = (this.side) ? -(decimal)price : (decimal)price;
+        var size = Convert.ToDecimal(deltaArray[1]);
+        var count = Convert.ToInt32(deltaArray[2]);
+        var decimalPrice = Convert.ToDecimal(price);
+        var index_price = (this.side) ? -decimalPrice : decimalPrice;
         var index = Exchange.bisectLeft(this._index, index_price);
-        if (size != null && count != null)
+        if (size != 0 && count != 0)
         {
-            if (this._index[index] == index_price)
+            if ((index < this._index.Count) && this._index[index] == index_price)
             {
                 var entry = this[index] as List<object>;
                 entry[1] = size;
@@ -121,7 +146,7 @@ public class CountedOrderBookSide : OrderBookSide
             else
             {
                 this._index.InsertRange(index, new List<decimal>() { index_price });
-                this.InsertRange(index, new List<object>() { price, size, count });
+                this.Insert(index, new List<object>() { price, size, count });
             }
         }
         else if (index < this._index.Count && this._index[index] == index_price)
@@ -135,40 +160,52 @@ public class CountedOrderBookSide : OrderBookSide
 public class IndexedOrderBookSide : OrderBookSide
 {
     public Dictionary<string, object> hasmap = new Dictionary<string, object>();
-    public IndexedOrderBookSide(object deltas2, object depth = null) : base(deltas2, depth)
+    public IndexedOrderBookSide(object deltas2, object depth = null, bool side = false) : base(deltas2, depth, side)
     {
+        var deltas = (List<object>)deltas2;
+        for (var i = 0; i < deltas.Count; i++)
+        {
+            this.storeArray(deltas[i]); // do we need to copy here??
+            // check if we need this if here or we can 
+        }
+
     }
 
-    public void storedArray(object delta2)
+    public void storeArray(object delta2)
     {
-        var delta = (object[])delta2;
-        var price = delta[0];
-        var size = delta[1];
+        var delta = (List<object>)delta2;
+        var price = Convert.ToDecimal(delta[0]);
+        var size = Convert.ToDecimal(delta[1]);
         var order_id = delta[2];
         decimal? index_price = -1;
-        if (price != null)
+        if (price != null && price != 0)
         {
-            index_price = (this.side) ? -(decimal)price : (decimal)price;
+            var decimalPrice = Convert.ToDecimal(price);
+            index_price = (this.side) ? -decimalPrice : decimalPrice;
         }
         else
         {
             index_price = null;
         }
-        if (size != null)
+        if (size != null && size != 0)
         {
             var stringId = order_id.ToString();
             if (this.hasmap.ContainsKey(stringId))
             {
-                var old_price = (decimal)this.hasmap[stringId];
+                var old_price = Convert.ToDecimal(this.hasmap[stringId]);
                 if (index_price != null)
                 {
-                    index_price = (decimal)old_price;
+                    index_price = Convert.ToDecimal(index_price);
                 }
-                delta[0] = Math.Abs((decimal)index_price);
+                else
+                {
+                    index_price = old_price;
+                }
+                delta[0] = Math.Abs(Convert.ToDecimal(index_price));
 
                 if (index_price == old_price)
                 {
-                    var index2 = Exchange.bisectLeft(this._index, (decimal)index_price);
+                    var index2 = Exchange.bisectLeft(this._index, Convert.ToDecimal(index_price));
                     while (((List<object>)this[index2])[2] != order_id)
                     {
                         index2++;
@@ -187,20 +224,20 @@ public class IndexedOrderBookSide : OrderBookSide
                     this._index.RemoveAt(old_index);
                     this.RemoveAt(old_index);
                 }
-                // insert new price Level
-                this.hasmap[stringId] = index_price;
-                var index = Exchange.bisectLeft(this._index, (decimal)index_price);
-                while (index < this._index.Count && (this._index[index] == index_price) && ((decimal)((List<object>)this[index])[2]) < (decimal)order_id)
-                {
-                    index++;
-                }
-                this._index.Insert(index, (decimal)index_price);
-                this.Insert(index, delta);
             }
+            // insert new price Level
+            this.hasmap[stringId] = index_price;
+            var index = Exchange.bisectLeft(this._index, index_price.Value);
+            while (index < this._index.Count && (this._index[index] == index_price) && (Convert.ToDecimal(((List<object>)this[index])[2])) < Convert.ToDecimal(order_id))
+            {
+                index++;
+            }
+            this._index.Insert(index, index_price.Value);
+            this.Insert(index, delta);
         }
         else if (this.hasmap.ContainsKey(order_id.ToString()))
         {
-            var old_price2 = (decimal)this.hasmap[order_id.ToString()];
+            var old_price2 = Convert.ToDecimal(this.hasmap[order_id.ToString()]);
             var index3 = Exchange.bisectLeft(this._index, old_price2);
             while (((List<object>)this[index3])[2] != order_id)
             {
@@ -214,7 +251,7 @@ public class IndexedOrderBookSide : OrderBookSide
 
     public void remove_index(object order2)
     {
-        var order = (object[])order2;
+        var order = (List<object>)order2;
         var order_id = order[2];
         if (this.hasmap.ContainsKey(order_id.ToString()))
         {
@@ -224,12 +261,18 @@ public class IndexedOrderBookSide : OrderBookSide
 
     public void store(object price, object size, object order_id)
     {
-        this.storedArray(new object[] { price, size, order_id });
+        this.storeArray(new List<object> { price, size, order_id });
     }
+
+    // public void limit() {
+    //     if (this.Count > this._depth) {
+    //         FirstChanceExceptionEventArgs ()
+    //     }
+    // }
 }
 
 
-public class Asks : OrderBookSide
+public class Asks : NormalOrderBookSide
 {
     public Asks(object deltas2, object depth = null) : base(deltas2, depth)
     {
@@ -237,9 +280,9 @@ public class Asks : OrderBookSide
     }
 }
 
-public class Bids : OrderBookSide
+public class Bids : NormalOrderBookSide
 {
-    public Bids(object deltas2, object depth = null) : base(deltas2, depth)
+    public Bids(object deltas2, object depth = null) : base(deltas2, depth, true)
     {
         this.side = true;
     }
@@ -250,12 +293,13 @@ public class CountedAsks : CountedOrderBookSide
     public CountedAsks(object deltas2, object depth = null) : base(deltas2, depth)
     {
         this.side = false;
+        // super.side = false;
     }
 }
 
 public class CountedBids : CountedOrderBookSide
 {
-    public CountedBids(object deltas2, object depth = null) : base(deltas2, depth)
+    public CountedBids(object deltas2, object depth = null) : base(deltas2, depth, true)
     {
         this.side = true;
     }
@@ -272,7 +316,7 @@ public class IndexedAsks : IndexedOrderBookSide
 
 public class IndexedBids : IndexedOrderBookSide
 {
-    public IndexedBids(object deltas2, object depth = null) : base(deltas2, depth)
+    public IndexedBids(object deltas2, object depth = null) : base(deltas2, depth, true)
     {
         this.side = true;
     }
