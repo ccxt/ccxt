@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import krakenfuturesRest from '../krakenfutures.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -1433,10 +1433,27 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
+    handleErrorMessage (client: Client, message) {
+        //
+        //    {
+        //        event: 'alert',
+        //        message: 'Failed to subscribe to authenticated feed'
+        //    }
+        //
+        const errMsg = this.safeString (message, 'message');
+        try {
+            throw new ExchangeError (this.id + ' ' + errMsg);
+        } catch (error) {
+            client.reject (error);
+        }
+    }
+
     handleMessage (client, message) {
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);
+        } else if (event === 'alert') {
+            return this.handleErrorMessage (client, message);
         } else if (event === 'pong') {
             client.lastPong = this.milliseconds ();
         } else if (event === undefined) {
