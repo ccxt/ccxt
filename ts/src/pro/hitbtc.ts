@@ -1024,9 +1024,9 @@ export default class hitbtc extends hitbtcRest {
         [ request, params ] = this.createOrderRequest (market, marketType, marginMode, type, side, amount, price, params);
         request = this.extend (request, params);
         if (marketType === 'swap') {
-            return await this.subscribePrivate ('futures_new_order', symbol, request);
+            return await this.tradeRequest ('futures_new_order', request);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {
-            return await this.subscribePrivate ('margin_new_order', symbol, request);
+            return await this.tradeRequest ('margin_new_order', request);
         } else {
             return await this.tradeRequest ('spot_new_order', request);
         }
@@ -1094,7 +1094,6 @@ export default class hitbtc extends hitbtcRest {
         const result = this.safeValue (message, 'result', {});
         const parsedOrder = this.parseWsOrder (result);
         client.resolve (parsedOrder, messageHash);
-        console.log (messageHash);
         return message;
     }
 
