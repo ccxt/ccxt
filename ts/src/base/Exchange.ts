@@ -234,7 +234,7 @@ export default class Exchange {
     positions: any
     urls: {
         logo?: string;
-        api: Dictionary<string>;
+        api?: string | Dictionary<string>;
         test?: string | Dictionary<string>;
         www?: string;
         doc?: string[];
