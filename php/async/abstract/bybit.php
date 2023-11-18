@@ -772,6 +772,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_post_v5_account_set_margin_mode($params = array()) {
         return $this->request('v5/account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_v5_account_set_hedging_mode($params = array()) {
+        return $this->request('v5/account/set-hedging-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_v5_account_mmp_modify($params = array()) {
         return $this->request('v5/account/mmp-modify', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -1614,6 +1617,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privatePostV5AccountSetMarginMode($params = array()) {
         return $this->request('v5/account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AccountSetHedgingMode($params = array()) {
+        return $this->request('v5/account/set-hedging-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostV5AccountMmpModify($params = array()) {
         return $this->request('v5/account/mmp-modify', 'private', 'POST', $params, null, null, array("cost" => 5));

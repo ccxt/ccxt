@@ -961,7 +961,7 @@ class coinbasepro extends Exchange {
                 }
                 if ($until === null) {
                     $parsedTimeframeMilliseconds = $parsedTimeframe * 1000;
-                    if (fmod($since, $parsedTimeframeMilliseconds) === 0) {
+                    if ($this->is_round_number(fmod($since, $parsedTimeframeMilliseconds))) {
                         $request['end'] = $this->iso8601($this->sum(($limit - 1) * $parsedTimeframeMilliseconds, $since));
                     } else {
                         $request['end'] = $this->iso8601($this->sum($limit * $parsedTimeframeMilliseconds, $since));
