@@ -60,6 +60,9 @@ class FeeInterface(TypedDict):
     rate: NotRequired[Num]
 
 
+Fee = Optional[FeeInterface]
+
+
 class Balance(TypedDict):
     free: Num
     used: Num
