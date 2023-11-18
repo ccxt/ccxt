@@ -582,6 +582,19 @@ public partial class Exchange
     {
         return Task.Delay(Convert.ToInt32(ms));
     }
+
+    public bool isEmpty(object a)
+    {
+        if (a == null)
+            return true;
+        if (a.GetType() == typeof(string))
+            return a.ToString().Length == 0;
+        if (a.GetType() == typeof(List<object>))
+            return ((List<object>)a).Count == 0;
+        if (a.GetType() == typeof(dict))
+            return ((dict)a).Count == 0;
+        return false;
+    }
 }
 
 
