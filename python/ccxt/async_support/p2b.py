@@ -114,7 +114,7 @@ class p2b(Exchange, ImplicitAPI):
             'urls': {
                 'extension': '.json',
                 'referral': 'https://p2pb2b.com?referral=ee784c53',
-                'logo': 'https://cdn.worldvectorlogo.com/logos/p2b-1.svg',
+                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
                     'private': 'https://api.p2pb2b.com/api/v2',

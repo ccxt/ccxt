@@ -101,6 +101,7 @@ class bitbank extends Exchange {
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
                         '{pair}/candlestick/{candletype}/{yyyymmdd}',
+                        '{pair}/circuit_break_info',
                     ),
                 ),
                 'private' => array(

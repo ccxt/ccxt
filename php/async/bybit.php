@@ -444,6 +444,7 @@ class bybit extends Exchange {
                         // account
                         'v5/account/upgrade-to-uta' => 5,
                         'v5/account/set-margin-mode' => 5,
+                        'v5/account/set-hedging-mode' => 5,
                         'v5/account/mmp-modify' => 5,
                         'v5/account/mmp-reset' => 5,
                         // asset

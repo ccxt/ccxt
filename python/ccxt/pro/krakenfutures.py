@@ -20,6 +20,15 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         return self.deep_extend(super(krakenfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchTicker': True,

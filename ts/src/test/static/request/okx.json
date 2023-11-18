@@ -182,6 +182,29 @@
               }
             ],
             "output": "[{\"instId\":\"BTC-USD-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"clOrdId\":\"e847386590ce4dBC9febcde144e6b64b\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"net\"}]"
+          },
+          {
+            "description": "Create a swap postOnly limit order with tp + sl attached (type 3)",
+            "method": "createOrder",
+            "url": "https://www.okx.com/api/v5/trade/batch-orders",
+            "input": [
+              "BTC/USDT:USDT",
+              "limit",
+              "buy",
+              1,
+              25000,
+              {
+                "posSide": "long",
+                "postOnly": true,
+                "stopLoss": {
+                  "triggerPrice": 24000
+                },
+                "takeProfit": {
+                  "triggerPrice": 26000
+                }
+              }
+            ],
+            "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"post_only\",\"sz\":\"1\",\"tdMode\":\"cross\",\"px\":\"25000\",\"slTriggerPx\":\"24000\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"26000\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBC6798012df444b042\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
           }
         ],
         "createOrders": [
@@ -654,6 +677,24 @@
               }
             ],
             "output": "{\"instId\":\"BTC-USD-SWAP\",\"amt\":0.0001,\"type\":\"reduce\",\"posSide\":\"long\"}"
+          }
+        ],
+        "fetchCrossBorrowRate": [
+          {
+            "description": "Fetch cross borrow rate",
+            "method": "fetchCrossBorrowRate",
+            "url": "https://www.okx.com/api/v5/account/interest-rate?ccy=USDT",
+            "input": [
+              "USDT"
+            ]
+          }
+        ],
+        "fetchCrossBorrowRates": [
+          {
+            "description": "Fetch cross borrow rates",
+            "method": "fetchCrossBorrowRates",
+            "url": "https://www.okx.com/api/v5/account/interest-rate",
+            "input": []
           }
         ]
     }

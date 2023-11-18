@@ -5,6 +5,13 @@ export type Market = MarketInterface | undefined;
 export type Num = number | undefined;
 export type Str = string | undefined;
 export type Strings = string[] | undefined;
+export type Num = number | undefined;
+export type Bool = boolean | undefined;
+// must be an integer in other langs
+export type IndexType = number | string;
+export type OrderSide = 'buy' | 'sell' | string;
+export type OrderType = 'limit' | 'market' | string;
+export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
 
 export interface Dictionary<T> {
     [key: string]: T;
@@ -17,12 +24,13 @@ export interface MinMax {
     min: Num;
 }
 
-export interface Fee {
-    cost: number;
-    currency: string;
-    rate?: number;
-    type?: 'taker' | 'maker' | string;
+export interface FeeInterface {
+    currency: Str;
+    cost: Num;
+    rate?: Num;
 }
+
+export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
     active: Bool;
@@ -51,13 +59,13 @@ export interface MarketInterface {
     option: boolean;
     optionType: Str;
     percentage?: boolean | undefined;
-    quanto?: boolean;
-    quote?: string;
-    quoteId: string;
     precision: {
         amount: Num
         price: Num
     };
+    quanto?: boolean;
+    quote?: string;
+    quoteId: string;
     settle: Str;
     settleId: Str;
     spot: boolean;
@@ -66,7 +74,7 @@ export interface MarketInterface {
     symbol: string;
     taker?: Num
     tierBased?: boolean | undefined;
-    type: string;
+    type: MarketType;
     uppercaseId?: string;
 }
 
@@ -177,9 +185,16 @@ export interface CurrencyInterface {
 }
 
 export interface Balance {
-    free: number | string;
-    total: number | string;
-    used: number | string;
+    debt?: Num,
+    free: Num,
+    total: Num,
+    used: Num,
+}
+
+export interface Account {
+    free: Str,
+    total: Str,
+    used: Str,
 }
 
 export interface PartialBalances extends Dictionary<number> {
@@ -325,10 +340,5 @@ export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 
 export type implicitReturnType = any;
 
-// must be an integer in other langs
-export type IndexType = number | string;
-
-
-export type OrderSide = 'buy' | 'sell' | string;
-
-export type OrderType = 'limit' | 'market' | string;
+export type Market = MarketInterface | undefined;
+export type Currency = CurrencyInterface | undefined;

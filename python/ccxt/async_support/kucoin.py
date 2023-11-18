@@ -2063,30 +2063,32 @@ class kucoin(Exchange, ImplicitAPI):
         await self.load_markets()
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
-        stop = self.safe_value(params, 'stop', False)
+        stop = self.safe_value_2(params, 'stop', 'trigger', False)
         hf = self.safe_value(params, 'hf', False)
         if hf:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol parameter for hf orders')
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = 'privateDeleteOrdersOrderId'
+        response = None
+        params = self.omit(params, ['clientOid', 'clientOrderId', 'stop', 'hf', 'trigger'])
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
             if stop:
-                method = 'privateDeleteStopOrderCancelOrderByClientOid'
+                response = await self.privateDeleteStopOrderCancelOrderByClientOid(self.extend(request, params))
             elif hf:
-                method = 'privateDeleteHfOrdersClientOrderClientOid'
+                response = await self.privateDeleteHfOrdersClientOrderClientOid(self.extend(request, params))
             else:
-                method = 'privateDeleteOrderClientOrderClientOid'
+                response = await self.privateDeleteOrderClientOrderClientOid(self.extend(request, params))
         else:
-            if stop:
-                method = 'privateDeleteStopOrderOrderId'
-            elif hf:
-                method = 'privateDeleteHfOrdersOrderId'
             request['orderId'] = id
-        params = self.omit(params, ['clientOid', 'clientOrderId', 'stop', 'hf'])
-        return await getattr(self, method)(self.extend(request, params))
+            if stop:
+                response = await self.privateDeleteStopOrderOrderId(self.extend(request, params))
+            elif hf:
+                response = await self.privateDeleteHfOrdersOrderId(self.extend(request, params))
+            else:
+                response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
+        return response
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """

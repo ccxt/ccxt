@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import fs from 'fs'
+import path from 'path'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import { promisify } from 'util'
@@ -298,6 +299,7 @@ class Transpiler {
             [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
+            [ /\.isRoundNumber\s/g, '.is_round_number'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -543,7 +545,7 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|string|number);\n/mg, '' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number);\n/mg, '' ],
             [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number)(\s+=\s+\w+)/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -921,11 +923,13 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         const matchObject = {
+            'Account': /-> Account:/,
             'Balances': /-> Balances:/,
             'Currency': /(-> Currency:|: Currency)/,
             'Greeks': /-> Greeks:/,
             'Int': /: Int =/,
             'MarginMode': /-> MarginMode:/,
+            'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,
             'OrderBook': /-> OrderBook:/,
@@ -1385,7 +1389,7 @@ class Transpiler {
             const pythonFilename = filename.replace ('.ts', '.py')
             const phpFilename = filename.replace ('.ts', '.php')
 
-            const tsPath = tsFolder + filename
+            const tsPath = path.join (tsFolder, filename)
 
             let contents = fs.readFileSync (tsPath, 'utf8')
             const sortedExchangeCapabilities = this.sortExchangeCapabilities (contents)
@@ -1397,10 +1401,10 @@ class Transpiler {
             let tsMtime = fs.statSync (tsPath).mtime.getTime ();
             tsMtime = tsMtime - tsMtime % 1000;
 
-            const python2Path  = python2Folder  ? (python2Folder  + pythonFilename) : undefined
-            const python3Path  = python3Folder  ? (python3Folder  + pythonFilename) : undefined
-            const phpPath      = phpFolder      ? (phpFolder      + phpFilename)    : undefined
-            const phpAsyncPath = phpAsyncFolder ? (phpAsyncFolder + phpFilename)    : undefined
+            const python2Path  = python2Folder  ? path.join (python2Folder, pythonFilename) : undefined
+            const python3Path  = python3Folder  ? path.join (python3Folder, pythonFilename) : undefined
+            const phpPath      = phpFolder      ? path.join(phpFolder, phpFilename)         : undefined
+            const phpAsyncPath = phpAsyncFolder ? path.join (phpAsyncFolder, phpFilename)   : undefined
 
             const python2Mtime  = python2Folder  ? (fs.existsSync (python2Path)  ? fs.statSync (python2Path).mtime.getTime ()  : 0) : undefined
             const python3Mtime  = python3Path    ? (fs.existsSync (python3Path)  ? fs.statSync (python3Path).mtime.getTime ()  : 0) : undefined
@@ -1422,8 +1426,9 @@ class Transpiler {
                     [ phpAsyncFolder, phpFilename, phpAsync ],
                 ].forEach (([ folder, filename, code ]) => {
                     if (folder) {
-                        overwriteFile (folder + filename, code)
-                        fs.utimesSync (folder + filename, new Date (), new Date (tsMtime))
+                        const qualifiedPath = path.join (folder, filename)
+                        overwriteFile (qualifiedPath, code)
+                        fs.utimesSync (qualifiedPath, new Date (), new Date (tsMtime))
                     }
                 })
 
@@ -1488,10 +1493,10 @@ class Transpiler {
             function deleteOldTranspiledFiles (folder, pattern) {
                 fs.readdirSync (folder)
                     .filter (file =>
-                        !fs.lstatSync (folder + file).isDirectory () &&
+                        !fs.lstatSync (path.join (folder, file)).isDirectory () &&
                         !(file.replace (pattern, '') in classes) &&
                         !file.match (/^[A-Z_]/))
-                    .map (file => folder + file)
+                    .map (file => path.join (folder, file))
                     .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
             }
 
@@ -1573,6 +1578,7 @@ class Transpiler {
             const phpTypes = {
                 'any': 'mixed',
                 'string': 'string',
+                'MarketType': 'string',
                 'Str': '?string',
                 'Strings': '?array',
                 'number': 'float',
@@ -1582,7 +1588,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /^(?:Market|Currency|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1731,6 +1737,16 @@ class Transpiler {
                 php,
                 phpAsync,
             } = this.transpileMethodsToAllLanguages (className, methods)
+            // trim away sync methods from python async
+            // since it already inherits those methods
+            const python3Async = []
+            python3.forEach ((line, i, arr) => {
+                if (line.match (/^\s+async def/)) {
+                    python3Async.push ('')
+                    python3Async.push (line)
+                    python3Async.push (arr[i+1])
+                }
+            })
             const pythonDelimiter = '# ' + delimiter + '\n'
             const phpDelimiter = '// ' + delimiter + '\n'
             const restOfFile = '([^\n]*\n)+'
@@ -1741,7 +1757,7 @@ class Transpiler {
             log.magenta ('→', python2File.yellow)
             replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
             log.magenta ('→', python3File.yellow)
-            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3.join ('\n') + '\n')
+            replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
             log.magenta ('→', phpFile.yellow)
             replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
             log.magenta ('→', phpAsyncFile.yellow)
@@ -1754,7 +1770,7 @@ class Transpiler {
     async getTSClassDeclarationsAllFiles (ids, folder, extension = '.js')  {
         const files = fs.readdirSync (folder).filter (file => ids.includes (basename (file, extension)))
         const promiseReadFile = promisify (fs.readFile);
-        const fileArray = await Promise.all (files.map (file => promiseReadFile (folder + file, 'utf8')));
+        const fileArray = await Promise.all (files.map (file => promiseReadFile (path.join (folder, file), 'utf8')));
         const classComponents = await Promise.all (fileArray.map (file => this.getClassDeclarationMatches (file)));
 
         const classes = {}
@@ -2561,7 +2577,7 @@ class Transpiler {
         // start iteration through examples folder
         const allTsExamplesFiles = fs.readdirSync (examplesFolders.ts).filter((f) => f.endsWith('.ts'));
         for (const filenameWithExtenstion of allTsExamplesFiles) {
-            const tsFile = examplesFolders.ts + filenameWithExtenstion
+            const tsFile = path.join (examplesFolders.ts, filenameWithExtenstion)
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
                 const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
