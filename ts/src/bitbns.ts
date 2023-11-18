@@ -661,7 +661,9 @@ export default class bitbns extends Exchange {
          * @param {boolean} [params.trigger] true if cancelling a trigger order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
@@ -690,7 +692,9 @@ export default class bitbns extends Exchange {
          * @param {object} [params] extra parameters specific to the bitbns api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('fetchOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -746,7 +750,9 @@ export default class bitbns extends Exchange {
          * @param {boolean} [params.trigger] true if fetching trigger orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('fetchOpenOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
@@ -874,7 +880,9 @@ export default class bitbns extends Exchange {
          * @param {object} [params] extra parameters specific to the bitbns api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol ('fetchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -941,7 +949,9 @@ export default class bitbns extends Exchange {
          * @param {object} [params] extra parameters specific to the bitbns api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        this.checkRequiredSymbol ('fetchTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

@@ -2010,7 +2010,9 @@ export default class bybit extends Exchange {
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        this.checkRequiredSymbol ('fetchTicker', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTicker() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2208,7 +2210,9 @@ export default class bybit extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        this.checkRequiredSymbol ('fetchOHLCV', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a symbol argument');
+        }
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -2448,7 +2452,9 @@ export default class bybit extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
-        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 200;
@@ -2725,7 +2731,9 @@ export default class bybit extends Exchange {
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        this.checkRequiredSymbol ('fetchTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2780,7 +2788,9 @@ export default class bybit extends Exchange {
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        this.checkRequiredSymbol ('fetchOrderBook', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3402,8 +3412,10 @@ export default class bybit extends Exchange {
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchOrder', symbol);
         const request = {
             'orderId': id,
         };
@@ -3901,7 +3913,9 @@ export default class bybit extends Exchange {
          * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('editOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
@@ -4001,7 +4015,9 @@ export default class bybit extends Exchange {
     }
 
     async cancelUsdcOrder (id, symbol: Str = undefined, params = {}) {
-        this.checkRequiredSymbol ('cancelUsdcOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelUsdcOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -4051,7 +4067,9 @@ export default class bybit extends Exchange {
          * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
@@ -4103,7 +4121,9 @@ export default class bybit extends Exchange {
     }
 
     async cancelAllUsdcOrders (symbol: Str = undefined, params = {}) {
-        this.checkRequiredSymbol ('cancelAllUsdcOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllUsdcOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -5492,7 +5512,9 @@ export default class bybit extends Exchange {
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        this.checkRequiredSymbol ('fetchPosition', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -6062,7 +6084,9 @@ export default class bybit extends Exchange {
          * @param {string} [params.sellLeverage] leverage for sell side
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS

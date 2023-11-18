@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/digifinex.js';
-import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol } from './base/errors.js';
+import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1831,7 +1831,9 @@ export default class digifinex extends Exchange {
             'order_id': id,
         };
         if (marketType === 'swap') {
-            this.checkRequiredSymbol ('cancelOrder', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            }
             request['instrument_id'] = market['id'];
         } else {
             request['market'] = marketType;
@@ -3189,7 +3191,9 @@ export default class digifinex extends Exchange {
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
-        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -3585,8 +3589,10 @@ export default class digifinex extends Exchange {
          * @param {string} [params.side] either 'long' or 'short', required for isolated markets only
          * @returns {object} response from the exchange
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('setLeverage', symbol);
         const market = this.market (symbol);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
@@ -4167,7 +4173,9 @@ export default class digifinex extends Exchange {
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setMarginMode', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         marginMode = marginMode.toLowerCase ();

@@ -2192,7 +2192,9 @@ export default class okx extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
-        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
@@ -2968,7 +2970,9 @@ export default class okx extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         const stop = this.safeValue (params, 'stop');
         if (stop) {
             const orderInner = await this.cancelOrders ([ id ], symbol, params);
@@ -3023,7 +3027,9 @@ export default class okx extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
-        this.checkRequiredSymbol ('cancelOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = [];
@@ -3332,7 +3338,9 @@ export default class okx extends Exchange {
          * @param {object} [params] extra and exchange specific parameters
          * @returns [an order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
-        this.checkRequiredSymbol ('fetchOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -5804,7 +5812,9 @@ export default class okx extends Exchange {
          * @param {string} [params.posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
@@ -5899,7 +5909,9 @@ export default class okx extends Exchange {
          * @param {int} [params.leverage] leverage
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setMarginMode', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         marginMode = marginMode.toLowerCase ();
@@ -6838,9 +6850,11 @@ export default class okx extends Exchange {
          * @param {object} [params] exchange specific params
          * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
          */
-        this.checkRequiredSymbol ('fetchSettlementHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        const market = (symbol === undefined) ? undefined : this.market (symbol);
+        const market = this.market (symbol);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchSettlementHistory', market, params);
         if (type !== 'future' && type !== 'option') {

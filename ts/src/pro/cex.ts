@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import cexRest from '../cex.js';
-import { ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -399,7 +399,9 @@ export default class cex extends cexRest {
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        this.checkRequiredSymbol ('watchOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
@@ -436,7 +438,9 @@ export default class cex extends cexRest {
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        this.checkRequiredSymbol ('watchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         await this.authenticate (params);
         const url = this.urls['api']['ws'];

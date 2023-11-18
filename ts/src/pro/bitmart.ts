@@ -127,7 +127,9 @@ export default class bitmart extends bitmartRest {
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('watchOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];

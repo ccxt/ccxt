@@ -234,7 +234,7 @@ export default class Exchange {
     positions: any
     urls: {
         logo?: string;
-        api?: string | Dictionary<string>;
+        api: Dictionary<string>;
         test?: string | Dictionary<string>;
         www?: string;
         doc?: string[];
@@ -4546,16 +4546,6 @@ export default class Exchange {
         } else if ((marginMode === 'cross') && (symbol !== undefined)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() cannot have a symbol argument for cross margin');
         }
-    }
-
-    checkRequiredSymbol (methodName: string, symbol: string) {
-        /**
-         * @ignore
-         * @method
-         * @param {string} symbol unified symbol of the market
-         * @param {string} methodName name of the method that requires a symbol
-         */
-        this.checkRequiredArgument (methodName, symbol, 'symbol');
     }
 
     parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {

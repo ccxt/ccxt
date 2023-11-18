@@ -883,7 +883,9 @@ export default class coinsph extends Exchange {
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol ('fetchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -912,7 +914,9 @@ export default class coinsph extends Exchange {
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol ('fetchOrderTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
+        }
         const request = {
             'orderId': id,
         };
@@ -1218,7 +1222,9 @@ export default class coinsph extends Exchange {
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('fetchClosedOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1267,7 +1273,9 @@ export default class coinsph extends Exchange {
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelAllOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
