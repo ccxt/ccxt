@@ -15,9 +15,10 @@ public class BaseCache : List<object>
     public int? maxSize;
 
     // public int? length;
-    public BaseCache(int? maxSixe = null) : base()
+    public BaseCache(object maxSixe = null) : base()
     {
-        this.maxSize = maxSixe;
+        // this.maxSize = maxSixe;
+        this.maxSize = (maxSixe == null) ? null : (int)maxSixe;
 
     }
 
@@ -115,7 +116,7 @@ public class ArrayCacheByTimestamp : BaseCache
 
     public bool clearUpdates = false;
 
-    public ArrayCacheByTimestamp(int? maxSixe = null) : base(maxSixe)
+    public ArrayCacheByTimestamp(object maxSixe = null) : base(maxSixe)
     {
     }
 
