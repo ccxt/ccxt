@@ -1354,6 +1354,28 @@ export default class bitget extends Exchange {
         this.options['sandboxMode'] = enabled;
     }
 
+    handleProductTypeAndParams (market = undefined, params = {}) {
+        let productType = this.safeString (params, 'productType');
+        if (productType === undefined) {
+            const settle = market['settle'];
+            if (settle === 'USDT') {
+                productType = 'USDT-FUTURES';
+            } else if (settle === 'USDC') {
+                productType = 'USDC-FUTURES';
+            } else if (settle === 'SUSDT') {
+                productType = 'SUSDT-FUTURES';
+            } else if (settle === 'SUSDC') {
+                productType = 'SUSDC-FUTURES';
+            } else if ((settle === 'SBTC') || (settle === 'SETH') || (settle === 'SEOS')) {
+                productType = 'SCOIN-FUTURES';
+            } else {
+                productType = 'COIN-FUTURES';
+            }
+        }
+        params = this.omit (params, 'productType');
+        return [ productType, params ];
+    }
+
     async fetchTime (params = {}) {
         /**
          * @method
@@ -1828,40 +1850,38 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchMarketLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-position-tier
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-tier-data
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-tier-data
+         * @see https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever
+         * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data
+         * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] for spot margin 'cross' or 'isolated', default is 'isolated'
          * @param {string} [params.code] required for cross spot margin
+         * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @returns {object} a [leverage tiers structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}
          */
         await this.loadMarkets ();
-        const request = {};
         const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarketLeverageTiers', market, params);
+        const request = {};
         let response = undefined;
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params, 'isolated');
-        if ((type === 'swap') || (type === 'future')) {
-            const marketId = market['id'];
-            const parts = marketId.split ('_');
-            const productType = this.safeStringUpper (parts, 1);
-            request['symbol'] = marketId;
+        if ((market['swap']) || (market['future'])) {
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            response = await this.publicMixGetMixV1MarketQueryPositionLever (this.extend (request, params));
+            request['symbol'] = market['id'];
+            response = await this.publicMixGetV2MixMarketQueryPositionLever (this.extend (request, params));
         } else if (marginMode === 'isolated') {
-            request['symbol'] = market['info']['symbolName'];
-            response = await this.publicMarginGetMarginV1IsolatedPublicTierData (this.extend (request, params));
+            request['symbol'] = market['id'];
+            response = await this.privateMarginGetV2MarginIsolatedTierData (this.extend (request, params));
         } else if (marginMode === 'cross') {
             const code = this.safeString (params, 'code');
             this.checkRequiredArgument ('fetchMarketLeverageTiers', code, 'code');
             params = this.omit (params, 'code');
             const currency = this.currency (code);
             request['coin'] = currency['code'];
-            response = await this.publicMarginGetMarginV1CrossPublicTierData (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginCrossedTierData (this.extend (request, params));
         } else {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
@@ -1869,18 +1889,19 @@ export default class bitget extends Exchange {
         // swap and future
         //
         //     {
-        //         "code":"00000",
-        //         "data":[
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700290724614,
+        //         "data": [
         //             {
-        //                 "level": 1,
-        //                 "startUnit": 0,
-        //                 "endUnit": 150000,
-        //                 "leverage": 125,
+        //                 "symbol": "BTCUSDT",
+        //                 "level": "1",
+        //                 "startUnit": "0",
+        //                 "endUnit": "150000",
+        //                 "leverage": "125",
         //                 "keepMarginRate": "0.004"
-        //             }
-        //         ],
-        //         "msg":"success",
-        //         "requestTime":1627292076687
+        //             },
+        //         ]
         //     }
         //
         // isolated
@@ -1888,7 +1909,7 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1698352496622,
+        //         "requestTime": 1700291531894,
         //         "data": [
         //             {
         //                 "tier": "1",
@@ -1896,8 +1917,8 @@ export default class bitget extends Exchange {
         //                 "leverage": "10",
         //                 "baseCoin": "BTC",
         //                 "quoteCoin": "USDT",
-        //                 "baseMaxBorrowableAmount": "3",
-        //                 "quoteMaxBorrowableAmount": "30000",
+        //                 "baseMaxBorrowableAmount": "2",
+        //                 "quoteMaxBorrowableAmount": "24000",
         //                 "maintainMarginRate": "0.05",
         //                 "initRate": "0.1111"
         //             },
@@ -1909,7 +1930,7 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1698352997077,
+        //         "requestTime": 1700291818831,
         //         "data": [
         //             {
         //                 "tier": "1",
@@ -1929,43 +1950,38 @@ export default class bitget extends Exchange {
         //
         // swap and future
         //
-        //     [
-        //         {
-        //             "level": 1,
-        //             "startUnit": 0,
-        //             "endUnit": 150000,
-        //             "leverage": 125,
-        //             "keepMarginRate": "0.004"
-        //         }
-        //     ]
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "level": "1",
+        //         "startUnit": "0",
+        //         "endUnit": "150000",
+        //         "leverage": "125",
+        //         "keepMarginRate": "0.004"
+        //     }
         //
         // isolated
         //
-        //     [
-        //         {
-        //             "tier": "1",
-        //             "symbol": "BTCUSDT",
-        //             "leverage": "10",
-        //             "baseCoin": "BTC",
-        //             "quoteCoin": "USDT",
-        //             "baseMaxBorrowableAmount": "3",
-        //             "quoteMaxBorrowableAmount": "30000",
-        //             "maintainMarginRate": "0.05",
-        //             "initRate": "0.1111"
-        //         }
-        //     ]
+        //     {
+        //         "tier": "1",
+        //         "symbol": "BTCUSDT",
+        //         "leverage": "10",
+        //         "baseCoin": "BTC",
+        //         "quoteCoin": "USDT",
+        //         "baseMaxBorrowableAmount": "2",
+        //         "quoteMaxBorrowableAmount": "24000",
+        //         "maintainMarginRate": "0.05",
+        //         "initRate": "0.1111"
+        //     }
         //
         // cross
         //
-        //     [
-        //         {
-        //             "tier": "1",
-        //             "leverage": "3",
-        //             "coin": "BTC",
-        //             "maxBorrowableAmount": "26",
-        //             "maintainMarginRate": "0.1"
-        //         }
-        //     ]
+        //     {
+        //         "tier": "1",
+        //         "leverage": "3",
+        //         "coin": "BTC",
+        //         "maxBorrowableAmount": "26",
+        //         "maintainMarginRate": "0.1"
+        //     }
         //
         const tiers = [];
         let minNotional = 0;
