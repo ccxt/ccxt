@@ -1,9 +1,10 @@
+import { Precise } from 'ccxt';
 import Exchange from './abstract/bitteam.js';
 // import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidAddress, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 // import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Market } from './base/types.js';
+import { Int, Market, Order, OrderBook, Str } from './base/types.js';
 
 /**
  * @class bitteam
@@ -80,9 +81,9 @@ export default class bitteam extends Exchange {
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositions': false,
@@ -135,6 +136,8 @@ export default class bitteam extends Exchange {
                         'trade/api/asset': 1, // not unified
                         'trade/api/currencies': 1,
                         'trade/api/login-confirmation': 1, // not unified
+                        'trade/api/orderbooks/{symbol}': 1,
+                        'trade/api/orders': 1,
                         'trade/api/pairs': 1,
                     },
                     'post': {
@@ -174,6 +177,10 @@ export default class bitteam extends Exchange {
                     'litecoin': 'LTC',
                     'Polygon': 'POLYGON',
                     'polygon': 'POLYGON',
+                    'Decimal': 'Decimal', // todo: check
+                    'PRIZM': 'PRIZM', // todo: check
+                    'ufobject': 'ufobject', // todo: check
+                    'tonchain': 'tonchain', // todo: check
                 },
             },
             'exceptions': {
@@ -540,6 +547,196 @@ export default class bitteam extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name bitteam#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiOrderbooksSymbol
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
+         * @param {object} [params] extra parameters specific to the bitteam api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTradeApiOrderbooksSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "ok": true,
+        //         "result":  {
+        //             "bids": [
+        //                 ["1951.764988", "0.09656137"],
+        //                 ["1905.472973", "0.00263591"],
+        //                 ["1904.274973", "0.09425304"]
+        //             ],
+        //             "asks": [
+        //                 ["1951.765013", "0.09306902"],
+        //                 ["2010.704988", "0.00127892"],
+        //                 ["2010.9875", "0.00024893"]
+        //             ],
+        //             "symbol": "ETH/USDT"
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const orderbook = this.parseOrderBook (result, symbol);
+        return orderbook;
+    }
+
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name bitteam#fetchOrders
+         * @description fetches information on multiple orders
+         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiOrders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 10)
+         * @param {object} [params] extra parameters specific to the bitteam api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetTradeApiOrders (this.extend (request, params));
+        //
+        //     {
+        //         "ok":true,
+        //         "result":
+        //         {
+        //             "count": 43873,
+        //             "orders": [
+        //                 {
+        //                     "id": 106361856,
+        //                     "orderId": "13191647",
+        //                     "userId": 15913,
+        //                     "pair": "eth_usdt",
+        //                     "pairId": 2,
+        //                     "quantity": 97110810000000000,
+        //                     "price": 1953044988,
+        //                     "executedPrice": 0,
+        //                     "orderCid": null,
+        //                     "executed": 0,
+        //                     "expires": null,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700394513,
+        //                     "status": "cancelled",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "stopPrice": null,
+        //                     "slippage": null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const orders = this.safeValue (result, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    parseOrder (order, market: Market = undefined): Order {
+        //
+        // fetchOrders
+        //     {
+        //         "id": 106361856,
+        //         "orderId": "13191647",
+        //         "userId": 15913,
+        //         "pair": "eth_usdt",
+        //         "pairId": 2,
+        //         "quantity": 97110810000000000,
+        //         "price": 1953044988,
+        //         "executedPrice": 0,
+        //         "orderCid": null,
+        //         "executed": 0,
+        //         "expires": null,
+        //         "baseDecimals": 18,
+        //         "quoteDecimals": 6,
+        //         "timestamp": 1700394513,
+        //         "status": "cancelled",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "stopPrice": null,
+        //         "slippage": null
+        //     }
+        //
+        const id = this.safeString (order, 'orderId');
+        const marketId = this.safeString (order, 'pair');
+        market = this.safeMarket (marketId, market);
+        const clientOrderId = this.safeString (order, 'orderCid'); // todo: check
+        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const type = this.parseOrderType (this.safeString (order, 'type'));
+        const side = this.safeString (order, 'side');
+        // todo: check prices and amount
+        const quotePrecisionString = this.parsePrecision (this.safeString (order, 'quoteDecimals'));
+        const priceRawString = this.safeString (order, 'price');
+        const price = Precise.stringMul (quotePrecisionString, priceRawString);
+        const stopPriceRawString = this.safeString (order, 'stopPrice');
+        const stopPrice = Precise.stringMul (quotePrecisionString, stopPriceRawString);
+        const basePrecisionString = this.parsePrecision (this.safeString (order, 'baseDecimals'));
+        const amountRawString = this.safeString (order, 'quantity');
+        const amount = Precise.stringMul (basePrecisionString, amountRawString);
+        const filledRawString = this.safeString (order, 'executed');
+        const filled = Precise.stringMul (basePrecisionString, filledRawString);
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': 'GTC',
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'average': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
+            'postOnly': undefined,
+        }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'accepted': 'open',
+            'executed': 'closed',
+            'cancelled': 'canceled',
+            'delete': 'rejected', // todo: check
+            'executing': 'open', // todo: check
+            'created': 'open', // todo: check
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status) {
+        const statuses = {
+            'market': 'market',
+            'limit': 'limit',
+            'conditional': 'limit',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
