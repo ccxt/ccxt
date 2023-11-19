@@ -30,7 +30,7 @@ export default class cryptocom extends Exchange {
                 'future': true,
                 'option': true,
                 'addMargin': false,
-                'borrowMargin': true,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -93,7 +93,7 @@ export default class cryptocom extends Exchange {
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': true,
+                'repayMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -213,26 +213,6 @@ export default class cryptocom extends Exchange {
                             'private/get-open-orders': 10 / 3,
                             'private/get-order-detail': 1 / 3,
                             'private/get-trades': 100,
-                            'private/margin/get-user-config': 10 / 3,
-                            'private/margin/get-account-summary': 10 / 3,
-                            'private/margin/transfer': 10 / 3,
-                            'private/margin/borrow': 10 / 3,
-                            'private/margin/repay': 10 / 3,
-                            'private/margin/get-transfer-history': 10 / 3,
-                            'private/margin/get-borrow-history': 10 / 3,
-                            'private/margin/get-interest-history': 10 / 3,
-                            'private/margin/get-repay-history': 10 / 3,
-                            'private/margin/get-liquidation-history': 10 / 3,
-                            'private/margin/get-liquidation-orders': 10 / 3,
-                            'private/margin/create-order': 2 / 3,
-                            'private/margin/cancel-order': 2 / 3,
-                            'private/margin/cancel-all-orders': 2 / 3,
-                            'private/margin/get-order-history': 10 / 3,
-                            'private/margin/get-open-orders': 10 / 3,
-                            'private/margin/get-order-detail': 1 / 3,
-                            'private/margin/get-trades': 100,
-                            'private/deriv/transfer': 10 / 3,
-                            'private/deriv/get-transfer-history': 10 / 3,
                             'private/get-accounts': 10 / 3,
                             'private/get-subaccount-balances': 10 / 3,
                             'private/create-subaccount-transfer': 10 / 3,
@@ -2412,159 +2392,6 @@ export default class cryptocom extends Exchange {
             'comment': this.safeString (transaction, 'client_wid'),
             'fee': fee,
         };
-    }
-
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptocom#repayMargin
-         * @description repay borrowed margin and interest
-         * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
-         * @param {string} code unified currency code of the currency to repay
-         * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol, not used by cryptocom.repayMargin ()
-         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-         */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
-        };
-        const response = await this.v2PrivatePostPrivateMarginRepay (this.extend (request, params));
-        //
-        //     {
-        //         "id": 1656620104211,
-        //         "method": "private/margin/repay",
-        //         "code": 0,
-        //         "result": {
-        //             "badDebt": 0
-        //         }
-        //     }
-        //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-        });
-    }
-
-    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name cryptocom#borrowMargin
-         * @description create a loan to borrow margin
-         * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
-         * @param {string} code unified currency code of the currency to borrow
-         * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol, not used by cryptocom.repayMargin ()
-         * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-         */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
-        };
-        const response = await this.v2PrivatePostPrivateMarginBorrow (this.extend (request, params));
-        //
-        //     {
-        //         "id": 1656619578559,
-        //         "method": "private/margin/borrow",
-        //         "code": 0
-        //     }
-        //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-        });
-    }
-
-    parseMarginLoan (info, currency: Currency = undefined) {
-        //
-        // borrowMargin
-        //
-        //     {
-        //         "id": 1656619578559,
-        //         "method": "private/margin/borrow",
-        //         "code": 0
-        //     }
-        //
-        // repayMargin
-        //
-        //     {
-        //         "id": 1656620104211,
-        //         "method": "private/margin/repay",
-        //         "code": 0,
-        //         "result": {
-        //             "badDebt": 0
-        //         }
-        //     }
-        //
-        return {
-            'id': this.safeInteger (info, 'id'),
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
-            'symbol': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'info': info,
-        };
-    }
-
-    parseBorrowInterest (info, market: Market = undefined) {
-        //
-        //     {
-        //         "loan_id": "2643528867803765921",
-        //         "currency": "USDT",
-        //         "interest": 0.00000004,
-        //         "time": 1656702899559,
-        //         "stake_amount": 6,
-        //         "interest_rate": 0.000025
-        //     },
-        //
-        const timestamp = this.safeInteger (info, 'time');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
-            'symbol': symbol,
-            'marginMode': undefined,
-            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
-            'interest': this.safeNumber (info, 'interest'),
-            'interestRate': this.safeNumber (info, 'interest_rate'), // hourly interest rate
-            'amountBorrowed': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
-    }
-
-    parseBorrowRates (info, codeKey) {
-        //
-        //     {
-        //         "currency": "AGLD",
-        //         "hourly_rate": 0.00003334,
-        //         "max_borrow_limit": 342.4032393,
-        //         "min_borrow_limit": 30
-        //     },
-        //
-        const timestamp = this.milliseconds ();
-        const rates = [];
-        for (let i = 0; i < info.length; i++) {
-            const entry = info[i];
-            rates.push ({
-                'currency': this.safeCurrencyCode (this.safeString (entry, 'currency')),
-                'rate': this.safeNumber (entry, 'hourly_rate'),
-                'period': 3600000, // 1-Hour
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'info': entry,
-            });
-        }
-        return rates;
     }
 
     customHandleMarginModeAndParams (methodName, params = {}) {
