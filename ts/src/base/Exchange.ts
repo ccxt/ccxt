@@ -2659,23 +2659,47 @@ export default class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend (ticker, {
-            'bid': this.omitZero (this.safeNumber (ticker, 'bid')),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-            'ask': this.omitZero (this.safeNumber (ticker, 'ask')),
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': this.safeNumber (ticker, 'askVolume'),
-            'high': this.omitZero (this.safeNumber (ticker, 'high')),
-            'low': this.omitZero (this.safeNumber (ticker, 'low')),
-            'open': this.omitZero (this.parseNumber (open)),
-            'close': this.omitZero (this.parseNumber (close)),
-            'last': this.omitZero (this.parseNumber (last)),
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'open': this.parseNumber (open),
+            'close': this.parseNumber (close),
+            'last': this.parseNumber (last),
             'change': this.parseNumber (change),
             'percentage': this.parseNumber (percentage),
-            'average': this.omitZero (this.parseNumber (average)),
-            'vwap': this.omitZero (this.parseNumber (vwap)),
+            'average': this.parseNumber (average),
+            'vwap': this.parseNumber (vwap),
             'baseVolume': this.parseNumber (baseVolume),
             'quoteVolume': this.parseNumber (quoteVolume),
             'previousClose': this.safeNumber (ticker, 'previousClose'),
         });
+    }
+
+    async repayCrossMargin (code: string, amount, params = {}) {
+        throw new NotSupported (this.id + ' repayCrossMargin is not support yet');
+    }
+
+    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+        throw new NotSupported (this.id + ' repayIsolatedMargin is not support yet');
+    }
+
+    async borrowCrossMargin (code: string, amount, params = {}) {
+        throw new NotSupported (this.id + ' borrowCrossMargin is not support yet');
+    }
+
+    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+        throw new NotSupported (this.id + ' borrowIsolatedMargin is not support yet');
+    }
+
+    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+        throw new NotSupported (this.id + ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead');
+    }
+
+    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+        throw new NotSupported (this.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
