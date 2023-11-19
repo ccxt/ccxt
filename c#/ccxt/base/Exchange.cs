@@ -595,6 +595,17 @@ public partial class Exchange
             return ((dict)a).Count == 0;
         return false;
     }
+
+    public void spawn(object methodName, object[] args = null)
+    {
+        // stub to implement later
+        Task.Run(() => callDynamicallyAsync(methodName, args));
+    }
+
+    public void delay(object timeout2, object methodName, object[] args = null)
+    {
+        Task.Delay(Convert.ToInt32(timeout2)).ContinueWith((t) => spawn(methodName, args));
+    }
 }
 
 

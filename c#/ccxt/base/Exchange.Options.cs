@@ -128,6 +128,21 @@ public partial class Exchange
     public Func<object, object, object, object> socksProxyCallback { get; set; } = null;
     public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
 
+    // WS options
+    public object tickers;
+    public object myTrades;
+    public object orders;
+    public object triggerOrders;
+    public object balance;
+
+    public bool newUpdates;
+
+    public object positions;
+    public object trades;
+    public object orderbooks;
+
+    public object ohlcvs;
+
     private string httpProxyValue = "";
     public object httpProxy
     {
@@ -386,5 +401,6 @@ public partial class Exchange
         this.name = SafeString(extendedProperties, "name");
         this.httpsProxy = SafeString(extendedProperties, "httpsProxy");
         this.httpProxy = SafeString(extendedProperties, "httpProxy");
+        this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
     }
 }

@@ -504,7 +504,7 @@ class NewTranspiler {
         const exchanges = ['binance']
         const tsFolder = './ts/src/pro/';
         const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.length))
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.length), true )
     }
 
     async transpileEverything (force = false, child = false) {
@@ -557,7 +557,7 @@ class NewTranspiler {
         return flatResult;
     }
 
-    async transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false) {
+    async transpileDerivedExchangeFiles (jsFolder, options, pattern = '.ts', force = false, child = false, ws = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -582,26 +582,39 @@ class NewTranspiler {
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
         const transpiledFiles =  allFilesPath.map(file => this.transpiler.transpileCSharpByPath(file));
-        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force))
+        exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
 
         const classes = {}
 
         return classes
     }
 
-    createCSharpClass(csharpVersion) {
+    createCSharpClass(csharpVersion, ws = false) {
         const csharpImports = this.getCsharpImports(csharpVersion).join("\n") + "\n\n";
         let content = csharpVersion.content;
         content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
-        content = content.replace(/typeof\(client\)/gm, 'client');
-        content = content.replace(/\(object client,/gm, '(WebSocketClient client,');
+        if (ws) {
+            content = content.replace(/(\w+)(\.store\(.+\))/gm, '($1 as OrderBookSide)$2');
+            content = content.replace(/(\w+)\.call\(this,(.+)\)/gm, '($1 as MethodInfo).Invoke(this, new object[] {$2})');
+            content = content.replace(/(\w+)(\.limit\(\))/gm, '($1 as ccxt.OrderBook)$2');
+            content = content.replace(/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)');
+            content = content.replace(/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})');
+            content = content.replace(/this\.delay\((\w+),(.+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})');
+            content = content.replace(/(\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})');
+            content = content.replace(/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2');
+            content = content.replace(/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2');
+            content = content.replace(/typeof\(client\)/gm, 'client');
+            content = content.replace(/\(client,/g, '(client as WebSocketClient,');
+            content = content.replace(/\(object client,/gm, '(WebSocketClient client,');
+            content = content.replace(/object client/gm, 'var client');
+        }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }
 
-    transpileDerivedExchangeFile (tsFolder, filename, options, csharpResult, force = false) {
+    transpileDerivedExchangeFile (tsFolder, filename, options, csharpResult, force = false, ws = false) {
 
         const tsPath = tsFolder + filename
 
@@ -611,7 +624,7 @@ class NewTranspiler {
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const csharp  = this.createCSharpClass (csharpResult)
+        const csharp  = this.createCSharpClass (csharpResult, ws)
 
         if (csharpFolder) {
             overwriteFile (csharpFolder + csharpFilename, csharp)
