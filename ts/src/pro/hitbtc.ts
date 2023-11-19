@@ -3,7 +3,7 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, Trade } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -25,6 +25,8 @@ export default class hitbtc extends hitbtcRest {
                 'watchOHLCV': true,
                 'watchMyTrades': false,
                 'createOrderWs': true,
+                'cancelOrderWs': true,
+                'fetchOpenOrdersWs': true,
             },
             'urls': {
                 'api': {
@@ -1029,6 +1031,78 @@ export default class hitbtc extends hitbtcRest {
             return await this.tradeRequest ('margin_new_order', request);
         } else {
             return await this.tradeRequest ('spot_new_order', request);
+        }
+    }
+
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#cancelOrderWs
+         * @see https://api.hitbtc.com/#cancel-spot-order-2
+         * @see https://api.hitbtc.com/#cancel-futures-order-2
+         * @see https://api.hitbtc.com/#cancel-margin-order-2
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for canceling a margin order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {
+            'client_order_id': id,
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrderWs', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrderWs', params);
+        request = this.extend (request, query);
+        if (marketType === 'swap') {
+            return await this.tradeRequest ('futures_cancel_order', request);
+        } else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            return await this.tradeRequest ('margin_cancel_order', request);
+        } else {
+            return await this.tradeRequest ('spot_cancel_order', request);
+        }
+    }
+
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchOpenOrdersWs
+         * @see https://api.hitbtc.com/#get-active-futures-orders-2
+         * @see https://api.hitbtc.com/#get-margin-orders
+         * @see https://api.hitbtc.com/#get-active-spot-orders
+         * @description fetch all unfilled currently open orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for fetching open margin orders
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrdersWs', market, params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrdersWs', params);
+        if (marketType === 'swap') {
+            return await this.tradeRequest ('futures_get_orders', request);
+        } else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            return await this.tradeRequest ('margin_get_orders', request);
+        } else {
+            return await this.tradeRequest ('spot_get_orders', request);
         }
     }
 
