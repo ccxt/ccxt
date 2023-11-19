@@ -1807,7 +1807,9 @@ export default class bitget extends Exchange {
             response = await this.publicMarginGetMarginV1IsolatedPublicTierData (this.extend (request, params));
         } else if (marginMode === 'cross') {
             const code = this.safeString (params, 'code');
-            this.checkRequiredArgument ('fetchMarketLeverageTiers', code, 'code');
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMarketLeverageTiers() requires a code argument');
+            }
             params = this.omit (params, 'code');
             const currency = this.currency (code);
             request['coin'] = currency['code'];
@@ -3910,7 +3912,9 @@ export default class bitget extends Exchange {
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = undefined;
@@ -4036,7 +4040,9 @@ export default class bitget extends Exchange {
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
@@ -4136,7 +4142,9 @@ export default class bitget extends Exchange {
             if (marginMode === undefined) {
                 throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets, only spot-margin');
             }
-            this.checkRequiredSymbol ('cancelAllOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+            }
             const spotMarginRequest = {
                 'symbol': market['info']['symbolName'], // regular id like LTCUSDT_SPBL does not work here
             };
@@ -4194,7 +4202,9 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('fetchOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
@@ -4304,7 +4314,9 @@ export default class bitget extends Exchange {
         const stop = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (stop) {
-            this.checkRequiredSymbol ('fetchOpenOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+            }
             if (marketType === 'spot') {
                 if (limit !== undefined) {
                     request['pageSize'] = limit;
@@ -4351,7 +4363,9 @@ export default class bitget extends Exchange {
                     request['productType'] = productType;
                     response = await this.privateMixGetMixV1OrderMarginCoinCurrent (this.extend (request, params));
                 } else {
-                    this.checkRequiredSymbol ('fetchOpenOrders', symbol);
+                    if (symbol === undefined) {
+                        throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+                    }
                     response = await this.privateMixGetMixV1OrderCurrent (this.extend (request, params));
                 }
             }
@@ -4524,7 +4538,9 @@ export default class bitget extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchClosedOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
         const market = this.market (symbol);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
@@ -4564,8 +4580,10 @@ export default class bitget extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchCanceledOrders', symbol);
         const market = this.market (symbol);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'paginate');
@@ -4961,7 +4979,9 @@ export default class bitget extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol ('fetchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         let paginate = false;
@@ -5117,7 +5137,9 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol ('fetchOrderTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
@@ -5482,7 +5504,9 @@ export default class bitget extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
-        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
@@ -5611,7 +5635,9 @@ export default class bitget extends Exchange {
          * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('fetchFundingHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
@@ -5842,7 +5868,9 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -5865,7 +5893,9 @@ export default class bitget extends Exchange {
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setMarginMode', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
         marginMode = marginMode.toLowerCase ();
         if (marginMode === 'isolated') {
             marginMode = 'fixed';
@@ -6258,7 +6288,9 @@ export default class bitget extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
         if ((symbol !== undefined) || (marginMode === 'isolated')) {
-            this.checkRequiredSymbol ('borrowMargin', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
+            }
             const market = this.market (symbol);
             const marketId = market['id'];
             const parts = marketId.split ('_');
@@ -6324,7 +6356,9 @@ export default class bitget extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
         if ((symbol !== undefined) || (marginMode === 'isolated')) {
-            this.checkRequiredSymbol ('repayMargin', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
+            }
             const market = this.market (symbol);
             const marketId = market['id'];
             const parts = marketId.split ('_');
@@ -6462,7 +6496,9 @@ export default class bitget extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyLiquidations', params, 'cross');
         if (marginMode === 'isolated') {
-            this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyLiquidations() requires a symbol argument');
+            }
             request['symbol'] = market['info']['symbolName'];
             response = await this.privateMarginGetMarginV1IsolatedLiquidationList (this.extend (request, params));
         } else if (marginMode === 'cross') {
@@ -6807,7 +6843,9 @@ export default class bitget extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params, 'cross');
         if (marginMode === 'isolated') {
-            this.checkRequiredSymbol ('fetchBorrowInterest', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');
+            }
             request['symbol'] = market['info']['symbolName'];
             response = await this.privateMarginGetMarginV1IsolatedInterestList (this.extend (request, params));
         } else if (marginMode === 'cross') {

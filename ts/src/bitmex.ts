@@ -2473,7 +2473,9 @@ export default class bitmex extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         if ((leverage < 0.01) || (leverage > 100)) {
             throw new BadRequest (this.id + ' leverage should be between 0.01 and 100');
         }
@@ -2499,7 +2501,9 @@ export default class bitmex extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setMarginMode', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
         marginMode = marginMode.toLowerCase ();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');

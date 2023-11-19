@@ -1,11 +1,11 @@
 
 // ---------------------------------------------------------------------------
 
-import { Market, Precise } from '../ccxt.js';
+import { Market } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Strings, Ticker, Tickers } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers } from './base/types.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
@@ -271,72 +271,67 @@ export default class p2b extends Exchange {
         //    }
         //
         const markets = this.safeValue (response, 'result', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const marketId = this.safeString (market, 'name');
-            const baseId = this.safeValue (market, 'stock');
-            const quoteId = this.safeValue (market, 'money');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const precision = this.safeValue (market, 'precision');
-            const limits = this.safeValue (market, 'limits');
-            const maxAmount = this.safeString (limits, 'max_amount');
-            const maxPrice = this.safeString (limits, 'max_price');
-            const entry = this.safeMarketStructure ({
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (limits, 'step_size'),
-                    'price': this.safeNumber (limits, 'tick_size'),
-                    'base': this.parsePrecision (this.safeString (precision, 'stock')),
-                    'quote': this.parsePrecision (this.safeString (precision, 'money')),
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market): Market {
+        const marketId = this.safeString (market, 'name');
+        const baseId = this.safeString (market, 'stock');
+        const quoteId = this.safeString (market, 'money');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const limits = this.safeValue (market, 'limits');
+        const maxAmount = this.safeString (limits, 'max_amount');
+        const maxPrice = this.safeString (limits, 'max_price');
+        return {
+            'id': marketId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (limits, 'step_size'),
+                'price': this.safeNumber (limits, 'tick_size'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (limits, 'min_amount'),
-                        'max': Precise.stringEq (maxAmount, '0') ? undefined : this.parseNumber (maxAmount),
-                    },
-                    'price': {
-                        'min': this.safeString (limits, 'min_price'),
-                        'max': Precise.stringEq (maxPrice, '0') ? undefined : this.parseNumber (maxPrice),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber (limits, 'min_amount'),
+                    'max': this.parseNumber (this.omitZero (maxAmount)),
                 },
-                'created': undefined,
-                'info': market,
-            });
-            result.push (entry);
-        }
-        return result;
+                'price': {
+                    'min': this.safeNumber (limits, 'min_price'),
+                    'max': this.parseNumber (this.omitZero (maxPrice)),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -847,7 +842,7 @@ export default class p2b extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name p2b#cancelOrder
@@ -858,8 +853,10 @@ export default class p2b extends Exchange {
          * @param {object} [params] extra parameters specific to the p2b api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        this.checkRequiredArgument ('cancelOrder', symbol, 'symbol');
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
@@ -892,7 +889,7 @@ export default class p2b extends Exchange {
         return this.parseOrder (result);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name p2b#fetchOpenOrders
@@ -948,7 +945,7 @@ export default class p2b extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name p2b#fetchOrderTrades
@@ -1001,7 +998,7 @@ export default class p2b extends Exchange {
         return this.parseTrades (records, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name p2b#fetchMyTrades
@@ -1017,10 +1014,12 @@ export default class p2b extends Exchange {
          * @param {int} [params.offset] 0-10000, default=0
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         let until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
-        this.checkRequiredArgument ('fetchMyTrades', symbol, 'symbol');
         if (until === undefined) {
             if (since === undefined) {
                 until = this.milliseconds ();
@@ -1075,7 +1074,7 @@ export default class p2b extends Exchange {
         return this.parseTrades (deals, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name p2b#fetchClosedOrders
@@ -1094,7 +1093,7 @@ export default class p2b extends Exchange {
         await this.loadMarkets ();
         let until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }

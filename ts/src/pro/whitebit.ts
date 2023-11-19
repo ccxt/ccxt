@@ -3,7 +3,7 @@
 
 import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
-import { AuthenticationError, BadRequest } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -385,7 +385,9 @@ export default class whitebit extends whitebitRest {
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol ('watchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
@@ -485,7 +487,9 @@ export default class whitebit extends whitebitRest {
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
-        this.checkRequiredSymbol ('watchOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
