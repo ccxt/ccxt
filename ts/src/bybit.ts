@@ -3566,8 +3566,10 @@ export default class bybit extends Exchange {
         if (triggerPrice !== undefined) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
             params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'triggerDirection' ]);
-            if (market['spot'] && (triggerDirection !== undefined)) {
-                throw new NotSupported (this.id + ' createOrder() does not support triggerPrice for spot markets yet');
+            if (market['spot']) {
+                if (triggerDirection !== undefined) {
+                    throw new NotSupported (this.id + ' createOrder() : trigger order does not support triggerDirection for spot markets yet');
+                }
             } else {
                 this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
                 const isAsending = ((triggerDirection === 'above') || (triggerDirection === '1'));
