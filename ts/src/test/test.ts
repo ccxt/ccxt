@@ -187,11 +187,11 @@ export default class testMainClass extends baseMainTestClass {
 
         if (this.responseTests) {
             await this.runStaticResponseTests (exchangeId, symbol);
-            return;
+            return undefined;
         }
         if (this.requestTests) {
             await this.runStaticRequestTests (exchangeId, symbol); // symbol here is the testname
-            return;
+            return undefined;
         }
         if (this.idTests) {
             await this.runBrokerIdTests ();
