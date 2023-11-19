@@ -397,6 +397,14 @@
                     "USDT"
                 ]
             }
+        ],
+        "fetchIsolatedBorrowRates": [
+            {
+                "description": "Fetch isolated borrow rates",
+                "method": "fetchIsolatedBorrowRates",
+                "url": "https://api.huobi.pro/v1/margin/loan-info?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-17T06%3A46%3A38&Signature=6cO4v70%2F%2BsYkysT5TmdL3iI6SDlhVDb8voCnNkhy3Rs%3D",
+                "input": []
+            }
         ]
     }
 }

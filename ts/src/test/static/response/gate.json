@@ -1,0 +1,71 @@
+{
+    "exchange": "gate",
+    "options": {},
+    "methods": {
+        "fetchLiquidations": [
+            {
+                "description": "fetch liquidations BTC/USDT:USDT",
+                "method": "fetchLiquidations",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "contract": "BTC_USDT",
+                        "left": "0",
+                        "size": "33",
+                        "fill_price": "36454.4",
+                        "order_price": "36309.2",
+                        "time": "1700267258"
+                    },
+                    {
+                        "contract": "BTC_USDT",
+                        "left": "0",
+                        "size": "287",
+                        "fill_price": "36454.4",
+                        "order_price": "36315.6",
+                        "time": "1700267258"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "contract": "BTC_USDT",
+                            "left": "0",
+                            "size": "33",
+                            "fill_price": "36454.4",
+                            "order_price": "36309.2",
+                            "time": "1700267258"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "contracts": 33,
+                        "contractSize": null,
+                        "price": 36454.4,
+                        "baseValue": 0.0033,
+                        "quoteValue": 120.29952,
+                        "timestamp": 1700267258000,
+                        "datetime": "2023-11-18T00:27:38.000Z"
+                    },
+                    {
+                        "info": {
+                            "contract": "BTC_USDT",
+                            "left": "0",
+                            "size": "287",
+                            "fill_price": "36454.4",
+                            "order_price": "36315.6",
+                            "time": "1700267258"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "contracts": 287,
+                        "contractSize": null,
+                        "price": 36454.4,
+                        "baseValue": 0.0287,
+                        "quoteValue": 1046.24128,
+                        "timestamp": 1700267258000,
+                        "datetime": "2023-11-18T00:27:38.000Z"
+                    }
+                ]
+            }
+        ]
+    }
+}

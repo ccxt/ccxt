@@ -29,6 +29,22 @@
                     0.1
                 ],
                 "output": "{\"clientOid\":\"8296d75d-4447-4a23-bf7c-a62bee87b081\",\"side\":\"sell\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\"}"
+            },
+            {
+                "description": "Spot order with trigger price",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/stop-order",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  55,
+                  {
+                    "triggerPrice": 60
+                  }
+                ],
+                "output": "{\"clientOid\":\"7417761e-9fa9-4030-8863-66fba6487b24\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"55\",\"stopPrice\":\"60\"}"
             }
         ],
         "fetchOpenOrders": [
@@ -58,6 +74,41 @@
                 "url": "https://api.kucoin.com/api/v1/orders?symbol=LTC-USDT",
                 "input": [
                     "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Canceling stop order",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/stop-order/vs8lgpan88t0q73m003j7m81",
+                "input": [
+                  "vs8lgpan88t0q73m003j7m81",
+                  "LTC/USDT",
+                  {
+                    "stop": true
+                  }
+                ]
+            },
+            {
+                "description": "Canceling regular order",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/orders/6556088034d111000738f7b8",
+                "input": [
+                  "6556088034d111000738f7b8",
+                  "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Canceling order by clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/order/client-order/myorderid",
+                "input": [
+                  "random",
+                  "LTC/USDT",
+                  {
+                    "clientOrderId": "myorderid"
+                  }
                 ]
             }
         ],

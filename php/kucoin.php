@@ -2115,7 +2115,7 @@ class kucoin extends Exchange {
         $this->load_markets();
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
-        $stop = $this->safe_value($params, 'stop', false);
+        $stop = $this->safe_value_2($params, 'stop', 'trigger', false);
         $hf = $this->safe_value($params, 'hf', false);
         if ($hf) {
             if ($symbol === null) {
@@ -2124,26 +2124,28 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $method = 'privateDeleteOrdersOrderId';
+        $response = null;
+        $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'hf', 'trigger' ));
         if ($clientOrderId !== null) {
             $request['clientOid'] = $clientOrderId;
             if ($stop) {
-                $method = 'privateDeleteStopOrderCancelOrderByClientOid';
+                $response = $this->privateDeleteStopOrderCancelOrderByClientOid (array_merge($request, $params));
             } elseif ($hf) {
-                $method = 'privateDeleteHfOrdersClientOrderClientOid';
+                $response = $this->privateDeleteHfOrdersClientOrderClientOid (array_merge($request, $params));
             } else {
-                $method = 'privateDeleteOrderClientOrderClientOid';
+                $response = $this->privateDeleteOrderClientOrderClientOid (array_merge($request, $params));
             }
         } else {
-            if ($stop) {
-                $method = 'privateDeleteStopOrderOrderId';
-            } elseif ($hf) {
-                $method = 'privateDeleteHfOrdersOrderId';
-            }
             $request['orderId'] = $id;
+            if ($stop) {
+                $response = $this->privateDeleteStopOrderOrderId (array_merge($request, $params));
+            } elseif ($hf) {
+                $response = $this->privateDeleteHfOrdersOrderId (array_merge($request, $params));
+            } else {
+                $response = $this->privateDeleteOrdersOrderId (array_merge($request, $params));
+            }
         }
-        $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'hf' ));
-        return $this->$method (array_merge($request, $params));
+        return $response;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {

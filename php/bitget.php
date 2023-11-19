@@ -4895,7 +4895,7 @@ class bitget extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the bitget api endpoint
-         * @param {int} [$params->until] the latest time in ms to fetch entries for
+         * @param {int} [$params->until] *swap only* the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
@@ -4937,9 +4937,6 @@ class bitget extends Exchange {
                 }
             } else {
                 list($request, $params) = $this->handle_until_option('before', $request, $params);
-                if ($since !== null) {
-                    $request['after'] = $since;
-                }
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }

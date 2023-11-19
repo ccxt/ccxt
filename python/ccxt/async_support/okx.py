@@ -204,6 +204,7 @@ class okx(Exchange, ImplicitAPI):
                         'market/open-oracle': 50,
                         'market/exchange-rate': 20,
                         'market/index-components': 1,
+                        'public/economic-calendar': 50,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
                         'public/block-trades': 1,
@@ -335,7 +336,6 @@ class okx(Exchange, ImplicitAPI):
                         'asset/subaccount/bills': 5 / 3,
                         'asset/subaccount/managed-subaccount-bills': 5 / 3,
                         'users/entrust-subaccount-list': 10,
-                        'users/partner/if-rebate': 1,
                         'account/subaccount/interest-limits': 4,
                         # grid trading
                         'tradingBot/grid/orders-algo-pending': 1,
@@ -382,6 +382,9 @@ class okx(Exchange, ImplicitAPI):
                         'finance/sfp/dcd/orders': 2,
                         'broker/fd/rebate-per-orders': 300,
                         'broker/fd/if-rebate': 5,
+                        # affiliate
+                        'affiliate/invitee/detail': 1,
+                        'users/partner/if-rebate': 1,
                     },
                     'post': {
                         # rfq
@@ -2518,7 +2521,7 @@ class okx(Exchange, ImplicitAPI):
             request['ordType'] = 'ioc'
         elif fok:
             request['ordType'] = 'fok'
-        elif stopLossDefined or takeProfitDefined:
+        if stopLossDefined or takeProfitDefined:
             if stopLossDefined:
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:

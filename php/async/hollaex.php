@@ -1849,7 +1849,7 @@ class hollaex extends Exchange {
     }
 
     public function normalize_number_if_needed($number) {
-        if (fmod($number, 1) === 0) {
+        if ($this->is_round_number($number)) {
             $number = intval($number);
         }
         return $number;
