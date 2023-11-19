@@ -153,7 +153,7 @@ export default class coinex extends Exchange {
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseBorrowRate(info: any, market?: Market): {
+    parseIsolatedBorrowRate(info: any, market?: Market): {
         symbol: string;
         base: string;
         baseRate: number;

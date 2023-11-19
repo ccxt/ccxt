@@ -54,7 +54,7 @@ export default class mexc extends Exchange {
     fetchAccounts(params?: {}): Promise<any[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
     customParseBalance(response: any, marketType: any): Balances;
-    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    parseBalanceHelper(entry: any): import("./base/types.js").Account;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

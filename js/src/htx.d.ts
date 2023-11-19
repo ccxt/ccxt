@@ -128,10 +128,18 @@ export default class htx extends Exchange {
         toAccount: any;
         status: any;
     }>;
-    fetchBorrowRatesPerSymbol(params?: {}): Promise<{
+    fetchIsolatedBorrowRates(params?: {}): Promise<any[]>;
+    parseIsolatedBorrowRate(info: any, market?: Market): {
+        symbol: string;
+        base: string;
+        baseRate: number;
+        quote: string;
+        quoteRate: number;
+        period: number;
+        timestamp: any;
+        datetime: any;
         info: any;
-    }>;
-    fetchBorrowRates(params?: {}): Promise<{}>;
+    };
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: Market): {
         info: any;

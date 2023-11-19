@@ -247,9 +247,31 @@ export default class bitget extends Exchange {
     };
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
-    fetchBorrowRate(code: string, params?: {}): Promise<{
+    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<{
+        symbol: string;
+        base: string;
+        baseRate: number;
+        quote: string;
+        quoteRate: number;
+        period: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    parseIsolatedBorrowRate(info: any, market?: Market): {
+        symbol: string;
+        base: string;
+        baseRate: number;
+        quote: string;
+        quoteRate: number;
+        period: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
         currency: string;
-        rate: any;
+        rate: number;
         period: number;
         timestamp: number;
         datetime: string;
@@ -257,7 +279,7 @@ export default class bitget extends Exchange {
     }>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
-        rate: any;
+        rate: number;
         period: number;
         timestamp: number;
         datetime: string;

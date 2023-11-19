@@ -96,12 +96,11 @@ class gate extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -113,6 +112,8 @@ class gate extends Exchange {
                 'fetchFundingRates' => true,
                 'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
@@ -1696,7 +1697,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1760,7 +1761,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure funding rates structures}, indexe by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1936,7 +1937,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#generate-$currency-deposit-$address
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1995,7 +1996,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2027,7 +2028,7 @@ class gate extends Exchange {
              * fetch the trading fees for multiple markets
              * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures} indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateWalletGetFee ($params));
@@ -2096,7 +2097,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateWalletGetWithdrawStatus ($params));
@@ -2154,7 +2155,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateWalletGetWithdrawStatus ($params));
@@ -2241,7 +2242,7 @@ class gate extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
              */
             Async\await($this->load_markets());
             // $defaultType = 'future';
@@ -2326,7 +2327,7 @@ class gate extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2438,7 +2439,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2595,7 +2596,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2950,11 +2951,13 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#funding-rate-history
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
+             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
-            $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if (!$market['swap']) {
@@ -3050,7 +3053,7 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -3157,10 +3160,12 @@ class gate extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
              * @param {array} [$params] extra parameters specific to the binance api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
-            $this->check_required_symbol('fetchOrderTrades', $symbol);
             //
             //      array(
             //          {
@@ -3207,7 +3212,7 @@ class gate extends Exchange {
              * @param {string} [$params->last_id] *$contract only* specify list staring point using the id of last record in previous list-query results
              * @param {int} [$params->count_total] *$contract only* whether to return total number matched, default to 0(no return)
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -3478,7 +3483,7 @@ class gate extends Exchange {
              * @param {int} [$params->until] end time in ms
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -3517,7 +3522,7 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {int} [$params->until] end time in ms
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -3555,7 +3560,7 @@ class gate extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
@@ -3725,7 +3730,7 @@ class gate extends Exchange {
              * @param {bool} [$params->close] *contract only* Set to close the position, with size set to 0
              * @param {bool} [$params->auto_size] *contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
              * @param {int} [$params->price_type] *contract only* 0 latest deal $price, 1 mark $price, 2 index $price
-             * @return {array|null} {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure An order structure}
+             * @return {array|null} ~@link https://docs.ccxt.com/#/?id=order-structure An order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3835,7 +3840,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
              * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-$orders
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $ordersRequests = array();
@@ -4118,7 +4123,7 @@ class gate extends Exchange {
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4476,7 +4481,7 @@ class gate extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->type] 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - $market settle currency is used if $symbol !== null, default="usdt" for swap and "btc" for future
-             * @return An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
@@ -4520,7 +4525,7 @@ class gate extends Exchange {
              * @param {bool} [$params->stop] true for fetching stop orders
              * @param {string} [$params->type] spot, margin, swap or future, if not provided $this->options['defaultType'] is used
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided $this->options['defaultMarginMode'] is used
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
         }) ();
@@ -4544,7 +4549,7 @@ class gate extends Exchange {
              * @param {bool} [$params->stop] true for fetching stop orders
              * @param {string} [$params->type] spot, swap or future, if not provided $this->options['defaultType'] is used
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('finished', $symbol, $since, $limit, $params));
         }) ();
@@ -4757,7 +4762,7 @@ class gate extends Exchange {
              * @param {string} $symbol Unified $market $symbol
              * @param {array} [$params] Parameters specified by the exchange api
              * @param {bool} [$params->stop] True if the order to be cancelled is a trigger order
-             * @return An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);
@@ -4870,7 +4875,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);
@@ -4930,7 +4935,7 @@ class gate extends Exchange {
              * @param {string} $toAccount the account to transfer $currency to
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {string} [$params->symbol] Unified $market $symbol *required for type == margin*
-             * @return A {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
+             * @return A ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -5007,7 +5012,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @return {array} $response from the exchange
              */
-            $this->check_required_symbol('setLeverage', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            }
             // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             if (($leverage < 0) || ($leverage > 100)) {
@@ -5183,7 +5190,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -5266,7 +5273,7 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
              * @param {string} [$params->type] swap, future or option, if not provided $this->options['defaultType'] is used
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -5366,7 +5373,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
@@ -5609,7 +5616,7 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {string} [$params->mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
              * @param {string} [$params->id] '34267567' loan id, extra parameter required for isolated margin
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
             $params = $this->omit($params, 'marginMode');
@@ -5692,7 +5699,7 @@ class gate extends Exchange {
              * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {string} [$params->rate] '0.0002' or '0.002' extra parameter required for isolated margin
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
             $params = $this->omit($params, 'marginMode');
@@ -5949,7 +5956,7 @@ class gate extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exmo api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, -$amount, $params));
         }) ();
@@ -5964,7 +5971,7 @@ class gate extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exmo api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, $params));
         }) ();
@@ -5980,7 +5987,7 @@ class gate extends Exchange {
              * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
              * @param {int} [$limit] default 30
              * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -6068,9 +6075,11 @@ class gate extends Exchange {
              * @param {int} [$since] timestamp in ms
              * @param {int} [$limit] number of records
              * @param {array} [$params] exchange specific $params
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
              */
-            $this->check_required_symbol('fetchSettlementHistory', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = null;
@@ -6119,7 +6128,9 @@ class gate extends Exchange {
              * @param {array} [$params] exchange specific $params
              * @return {array[]} a list of [settlement history objects]
              */
-            $this->check_required_symbol('fetchMySettlementHistory', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMySettlementHistory() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = null;
@@ -6254,7 +6265,7 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @param {int} [$params->until] end time in ms
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -6506,7 +6517,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-$underlyings
              * @param {array} [$params] exchange specific $params
              * @param {string} [$params->type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$underlying-assets-structure $underlying assets}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$underlying-assets-structure $underlying assets~
              */
             Async\await($this->load_markets());
             $marketType = null;
@@ -6549,7 +6560,7 @@ class gate extends Exchange {
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the gate api endpoint
              * @param {int} [$params->until] timestamp in ms of the latest liquidation
-             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -6595,9 +6606,11 @@ class gate extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the gate api endpoint
-             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
              */
-            $this->check_required_symbol('fetchMyLiquidations', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -6703,8 +6716,9 @@ class gate extends Exchange {
         //
         $marketId = $this->safe_string($liquidation, 'contract');
         $timestamp = $this->safe_timestamp($liquidation, 'time');
-        $contractsStringRaw = $this->safe_string_2($liquidation, 'size', 'settle_size');
-        $contractsString = Precise::string_abs($contractsStringRaw);
+        $size = $this->safe_string_2($liquidation, 'size', 'settle_size');
+        $left = $this->safe_string($liquidation, 'left', '0');
+        $contractsString = Precise::string_abs(Precise::string_sub($size, $left));
         $contractSizeString = $this->safe_string($market, 'contractSize');
         $priceString = $this->safe_string_2($liquidation, 'liq_price', 'fill_price');
         $baseValueString = Precise::string_mul($contractsString, $contractSizeString);
@@ -6732,7 +6746,7 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
              * @param {string} $symbol unified $symbol of the $market to fetch greeks for
              * @param {array} [$params] extra parameters specific to the gate api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure greeks structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
