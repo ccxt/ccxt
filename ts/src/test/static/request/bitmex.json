@@ -125,28 +125,11 @@
                 "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000,\"postOnly\":true,\"timeInForce\":\"GTC\"}"
             },
             {
-                "description": "spot market buy with triggerPrice and triggerDirection above",
-                "method": "createOrder",
-                "url": "https://www.bitmex.com/api/v1/order",
-                "input": [
-                  "SOL/USDT",
-                  "market",
-                  "buy",
-                  0.1,
-                  null,
-                  {
-                    "triggerPrice": 35,
-                    "triggerDirection": "above"
-                  }
-                ],
-                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"Buy\",\"orderQty\":100000000,\"ordType\":\"Stop\",\"text\":\"CCXT\",\"stopPx\":35}"
-            },
-            {
                 "description": "spot market buy with triggerPrice and triggerDirection below",
                 "method": "createOrder",
                 "url": "https://www.bitmex.com/api/v1/order",
                 "input": [
-                  "SOL/USDT",
+                  "BTC/USDT",
                   "market",
                   "buy",
                   0.1,
@@ -156,41 +139,24 @@
                     "triggerDirection": "below"
                   }
                 ],
-                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"Buy\",\"orderQty\":100000000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"stopPx\":35}"
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"stopPx\":35}"
             },
             {
-                "description": "spot market sell with triggerPrice and triggerDirection above",
+                "description": "spot market buy with triggerPrice and triggerDirection above",
                 "method": "createOrder",
                 "url": "https://www.bitmex.com/api/v1/order",
                 "input": [
-                  "SOL/USDT",
+                  "BTC/USDT",
                   "market",
-                  "sell",
+                  "buy",
                   0.1,
                   null,
                   {
-                    "triggerPrice": 35,
+                    "triggerPrice": 37000,
                     "triggerDirection": "above"
                   }
                 ],
-                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"Sell\",\"orderQty\":100000000,\"ordType\":\"MarketIfTouched\",\"text\":\"CCXT\",\"stopPx\":35}"
-            },
-            {
-                "description": "spot market sell with triggerPrice and triggerDirection bwlow",
-                "method": "createOrder",
-                "url": "https://www.bitmex.com/api/v1/order",
-                "input": [
-                  "SOL/USDT",
-                  "market",
-                  "sell",
-                  0.1,
-                  null,
-                  {
-                    "triggerPrice": 35,
-                    "triggerDirection": "below"
-                  }
-                ],
-                "output": "{\"symbol\":\"SOL_USDT\",\"side\":\"Sell\",\"orderQty\":100000000,\"ordType\":\"Stop\",\"text\":\"CCXT\",\"stopPx\":35}"
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000000,\"ordType\":\"Stop\",\"text\":\"CCXT\",\"stopPx\":37000}"
             }
         ]
     }
