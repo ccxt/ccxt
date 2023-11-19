@@ -1166,8 +1166,17 @@ export default class hitbtc extends hitbtcRest {
         //
         const messageHash = this.safeInteger (message, 'id');
         const result = this.safeValue (message, 'result', {});
-        const parsedOrder = this.parseWsOrder (result);
-        client.resolve (parsedOrder, messageHash);
+        if (Array.isArray (result)) {
+            const parsedOrders = [];
+            for (let i = 0; i < result.length; i++) {
+                const parsedOrder = this.parseWsOrder (result[i]);
+                parsedOrders.push (parsedOrder);
+            }
+            client.resolve (parsedOrders, messageHash);
+        } else {
+            const parsedOrder = this.parseWsOrder (result);
+            client.resolve (parsedOrder, messageHash);
+        }
         return message;
     }
 
@@ -1203,6 +1212,13 @@ export default class hitbtc extends hitbtcRest {
             }
             if ((result === true) && !('id' in message)) {
                 this.handleAuthenticate (client, message);
+            }
+            if (Array.isArray (result)) {
+                // to do improve this, not very reliable right now
+                const first = this.safeValue (result, 0);
+                if ('client_order_id' in first) {
+                    this.handleOrderRequest (client, message);
+                }
             }
         }
     }
