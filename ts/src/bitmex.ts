@@ -1884,7 +1884,7 @@ export default class bitmex extends Exchange {
                     request['ordType'] = triggerAbove ? 'MarketIfTouched' : 'Stop';
                 }
             }
-        } if (customTriggerType) {
+        } else if (customTriggerType) {
             if (triggerPrice === undefined) {
                 // if exchange specific trigger types were provided
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the ' + orderType + ' order type');
