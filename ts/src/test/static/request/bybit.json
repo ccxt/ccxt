@@ -27,16 +27,16 @@
                 "method": "createOrder",
                 "url": "https://api.bybit.com/v5/order/create",
                 "input": [
-                  "SOL/USDT",
+                  "BTC/USDT",
                   "limit",
                   "buy",
-                  1,
-                  36,
+                  0.1,
+                  36000,
                   {
-                    "triggerPrice": 35
+                    "triggerPrice": 36001
                   }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"1\",\"price\":\"36\",\"triggerPrice\":\"35\",\"orderFilter\":\"StopOrder\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"36000\",\"triggerPrice\":\"36001\",\"orderFilter\":\"StopOrder\"}"
             },
             {
                 "description": "Swap limit order",
@@ -197,38 +197,38 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"41000\",\"triggerDirection\":1,\"triggerPrice\":\"40000\",\"stopLoss\":\"39500\"}"
             },
             {
-                "description": "swap limit buy order with triggerPrice and triggerDirection below",
+                "description": "swap limit buy with triggerPrice and triggerDirection above",
                 "method": "createOrder",
                 "url": "https://api.bybit.com/v5/order/create",
                 "input": [
-                  "SOL/USDT:USDT",
+                  "BTC/USDT:USDT",
                   "limit",
                   "buy",
-                  1,
-                  36,
+                  0.001,
+                  37000,
                   {
-                    "triggerPrice": 35,
-                    "triggerDirection": "below"
-                  }
-                ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"1\",\"price\":\"36\",\"triggerDirection\":2,\"triggerPrice\":\"35\"}"
-            },
-            {
-                "description": "swap limit buy order with triggerPrice and triggerDirection above",
-                "method": "createOrder",
-                "url": "https://api.bybit.com/v5/order/create",
-                "input": [
-                  "SOL/USDT:USDT",
-                  "limit",
-                  "buy",
-                  1,
-                  36,
-                  {
-                    "triggerPrice": 35,
+                    "triggerPrice": 37000,
                     "triggerDirection": "above"
                   }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"1\",\"price\":\"36\",\"triggerDirection\":1,\"triggerPrice\":\"35\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"37000\",\"triggerDirection\":1,\"triggerPrice\":\"37000\"}"
+            },
+            {
+                "description": "swap limit buy with triggerPrice and triggerDirection below",
+                "method": "createOrder",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.001,
+                  35000,
+                  {
+                    "triggerPrice": 35000,
+                    "triggerDirection": "below"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"35000\",\"triggerDirection\":2,\"triggerPrice\":\"35000\"}"
             }
         ],
         "createOrders": [
