@@ -1032,7 +1032,7 @@ export default class hitbtc extends hitbtcRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        [ request, params ] = this.createOrderRequest (market, marketType, marginMode, type, side, amount, price, params);
+        [ request, params ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, params);
         request = this.extend (request, params);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_new_order', request);

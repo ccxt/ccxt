@@ -2166,7 +2166,7 @@ export default class hitbtc extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        [ request, params ] = this.createOrderRequest (market, marketType, marginMode, type, side, amount, price, params);
+        [ request, params ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, params);
         let response = undefined;
         if (marketType === 'swap') {
             response = await this.privatePostFuturesOrder (this.extend (request, params));
@@ -2178,7 +2178,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (market: object, marketType: string, marginMode: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount, price = undefined, marginMode: Str = undefined, params = {}) {
         const isLimit = (type === 'limit');
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         const timeInForce = this.safeString (params, 'timeInForce');
