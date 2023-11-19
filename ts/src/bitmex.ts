@@ -1864,9 +1864,9 @@ export default class bitmex extends Exchange {
         // support for unified trigger format
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
         if ((triggerPrice !== undefined) && !customTriggerType) {
-            params = this.omit (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
             request['stopPx'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
             const triggerDirection = this.safeString (params, 'triggerDirection');
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection' ]);
             const triggerAbove = (triggerDirection === 'above');
             this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
             this.checkRequiredArgument ('createOrder', side, 'side', [ 'buy', 'sell' ]);
