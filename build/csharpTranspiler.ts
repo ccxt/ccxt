@@ -114,11 +114,15 @@ class NewTranspiler {
         ]
     }
 
-    getCsharpImports(file) {
-        return [
+    getCsharpImports(file, ws = false) {
+        const values = [
             "using ccxt;",
             "namespace ccxt;"
         ]
+        if (ws) {
+            values.push("using System.Reflection;");
+        }
+        return values;
     }
 
     isObject(type: string) {
@@ -590,12 +594,21 @@ class NewTranspiler {
     }
 
     createCSharpClass(csharpVersion, ws = false) {
-        const csharpImports = this.getCsharpImports(csharpVersion).join("\n") + "\n\n";
+        const csharpImports = this.getCsharpImports(csharpVersion, ws).join("\n") + "\n\n";
         let content = csharpVersion.content;
-        content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
+        if (!ws) {
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
+        } else {
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1");
+        }
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
         if (ws) {
+            // content = content.replace(/Dictionary<string, object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients');
+            // content = content.replace(/Dictionary<string, object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
+            content = content.replace(/(orderbook)(\.reset.+)/gm, '($1 as ccxt.OrderBook)$2');
+            content = content.replace(/(\w+)(\.cache)/gm, '($1 as ccxt.OrderBook)$2');
+            content = content.replace(/(\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2');
             content = content.replace(/(\w+)(\.store\(.+\))/gm, '($1 as OrderBookSide)$2');
             content = content.replace(/(\w+)\.call\(this,(.+)\)/gm, '($1 as MethodInfo).Invoke(this, new object[] {$2})');
             content = content.replace(/(\w+)(\.limit\(\))/gm, '($1 as ccxt.OrderBook)$2');

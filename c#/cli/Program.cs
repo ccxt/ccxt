@@ -65,11 +65,22 @@ public static class Program
         List<string> strings = ids.Select(s => (string)s).ToList();
         exchangesId = strings;
 
+        if (args.Contains("--ws"))
+        {
+            // instance.verbose = true;
+            // Exchange.runWs().Wait();
+            var ws = new Exchange();
+            ws.runWs().Wait();
+            return;
+        }
+
         if (args.Length < 2)
         {
             Helper.Red("Exchange name and method required!");
             return;
         }
+
+
         var exchangeName = args[0];
         var methodName = args[1];
 

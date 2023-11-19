@@ -580,7 +580,7 @@ export default class binance extends binanceRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market = undefined): Trade {
         //
         // public watchTrades
         //
@@ -688,7 +688,7 @@ export default class binance extends binanceRest {
         const executionType = this.safeString (trade, 'x');
         const isTradeExecution = (executionType === 'TRADE');
         if (!isTradeExecution) {
-            return super.parseTrade (trade, market);
+            return this.parseTrade (trade, market);
         }
         const id = this.safeString2 (trade, 't', 'a');
         const timestamp = this.safeInteger (trade, 'T');
@@ -754,7 +754,7 @@ export default class binance extends binanceRest {
         const lowerCaseId = this.safeStringLower (message, 's');
         const event = this.safeString (message, 'e');
         const messageHash = lowerCaseId + '@' + event;
-        const trade = this.parseTrade (message, market);
+        const trade = this.parseWsTrade (message, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1355,7 +1355,8 @@ export default class binance extends binanceRest {
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
-                    return this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    return;
                 }
             }
         }
@@ -1363,7 +1364,7 @@ export default class binance extends binanceRest {
 
     setBalanceCache (client: Client, type) {
         if (type in client.subscriptions) {
-            return undefined;
+            return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
@@ -2832,13 +2833,15 @@ export default class binance extends binanceRest {
         const status = this.safeString (message, 'status');
         const error = this.safeValue (message, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
-            return this.handleWsError (client, message);
+            this.handleWsError (client, message);
+            return;
         }
         const id = this.safeString (message, 'id');
         const subscriptions = this.safeValue (client.subscriptions, id);
         let method = this.safeValue (subscriptions, 'method');
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
+            return;
         }
         // handle other APIs
         const methods = {
@@ -2868,7 +2871,8 @@ export default class binance extends binanceRest {
         if (method === undefined) {
             const requestId = this.safeString (message, 'id');
             if (requestId !== undefined) {
-                return this.handleSubscriptionStatus (client, message);
+                this.handleSubscriptionStatus (client, message);
+                return;
             }
             // special case for the real-time bookTicker, since it comes without an event identifier
             //
@@ -2886,7 +2890,7 @@ export default class binance extends binanceRest {
                 this.handleTickers (client, message);
             }
         } else {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 }
