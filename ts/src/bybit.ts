@@ -3561,20 +3561,19 @@ export default class bybit extends Exchange {
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
         const isBuy = side === 'buy';
-        const setTriggerDirection = (stopLossTriggerPrice || triggerPrice) ? !isBuy : isBuy;
-        const defaultTriggerDirection = setTriggerDirection ? 2 : 1;
-        const triggerDirection = this.safeString (params, 'triggerDirection');
-        params = this.omit (params, 'triggerDirection');
-        let selectedDirection = defaultTriggerDirection;
-        if (triggerDirection !== undefined) {
-            const isAsending = ((triggerDirection === 'up') || (triggerDirection === '1'));
-            selectedDirection = isAsending ? 1 : 2;
-        }
         if (triggerPrice !== undefined) {
-            request['triggerDirection'] = selectedDirection;
+            const triggerDirection = this.safeString (params, 'triggerDirection');
+            this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'triggerDirection' ]);
+            const isAsending = ((triggerDirection === 'above') || (triggerDirection === '1'));
+            request['triggerDirection'] = isAsending ? 1 : 2;
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            request['triggerDirection'] = selectedDirection;
+            if (isBuy) {
+                request['triggerDirection'] = isStopLossTriggerOrder ? 1 : 2;
+            } else {
+                request['triggerDirection'] = isStopLossTriggerOrder ? 2 : 1;
+            }
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             request['reduceOnly'] = true;
