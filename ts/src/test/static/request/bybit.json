@@ -20,7 +20,7 @@
                         "stopPrice": 55
                     }
                 ],
-                "output": "{\"symbol\":\"XRPUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\",\"triggerDirection\":1,\"triggerPrice\":\"55\",\"orderFilter\":\"StopOrder\"}"
+                "output": "{\"symbol\":\"XRPUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\",\"triggerPrice\":\"55\",\"orderFilter\":\"StopOrder\"}"
             },
             {
                 "description": "spot limit buy with triggerPrice",
