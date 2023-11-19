@@ -3410,7 +3410,9 @@ export default class bybit extends Exchange {
         const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
         const length = result.length;
         if (length === 0) {
-            throw new OrderNotFound ('Order ' + id.toString () + ' does not exist.');
+            const isTrigger = this.safeValueN (params, [ 'trigger', 'stop' ], false);
+            const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
         }
         if (length > 1) {
             throw new InvalidOrder (this.id + ' returned more than one order');
@@ -3563,10 +3565,14 @@ export default class bybit extends Exchange {
         const isBuy = side === 'buy';
         if (triggerPrice !== undefined) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
-            this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
             params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'triggerDirection' ]);
-            const isAsending = ((triggerDirection === 'above') || (triggerDirection === '1'));
-            request['triggerDirection'] = isAsending ? 1 : 2;
+            if (market['spot']) {
+                throw new NotSupported (this.id + ' createOrder() does not support triggerPrice for spot markets yet');
+            } else {
+                this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
+                const isAsending = ((triggerDirection === 'above') || (triggerDirection === '1'));
+                request['triggerDirection'] = isAsending ? 1 : 2;
+            }
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
             if (isBuy) {
@@ -4355,8 +4361,8 @@ export default class bybit extends Exchange {
             return await this.fetchUsdcOrders (symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
+        const isStop = this.safeValueN (params, [ 'trigger', 'stop' ], false);
+        params = this.omit (params, [ 'trigger', 'stop' ]);
         if (isStop) {
             if (type === 'spot') {
                 request['orderFilter'] = 'tpslOrder';
