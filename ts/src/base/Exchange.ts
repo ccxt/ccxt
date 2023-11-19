@@ -2678,27 +2678,27 @@ export default class Exchange {
         });
     }
 
-    async repayCrossMargin (code: string, amount, params = {}) {
+    async repayCrossMargin (code: string, amount, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' repayCrossMargin is not support yet');
     }
 
-    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' repayIsolatedMargin is not support yet');
     }
 
-    async borrowCrossMargin (code: string, amount, params = {}) {
+    async borrowCrossMargin (code: string, amount, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' borrowCrossMargin is not support yet');
     }
 
-    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' borrowIsolatedMargin is not support yet');
     }
 
-    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead');
     }
 
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
     }
 
