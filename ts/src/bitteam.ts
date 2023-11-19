@@ -4,7 +4,7 @@ import Exchange from './abstract/bitteam.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 // import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, Order, OrderBook, Str } from './base/types.js';
+import { Int, Market, Order, OrderBook, Str, Ticker } from './base/types.js';
 
 /**
  * @class bitteam
@@ -59,8 +59,8 @@ export default class bitteam extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
-                'fetchDepositWithdrawFee': false,
-                'fetchDepositWithdrawFees': false,
+                'fetchDepositWithdrawFee': false, // todo
+                'fetchDepositWithdrawFees': false, // todo
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -90,15 +90,15 @@ export default class bitteam extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
-                'fetchTradingLimits': false,
-                'fetchTransactionFee': false,
-                'fetchTransactionFees': false,
+                'fetchTrades': false, // todo
+                'fetchTradingFee': false, // todo
+                'fetchTradingFees': false, // todo
+                'fetchTradingLimits': false, // todo
+                'fetchTransactionFee': false, // todo
+                'fetchTransactionFees': false, // todo
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -138,10 +138,18 @@ export default class bitteam extends Exchange {
                         'trade/api/login-confirmation': 1, // not unified
                         'trade/api/orderbooks/{symbol}': 1,
                         'trade/api/orders': 1,
+                        'trade/api/pair/{name}': 1, // todo: fetchTicker?
                         'trade/api/pairs': 1,
+                        'trade/api/pairs/precisions': 1, // not unified
+                        'trade/api/rates': 1, // not unified
+                        'trade/api/stats': 1, // not unified
+                        'trade/api/trade/{id}': 1, // not unified
+                        'trade/api/trades': 1, // todo: fetchTrades
+                        'trade/api/transaction/{id}': 1, // todo: ? looks like a private endpoint
                     },
                     'post': {
                         'trade/api/login-oauth': 1, // not unified
+                        'trade/api/reset-password': 1, // not unified
                     },
                 },
                 'private': {
@@ -177,8 +185,8 @@ export default class bitteam extends Exchange {
                     'litecoin': 'LTC',
                     'Polygon': 'POLYGON',
                     'polygon': 'POLYGON',
+                    'PRIZM': 'PRIZM',
                     'Decimal': 'Decimal', // todo: check
-                    'PRIZM': 'PRIZM', // todo: check
                     'ufobject': 'ufobject', // todo: check
                     'tonchain': 'tonchain', // todo: check
                 },
@@ -604,6 +612,8 @@ export default class bitteam extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
+        // todo: check offset and order
+        // also filtration by symbol breaks pagination
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -723,6 +733,7 @@ export default class bitteam extends Exchange {
             'accepted': 'open',
             'executed': 'closed',
             'cancelled': 'canceled',
+            'partiallyCancelled': 'canceled',
             'delete': 'rejected', // todo: check
             'executing': 'open', // todo: check
             'created': 'open', // todo: check
@@ -737,6 +748,312 @@ export default class bitteam extends Exchange {
             'conditional': 'limit',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name bitteam#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiPairName
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the bitteam api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'name': market['id'],
+        };
+        const response = await this.publicGetTradeApiPairName (this.extend (request, params));
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "pair": {
+        //                 "id": 2,
+        //                 "name": "eth_usdt",
+        //                 "baseAssetId": 2,
+        //                 "quoteAssetId": 3,
+        //                 "fullName": "ETH USDT",
+        //                 "description": "ETH   USDT",
+        //                 "lastBuy": "1976.715012",
+        //                 "lastSell": "1971.995006",
+        //                 "lastPrice": "1976.715012",
+        //                 "change24": "1.02",
+        //                 "volume24": 24.0796457,
+        //                 "volume24USD": 44282.347995912205,
+        //                 "active": true,
+        //                 "baseStep": 8,
+        //                 "quoteStep": 6,
+        //                 "status": 1,
+        //                 "settings": {
+        //                     "limit_usd": "0.1",
+        //                     "price_max": "10000000000000",
+        //                     "price_min": "1",
+        //                     "price_tick": "1",
+        //                     "pricescale": 10000,
+        //                     "lot_size_max": "1000000000000000",
+        //                     "lot_size_min": "1",
+        //                     "lot_size_tick": "1",
+        //                     "price_view_min": 6,
+        //                     "default_slippage": 10,
+        //                     "lot_size_view_min": 6
+        //                 },
+        //                 "asks": [
+        //                     {
+        //                     "price": "1976.405003",
+        //                     "quantity": "0.0051171",
+        //                     "amount": "10.1134620408513"
+        //                     },
+        //                     {
+        //                     "price": "1976.405013",
+        //                     "quantity": "0.09001559",
+        //                     "amount": "177.90726332415267"
+        //                     },
+        //                     {
+        //                     "price": "2010.704988",
+        //                     "quantity": "0.00127892",
+        //                     "amount": "2.57153082325296"
+        //                     }
+        //                 ],
+        //                 "bids": [
+        //                     {
+        //                     "price": "1976.404988",
+        //                     "quantity": "0.09875861",
+        //                     "amount": "195.18700941194668"
+        //                     },
+        //                     {
+        //                     "price": "1905.472973",
+        //                     "quantity": "0.00263591",
+        //                     "amount": "5.02265526426043"
+        //                     },
+        //                     {
+        //                     "price": "1904.274973",
+        //                     "quantity": "0.09425304",
+        //                     "amount": "179.48370520116792"
+        //                     }
+        //                 ],
+        //                 "updateId": "78",
+        //                 "timeStart": "2021-01-28T09:19:30.706Z",
+        //                 "makerFee": 200,
+        //                 "takerFee": 200,
+        //                 "quoteVolume24": 49125.1374009045,
+        //                 "lowPrice24": 1966.704999,
+        //                 "highPrice24": 2080.354997,
+        //                 "baseCurrency": {
+        //                     "id": 2,
+        //                     "status": 1,
+        //                     "symbol": "eth",
+        //                     "title": "Ethereum",
+        //                     "logoURL": "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/34ca5/eth-diamond-black.png",
+        //                     "isDiscount": false,
+        //                     "address": "https://ethereum.org/",
+        //                     "description": "Ethereum ETH",
+        //                     "decimals": 18,
+        //                     "blockChain": "Ethereum",
+        //                     "precision": 8,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T08:57:41.719Z",
+        //                     "txLimits": {
+        //                         "minDeposit": "100000000000000",
+        //                         "maxWithdraw": "10000000000000000000000",
+        //                         "minWithdraw": "20000000000000000",
+        //                         "withdrawCommissionFixed": "5000000000000000",
+        //                         "withdrawCommissionPercentage": "NaN"
+        //                     },
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTQuOTU1NyAxOS45NzM5TDkgMTYuMzUwOUwxNC45NTIxIDI1TDIwLjkxMDkgMTYuMzUwOUwxNC45NTIxIDE5Ljk3MzlIMTQuOTU1N1pNMTUuMDQ0MyA1TDkuMDkwOTUgMTUuMTg1M0wxNS4wNDQzIDE4LjgxNDZMMjEgMTUuMTg5MUwxNS4wNDQzIDVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+        //                     "idSorting": 2,
+        //                     "links": [
+        //                         {
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         }
+        //                     ],
+        //                     "clientTxLimits": {
+        //                         "minDeposit": "0.0001",
+        //                         "minWithdraw": "0.02",
+        //                         "maxWithdraw": "10000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": "0.005"
+        //                     }
+        //                 },
+        //                 "quoteCurrency": {
+        //                     "id": 3,
+        //                     "status": 1,
+        //                     "symbol": "usdt",
+        //                     "title": "Tether USD",
+        //                     "logoURL": "https://cryptologos.cc/logos/tether-usdt-logo.png?v=010",
+        //                     "isDiscount": false,
+        //                     "address": "https://tether.to/",
+        //                     "description": "Tether USD",
+        //                     "decimals": 6,
+        //                     "blockChain": "",
+        //                     "precision": 6,
+        //                     "currentRate": null,
+        //                     "active": true,
+        //                     "timeStart": "2021-01-28T09:04:17.170Z",
+        //                     "txLimits": {
+        //                         "minDeposit": "1000",
+        //                         "maxWithdraw": "100000000000",
+        //                         "minWithdraw": "1000000",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2000000",
+        //                             "Binance": "2000000000000000000",
+        //                             "Ethereum": "20000000"
+        //                         },
+        //                         "withdrawCommissionPercentage": "NaN"
+        //                     },
+        //                     "type": "crypto",
+        //                     "typeNetwork": "internalGW",
+        //                     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMTVDMCA2LjcxNTczIDYuNzE1NzMgMCAxNSAwVjBDMjMuMjg0MyAwIDMwIDYuNzE1NzMgMzAgMTVWMTVDMzAgMjMuMjg0MyAyMy4yODQzIDMwIDE1IDMwVjMwQzYuNzE1NzMgMzAgMCAyMy4yODQzIDAgMTVWMTVaIiBmaWxsPSIjNkZBNjg4Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjMgN0g3VjExSDEzVjEyLjA2MkM4Ljk5MjAyIDEyLjMxNDYgNiAxMy4zMTAyIDYgMTQuNUM2IDE1LjY4OTggOC45OTIwMiAxNi42ODU0IDEzIDE2LjkzOFYyM0gxN1YxNi45MzhDMjEuMDA4IDE2LjY4NTQgMjQgMTUuNjg5OCAyNCAxNC41QzI0IDEzLjMxMDIgMjEuMDA4IDEyLjMxNDYgMTcgMTIuMDYyVjExSDIzVjdaTTcuNSAxNC41QzcuNSAxMy40NjA2IDkuMzMzMzMgMTIuMzY4IDEzIDEyLjA3NTZWMTUuNUgxN1YxMi4wNzU5QzIwLjkzODQgMTIuMzkyNyAyMi41IDEzLjYzMzkgMjIuNSAxNC41QzIyLjUgMTUuMzIyIDIwLjAwMDggMTUuODA2MSAxNyAxNS45NTI1QzE1LjcwODIgMTYuMDQ2MiAxMy43OTUxIDE1Ljk4MjYgMTMgMTUuOTM5MUM5Ljk5OTIxIDE1Ljc1NTkgNy41IDE1LjE4MDkgNy41IDE0LjVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+        //                     "idSorting": 0,
+        //                     "links": [
+        //                         {
+        //                             "tx": "https://etherscan.io/tx/",
+        //                             "address": "https://etherscan.io/address/",
+        //                             "blockChain": "Ethereum"
+        //                         },
+        //                         {
+        //                             "tx": "https://tronscan.org/#/transaction/",
+        //                             "address": "https://tronscan.org/#/address/",
+        //                             "blockChain": "Tron"
+        //                         },
+        //                         {
+        //                             "tx": "https://bscscan.com/tx/",
+        //                             "address": "https://bscscan.com/address/",
+        //                             "blockChain": "Binance"
+        //                         }
+        //                     ],
+        //                     "clientTxLimits": {
+        //                         "minDeposit": "0.001",
+        //                         "minWithdraw": "1",
+        //                         "maxWithdraw": "100000",
+        //                         "withdrawCommissionPercentage": "NaN",
+        //                         "withdrawCommissionFixed": {
+        //                             "Tron": "2",
+        //                             "Binance": "2",
+        //                             "Ethereum": "20"
+        //                         }
+        //                     }
+        //                 },
+        //                 "quantities": {
+        //                     "asks": "5.58760757",
+        //                     "bids": "2226.98663823032198"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const pair = this.safeValue (result, 'pair', {});
+        return this.parseTicker (pair, market);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "id": 2,
+        //         "name": "eth_usdt",
+        //         "baseAssetId": 2,
+        //         "quoteAssetId": 3,
+        //         "fullName": "ETH USDT",
+        //         "description": "ETH   USDT",
+        //         "lastBuy": "1976.715012",
+        //         "lastSell": "1971.995006",
+        //         "lastPrice": "1976.715012",
+        //         "change24": "1.02",
+        //         "volume24": 24.0796457,
+        //         "volume24USD": 44282.347995912205,
+        //         "active": true,
+        //         "baseStep": 8,
+        //         "quoteStep": 6,
+        //         "status": 1,
+        //         "asks": [
+        //             {
+        //             "price": "1976.405003",
+        //             "quantity": "0.0051171",
+        //             "amount": "10.1134620408513"
+        //             },
+        //             {
+        //             "price": "1976.405013",
+        //             "quantity": "0.09001559",
+        //             "amount": "177.90726332415267"
+        //             },
+        //             {
+        //             "price": "2010.704988",
+        //             "quantity": "0.00127892",
+        //             "amount": "2.57153082325296"
+        //             }
+        //                ...
+        //         ],
+        //         "bids": [
+        //             {
+        //             "price": "1976.404988",
+        //             "quantity": "0.09875861",
+        //             "amount": "195.18700941194668"
+        //             },
+        //             {
+        //             "price": "1905.472973",
+        //             "quantity": "0.00263591",
+        //             "amount": "5.02265526426043"
+        //             },
+        //             {
+        //             "price": "1904.274973",
+        //             "quantity": "0.09425304",
+        //             "amount": "179.48370520116792"
+        //             }
+        //                ...
+        //         ],
+        //         "updateId": "78",
+        //         "timeStart": "2021-01-28T09:19:30.706Z",
+        //         "makerFee": 200,
+        //         "takerFee": 200,
+        //         "quoteVolume24": 49125.1374009045,
+        //         "lowPrice24": 1966.704999,
+        //         "highPrice24": 2080.354997,
+        //         ...
+        //     }
+        //
+        const bids = this.safeValue (ticker, 'bids', []);
+        const bestBid = this.safeValue (bids, 0, {});
+        const bestBidPrice = this.safeString (bestBid, 'price');
+        const bestBidVolume = this.safeString (bestBid, 'quantity');
+        const asks = this.safeValue (ticker, 'asks', []);
+        const bestAsk = this.safeValue (asks, 0, {});
+        const bestAskPrice = this.safeString (bestAsk, 'price');
+        const bestAskVolume = this.safeString (bestAsk, 'quantity');
+        const baseVolume = this.safeString (ticker, 'volume24');
+        const quoteVolume = this.safeString (ticker, 'quoteVolume24');
+        const high = this.safeString (ticker, 'highPrice24');
+        const low = this.safeString (ticker, 'lowPrice24');
+        const close = this.safeString (ticker, 'lastPrice');
+        const changePcnt = this.safeString (ticker, 'change24'); // todo: check
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'open': undefined,
+            'high': high,
+            'low': low,
+            'close': close,
+            'bid': bestBidPrice,
+            'bidVolume': bestBidVolume,
+            'ask': bestAskPrice,
+            'askVolume': bestAskVolume,
+            'vwap': undefined,
+            'previousClose': undefined,
+            'change': undefined, // todo: check
+            'percentage': changePcnt,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
