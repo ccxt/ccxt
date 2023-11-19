@@ -4684,7 +4684,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :param int [params.until]: the latest time in ms to fetch entries for
+        :param int [params.until]: *swap only* the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
@@ -4721,8 +4721,6 @@ class bitget(Exchange, ImplicitAPI):
                     response = self.privateMarginGetMarginV1CrossOrderFills(self.extend(request, params))
             else:
                 request, params = self.handle_until_option('before', request, params)
-                if since is not None:
-                    request['after'] = since
                 if limit is not None:
                     request['limit'] = limit
                 response = self.privateSpotPostSpotV1TradeFills(self.extend(request, params))

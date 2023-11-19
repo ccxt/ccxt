@@ -2042,17 +2042,17 @@ class bitmart(Exchange, ImplicitAPI):
     def parse_order_status_by_type(self, type, status):
         statusesByType = {
             'spot': {
-                '1': 'failed',  # Order failure
+                '1': 'rejected',  # Order failure
                 '2': 'open',  # Placing order
-                '3': 'failed',  # Order failure, Freeze failure
+                '3': 'rejected',  # Order failure, Freeze failure
                 '4': 'open',  # Order success, Pending for fulfilment
                 '5': 'open',  # Partially filled
                 '6': 'closed',  # Fully filled
-                '7': 'canceling',  # Canceling
+                '7': 'canceled',  # Canceling
                 '8': 'canceled',  # Canceled
                 'new': 'open',
                 'partially_filled': 'open',
-                'filled': 'filled',
+                'filled': 'closed',
                 'partially_canceled': 'canceled',
             },
             'swap': {
@@ -2516,11 +2516,14 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+        :see: https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bitmart api endpoint
+        :param int [params.until]: timestamp in ms of the latest entry
+        :param str [params.marginMode]: *spot only* 'cross' or 'isolated', for margin trading
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
@@ -2532,17 +2535,25 @@ class bitmart(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         if type != 'spot':
-            raise NotSupported(self.id + ' fetchClosedOrders() does not support ' + type + ' orders, only spot orders are accepted')
+            self.check_required_symbol('fetchClosedOrders', symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchClosedOrders', params)
         if marginMode == 'isolated':
             request['orderMode'] = 'iso_margin'
-        until = self.safe_integer_2(params, 'until', 'endTime')
+        startTimeKey = 'startTime' if (type == 'spot') else 'start_time'
+        if since is not None:
+            request[startTimeKey] = since
+        endTimeKey = 'endTime' if (type == 'spot') else 'end_time'
+        until = self.safe_integer_2(params, 'until', endTimeKey)
         if until is not None:
-            params = self.omit(params, ['endTime'])
-            request['endTime'] = until
-        response = self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
-        data = self.safe_value(response, 'data')
+            params = self.omit(params, ['until'])
+            request[endTimeKey] = until
+        response = None
+        if type == 'spot':
+            response = self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
+        else:
+            response = self.privateGetContractPrivateOrderHistory(self.extend(request, params))
+        data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

@@ -7093,7 +7093,7 @@ class binance extends Exchange {
         $initialMarginString = $this->safe_string($position, 'initialMargin');
         $initialMargin = $this->parse_number($initialMarginString);
         $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
-        $rational = (fmod(1000, $leverage)) === 0;
+        $rational = $this->is_round_number(fmod(1000, $leverage));
         if (!$rational) {
             $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
         }
@@ -7370,7 +7370,7 @@ class binance extends Exchange {
         $maintenanceMarginString = Precise::string_mul($maintenanceMarginPercentageString, $notionalStringAbs);
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
-        $rational = (fmod(1000, $leverage)) === 0;
+        $rational = $this->is_round_number(fmod(1000, $leverage));
         if (!$rational) {
             $initialMarginPercentageString = Precise::string_add($initialMarginPercentageString, '1e-8');
         }

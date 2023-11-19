@@ -220,6 +220,7 @@ interface htx {
     contractPublicGetHeartbeat(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractContractInfo(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractIndex(params?: {}): Promise<implicitReturnType>;
+    contractPublicGetApiV1ContractQueryElements(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractPriceLimit(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractOpenInterest(params?: {}): Promise<implicitReturnType>;
     contractPublicGetApiV1ContractDeliveryPrice(params?: {}): Promise<implicitReturnType>;
@@ -248,6 +249,7 @@ interface htx {
     contractPublicGetApiV3ContractLiquidationOrders(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapApiV1SwapContractInfo(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapApiV1SwapIndex(params?: {}): Promise<implicitReturnType>;
+    contractPublicGetSwapApiV1SwapQueryElements(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapApiV1SwapPriceLimit(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapApiV1SwapOpenInterest(params?: {}): Promise<implicitReturnType>;
     contractPublicGetSwapExMarketDepth(params?: {}): Promise<implicitReturnType>;
@@ -279,6 +281,7 @@ interface htx {
     contractPublicGetIndexMarketHistorySwapBasis(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapContractInfo(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapIndex(params?: {}): Promise<implicitReturnType>;
+    contractPublicGetLinearSwapApiV1SwapQueryElements(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapPriceLimit(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapApiV1SwapOpenInterest(params?: {}): Promise<implicitReturnType>;
     contractPublicGetLinearSwapExMarketDepth(params?: {}): Promise<implicitReturnType>;
