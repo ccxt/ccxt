@@ -1884,9 +1884,13 @@ export default class bitmex extends Exchange {
                     request['ordType'] = triggerAbove ? 'MarketIfTouched' : 'Stop';
                 }
             }
-        } else if ((triggerPrice === undefined) && customTriggerType) {
-            // if exchange specific trigger types were provided
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the ' + orderType + ' order type');
+        } if (customTriggerType) {
+            if (triggerPrice === undefined) {
+                // if exchange specific trigger types were provided
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the ' + orderType + ' order type');
+            }
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopPx' ]);
+            request['stopPx'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
         }
         if ((orderType === 'Limit') || (orderType === 'StopLimit') || (orderType === 'LimitIfTouched')) {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
