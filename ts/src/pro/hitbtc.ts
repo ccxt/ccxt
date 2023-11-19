@@ -1257,7 +1257,7 @@ export default class hitbtc extends hitbtcRest {
                 // to do improve this, not very reliable right now
                 const first = this.safeValue (result, 0, {});
                 const arrayLength = result.length;
-                if ((arrayLength === 0) || 'client_order_id' in first) {
+                if ((arrayLength === 0) || ('client_order_id' in first)) {
                     this.handleOrderRequest (client, message);
                 }
             }
