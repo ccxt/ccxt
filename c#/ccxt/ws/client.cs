@@ -51,7 +51,7 @@ public partial class Exchange
             this.task = this.tcs.Task;
         }
 
-        public void resolve(object data)
+        public void resolve(object data = null)
         {
             this.tcs.SetResult(data);
             this.tcs = new TaskCompletionSource<object>(); // reset
@@ -66,7 +66,7 @@ public partial class Exchange
         }
     }
 
-    public void handleMessage(WebSocketClient client, object messageContent)
+    public virtual void handleMessage(WebSocketClient client, object messageContent)
     {
         Console.WriteLine("handleMessage");
         Console.WriteLine(messageContent);
@@ -77,8 +77,9 @@ public partial class Exchange
 
     }
 
-    public WebSocketClient client(string url)
+    public WebSocketClient client(object url2)
     {
+        var url = url2.ToString();
         if (!this.clients.ContainsKey(url))
         {
             this.clients[url] = new WebSocketClient(url, handleMessage);
@@ -86,8 +87,11 @@ public partial class Exchange
         return this.clients[url];
     }
 
-    public async Task<object> watch(string url, string messageHash, object message = null, string subscribeHash = null, object subscription = null)
+    public async Task<object> watch(object url2, object messageHash2, object message = null, object subscribeHash2 = null, object subscription = null)
     {
+        var url = url2.ToString();
+        var messageHash = messageHash2.ToString();
+        var subscribeHash = subscribeHash2?.ToString();
         var client = this.client(url);
 
         if ((subscribeHash == null) && (client.futures.ContainsKey(messageHash)))
@@ -134,7 +138,7 @@ public partial class Exchange
 
     public class WebSocketClient
     {
-        private string url; // Replace with your WebSocket server URL
+        public string url; // Replace with your WebSocket server URL
         public ClientWebSocket webSocket = new ClientWebSocket();
 
         public Dictionary<string, Future> futures = new Dictionary<string, Future>();
@@ -159,8 +163,9 @@ public partial class Exchange
             this.handleMessage = handleMessage;
         }
 
-        public Task<object> future(string messageHash)
+        public Task<object> future(object messageHash2)
         {
+            var messageHash = messageHash2.ToString();
             // var tcs = new TaskCompletionSource<object>();
             // this.futures[messageHash] = tcs;
             // return tcs.Task;
@@ -177,14 +182,35 @@ public partial class Exchange
             }
         }
 
-        public void resolve(object content, string messageHash)
+        public void resolve(object content, object messageHash2)
         {
+            var messageHash = messageHash2.ToString();
             if (this.futures.ContainsKey(messageHash))
             {
                 var future = this.futures[messageHash];
                 this.futures.Remove(messageHash); // this order matters
                 future.resolve(content);
             }
+        }
+
+        public void reject(object content, object messageHash2 = null)
+        {
+            if (messageHash2 != null)
+            {
+                var messageHash = messageHash2.ToString();
+                if (this.futures.ContainsKey(messageHash))
+                {
+                    var future = this.futures[messageHash];
+                    this.futures.Remove(messageHash); // this order matters
+                    future.reject(content);
+                }
+            }
+
+        }
+
+        public void reset(object message2)
+        {
+            // stub implement this later
         }
 
         public Task connect(int backoffDelay = 0)

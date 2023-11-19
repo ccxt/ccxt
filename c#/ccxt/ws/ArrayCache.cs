@@ -37,7 +37,7 @@ public class ArrayCache : BaseCache
     protected Dictionary<string, object> clearUpdatesBySymbol = new Dictionary<string, object>();
     protected int allNewUpdates;
     protected bool clearAllUpdates;
-    public ArrayCache(int? maxSixe = null) : base(maxSixe)
+    public ArrayCache(object maxSixe = null) : base(maxSixe)
     {
 
     }
@@ -169,7 +169,7 @@ public class ArrayCacheBySymbolById : ArrayCache
 {
     public Dictionary<string, object> hashmap = new Dictionary<string, object>();
     // public Deque<int> index = new Queue<int>();
-    public ArrayCacheBySymbolById(int? maxSixe = null) : base(maxSixe)
+    public ArrayCacheBySymbolById(object maxSixe = null) : base(maxSixe)
     {
         this.nestedNewUpdatesBySymbol = true;
     }
