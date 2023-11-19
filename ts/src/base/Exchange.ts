@@ -4650,7 +4650,7 @@ export default class Exchange {
         return fee;
     }
 
-    parseIncome (info, market: Market = undefined) {
+    parseIncome (info, market: Market = undefined): object {
         throw new NotSupported (this.id + ' parseIncome () is not supported yet');
     }
 

@@ -405,7 +405,7 @@ public partial class Exchange
             this.balances = new Dictionary<string, Balance>();
             foreach (var balance in balances)
             {
-                if (balance.Key != "info" && balance.Key != "free" && balance.Key != "used" && balance.Key != "total")
+                if (balance.Key != "info" && balance.Key != "free" && balance.Key != "used" && balance.Key != "total" && balance.Key != "timestamp" && balance.Key != "datetime")
                 {
                     this.balances.Add(balance.Key, new Balance(balance.Value));
                 }

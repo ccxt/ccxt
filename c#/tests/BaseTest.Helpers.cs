@@ -30,6 +30,10 @@ public partial class testMainClass : BaseTest
     public bool loadKeys = false;
 
     public bool staticTestsFailed = false;
+    public bool responseTests = false;
+    public bool responseTestsFailed = false;
+    public bool requestTests = false;
+    public bool requestTestsFailed = false;
     public bool staticTests = false;
     public bool idTests = false;
 
@@ -222,6 +226,19 @@ public partial class testMainClass : BaseTest
     {
         var e = exc as Exception;
         return e.Message;
+    }
+
+    public void setFetchResponse(object exchange2, object response)
+    {
+        var exchange = exchange2 as Exchange;
+
+        exchange.fetchResponse = response;
+
+    }
+
+    public bool isNullValue(object value)
+    {
+        return value == null;
     }
 
     public partial class SharedMethods
