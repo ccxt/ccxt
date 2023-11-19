@@ -341,7 +341,7 @@ class poloniexfutures extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //    {
         //        "symbol" => "BTCUSDTPERP",                   // Market of the $symbol
@@ -540,7 +540,7 @@ class poloniexfutures extends Exchange {
         return $this->fetch_order_book($market['id'], null, array( 'level' => 3 ));
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -993,7 +993,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //    {
         //        "code" => "200000",
@@ -1044,7 +1044,6 @@ class poloniexfutures extends Exchange {
         $market = $this->safe_market($symbol, $market);
         $timestamp = $this->safe_integer($position, 'currentTimestamp');
         $size = $this->safe_string($position, 'currentQty');
-        $side = null;
         if (Precise::string_gt($size, '0')) {
             $side = 'long';
         } elseif (Precise::string_lt($size, '0')) {
@@ -1426,7 +1425,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_order($responseData, $market);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //

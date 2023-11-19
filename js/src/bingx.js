@@ -54,7 +54,7 @@ export default class bingx extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
-                'setMagin': true,
+                'setMargin': true,
                 'setMarginMode': true,
                 'transfer': true,
             },
@@ -1224,7 +1224,16 @@ export default class bingx extends Exchange {
         //          "quoteVolume": "4151395117.73",
         //          "openPrice": "16832.0",
         //          "openTime": 1672026667803,
-        //          "closeTime": 1672026648425
+        //          "closeTime": 1672026648425,
+        //  added some time ago:
+        //          "firstId": 12345,
+        //          "lastId": 12349,
+        //          "count": 5,
+        //  added 2023-11-10:
+        //          "bidPrice": 16726.0,
+        //          "bidQty": 0.05,
+        //          "askPrice": 16726.0,
+        //          "askQty": 0.05,
         //        }
         //    }
         //
@@ -1275,7 +1284,16 @@ export default class bingx extends Exchange {
         //                "quoteVolume": "4151395117.73",
         //                "openPrice": "16832.0",
         //                "openTime": 1672026667803,
-        //                "closeTime": 1672026648425
+        //                "closeTime": 1672026648425,
+        //  added some time ago:
+        //                "firstId": 12345,
+        //                "lastId": 12349,
+        //                "count": 5,
+        //  added 2023-11-10:
+        //                "bidPrice": 16726.0,
+        //                "bidQty": 0.05,
+        //                "askPrice": 16726.0,
+        //                "askQty": 0.05,
         //            },
         //        ]
         //    }
@@ -1295,7 +1313,16 @@ export default class bingx extends Exchange {
         //        "volume": "1161.79",
         //        "quoteVolume": "30288466.44",
         //        "openTime": "1693081020762",
-        //        "closeTime": "1693167420762"
+        //        "closeTime": "1693167420762",
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
         //    }
         // swap
         //
@@ -1311,7 +1338,16 @@ export default class bingx extends Exchange {
         //        "quoteVolume": "4151395117.73",
         //        "openPrice": "16832.0",
         //        "openTime": 1672026667803,
-        //        "closeTime": 1672026648425
+        //        "closeTime": 1672026648425,
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
         //    }
         //
         const marketId = this.safeString(ticker, 'symbol');
@@ -1327,16 +1363,20 @@ export default class bingx extends Exchange {
         const percentage = this.safeString(ticker, 'priceChangePercent');
         const ts = this.safeInteger(ticker, 'closeTime');
         const datetime = this.iso8601(ts);
+        const bid = this.safeString(ticker, 'bidPrice');
+        const bidVolume = this.safeString(ticker, 'bidQty');
+        const ask = this.safeString(ticker, 'askPrice');
+        const askVolume = this.safeString(ticker, 'askQty');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': ts,
             'datetime': datetime,
             'high': high,
             'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': open,
             'close': close,

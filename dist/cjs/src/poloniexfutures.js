@@ -1059,7 +1059,7 @@ class poloniexfutures extends poloniexfutures$1 {
         market = this.safeMarket(symbol, market);
         const timestamp = this.safeInteger(position, 'currentTimestamp');
         const size = this.safeString(position, 'currentQty');
-        let side = undefined;
+        let side;
         if (Precise["default"].stringGt(size, '0')) {
             side = 'long';
         }

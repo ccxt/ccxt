@@ -1480,7 +1480,7 @@ export default class timex extends Exchange {
         const amount = this.safeString(order, 'quantity');
         const filled = this.safeString(order, 'filledQuantity');
         const canceledQuantity = this.omitZero(this.safeString(order, 'cancelledQuantity'));
-        let status = undefined;
+        let status;
         if (Precise.stringEquals(filled, amount)) {
             status = 'closed';
         }

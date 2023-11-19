@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
@@ -474,7 +474,7 @@ class idex(ccxt.async_support.idex):
             self.options['token'] = self.safe_string(response, 'token')
         return self.options['token']
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -598,7 +598,7 @@ class idex(ccxt.async_support.idex):
         client.resolve(orders, symbolSpecificMessageHash)
         client.resolve(orders, type)
 
-    async def watch_transactions(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         name = 'balances'
         subscribeObject = {

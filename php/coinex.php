@@ -53,8 +53,8 @@ class coinex extends Exchange {
                 'fetchDepositAddressByNetwork' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
-                'fetchDepsoitWithdrawFee' => 'emulated',
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -656,7 +656,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // Spot fetchTicker, fetchTickers
         //
@@ -979,7 +979,7 @@ class coinex extends Exchange {
         return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // Spot and Swap fetchTrades (public)
         //
@@ -1213,7 +1213,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($fee, $market = null) {
+    public function parse_trading_fee($fee, ?array $market = null) {
         $marketId = $this->safe_value($fee, 'name');
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
@@ -1226,7 +1226,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1591484400,
@@ -1529,7 +1529,7 @@ class coinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrder
         //
@@ -2781,7 +2781,7 @@ class coinex extends Exchange {
         return $depositAddress;
     }
 
-    public function safe_network($networkId, $currency = null) {
+    public function safe_network($networkId, ?array $currency = null) {
         $networks = $this->safe_value($currency, 'networks', array());
         $networksCodes = is_array($networks) ? array_keys($networks) : array();
         $networksCodesLength = count($networksCodes);
@@ -2794,12 +2794,12 @@ class coinex extends Exchange {
         );
     }
 
-    public function safe_network_code($networkId, $currency = null) {
+    public function safe_network_code($networkId, ?array $currency = null) {
         $network = $this->safe_network($networkId, $currency);
         return $network['network'];
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
         //         "coin_address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
@@ -3131,7 +3131,7 @@ class coinex extends Exchange {
         return $this->parse_position($data[0], $market);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "adl_sort" => 3396,
@@ -3376,7 +3376,7 @@ class coinex extends Exchange {
         return $tiers;
     }
 
-    public function parse_market_leverage_tiers($item, $market = null) {
+    public function parse_market_leverage_tiers($item, ?array $market = null) {
         $tiers = array();
         $minNotional = 0;
         for ($j = 0; $j < count($item); $j++) {
@@ -3471,7 +3471,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         return array(
             'info' => $data,
             'type' => null,
@@ -3631,7 +3631,7 @@ class coinex extends Exchange {
         return $this->parse_funding_rate($ticker, $market);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         // fetchFundingRate
         //
@@ -3893,7 +3893,7 @@ class coinex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -4058,7 +4058,7 @@ class coinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // fetchTransfers Swap
         //
@@ -4329,7 +4329,7 @@ class coinex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_borrow_rate($info, $currency = null) {
+    public function parse_borrow_rate($info, ?array $market = null) {
         //
         //     {
         //         "market" => "BTCUSDT",
@@ -4346,36 +4346,39 @@ class coinex extends Exchange {
         //         }
         //     ),
         //
-        $timestamp = $this->milliseconds();
-        $baseCurrencyData = $this->safe_value($info, $currency, array());
+        $marketId = $this->safe_string($info, 'market');
+        $market = $this->safe_market($marketId, $market, null, 'spot');
+        $baseInfo = $this->safe_value($info, $market['baseId']);
+        $baseRate = $this->safe_number($baseInfo, 'day_rate');
+        $quoteInfo = $this->safe_value($info, $market['quoteId']);
+        $quoteRate = $this->safe_number($quoteInfo, 'day_rate');
         return array(
-            'currency' => $this->safe_currency_code($currency),
-            'rate' => $this->safe_number($baseCurrencyData, 'day_rate'),
+            'symbol' => $market['symbol'],
+            'base' => $market['base'],
+            'baseRate' => $baseRate,
+            'quote' => $market['quote'],
+            'quoteRate' => $quoteRate,
             'period' => 86400000,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }
 
-    public function fetch_borrow_rate(string $code, $params = array ()) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
         /**
          * fetch the rate of interest to borrow a currency for margin trading
-         * @param {string} $code unified currency $code
+         * @param {string} code unified currency code
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structure}
          */
         $this->load_markets();
         $market = null;
-        if (is_array($this->markets) && array_key_exists($code, $this->markets)) {
-            $market = $this->market($code);
-        } else {
-            $defaultSettle = $this->safe_string($this->options, 'defaultSettle', 'USDT');
-            $market = $this->market($code . '/' . $defaultSettle);
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market'] = $market['id'];
         }
-        $request = array(
-            'market' => $market['id'],
-        );
         $response = $this->privateGetMarginConfig (array_merge($request, $params));
         //
         //     {
@@ -4398,10 +4401,10 @@ class coinex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_borrow_rate($data, $market['base']);
+        return $this->parse_borrow_rate($data, $market);
     }
 
-    public function fetch_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()) {
         /**
          * fetch the borrow interest $rates of all currencies
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
@@ -4431,22 +4434,10 @@ class coinex extends Exchange {
         //         "message" => "Success"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $data = $this->safe_value($response, 'data', array());
         $rates = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $symbol = $this->safe_string($entry, 'market');
-            $market = $this->safe_market($symbol, null, null, 'spot');
-            $currencyData = $this->safe_value($entry, $market['base']);
-            $rates[] = array(
-                'currency' => $market['base'],
-                'rate' => $this->safe_number($currencyData, 'day_rate'),
-                'period' => 86400000,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'info' => $entry,
-            );
+            $rates[] = $this->parse_borrow_rate($data[$i]);
         }
         return $rates;
     }
@@ -4499,7 +4490,7 @@ class coinex extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, $market = null) {
+    public function parse_borrow_interest($info, ?array $market = null) {
         //
         //     {
         //         "loan_id" => 2616357,
@@ -4616,7 +4607,7 @@ class coinex extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, $currency = null) {
+    public function parse_margin_loan($info, ?array $currency = null) {
         //
         // borrowMargin
         //

@@ -1813,7 +1813,7 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
     }
     normalizeNumberIfNeeded(number) {
-        if (number % 1 === 0) {
+        if (this.isRoundNumber(number)) {
             number = parseInt(number);
         }
         return number;

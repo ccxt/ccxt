@@ -566,7 +566,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "asset_pair_name":"ETH-BTC",
@@ -751,7 +751,7 @@ class bigone extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -819,11 +819,7 @@ class bigone extends Exchange {
         $takerOrderId = $this->safe_string($trade, 'taker_order_id');
         $orderId = null;
         if ($makerOrderId !== null) {
-            if ($takerOrderId !== null) {
-                $orderId = array( $makerOrderId, $takerOrderId );
-            } else {
-                $orderId = $makerOrderId;
-            }
+            $orderId = $makerOrderId;
         } elseif ($takerOrderId !== null) {
             $orderId = $takerOrderId;
         }
@@ -930,7 +926,7 @@ class bigone extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "close" => "0.021562",
@@ -1062,7 +1058,7 @@ class bigone extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         //    {
         //        "id" => "42154072251",
@@ -1544,7 +1540,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1777,7 +1773,7 @@ class bigone extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //     {
         //         "code" => 0,

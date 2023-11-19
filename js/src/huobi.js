@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/huobi.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
@@ -18,6 +19,8 @@ export default class huobi extends Exchange {
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+=======
+>>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
 // ---------------------------------------------------------------------------
 import htx from './htx.js';
 // ---------------------------------------------------------------------------

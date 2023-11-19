@@ -2144,7 +2144,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
-        const stop = this.safeValue(params, 'stop', false);
+        const stop = this.safeValue2(params, 'stop', 'trigger', false);
         const hf = this.safeValue(params, 'hf', false);
         if (hf) {
             if (symbol === undefined) {
@@ -2153,30 +2153,33 @@ export default class kucoin extends Exchange {
             const market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        let method = 'privateDeleteOrdersOrderId';
+        let response = undefined;
+        params = this.omit(params, ['clientOid', 'clientOrderId', 'stop', 'hf', 'trigger']);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (stop) {
-                method = 'privateDeleteStopOrderCancelOrderByClientOid';
+                response = await this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, params));
             }
             else if (hf) {
-                method = 'privateDeleteHfOrdersClientOrderClientOid';
+                response = await this.privateDeleteHfOrdersClientOrderClientOid(this.extend(request, params));
             }
             else {
-                method = 'privateDeleteOrderClientOrderClientOid';
+                response = await this.privateDeleteOrderClientOrderClientOid(this.extend(request, params));
             }
         }
         else {
+            request['orderId'] = id;
             if (stop) {
-                method = 'privateDeleteStopOrderOrderId';
+                response = await this.privateDeleteStopOrderOrderId(this.extend(request, params));
             }
             else if (hf) {
-                method = 'privateDeleteHfOrdersOrderId';
+                response = await this.privateDeleteHfOrdersOrderId(this.extend(request, params));
             }
-            request['orderId'] = id;
+            else {
+                response = await this.privateDeleteOrdersOrderId(this.extend(request, params));
+            }
         }
-        params = this.omit(params, ['clientOid', 'clientOrderId', 'stop', 'hf']);
-        return await this[method](this.extend(request, params));
+        return response;
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**

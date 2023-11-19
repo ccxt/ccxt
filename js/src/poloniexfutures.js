@@ -1056,7 +1056,7 @@ export default class poloniexfutures extends Exchange {
         market = this.safeMarket(symbol, market);
         const timestamp = this.safeInteger(position, 'currentTimestamp');
         const size = this.safeString(position, 'currentQty');
-        let side = undefined;
+        let side;
         if (Precise.stringGt(size, '0')) {
             side = 'long';
         }

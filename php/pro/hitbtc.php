@@ -909,7 +909,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //    }
         //
         $timestamp = $this->safe_string($order, 'created_at');
-        $marketId = $this->safe_symbol($order, 'symbol');
+        $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $tradeId = $this->safe_string($order, 'trade_id');
         $trades = null;

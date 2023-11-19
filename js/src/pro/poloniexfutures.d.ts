@@ -28,7 +28,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     handleLevel2(client: Client, message: any): void;
     handleL2OrderBook(client: Client, message: any): void;
     handeL2Snapshot(client: Client, message: any): void;
-    getSymbolFromTopic(topic: string): any;
+    getSymbolFromTopic(topic: string): string;
     getCacheIndex(orderbook: any, cache: any): any;
     handleDelta(orderbook: any, delta: any): void;
     handleBalance(client: Client, message: any): any;

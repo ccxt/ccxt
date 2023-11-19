@@ -309,7 +309,7 @@ class whitebit extends whitebit$1 {
         const active = this.safeValue(market, 'tradesEnabled');
         const isCollateral = this.safeValue(market, 'isCollateral');
         const typeId = this.safeString(market, 'type');
-        let type = undefined;
+        let type;
         let settle = undefined;
         let settleId = undefined;
         let symbol = base + '/' + quote;
@@ -1191,7 +1191,7 @@ class whitebit extends whitebit$1 {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        let method = undefined;
+        let method;
         if (marginMode !== undefined && marginMode !== 'cross') {
             throw new errors.NotSupported(this.id + ' createOrder() is only available for cross margin');
         }
