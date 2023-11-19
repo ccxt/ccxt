@@ -3,11 +3,11 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Strings } from '../base/types.js';
+import { Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, Trade } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { AuthenticationError, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ export default class hitbtc extends hitbtcRest {
                 'createOrderWs': true,
                 'cancelOrderWs': true,
                 'fetchOpenOrdersWs': true,
+                'cancelAllOrdersWs': true,
             },
             'urls': {
                 'api': {
@@ -940,6 +941,14 @@ export default class hitbtc extends hitbtcRest {
             const trade = this.parseWsOrderTrade (order, market);
             trades = [ trade ];
         }
+        const rawStatus = this.safeString (order, 'status');
+        const report_type = this.safeString (order, 'report_type');
+        let parsedStatus = undefined;
+        if (report_type === 'canceled') {
+            parsedStatus = this.parseOrderStatus (report_type);
+        } else {
+            parsedStatus = this.parseOrderStatus (rawStatus);
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'id'),
@@ -958,7 +967,7 @@ export default class hitbtc extends hitbtcRest {
             'filled': undefined,
             'remaining': undefined,
             'cost': undefined,
-            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'status': parsedStatus,
             'average': undefined,
             'trades': trades,
             'fee': undefined,
@@ -1067,6 +1076,37 @@ export default class hitbtc extends hitbtcRest {
             return await this.tradeRequest ('margin_cancel_order', request);
         } else {
             return await this.tradeRequest ('spot_cancel_order', request);
+        }
+    }
+
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#cancelAllOrdersWs
+         * @see https://api.hitbtc.com/#cancel-spot-orders
+         * @see https://api.hitbtc.com/#cancel-futures-order-3
+         * @description cancel all open orders
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for canceling margin orders
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersWs', market, params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrdersWs', params);
+        if (marketType === 'swap') {
+            return await this.tradeRequest ('futures_cancel_orders', params);
+        } else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            throw new NotSupported (this.id + ' cancelAllOrdersWs is not supported for margin orders');
+        } else {
+            return await this.tradeRequest ('spot_cancel_orders', params);
         }
     }
 
@@ -1215,8 +1255,9 @@ export default class hitbtc extends hitbtcRest {
             }
             if (Array.isArray (result)) {
                 // to do improve this, not very reliable right now
-                const first = this.safeValue (result, 0);
-                if ('client_order_id' in first) {
+                const first = this.safeValue (result, 0, {});
+                const arrayLength = result.length;
+                if ((arrayLength === 0) || 'client_order_id' in first) {
                     this.handleOrderRequest (client, message);
                 }
             }
