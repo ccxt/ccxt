@@ -2678,6 +2678,10 @@ export default class Exchange {
         });
     }
 
+    async fetchBorrowRate (code: string, amount, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead');
+    }
+
     async repayCrossMargin (code: string, amount, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' repayCrossMargin is not support yet');
     }
