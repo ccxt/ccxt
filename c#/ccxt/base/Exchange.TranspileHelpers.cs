@@ -611,7 +611,8 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = float.Parse((string)a, CultureInfo.InvariantCulture.NumberFormat);
+            // parsedValue = float.Parse((string)a, CultureInfo.InvariantCulture.NumberFormat);
+            parsedValue = (Convert.ToDouble(a, CultureInfo.InvariantCulture.NumberFormat));
         }
         catch (Exception e)
         {

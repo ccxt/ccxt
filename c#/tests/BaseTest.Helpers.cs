@@ -263,6 +263,11 @@ public partial class testMainClass : BaseTest
         return value == null;
     }
 
+    public object convertAscii(object input)
+    {
+        return System.Web.HttpUtility.UrlDecode(input as string);
+    }
+
     public partial class SharedMethods
     {
         // stub, the actual content is generated inside Generated/Exchange
