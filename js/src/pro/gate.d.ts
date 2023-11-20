@@ -1,5 +1,5 @@
 import gateRest from '../gate.js';
-import { Int } from '../base/types.js';
+import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gate extends gateRest {
     describe(): any;
@@ -10,22 +10,22 @@ export default class gate extends gateRest {
     handleBidAsks(bookSide: any, bidAsks: any): void;
     handleDelta(orderbook: any, delta: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
-    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
-    setPositionsCache(client: Client, type: any, symbols?: string[]): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
     loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handlePositions(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     handleBalanceSubscription(client: Client, message: any, subscription?: any): void;

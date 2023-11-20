@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bingxRest from '../bingx.js';
-import { BadRequest } from '../base/errors.js';
+import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class bingx extends bingxRest {
@@ -302,11 +302,12 @@ export default class bingx extends bingxRest {
         //        "h": "28915.4",
         //        "l": "28896.1",
         //        "v": "27.6919",
-        //        "T": 1690907580000
+        //        "T": 1696687499999,
+        //        "t": 1696687440000
         //    }
         //
         return [
-            this.safeInteger(ohlcv, 'T'),
+            this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
@@ -483,7 +484,7 @@ export default class bingx extends bingxRest {
          * @param {int} [since] the earliest time in ms to trades orders for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -600,16 +601,22 @@ export default class bingx extends bingxRest {
         // swap
         // Ping
         //
-        if (message === 'Ping') {
-            await client.send('Pong');
+        try {
+            if (message === 'Ping') {
+                await client.send('Pong');
+            }
+            else {
+                const ping = this.safeString(message, 'ping');
+                const time = this.safeString(message, 'time');
+                await client.send({
+                    'pong': ping,
+                    'time': time,
+                });
+            }
         }
-        else {
-            const ping = this.safeString(message, 'ping');
-            const time = this.safeString(message, 'time');
-            await client.send({
-                'pong': ping,
-                'time': time,
-            });
+        catch (e) {
+            const error = new NetworkError(this.id + ' pong failed with error ' + this.json(e));
+            client.reset(error);
         }
     }
     handleOrder(client, message) {

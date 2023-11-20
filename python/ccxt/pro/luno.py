@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Trade
+from ccxt.base.types import Int, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 
 
 class luno(ccxt.async_support.luno):
@@ -38,7 +37,7 @@ class luno(ccxt.async_support.luno):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://www.luno.com/en/developers/api#tag/Streaming-API
@@ -46,7 +45,7 @@ class luno(ccxt.async_support.luno):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of    trades to fetch
         :param dict [params]: extra parameters specific to the luno api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.check_required_credentials()
         await self.load_markets()
@@ -130,14 +129,14 @@ class luno(ccxt.async_support.luno):
             'fee': None,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dictConstructor [params]: extra parameters specific to the luno api endpoint
         :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.check_required_credentials()
         await self.load_markets()

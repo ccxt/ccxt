@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import NotSupported
 
 
@@ -52,7 +52,7 @@ class exmo(ccxt.async_support.exmo):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exmo api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.authenticate(params)
         type, query = self.handle_market_type_and_params('watchBalance', None, params)
@@ -153,18 +153,16 @@ class exmo(ccxt.async_support.exmo):
             for i in range(0, len(currencies)):
                 currencyId = currencies[i]
                 code = self.safe_currency_code(currencyId)
-                free = balances[currencyId]
-                used = reserved[currencyId]
                 account = self.account()
-                account['free'] = self.parse_number(free)
-                account['used'] = self.parse_number(used)
+                account['free'] = self.safe_string(balances, currencyId)
+                account['used'] = self.safe_string(reserved, currencyId)
                 self.balance[code] = account
         elif event == 'update':
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_number(data, 'balance')
-            account['used'] = self.safe_number(data, 'reserved')
+            account['free'] = self.safe_string(data, 'balance')
+            account['used'] = self.safe_string(data, 'reserved')
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
@@ -191,9 +189,9 @@ class exmo(ccxt.async_support.exmo):
             code = self.safe_currency_code(currencyId)
             wallet = self.safe_value(data, currencyId)
             account = self.account()
-            account['free'] = self.safe_number(wallet, 'free')
-            account['used'] = self.safe_number(wallet, 'used')
-            account['total'] = self.safe_number(wallet, 'balance')
+            account['free'] = self.safe_string(wallet, 'free')
+            account['used'] = self.safe_string(wallet, 'used')
+            account['total'] = self.safe_string(wallet, 'balance')
             self.balance[code] = account
             self.balance = self.safe_balance(self.balance)
 
@@ -202,7 +200,7 @@ class exmo(ccxt.async_support.exmo):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exmo api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -250,14 +248,14 @@ class exmo(ccxt.async_support.exmo):
         self.tickers[symbol] = parsedTicker
         client.resolve(parsedTicker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exmo api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -310,14 +308,14 @@ class exmo(ccxt.async_support.exmo):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of trades associated with the user
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exmo api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         await self.authenticate(params)
@@ -430,13 +428,13 @@ class exmo(ccxt.async_support.exmo):
             client.resolve(myTrades, symbolSpecificMessageHash)
         client.resolve(myTrades, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exmo api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)

@@ -451,6 +451,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_user_query_api($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_user_sub_apikeys($params = array()) {
+        return $this->request('v5/user/sub-apikeys', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_user_get_member_type($params = array()) {
         return $this->request('v5/user/get-member-type', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -769,6 +772,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_post_v5_account_set_margin_mode($params = array()) {
         return $this->request('v5/account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_v5_account_set_hedging_mode($params = array()) {
+        return $this->request('v5/account/set-hedging-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_v5_account_mmp_modify($params = array()) {
         return $this->request('v5/account/mmp-modify', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -788,7 +794,7 @@ abstract class bybit extends \ccxt\async\Exchange {
         return $this->request('v5/asset/deposit/deposit-to-account', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_v5_asset_withdraw_create($params = array()) {
-        return $this->request('v5/asset/withdraw/create', 'private', 'POST', $params, null, null, array("cost" => 300));
+        return $this->request('v5/asset/withdraw/create', 'private', 'POST', $params, null, null, array("cost" => 50));
     }
     public function private_post_v5_asset_withdraw_cancel($params = array()) {
         return $this->request('v5/asset/withdraw/cancel', 'private', 'POST', $params, null, null, array("cost" => 50));
@@ -1291,6 +1297,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function privateGetV5UserQueryApi($params = array()) {
         return $this->request('v5/user/query-api', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetV5UserSubApikeys($params = array()) {
+        return $this->request('v5/user/sub-apikeys', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetV5UserGetMemberType($params = array()) {
         return $this->request('v5/user/get-member-type', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1609,6 +1618,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function privatePostV5AccountSetMarginMode($params = array()) {
         return $this->request('v5/account/set-margin-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function privatePostV5AccountSetHedgingMode($params = array()) {
+        return $this->request('v5/account/set-hedging-mode', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function privatePostV5AccountMmpModify($params = array()) {
         return $this->request('v5/account/mmp-modify', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -1628,7 +1640,7 @@ abstract class bybit extends \ccxt\async\Exchange {
         return $this->request('v5/asset/deposit/deposit-to-account', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostV5AssetWithdrawCreate($params = array()) {
-        return $this->request('v5/asset/withdraw/create', 'private', 'POST', $params, null, null, array("cost" => 300));
+        return $this->request('v5/asset/withdraw/create', 'private', 'POST', $params, null, null, array("cost" => 50));
     }
     public function privatePostV5AssetWithdrawCancel($params = array()) {
         return $this->request('v5/asset/withdraw/cancel', 'private', 'POST', $params, null, null, array("cost" => 50));

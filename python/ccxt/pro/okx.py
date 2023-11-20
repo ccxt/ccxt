@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import OrderSide, OrderType
+from ccxt.base.types import Int, OrderSide, OrderType, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -119,7 +118,7 @@ class okx(ccxt.async_support.okx):
             return url + '/public' + sandboxSuffix
         return url + '/private' + sandboxSuffix
 
-    async def subscribe_multiple(self, access, channel, symbols: Optional[List[str]] = None, params={}):
+    async def subscribe_multiple(self, access, channel, symbols: Strings = None, params={}):
         await self.load_markets()
         if symbols is None:
             symbols = self.symbols
@@ -159,14 +158,14 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -175,7 +174,7 @@ class okx(ccxt.async_support.okx):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -252,7 +251,7 @@ class okx(ccxt.async_support.okx):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTicker', 'channel', 'tickers')
@@ -260,14 +259,14 @@ class okx(ccxt.async_support.okx):
         ticker = await self.watch_tickers([symbol], params)
         return self.safe_value(ticker, symbol)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         if self.is_empty(symbols):
             raise ArgumentsRequired(self.id + ' watchTickers requires a list of symbols')
@@ -326,7 +325,7 @@ class okx(ccxt.async_support.okx):
                 client.resolve(tickers, messageHash)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -383,13 +382,13 @@ class okx(ccxt.async_support.okx):
             messageHash = channel + ':' + marketId
             client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         options = self.safe_value(self.options, 'watchOrderBook', {})
         #
@@ -421,7 +420,7 @@ class okx(ccxt.async_support.okx):
         orderbook = await self.subscribe('public', depth, depth, symbol, params)
         return orderbook.limit()
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
@@ -683,7 +682,7 @@ class okx(ccxt.async_support.okx):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -766,7 +765,7 @@ class okx(ccxt.async_support.okx):
             },
         }, market)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple trades made by the user
@@ -775,7 +774,7 @@ class okx(ccxt.async_support.okx):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param bool [params.stop]: True if fetching trigger or conditional trades
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         # By default, receive order updates from any instrument type
         type = None
@@ -803,7 +802,7 @@ class okx(ccxt.async_support.okx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
         watch all open positions
@@ -914,7 +913,7 @@ class okx(ccxt.async_support.okx):
             if not self.is_empty(positions):
                 client.resolve(positions, messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
         watches information on multiple orders made by the user
@@ -923,7 +922,7 @@ class okx(ccxt.async_support.okx):
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param bool [params.stop]: True if fetching trigger or conditional orders
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         type = None
         # By default, receive order updates from any instrument type
@@ -1115,7 +1114,7 @@ class okx(ccxt.async_support.okx):
             symbolMessageHash = messageHash + '::' + tradeSymbols[i]
             client.resolve(self.orders, symbolMessageHash)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#websocket-api-trade-place-order
         create a trade order
@@ -1126,7 +1125,7 @@ class okx(ccxt.async_support.okx):
         :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param boolean params['test']: test order, default False
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -1178,7 +1177,7 @@ class okx(ccxt.async_support.okx):
         orders = self.parse_orders(args, None, None, None)
         client.resolve(orders, messageHash)
 
-    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         edit a trade order
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-amend-order
@@ -1190,7 +1189,7 @@ class okx(ccxt.async_support.okx):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -1206,7 +1205,7 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
         cancel multiple orders
@@ -1214,7 +1213,7 @@ class okx(ccxt.async_support.okx):
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.clOrdId]: client order id
-        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise BadRequest(self.id + ' cancelOrderWs() requires a symbol argument')
@@ -1238,14 +1237,14 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def cancel_orders_ws(self, ids: List[str], symbol: Optional[str] = None, params={}):
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
         cancel multiple orders
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         idsLength = len(ids)
         if idsLength > 20:
@@ -1270,13 +1269,13 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         :see: https://docs.okx.com/websockets/#message-cancelAll
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise BadRequest(self.id + ' cancelAllOrdersWs() requires a symbol argument')

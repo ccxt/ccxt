@@ -45,14 +45,13 @@ class coinlist extends coinlist$1 {
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
@@ -67,6 +66,8 @@ class coinlist extends coinlist$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
@@ -412,68 +413,66 @@ class coinlist extends coinlist$1 {
         //     }
         //
         const markets = this.safeValue(response, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'symbol');
-            const baseId = this.safeString(market, 'base_currency');
-            const quoteId = this.safeString(market, 'quote_currency');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const amountPrecision = this.safeString(market, 'minimum_size_increment');
-            const pricePrecision = this.safeString(market, 'minimum_price_increment');
-            const created = this.safeString(market, 'list_time');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(amountPrecision),
-                    'price': this.parseNumber(pricePrecision),
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'symbol');
+        const baseId = this.safeString(market, 'base_currency');
+        const quoteId = this.safeString(market, 'quote_currency');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const amountPrecision = this.safeString(market, 'minimum_size_increment');
+        const pricePrecision = this.safeString(market, 'minimum_price_increment');
+        const created = this.safeString(market, 'list_time');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(amountPrecision),
+                'price': this.parseNumber(pricePrecision),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'created': this.parse8601(created),
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.parse8601(created),
+            'info': market,
+        };
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -483,7 +482,7 @@ class coinlist extends coinlist$1 {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -520,7 +519,7 @@ class coinlist extends coinlist$1 {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-market-summary
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -612,7 +611,7 @@ class coinlist extends coinlist$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -738,7 +737,7 @@ class coinlist extends coinlist$1 {
          * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -869,7 +868,7 @@ class coinlist extends coinlist$1 {
          * @description fetch the trading fees for multiple markets
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privateGetV1Fees(params);
@@ -1050,7 +1049,7 @@ class coinlist extends coinlist$1 {
          * @description fetch all the accounts associated with a profile
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-accounts
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets();
         const response = await this.privateGetV1Accounts(params);
@@ -1088,7 +1087,7 @@ class coinlist extends coinlist$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetV1Balances(params);
@@ -1138,7 +1137,7 @@ class coinlist extends coinlist$1 {
          * @param {int} [limit] the maximum number of trades structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1201,7 +1200,7 @@ class coinlist extends coinlist$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const request = {
             'order_id': id,
@@ -1220,7 +1219,7 @@ class coinlist extends coinlist$1 {
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {string|string[]} [params.status] the status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default [ 'accepted', 'done', 'canceled', 'rejected', 'pending' ])
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let status = this.safeString(params, 'status');
@@ -1285,7 +1284,7 @@ class coinlist extends coinlist$1 {
          * @param {int|string} id order id
          * @param {string} symbol not used by coinlist fetchOrder ()
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1329,7 +1328,7 @@ class coinlist extends coinlist$1 {
          * @param {int} [limit] the maximum number of open order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1348,7 +1347,7 @@ class coinlist extends coinlist$1 {
          * @param {int} [limit] the maximum number of closed order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1367,7 +1366,7 @@ class coinlist extends coinlist$1 {
          * @param {int} [limit] the maximum number of canceled order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1383,7 +1382,7 @@ class coinlist extends coinlist$1 {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-orders
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1411,7 +1410,7 @@ class coinlist extends coinlist$1 {
          * @param {string} id order id
          * @param {string} symbol not used by coinlist cancelOrder ()
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1436,7 +1435,7 @@ class coinlist extends coinlist$1 {
          * @param {string[]} ids order ids
          * @param {string} symbol not used by coinlist cancelOrders ()
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         params = ids;
@@ -1458,7 +1457,7 @@ class coinlist extends coinlist$1 {
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default false)
          * @param {float} [params.triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the price at which an order is triggered)
          * @param {string} [params.clientOrderId] client order id (default undefined)
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1532,7 +1531,7 @@ class coinlist extends coinlist$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         if (amount === undefined) {
@@ -1711,7 +1710,7 @@ class coinlist extends coinlist$1 {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1763,7 +1762,7 @@ class coinlist extends coinlist$1 {
          * @param {int} [limit] the maximum number of transfer structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -1882,7 +1881,7 @@ class coinlist extends coinlist$1 {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal
          * @param {int} [limit] max number of deposit/withdrawals to return (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDepositsWithdrawals() requires a code argument');
@@ -1960,7 +1959,7 @@ class coinlist extends coinlist$1 {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2036,6 +2035,8 @@ class coinlist extends coinlist$1 {
             'status': undefined,
             'updated': undefined,
             'fee': fee,
+            'comment': this.safeString(transaction, 'description'),
+            'internal': undefined,
         };
     }
     parseTransactionType(type) {
@@ -2057,7 +2058,7 @@ class coinlist extends coinlist$1 {
          * @param {int} [limit] max number of ledger entrys to return (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         const traderId = this.safeString2(params, 'trader_id', 'traderId');
         if (traderId === undefined) {

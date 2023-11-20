@@ -1,5 +1,5 @@
 import cryptocomRest from '../cryptocom.js';
-import { Int, OrderSide, OrderType } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cryptocom extends cryptocomRest {
     describe(): any;
@@ -10,23 +10,23 @@ export default class cryptocom extends cryptocomRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription?: any): void;
-    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
-    setPositionsCache(client: Client, type: any, symbols?: string[]): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
     loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
     handleCancelAllOrders(client: Client, message: any): void;
     watchPublic(messageHash: any, params?: {}): Promise<any>;
     watchPublicMultiple(messageHash: any, topics: any, params?: {}): Promise<any>;

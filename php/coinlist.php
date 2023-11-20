@@ -44,14 +44,13 @@ class coinlist extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchBorrowInterest' => false,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => false,
@@ -66,6 +65,8 @@ class coinlist extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
@@ -380,7 +381,7 @@ class coinlist extends Exchange {
          * retrieves data on all $markets for coinlist
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetV1Symbols ($params);
         //
@@ -409,68 +410,67 @@ class coinlist extends Exchange {
         //     }
         //
         $markets = $this->safe_value($response, 'symbols', array());
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $baseId = $this->safe_string($market, 'base_currency');
-            $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $amountPrecision = $this->safe_string($market, 'minimum_size_increment');
-            $pricePrecision = $this->safe_string($market, 'minimum_price_increment');
-            $created = $this->safe_string($market, 'list_time');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => true,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($amountPrecision),
-                    'price' => $this->parse_number($pricePrecision),
+        return $this->parse_markets($markets);
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $baseId = $this->safe_string($market, 'base_currency');
+        $quoteId = $this->safe_string($market, 'quote_currency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $amountPrecision = $this->safe_string($market, 'minimum_size_increment');
+        $pricePrecision = $this->safe_string($market, 'minimum_price_increment');
+        $created = $this->safe_string($market, 'list_time');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => true,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($amountPrecision),
+                'price' => $this->parse_number($pricePrecision),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'created' => $this->parse8601($created),
-                'info' => $market,
-            );
-        }
-        return $result;
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => $this->parse8601($created),
+            'info' => $market,
+        );
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
@@ -479,7 +479,7 @@ class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $request = array();
@@ -515,7 +515,7 @@ class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-$market-summary
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -546,7 +546,7 @@ class coinlist extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "type":"spot",
@@ -607,7 +607,7 @@ class coinlist extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -700,7 +700,7 @@ class coinlist extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "2023-10-17T15:30:00.000Z",
@@ -731,7 +731,7 @@ class coinlist extends Exchange {
          * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -778,7 +778,7 @@ class coinlist extends Exchange {
         return $this->parse_trades($auctions, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades
         //     {
@@ -859,7 +859,7 @@ class coinlist extends Exchange {
          * fetch the trading $fees for multiple markets
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$fees
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures} indexed by $market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=fee-structure fee structures~ indexed by $market symbols
          */
         $this->load_markets();
         $response = $this->privateGetV1Fees ($params);
@@ -949,7 +949,7 @@ class coinlist extends Exchange {
         return $result;
     }
 
-    public function parse_fee_tiers($feeTiers, $market = null) {
+    public function parse_fee_tiers($feeTiers, ?array $market = null) {
         //
         //     base => array(
         //         fees => array( $maker => '0', $taker => '0.0045', liquidation => '0' ),
@@ -1040,7 +1040,7 @@ class coinlist extends Exchange {
          * fetch all the $accounts associated with a profile
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$accounts
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
          */
         $this->load_markets();
         $response = $this->privateGetV1Accounts ($params);
@@ -1078,7 +1078,7 @@ class coinlist extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetV1Balances ($params);
@@ -1128,7 +1128,7 @@ class coinlist extends Exchange {
          * @param {int} [$limit] the maximum number of trades structures to retrieve (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -1190,7 +1190,7 @@ class coinlist extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $request = array(
             'order_id' => $id,
@@ -1208,7 +1208,7 @@ class coinlist extends Exchange {
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {string|string[]} [$params->status] the $status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default array( 'accepted', 'done', 'canceled', 'rejected', 'pending' ))
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $status = $this->safe_string($params, 'status');
@@ -1272,7 +1272,7 @@ class coinlist extends Exchange {
          * @param {int|string} $id order $id
          * @param {string} $symbol not used by coinlist fetchOrder ()
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1315,7 +1315,7 @@ class coinlist extends Exchange {
          * @param {int} [$limit] the maximum number of open order structures to retrieve (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
@@ -1333,7 +1333,7 @@ class coinlist extends Exchange {
          * @param {int} [$limit] the maximum number of closed order structures to retrieve (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
@@ -1351,7 +1351,7 @@ class coinlist extends Exchange {
          * @param {int} [$limit] the maximum number of canceled order structures to retrieve (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
@@ -1366,7 +1366,7 @@ class coinlist extends Exchange {
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-$orders
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1393,7 +1393,7 @@ class coinlist extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol not used by coinlist cancelOrder ()
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1417,7 +1417,7 @@ class coinlist extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} $symbol not used by coinlist cancelOrders ()
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $params = $ids;
@@ -1438,7 +1438,7 @@ class coinlist extends Exchange {
          * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately (default false)
          * @param {float} [$params->triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the $price at which an $order is triggered)
          * @param {string} [$params->clientOrderId] client $order id (default null)
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1508,7 +1508,7 @@ class coinlist extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         if ($amount === null) {
@@ -1528,7 +1528,7 @@ class coinlist extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // fetchOrder
         //     {
@@ -1689,7 +1689,7 @@ class coinlist extends Exchange {
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$transfer-structure $transfer structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1738,7 +1738,7 @@ class coinlist extends Exchange {
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
         $currency = null;
@@ -1784,7 +1784,7 @@ class coinlist extends Exchange {
         return $this->parse_transfers($transfers, $currency, $since, $limit);
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // fetchTransfers
         //     {
@@ -1857,7 +1857,7 @@ class coinlist extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal
          * @param {int} [$limit] max number of deposit/withdrawals to return (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositsWithdrawals() requires a $code argument');
@@ -1934,7 +1934,7 @@ class coinlist extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1953,7 +1953,7 @@ class coinlist extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         // withdraw
         //
         //     {
@@ -2010,6 +2010,8 @@ class coinlist extends Exchange {
             'status' => null,
             'updated' => null,
             'fee' => $fee,
+            'comment' => $this->safe_string($transaction, 'description'),
+            'internal' => null,
         );
     }
 
@@ -2031,7 +2033,7 @@ class coinlist extends Exchange {
          * @param {int} [$limit] max number of $ledger entrys to return (default 200, max 500)
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ledger-structure $ledger structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
          */
         $traderId = $this->safe_string_2($params, 'trader_id', 'traderId');
         if ($traderId === null) {
@@ -2127,7 +2129,7 @@ class coinlist extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {

@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.1.50';
+const version = '4.1.57';
 
 (Exchange as any).ccxtVersion = version
 
@@ -74,7 +74,6 @@ import bitpanda from  './src/bitpanda.js'
 import bitrue from  './src/bitrue.js'
 import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
-import bitstamp1 from  './src/bitstamp1.js'
 import bittrex from  './src/bittrex.js'
 import bitvavo from  './src/bitvavo.js'
 import bl3p from  './src/bl3p.js'
@@ -82,7 +81,6 @@ import blockchaincom from  './src/blockchaincom.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
-import btctradeua from  './src/btctradeua.js'
 import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
@@ -91,7 +89,6 @@ import coinbaseprime from  './src/coinbaseprime.js'
 import coinbasepro from  './src/coinbasepro.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
-import coinfalcon from  './src/coinfalcon.js'
 import coinlist from  './src/coinlist.js'
 import coinmate from  './src/coinmate.js'
 import coinone from  './src/coinone.js'
@@ -124,7 +121,6 @@ import kucoinfutures from  './src/kucoinfutures.js'
 import kuna from  './src/kuna.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
-import lbank2 from  './src/lbank2.js'
 import luno from  './src/luno.js'
 import lykke from  './src/lykke.js'
 import mercado from  './src/mercado.js'
@@ -137,6 +133,7 @@ import okcoin from  './src/okcoin.js'
 import okex from  './src/okex.js'
 import okex5 from  './src/okex5.js'
 import okx from  './src/okx.js'
+import p2b from  './src/p2b.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
@@ -247,7 +244,6 @@ const exchanges = {
     'bitrue':                 bitrue,
     'bitso':                  bitso,
     'bitstamp':               bitstamp,
-    'bitstamp1':              bitstamp1,
     'bittrex':                bittrex,
     'bitvavo':                bitvavo,
     'bl3p':                   bl3p,
@@ -255,7 +251,6 @@ const exchanges = {
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
-    'btctradeua':             btctradeua,
     'btcturk':                btcturk,
     'bybit':                  bybit,
     'cex':                    cex,
@@ -264,7 +259,6 @@ const exchanges = {
     'coinbasepro':            coinbasepro,
     'coincheck':              coincheck,
     'coinex':                 coinex,
-    'coinfalcon':             coinfalcon,
     'coinlist':               coinlist,
     'coinmate':               coinmate,
     'coinone':                coinone,
@@ -297,7 +291,6 @@ const exchanges = {
     'kuna':                   kuna,
     'latoken':                latoken,
     'lbank':                  lbank,
-    'lbank2':                 lbank2,
     'luno':                   luno,
     'lykke':                  lykke,
     'mercado':                mercado,
@@ -310,6 +303,7 @@ const exchanges = {
     'okex':                   okex,
     'okex5':                  okex5,
     'okx':                    okx,
+    'p2b':                    p2b,
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
@@ -498,7 +492,6 @@ export {
     bitrue,
     bitso,
     bitstamp,
-    bitstamp1,
     bittrex,
     bitvavo,
     bl3p,
@@ -506,7 +499,6 @@ export {
     btcalpha,
     btcbox,
     btcmarkets,
-    btctradeua,
     btcturk,
     bybit,
     cex,
@@ -515,7 +507,6 @@ export {
     coinbasepro,
     coincheck,
     coinex,
-    coinfalcon,
     coinlist,
     coinmate,
     coinone,
@@ -548,7 +539,6 @@ export {
     kuna,
     latoken,
     lbank,
-    lbank2,
     luno,
     lykke,
     mercado,
@@ -561,6 +551,7 @@ export {
     okex,
     okex5,
     okx,
+    p2b,
     paymium,
     phemex,
     poloniex,

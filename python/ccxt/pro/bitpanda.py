@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -87,7 +86,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         :see: https://developers.bitpanda.com/exchange/#account-history-channel
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.authenticate(params)
         url = self.urls['api']['ws']
@@ -145,7 +144,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -163,13 +162,13 @@ class bitpanda(ccxt.async_support.bitpanda):
         }
         return await self.watch_multiple(messageHash, request, subscriptionHash, [symbol], params)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
         watches price tickers, a statistical calculation with the information for all markets or those specified.
         :param str symbols: unified symbols of the markets to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: an array of `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: an array of `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -255,7 +254,7 @@ class bitpanda(ccxt.async_support.bitpanda):
             'info': ticker,
         }, market)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://developers.bitpanda.com/exchange/#account-history-channel
         get the list of trades associated with the user
@@ -263,7 +262,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -294,14 +293,14 @@ class bitpanda(ccxt.async_support.bitpanda):
             return await self.watch_my_trades(symbol, since, limit, params)
         return trades
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitpanda api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -400,7 +399,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://developers.bitpanda.com/exchange/#account-history-channel
         watches information on multiple orders made by the user
@@ -409,7 +408,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bitpanda api endpoint
         :param str [params.channel]: can listen to orders using ACCOUNT_HISTORY or TRADING
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders'
@@ -994,7 +993,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         :see: https://developers.bitpanda.com/exchange/#candlesticks-channel
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1232,7 +1231,7 @@ class bitpanda(ccxt.async_support.bitpanda):
             future.resolve(True)
         return message
 
-    async def watch_multiple(self, messageHash, request, subscriptionHash, symbols: List[str] = [], params={}):
+    async def watch_multiple(self, messageHash, request, subscriptionHash, symbols: Strings = [], params={}):
         marketIds = []
         numSymbols = len(symbols)
         if numSymbols == 0:
