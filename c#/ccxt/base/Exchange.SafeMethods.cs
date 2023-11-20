@@ -254,7 +254,7 @@ public partial class Exchange
     }
 
 
-    public object safeFloatN(object obj, object keys, object defaultValue = null) => SafeFloatN(obj, new List<object> { keys }, defaultValue);
+    public object safeFloatN(object obj, object keys, object defaultValue = null) => SafeFloatN(obj, keys as List<object>, defaultValue);
     public static object SafeFloatN(object obj, List<object> keys, object defaultValue = null)
     {
         defaultValue ??= null;
