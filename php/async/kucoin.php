@@ -36,7 +36,8 @@ class kucoin extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'borrowMargin' => true,
+                'borrowCrossMargin' => true,
+                'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
@@ -97,7 +98,8 @@ class kucoin extends Exchange {
                 'fetchTransactionFee' => true,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
-                'repayMargin' => true,
+                'repayCrossMargin' => true,
+                'repayIsolatedMargin' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -4116,40 +4118,24 @@ class kucoin extends Exchange {
         );
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
              * @see https://docs.kucoin.com/#1-margin-borrowing
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {array} [$params] extra parameters specific to the kucoin api endpoints
              * @param {string} [$params->timeInForce] either IOC or FOK
-             * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
-            $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
-            $isIsolated = $marginMode === 'isolated';
-            $params = $this->omit($params, 'marginMode');
-            $this->check_required_margin_argument('borrowMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
                 'size' => $this->currency_to_precision($code, $amount),
+                'timeInForce' => 'FOK',
             );
-            $timeInForce = $this->safe_string_n($params, array( 'timeInForce', 'type', 'borrowStrategy' ), 'IOC');
-            if ($isIsolated) {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol parameter for isolated margin');
-                }
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-                $request['isIsolated'] = true;
-            }
-            $params = $this->omit($params, array( 'timeInForce', 'type', 'borrowStrategy' ));
-            $request['timeInForce'] = $timeInForce;
             $response = Async\await($this->privatePostMarginBorrow (array_merge($request, $params)));
             //
             //     {
@@ -4168,36 +4154,100 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
+            /**
+             * create a loan to borrow margin
+             * @see https://docs.kucoin.com/#1-margin-borrowing
+             * @param {string} $symbol unified $market $symbol, required for isolated margin
+             * @param {string} $code unified $currency $code of the $currency to borrow
+             * @param {float} $amount the $amount to borrow
+             * @param {array} [$params] extra parameters specific to the kucoin api endpoints
+             * @param {string} [$params->timeInForce] either IOC or FOK
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                'size' => $this->currency_to_precision($code, $amount),
+                'symbol' => $market['id'],
+                'timeInForce' => 'FOK',
+                'isIsolated' => true,
+            );
+            $response = Async\await($this->privatePostMarginBorrow (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => "200",
+            //         "msg" => "success",
+            //         "retry" => false,
+            //         "data" => {
+            //             "orderNo" => "5da6dba0f943c0c81f5d5db5",
+            //             "actualSize" => 10
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_margin_loan($data, $currency);
+        }) ();
+    }
+
+    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
              * @see https://docs.kucoin.com/#2-repayment
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
-             * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the kucoin api endpoints
-             * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
-            $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
-            $isIsolated = $marginMode === 'isolated';
-            $params = $this->omit($params, 'marginMode');
-            $this->check_required_margin_argument('repayMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
                 'size' => $this->currency_to_precision($code, $amount),
             );
-            if ($isIsolated) {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol parameter for isolated margin');
-                }
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-                $request['isIsolated'] = true;
-            }
+            $response = Async\await($this->privatePostMarginRepay (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => "200",
+            //         "msg" => "success",
+            //         "retry" => false,
+            //         "data" => {
+            //             "orderNo" => "5da6dba0f943c0c81f5d5db5",
+            //             "actualSize" => 10
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_margin_loan($data, $currency);
+        }) ();
+    }
+
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
+            /**
+             * repay borrowed margin and interest
+             * @see https://docs.kucoin.com/#2-repayment
+             * @param {string} $symbol unified $market $symbol
+             * @param {string} $code unified $currency $code of the $currency to repay
+             * @param {float} $amount the $amount to repay
+             * @param {array} [$params] extra parameters specific to the kucoin api endpoints
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                'size' => $this->currency_to_precision($code, $amount),
+                'symbol' => $market['id'],
+                'isIsolated' => true,
+            );
             $response = Async\await($this->privatePostMarginRepay (array_merge($request, $params)));
             //
             //     {

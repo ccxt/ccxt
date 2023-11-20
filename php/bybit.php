@@ -28,6 +28,7 @@ class bybit extends Exchange {
                 'swap' => true,
                 'future' => true,
                 'option' => true,
+                'borrowCrossMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -90,6 +91,7 @@ class bybit extends Exchange {
                 'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => true,
                 'fetchWithdrawals' => true,
+                'repayCrossMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
@@ -6510,27 +6512,22 @@ class bybit extends Exchange {
         return $this->parse_transfers($data, $currency, $since, $limit);
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
-         * @param {string} $symbol not used by bybit.borrowMargin ()
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('borrowMargin', $params);
-        if ($marginMode === 'isolated') {
-            throw new NotSupported($this->id . ' borrowMargin () cannot use isolated margin');
-        }
         $request = array(
             'coin' => $currency['id'],
             'qty' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privatePostV5SpotCrossMarginTradeLoan (array_merge($request, $query));
+        $response = $this->privatePostV5SpotCrossMarginTradeLoan (array_merge($request, $params));
         //
         //     {
         //         "retCode" => 0,
@@ -6545,32 +6542,27 @@ class bybit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $transaction = $this->parse_margin_loan($result, $currency);
         return array_merge($transaction, array(
-            'symbol' => $symbol,
+            'symbol' => null,
             'amount' => $amount,
         ));
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_cross_margin(string $code, $amount, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
-         * @param {string} $symbol not used by bybit.repayMargin ()
          * @param {array} [$params] extra parameters specific to the bybit api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('repayMargin', $params);
-        if ($marginMode === 'isolated') {
-            throw new NotSupported($this->id . ' repayMargin () cannot use isolated margin');
-        }
         $request = array(
             'coin' => $currency['id'],
             'qty' => $this->number_to_string($amount),
         );
-        $response = $this->privatePostV5SpotCrossMarginTradeRepay (array_merge($request, $query));
+        $response = $this->privatePostV5SpotCrossMarginTradeRepay (array_merge($request, $params));
         //
         //     {
         //         "retCode" => 0,
@@ -6585,7 +6577,7 @@ class bybit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $transaction = $this->parse_margin_loan($result, $currency);
         return array_merge($transaction, array(
-            'symbol' => $symbol,
+            'symbol' => null,
             'amount' => $amount,
         ));
     }

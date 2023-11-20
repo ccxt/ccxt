@@ -358,7 +358,7 @@ export default class binance extends Exchange {
         datetime: string;
         info: any;
     };
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
         id: number;
         currency: string;
         amount: any;
@@ -367,7 +367,25 @@ export default class binance extends Exchange {
         datetime: any;
         info: any;
     }>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+        id: number;
+        currency: string;
+        amount: any;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<{
+        id: number;
+        currency: string;
+        amount: any;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
         id: number;
         currency: string;
         amount: any;

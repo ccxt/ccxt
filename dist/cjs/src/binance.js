@@ -33,7 +33,8 @@ class binance extends binance$1 {
                 'future': true,
                 'option': true,
                 'addMargin': true,
-                'borrowMargin': true,
+                'borrowCrossMargin': true,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -120,7 +121,8 @@ class binance extends binance$1 {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
-                'repayMargin': true,
+                'repayCrossMargin': true,
+                'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
@@ -9102,32 +9104,25 @@ class binance extends binance$1 {
             'info': info,
         };
     }
-    async repayMargin(code, amount, symbol = undefined, params = {}) {
+    async repayCrossMargin(code, amount, params = {}) {
         /**
          * @method
-         * @name binance#repayMargin
+         * @name binance#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        const [marginMode, query] = this.handleMarginModeAndParams('repayMargin', params); // cross or isolated
-        this.checkRequiredMarginArgument('repayMargin', symbol, marginMode);
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
+            'isIsolated': 'FALSE',
         };
-        if (symbol !== undefined) {
-            const market = this.market(symbol);
-            request['symbol'] = market['id'];
-            request['isIsolated'] = 'TRUE';
-        }
-        const response = await this.sapiPostMarginRepay(this.extend(request, query));
+        const response = await this.sapiPostMarginRepay(this.extend(request, params));
         //
         //     {
         //         "tranId": 108988250265,
@@ -9136,32 +9131,85 @@ class binance extends binance$1 {
         //
         return this.parseMarginLoan(response, currency);
     }
-    async borrowMargin(code, amount, symbol = undefined, params = {}) {
+    async repayIsolatedMargin(symbol, code, amount, params = {}) {
         /**
          * @method
-         * @name binance#borrowMargin
+         * @name binance#repayIsolatedMargin
+         * @description repay borrowed margin and interest
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const market = this.market(symbol);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision(code, amount),
+            'symbol': market['id'],
+            'isIsolated': 'TRUE',
+        };
+        const response = await this.sapiPostMarginRepay(this.extend(request, params));
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        return this.parseMarginLoan(response, currency);
+    }
+    async borrowCrossMargin(code, amount, params = {}) {
+        /**
+         * @method
+         * @name binance#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        const [marginMode, query] = this.handleMarginModeAndParams('borrowMargin', params); // cross or isolated
-        this.checkRequiredMarginArgument('borrowMargin', symbol, marginMode);
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
+            'isIsolated': 'FALSE',
         };
-        if (symbol !== undefined) {
-            const market = this.market(symbol);
-            request['symbol'] = market['id'];
-            request['isIsolated'] = 'TRUE';
-        }
-        const response = await this.sapiPostMarginLoan(this.extend(request, query));
+        const response = await this.sapiPostMarginLoan(this.extend(request, params));
+        //
+        //     {
+        //         "tranId": 108988250265,
+        //         "clientTag":""
+        //     }
+        //
+        return this.parseMarginLoan(response, currency);
+    }
+    async borrowIsolatedMargin(symbol, code, amount, params = {}) {
+        /**
+         * @method
+         * @name binance#borrowIsolatedMargin
+         * @description create a loan to borrow margin
+         * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const market = this.market(symbol);
+        const request = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision(code, amount),
+            'symbol': market['id'],
+            'isIsolated': 'TRUE',
+        };
+        const response = await this.sapiPostMarginLoan(this.extend(request, params));
         //
         //     {
         //         "tranId": 108988250265,

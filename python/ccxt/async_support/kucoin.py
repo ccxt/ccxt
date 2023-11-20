@@ -50,7 +50,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'borrowMargin': True,
+                'borrowCrossMargin': True,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
@@ -111,7 +112,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchTransactionFee': True,
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
-                'repayMargin': True,
+                'repayCrossMargin': True,
+                'repayIsolatedMargin': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -3859,37 +3861,23 @@ class kucoin(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://docs.kucoin.com/#1-margin-borrowing
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: unified market symbol, required for isolated margin
         :param dict [params]: extra parameters specific to the kucoin api endpoints
         :param str [params.timeInForce]: either IOC or FOK
-        :param str [params.marginMode]: 'cross' or 'isolated' default is 'cross'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
-        isIsolated = marginMode == 'isolated'
-        params = self.omit(params, 'marginMode')
-        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
+            'timeInForce': 'FOK',
         }
-        timeInForce = self.safe_string_n(params, ['timeInForce', 'type', 'borrowStrategy'], 'IOC')
-        if isIsolated:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol parameter for isolated margin')
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            request['isIsolated'] = True
-        params = self.omit(params, ['timeInForce', 'type', 'borrowStrategy'])
-        request['timeInForce'] = timeInForce
         response = await self.privatePostMarginBorrow(self.extend(request, params))
         #
         #     {
@@ -3906,33 +3894,93 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        create a loan to borrow margin
+        :see: https://docs.kucoin.com/#1-margin-borrowing
+        :param str symbol: unified market symbol, required for isolated margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param dict [params]: extra parameters specific to the kucoin api endpoints
+        :param str [params.timeInForce]: either IOC or FOK
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'size': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+            'timeInForce': 'FOK',
+            'isIsolated': True,
+        }
+        response = await self.privatePostMarginBorrow(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": "200",
+        #         "msg": "success",
+        #         "retry": False,
+        #         "data": {
+        #             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        #             "actualSize": 10
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    async def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://docs.kucoin.com/#2-repayment
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the kucoin api endpoints
-        :param str [params.marginMode]: 'cross' or 'isolated' default is 'cross'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
-        isIsolated = marginMode == 'isolated'
-        params = self.omit(params, 'marginMode')
-        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
         }
-        if isIsolated:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol parameter for isolated margin')
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            request['isIsolated'] = True
+        response = await self.privatePostMarginRepay(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": "200",
+        #         "msg": "success",
+        #         "retry": False,
+        #         "data": {
+        #             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        #             "actualSize": 10
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://docs.kucoin.com/#2-repayment
+        :param str symbol: unified market symbol
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param dict [params]: extra parameters specific to the kucoin api endpoints
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'size': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+            'isIsolated': True,
+        }
         response = await self.privatePostMarginRepay(self.extend(request, params))
         #
         #     {

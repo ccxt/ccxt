@@ -32,7 +32,8 @@ class htx extends htx$1 {
                 'future': true,
                 'option': undefined,
                 'addMargin': undefined,
-                'borrowMargin': true,
+                'borrowCrossMargin': true,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -112,7 +113,8 @@ class htx extends htx$1 {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': undefined,
-                'repayMargin': true,
+                'repayCrossMargin': true,
+                'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1161,10 +1163,6 @@ class htx extends htx$1 {
                     'grid-trading': 'grid-trading',
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
-                },
-                'marginAccounts': {
-                    'cross': 'super-margin',
-                    'isolated': 'margin',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
@@ -8128,48 +8126,28 @@ class htx extends htx$1 {
             'info': interest,
         }, market);
     }
-    async borrowMargin(code, amount, symbol = undefined, params = {}) {
+    async borrowIsolatedMargin(symbol, code, amount, params = {}) {
         /**
          * @method
-         * @name huobi#borrowMargin
+         * @name huobi#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
+        const market = this.market(symbol);
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
+            'symbol': market['id'],
         };
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('borrowMargin', params);
-        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-        let method = undefined;
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' borrowMargin() requires a symbol argument');
-            }
-            const market = this.market(symbol);
-            request['symbol'] = market['id'];
-            method = 'privatePostMarginOrders';
-        }
-        else if (marginMode === 'cross') {
-            method = 'privatePostCrossMarginOrders';
-        }
-        const response = await this[method](this.extend(request, params));
-        //
-        // Cross
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": null
-        //     }
+        const response = await this.privatePostMarginOrders(this.extend(request, params));
         //
         // Isolated
         //
@@ -8183,10 +8161,42 @@ class htx extends htx$1 {
             'symbol': symbol,
         });
     }
-    async repayMargin(code, amount, symbol = undefined, params = {}) {
+    async borrowCrossMargin(code, amount, params = {}) {
         /**
          * @method
-         * @name huobi#repayMargin
+         * @name huobi#borrowCrossMargin
+         * @description create a loan to borrow margin
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {object} [params] extra parameters specific to the huobi api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision(code, amount),
+        };
+        const response = await this.privatePostCrossMarginOrders(this.extend(request, params));
+        //
+        // Cross
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": null
+        //     }
+        //
+        const transaction = this.parseMarginLoan(response, currency);
+        return this.extend(transaction, {
+            'amount': amount,
+        });
+    }
+    async repayIsolatedMargin(symbol, code, amount, params = {}) {
+        /**
+         * @method
+         * @name huobi#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
          * @param {string} code unified currency code of the currency to repay
@@ -8197,12 +8207,7 @@ class htx extends htx$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('repayMargin', params);
-        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-        const marginAccounts = this.safeValue(this.options, 'marginAccounts', {});
-        const accountType = this.getSupportedMapping(marginMode, marginAccounts);
-        const accountId = await this.fetchAccountIdByType(accountType, marginMode, symbol, params);
+        const accountId = await this.fetchAccountIdByType('spot', 'isolated', symbol, params);
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
@@ -8226,6 +8231,44 @@ class htx extends htx$1 {
         return this.extend(transaction, {
             'amount': amount,
             'symbol': symbol,
+        });
+    }
+    async repayCrossMargin(code, amount, params = {}) {
+        /**
+         * @method
+         * @name huobi#repayCrossMargin
+         * @description repay borrowed margin and interest
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {object} [params] extra parameters specific to the huobi api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const accountId = await this.fetchAccountIdByType('spot', 'cross', undefined, params);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision(code, amount),
+            'accountId': accountId,
+        };
+        const response = await this.v2PrivatePostAccountRepayment(this.extend(request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data": [
+        //             {
+        //                 "repayId":1174424,
+        //                 "repayTime":1600747722018
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue(response, 'Data', []);
+        const loan = this.safeValue(data, 0);
+        const transaction = this.parseMarginLoan(loan, currency);
+        return this.extend(transaction, {
+            'amount': amount,
         });
     }
     parseMarginLoan(info, currency = undefined) {
@@ -8252,7 +8295,7 @@ class htx extends htx$1 {
         //
         const timestamp = this.safeInteger(info, 'repayTime');
         return {
-            'id': this.safeInteger2(info, 'repayId', 'data'),
+            'id': this.safeString2(info, 'repayId', 'data'),
             'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'symbol': undefined,

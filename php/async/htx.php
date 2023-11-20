@@ -40,7 +40,8 @@ class htx extends Exchange {
                 'future' => true,
                 'option' => null,
                 'addMargin' => null,
-                'borrowMargin' => true,
+                'borrowCrossMargin' => true,
+                'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -120,7 +121,8 @@ class htx extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'reduceMargin' => null,
-                'repayMargin' => true,
+                'repayCrossMargin' => true,
+                'repayIsolatedMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -1169,10 +1171,6 @@ class htx extends Exchange {
                     'grid-trading' => 'grid-trading',
                     'deposit-earning' => 'deposit-earning',
                     'otc-options' => 'otc-options',
-                ),
-                'marginAccounts' => array(
-                    'cross' => 'super-margin',
-                    'isolated' => 'margin',
                 ),
                 'typesByAccount' => array(
                     'pro' => 'spot',
@@ -8020,46 +8018,27 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
              * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
              * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-cross
+             * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
+            $market = $this->market($symbol);
             $request = array(
                 'currency' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
+                'symbol' => $market['id'],
             );
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
-            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-            $method = null;
-            if ($marginMode === 'isolated') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
-                }
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-                $method = 'privatePostMarginOrders';
-            } elseif ($marginMode === 'cross') {
-                $method = 'privatePostCrossMarginOrders';
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
-            //
-            // Cross
-            //
-            //     {
-            //         "status" => "ok",
-            //         "data" => null
-            //     }
+            $response = Async\await($this->privatePostMarginOrders (array_merge($request, $params)));
             //
             // Isolated
             //
@@ -8075,8 +8054,41 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
+            /**
+             * create a loan to borrow margin
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-isolated
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#$request-a-margin-loan-cross
+             * @param {string} $code unified $currency $code of the $currency to borrow
+             * @param {float} $amount the $amount to borrow
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                'amount' => $this->currency_to_precision($code, $amount),
+            );
+            $response = Async\await($this->privatePostCrossMarginOrders (array_merge($request, $params)));
+            //
+            // Cross
+            //
+            //     {
+            //         "status" => "ok",
+            //         "data" => null
+            //     }
+            //
+            $transaction = $this->parse_margin_loan($response, $currency);
+            return array_merge($transaction, array(
+                'amount' => $amount,
+            ));
+        }) ();
+    }
+
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
              * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
@@ -8088,12 +8100,7 @@ class htx extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('repayMargin', $params);
-            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-            $marginAccounts = $this->safe_value($this->options, 'marginAccounts', array());
-            $accountType = $this->get_supported_mapping($marginMode, $marginAccounts);
-            $accountId = Async\await($this->fetch_account_id_by_type($accountType, $marginMode, $symbol, $params));
+            $accountId = Async\await($this->fetch_account_id_by_type('spot', 'isolated', $symbol, $params));
             $request = array(
                 'currency' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
@@ -8117,6 +8124,45 @@ class htx extends Exchange {
             return array_merge($transaction, array(
                 'amount' => $amount,
                 'symbol' => $symbol,
+            ));
+        }) ();
+    }
+
+    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
+            /**
+             * repay borrowed margin and interest
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-$loan-cross-isolated
+             * @param {string} $code unified $currency $code of the $currency to repay
+             * @param {float} $amount the $amount to repay
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $accountId = Async\await($this->fetch_account_id_by_type('spot', 'cross', null, $params));
+            $request = array(
+                'currency' => $currency['id'],
+                'amount' => $this->currency_to_precision($code, $amount),
+                'accountId' => $accountId,
+            );
+            $response = Async\await($this->v2PrivatePostAccountRepayment (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":200,
+            //         "data" => array(
+            //             {
+            //                 "repayId":1174424,
+            //                 "repayTime":1600747722018
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'Data', array());
+            $loan = $this->safe_value($data, 0);
+            $transaction = $this->parse_margin_loan($loan, $currency);
+            return array_merge($transaction, array(
+                'amount' => $amount,
             ));
         }) ();
     }
@@ -8145,7 +8191,7 @@ class htx extends Exchange {
         //
         $timestamp = $this->safe_integer($info, 'repayTime');
         return array(
-            'id' => $this->safe_integer_2($info, 'repayId', 'data'),
+            'id' => $this->safe_string_2($info, 'repayId', 'data'),
             'currency' => $this->safe_currency_code(null, $currency),
             'amount' => null,
             'symbol' => null,

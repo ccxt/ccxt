@@ -124,7 +124,7 @@ class okx extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => true,
-                'repayMargin' => true,
+                'repayCrossMargin' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => true,
@@ -6438,14 +6438,13 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
             /**
-             * create a $loan to borrow margin
+             * create a $loan to borrow margin (need to be VIP 5 and above)
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {string} $symbol not used by okx.borrowMargin ()
              * @param {array} [$params] extra parameters specific to the okx api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
              */
@@ -6476,21 +6475,17 @@ class okx extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $loan = $this->safe_value($data, 0);
-            $transaction = $this->parse_margin_loan($loan, $currency);
-            return array_merge($transaction, array(
-                'symbol' => $symbol,
-            ));
+            return $this->parse_margin_loan($loan, $currency);
         }) ();
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
              * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
-             * @param {string} $symbol not used by okx.repayMargin ()
              * @param {array} [$params] extra parameters specific to the okx api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
              */
@@ -6521,10 +6516,7 @@ class okx extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $loan = $this->safe_value($data, 0);
-            $transaction = $this->parse_margin_loan($loan, $currency);
-            return array_merge($transaction, array(
-                'symbol' => $symbol,
-            ));
+            return $this->parse_margin_loan($loan, $currency);
         }) ();
     }
 
