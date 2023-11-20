@@ -147,7 +147,7 @@ export default class bitteam extends Exchange {
                     },
                     'post': {
                         'trade/api/login-oauth': 1, // not unified
-                        'trade/api/reset-password': 1, // todo: ? looks like a private endpoint
+                        'trade/api/reset-password': 1, // not unified looks like a private endpoint
                     },
                 },
                 'private': {
@@ -377,8 +377,8 @@ export default class bitteam extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const active = this.safeValue (market, 'active');
-        const amountPrecision = this.safeNumber (market, 'baseStep');
-        const pricePrecision = this.safeNumber (market, 'quoteStep');
+        const amountPrecision = this.safeInteger (market, 'baseStep');
+        const pricePrecision = this.safeInteger (market, 'quoteStep');
         // const limits = this.safeValue (market, 'settings', {});
         // const maxPrice = this.parseNumber (this.safeString (limits, 'price_max'));
         // const minPrice = this.parseNumber (this.safeString (limits, 'price_min'));
