@@ -497,6 +497,7 @@ interface Exchange {
     fapiPrivateDeleteOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteListenKey(params?: {}): Promise<implicitReturnType>;
+    fapiPublicV2GetTickerPrice(params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetAccount(params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetBalance(params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetPositionRisk(params?: {}): Promise<implicitReturnType>;
@@ -547,6 +548,7 @@ interface Exchange {
     publicGetKlines(params?: {}): Promise<implicitReturnType>;
     publicGetUiKlines(params?: {}): Promise<implicitReturnType>;
     publicGetTicker24hr(params?: {}): Promise<implicitReturnType>;
+    publicGetTicker(params?: {}): Promise<implicitReturnType>;
     publicGetTickerPrice(params?: {}): Promise<implicitReturnType>;
     publicGetTickerBookTicker(params?: {}): Promise<implicitReturnType>;
     publicGetExchangeInfo(params?: {}): Promise<implicitReturnType>;
@@ -627,7 +629,9 @@ interface Exchange {
     papiGetUmAdlQuantile(params?: {}): Promise<implicitReturnType>;
     papiGetCmAdlQuantile(params?: {}): Promise<implicitReturnType>;
     papiPostUmOrder(params?: {}): Promise<implicitReturnType>;
+    papiPostUmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiPostCmOrder(params?: {}): Promise<implicitReturnType>;
+    papiPostCmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiPostMarginOrder(params?: {}): Promise<implicitReturnType>;
     papiPostMarginLoan(params?: {}): Promise<implicitReturnType>;
     papiPostRepayLoan(params?: {}): Promise<implicitReturnType>;
@@ -644,9 +648,13 @@ interface Exchange {
     papiPostAssetCollection(params?: {}): Promise<implicitReturnType>;
     papiPutListenKey(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmOrder(params?: {}): Promise<implicitReturnType>;
+    papiDeleteUmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmAllOpenOrders(params?: {}): Promise<implicitReturnType>;
+    papiDeleteUmConditionalAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteCmOrder(params?: {}): Promise<implicitReturnType>;
+    papiDeleteCmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteCmAllOpenOrders(params?: {}): Promise<implicitReturnType>;
+    papiDeleteCmConditionalAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrderList(params?: {}): Promise<implicitReturnType>;

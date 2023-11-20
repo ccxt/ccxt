@@ -196,7 +196,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const trades = await this.subscribe('trades', symbol, params);
         if (this.newUpdates) {
@@ -213,7 +213,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         let messageHash = 'myTrade';
@@ -234,7 +234,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.subscribe('ticker', symbol, params);
     }
@@ -299,7 +299,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //
         //    [
         //        360141,
-        //        'te',
+        //        "te",
         //        [
         //            1128060969, // id
         //            1654702500098, // mts
@@ -524,7 +524,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
             if ((limit !== 25) && (limit !== 100)) {
@@ -645,7 +645,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     }
     handleChecksum(client, message, subscription) {
         //
-        // [ 173904, 'cs', -890884919 ]
+        // [ 173904, "cs", -890884919 ]
         //
         const marketId = this.safeString(subscription, 'symbol');
         const symbol = this.safeSymbol(marketId);
@@ -690,7 +690,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const balanceType = this.safeString(params, 'wallet', 'exchange'); // exchange, margin
@@ -703,24 +703,24 @@ export default class bitfinex2 extends bitfinex2Rest {
         // snapshot (exchange + margin together)
         //   [
         //       0,
-        //       'ws',
+        //       "ws",
         //       [
         //           [
-        //               'exchange',
-        //               'LTC',
+        //               "exchange",
+        //               "LTC",
         //               0.05479727,
         //               0,
         //               null,
-        //               'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //               "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //               null,
         //           ]
         //           [
-        //               'margin',
-        //               'USTF0',
+        //               "margin",
+        //               "USTF0",
         //               11.960650700086292,
         //               0,
         //               null,
-        //               'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //               "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //               null,
         //           ],
         //       ],
@@ -729,22 +729,22 @@ export default class bitfinex2 extends bitfinex2Rest {
         // spot
         //   [
         //       0,
-        //       'wu',
+        //       "wu",
         //       [
-        //         'exchange',
-        //         'LTC', // currency
+        //         "exchange",
+        //         "LTC", // currency
         //         0.06729727, // wallet balance
         //         0, // unsettled balance
         //         0.06729727, // available balance might be null
-        //         'Exchange 0.4 LTC for UST @ 65.075',
+        //         "Exchange 0.4 LTC for UST @ 65.075",
         //         {
-        //           reason: 'TRADE',
-        //           order_id: 96596397973,
-        //           order_id_oppo: 96596632735,
-        //           trade_price: '65.075',
-        //           trade_amount: '-0.4',
-        //           order_cid: 1654636218766,
-        //           order_gid: null
+        //           "reason": "TRADE",
+        //           "order_id": 96596397973,
+        //           "order_id_oppo": 96596632735,
+        //           "trade_price": "65.075",
+        //           "trade_amount": "-0.4",
+        //           "order_cid": 1654636218766,
+        //           "order_gid": null
         //         }
         //       ]
         //   ]
@@ -752,12 +752,12 @@ export default class bitfinex2 extends bitfinex2Rest {
         // margin
         //
         //   [
-        //       'margin',
-        //       'USTF0',
+        //       "margin",
+        //       "USTF0",
         //       11.960650700086292, // total
         //       0,
         //       6.776250700086292, // available
-        //       'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //       "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //       null
         //   ]
         //
@@ -792,12 +792,12 @@ export default class bitfinex2 extends bitfinex2Rest {
     parseWsBalance(balance) {
         //
         //     [
-        //         'exchange',
-        //         'LTC',
+        //         "exchange",
+        //         "LTC",
         //         0.05479727, // balance
         //         0,
         //         null, // available null if not calculated yet
-        //         'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //         "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //         null,
         //     ]
         //
@@ -813,10 +813,10 @@ export default class bitfinex2 extends bitfinex2Rest {
     handleSystemStatus(client, message) {
         //
         //     {
-        //         event: 'info',
-        //         version: 2,
-        //         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        //         platform: { status: 1 }, // 1 for operative, 0 for maintenance
+        //         "event": "info",
+        //         "version": 2,
+        //         "serverId": "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        //         "platform": { status: 1 }, // 1 for operative, 0 for maintenance
         //     }
         //
         return message;
@@ -824,14 +824,14 @@ export default class bitfinex2 extends bitfinex2Rest {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         event: 'subscribed',
-        //         channel: 'book',
-        //         chanId: 67473,
-        //         symbol: 'tBTCUSD',
-        //         prec: 'P0',
-        //         freq: 'F0',
-        //         len: '25',
-        //         pair: 'BTCUSD'
+        //         "event": "subscribed",
+        //         "channel": "book",
+        //         "chanId": 67473,
+        //         "symbol": "tBTCUSD",
+        //         "prec": "P0",
+        //         "freq": "F0",
+        //         "len": "25",
+        //         "pair": "BTCUSD"
         //     }
         //
         const channelId = this.safeString(message, 'chanId');
@@ -887,7 +887,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         let messageHash = 'orders';
@@ -994,17 +994,17 @@ export default class bitfinex2 extends bitfinex2Rest {
         //       97084883506, // order id
         //       null,
         //       1655110144596, // clientOrderId
-        //       'tLTCUST', // symbol
+        //       "tLTCUST", // symbol
         //       1655110144596, // created timestamp
         //       1655110144598, // updated timestamp
         //       0, // amount
         //       0.1, // amount_orig negative if sell order
-        //       'EXCHANGE MARKET', // type
+        //       "EXCHANGE MARKET", // type
         //       null,
         //       null,
         //       null,
         //       0,
-        //       'EXECUTED @ 42.821(0.1)', // status
+        //       "EXECUTED @ 42.821(0.1)", // status
         //       null,
         //       null,
         //       42.799, // price
@@ -1019,7 +1019,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //       null,
         //       null,
         //       null,
-        //       'BFX',
+        //       "BFX",
         //       null,
         //       null,
         //       {}
@@ -1080,25 +1080,25 @@ export default class bitfinex2 extends bitfinex2Rest {
         //
         //     [
         //         1231,
-        //         'hb',
+        //         "hb",
         //     ]
         //
         // auth message
         //    {
-        //        event: 'auth',
-        //        status: 'OK',
-        //        chanId: 0,
-        //        userId: 3159883,
-        //        auth_id: 'ac7108e7-2f26-424d-9982-c24700dc02ca',
-        //        caps: {
-        //          orders: { read: 1, write: 1 },
-        //          account: { read: 1, write: 1 },
-        //          funding: { read: 1, write: 1 },
-        //          history: { read: 1, write: 0 },
-        //          wallets: { read: 1, write: 1 },
-        //          withdraw: { read: 0, write: 1 },
-        //          positions: { read: 1, write: 1 },
-        //          ui_withdraw: { read: 0, write: 0 }
+        //        "event": "auth",
+        //        "status": "OK",
+        //        "chanId": 0,
+        //        "userId": 3159883,
+        //        "auth_id": "ac7108e7-2f26-424d-9982-c24700dc02ca",
+        //        "caps": {
+        //          "orders": { read: 1, write: 1 },
+        //          "account": { read: 1, write: 1 },
+        //          "funding": { read: 1, write: 1 },
+        //          "history": { read: 1, write: 0 },
+        //          "wallets": { read: 1, write: 1 },
+        //          "withdraw": { read: 0, write: 1 },
+        //          "positions": { read: 1, write: 1 },
+        //          "ui_withdraw": { read: 0, write: 0 }
         //        }
         //    }
         //

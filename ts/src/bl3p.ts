@@ -5,7 +5,7 @@ import Exchange from './abstract/bl3p.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -38,16 +38,17 @@ export default class bl3p extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
@@ -115,7 +116,7 @@ export default class bl3p extends Exchange {
         });
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = this.safeValue (response, 'data', {});
         const wallets = this.safeValue (data, 'wallets', {});
         const result = { 'info': data };
@@ -135,13 +136,13 @@ export default class bl3p extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bl3p#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostGENMKTMoneyInfo (params);
@@ -157,7 +158,7 @@ export default class bl3p extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bl3p#fetchOrderBook
@@ -165,7 +166,7 @@ export default class bl3p extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const market = this.market (symbol);
         const request = {
@@ -176,7 +177,7 @@ export default class bl3p extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // {
         //     "currency":"BTC",
@@ -220,14 +221,14 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bl3p#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const market = this.market (symbol);
         const request = {
@@ -252,7 +253,7 @@ export default class bl3p extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -285,7 +286,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bl3p#fetchTrades
@@ -294,7 +295,7 @@ export default class bl3p extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const market = this.market (symbol);
         const response = await this.publicGetMarketTrades (this.extend ({
@@ -324,35 +325,35 @@ export default class bl3p extends Exchange {
          * @name bl3p#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.privatePostGENMKTMoneyInfo (params);
         //
         //     {
-        //         result: 'success',
-        //         data: {
-        //             user_id: '13396',
-        //             wallets: {
-        //                 BTC: {
-        //                     balance: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //         "result": "success",
+        //         "data": {
+        //             "user_id": "13396",
+        //             "wallets": {
+        //                 "BTC": {
+        //                     "balance": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     },
-        //                     available: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //                     "available": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     }
         //                 },
         //                 ...
         //             },
-        //             trade_fee: '0.25'
+        //             "trade_fee": "0.25"
         //         }
         //     }
         //
@@ -390,7 +391,7 @@ export default class bl3p extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.amount_funds] maximal EUR amount to spend (*1e5)
          * @param {string} [params.fee_currency] 'EUR' or 'BTC'
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const market = this.market (symbol);
         const amountString = this.numberToString (amount);
@@ -412,7 +413,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bl3p#cancelOrder
@@ -420,7 +421,7 @@ export default class bl3p extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'order_id': id,

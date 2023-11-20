@@ -110,7 +110,7 @@ export default class Client {
         if (!this.isOpen()) {
             const error = new RequestTimeout('Connection to ' + this.url + ' failed due to a connection timeout');
             this.onError(error);
-            this.connection.close(1006);
+            this.connection.close(isNode ? 1006 : 1000);
         }
     }
     setConnectionTimeout() {

@@ -21,6 +21,7 @@ class gate extends gate$1 {
                 'watchOHLCV': true,
                 'watchBalance': true,
                 'watchOrders': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -72,6 +73,10 @@ class gate extends gate$1 {
                     'settle': 'usdt',
                     'spot': 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
                 },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true,
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
             },
             'exceptions': {
                 'ws': {
@@ -93,7 +98,7 @@ class gate extends gate$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -129,25 +134,25 @@ class gate extends gate$1 {
         // spot
         //
         //     {
-        //         time: 1650189272,
-        //         channel: 'spot.order_book_update',
-        //         event: 'update',
-        //         result: {
-        //             t: 1650189272515,
-        //             e: 'depthUpdate',
-        //             E: 1650189272,
-        //             s: 'GMT_USDT',
-        //             U: 140595902,
-        //             u: 140595902,
-        //             b: [
-        //                 [ '2.51518', '228.119' ],
-        //                 [ '2.50587', '1510.11' ],
-        //                 [ '2.49944', '67.6' ],
+        //         "time": 1650189272,
+        //         "channel": "spot.order_book_update",
+        //         "event": "update",
+        //         "result": {
+        //             "t": 1650189272515,
+        //             "e": "depthUpdate",
+        //             "E": 1650189272,
+        //             "s": "GMT_USDT",
+        //             "U": 140595902,
+        //             "u": 140595902,
+        //             "b": [
+        //                 [ '2.51518', "228.119" ],
+        //                 [ '2.50587', "1510.11" ],
+        //                 [ '2.49944', "67.6" ],
         //             ],
-        //             a: [
-        //                 [ '2.5182', '4.199' ],
-        //                 [ '2.51926', '1874' ],
-        //                 [ '2.53528', '96.529' ],
+        //             "a": [
+        //                 [ '2.5182', "4.199" ],
+        //                 [ "2.51926", "1874" ],
+        //                 [ '2.53528', "96.529" ],
         //             ]
         //         }
         //     }
@@ -155,25 +160,25 @@ class gate extends gate$1 {
         // swap
         //
         //     {
-        //         id: null,
-        //         time: 1650188898,
-        //         channel: 'futures.order_book_update',
-        //         event: 'update',
-        //         error: null,
-        //         result: {
-        //             t: 1650188898938,
-        //             s: 'GMT_USDT',
-        //             U: 1577718307,
-        //             u: 1577719254,
-        //             b: [
-        //                 { p: '2.5178', s: 0 },
-        //                 { p: '2.5179', s: 0 },
-        //                 { p: '2.518', s: 0 },
+        //         "id": null,
+        //         "time": 1650188898,
+        //         "channel": "futures.order_book_update",
+        //         "event": "update",
+        //         "error": null,
+        //         "result": {
+        //             "t": 1650188898938,
+        //             "s": "GMT_USDT",
+        //             "U": 1577718307,
+        //             "u": 1577719254,
+        //             "b": [
+        //                 { p: "2.5178", s: 0 },
+        //                 { p: "2.5179", s: 0 },
+        //                 { p: "2.518", s: 0 },
         //             ],
-        //             a: [
-        //                 { p: '2.52', s: 0 },
-        //                 { p: '2.5201', s: 0 },
-        //                 { p: '2.5203', s: 0 },
+        //             "a": [
+        //                 { p: "2.52", s: 0 },
+        //                 { p: "2.5201", s: 0 },
+        //                 { p: "2.5203", s: 0 },
         //             ]
         //         }
         //     }
@@ -270,7 +275,7 @@ class gate extends gate$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -291,7 +296,7 @@ class gate extends gate$1 {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -318,34 +323,34 @@ class gate extends gate$1 {
     handleTicker(client, message) {
         //
         //    {
-        //        time: 1649326221,
-        //        channel: 'spot.tickers',
-        //        event: 'update',
-        //        result: {
-        //          currency_pair: 'BTC_USDT',
-        //          last: '43444.82',
-        //          lowest_ask: '43444.82',
-        //          highest_bid: '43444.81',
-        //          change_percentage: '-4.0036',
-        //          base_volume: '5182.5412425462',
-        //          quote_volume: '227267634.93123952',
-        //          high_24h: '47698',
-        //          low_24h: '42721.03'
+        //        "time": 1649326221,
+        //        "channel": "spot.tickers",
+        //        "event": "update",
+        //        "result": {
+        //          "currency_pair": "BTC_USDT",
+        //          "last": "43444.82",
+        //          "lowest_ask": "43444.82",
+        //          "highest_bid": "43444.81",
+        //          "change_percentage": "-4.0036",
+        //          "base_volume": "5182.5412425462",
+        //          "quote_volume": "227267634.93123952",
+        //          "high_24h": "47698",
+        //          "low_24h": "42721.03"
         //        }
         //    }
         //    {
-        //        time: 1671363004,
-        //        time_ms: 1671363004235,
-        //        channel: 'spot.book_ticker',
-        //        event: 'update',
-        //        result: {
-        //          t: 1671363004228,
-        //          u: 9793320464,
-        //          s: 'BTC_USDT',
-        //          b: '16716.8',
-        //          B: '0.0134',
-        //          a: '16716.9',
-        //          A: '0.0353'
+        //        "time": 1671363004,
+        //        "time_ms": 1671363004235,
+        //        "channel": "spot.book_ticker",
+        //        "event": "update",
+        //        "result": {
+        //          "t": 1671363004228,
+        //          "u": 9793320464,
+        //          "s": "BTC_USDT",
+        //          "b": "16716.8",
+        //          "B": "0.0134",
+        //          "a": "16716.9",
+        //          "A": "0.0353"
         //        }
         //    }
         //
@@ -378,7 +383,7 @@ class gate extends gate$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -425,17 +430,17 @@ class gate extends gate$1 {
     handleTrades(client, message) {
         //
         // {
-        //     time: 1648725035,
-        //     channel: 'spot.trades',
-        //     event: 'update',
-        //     result: [{
-        //       id: 3130257995,
-        //       create_time: 1648725035,
-        //       create_time_ms: '1648725035923.0',
-        //       side: 'sell',
-        //       currency_pair: 'LTC_USDT',
-        //       amount: '0.0116',
-        //       price: '130.11'
+        //     "time": 1648725035,
+        //     "channel": "spot.trades",
+        //     "event": "update",
+        //     "result": [{
+        //       "id": 3130257995,
+        //       "create_time": 1648725035,
+        //       "create_time_ms": "1648725035923.0",
+        //       "side": "sell",
+        //       "currency_pair": "LTC_USDT",
+        //       "amount": "0.0116",
+        //       "price": "130.11"
         //     }]
         // }
         //
@@ -552,7 +557,7 @@ class gate extends gate$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         let subType = undefined;
@@ -642,7 +647,7 @@ class gate extends gate$1 {
          * @name gate#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -667,18 +672,18 @@ class gate extends gate$1 {
         //
         // spot order fill
         //   {
-        //       time: 1653664351,
-        //       channel: 'spot.balances',
-        //       event: 'update',
-        //       result: [
+        //       "time": 1653664351,
+        //       "channel": "spot.balances",
+        //       "event": "update",
+        //       "result": [
         //         {
-        //           timestamp: '1653664351',
-        //           timestamp_ms: '1653664351017',
-        //           user: '10406147',
-        //           currency: 'LTC',
-        //           change: '-0.0002000000000000',
-        //           total: '0.09986000000000000000',
-        //           available: '0.09986000000000000000'
+        //           "timestamp": "1653664351",
+        //           "timestamp_ms": "1653664351017",
+        //           "user": "10406147",
+        //           "currency": "LTC",
+        //           "change": "-0.0002000000000000",
+        //           "total": "0.09986000000000000000",
+        //           "available": "0.09986000000000000000"
         //         }
         //       ]
         //   }
@@ -686,40 +691,40 @@ class gate extends gate$1 {
         // account transfer
         //
         //    {
-        //        id: null,
-        //        time: 1653665088,
-        //        channel: 'futures.balances',
-        //        event: 'update',
-        //        error: null,
-        //        result: [
+        //        "id": null,
+        //        "time": 1653665088,
+        //        "channel": "futures.balances",
+        //        "event": "update",
+        //        "error": null,
+        //        "result": [
         //          {
-        //            balance: 25.035008537,
-        //            change: 25,
-        //            text: '-',
-        //            time: 1653665088,
-        //            time_ms: 1653665088286,
-        //            type: 'dnw',
-        //            user: '10406147'
+        //            "balance": 25.035008537,
+        //            "change": 25,
+        //            "text": "-",
+        //            "time": 1653665088,
+        //            "time_ms": 1653665088286,
+        //            "type": "dnw",
+        //            "user": "10406147"
         //          }
         //        ]
         //   }
         //
         // swap order fill
         //   {
-        //       id: null,
-        //       time: 1653665311,
-        //       channel: 'futures.balances',
-        //       event: 'update',
-        //       error: null,
-        //       result: [
+        //       "id": null,
+        //       "time": 1653665311,
+        //       "channel": "futures.balances",
+        //       "event": "update",
+        //       "error": null,
+        //       "result": [
         //         {
-        //           balance: 20.031873037,
-        //           change: -0.0031355,
-        //           text: 'LTC_USDT:165551103273',
-        //           time: 1653665311,
-        //           time_ms: 1653665311437,
-        //           type: 'fee',
-        //           user: '10406147'
+        //           "balance": 20.031873037,
+        //           "change": -0.0031355,
+        //           "text": "LTC_USDT:165551103273",
+        //           "time": 1653665311,
+        //           "time_ms": 1653665311437,
+        //           "type": "fee",
+        //           "user": "10406147"
         //         }
         //       ]
         //   }
@@ -750,6 +755,145 @@ class gate extends gate$1 {
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#watchPositions
+         * @see https://www.gate.io/docs/developers/futures/ws/en/#positions-subscription
+         * @see https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
+         * @see https://www.gate.io/docs/developers/options/ws/en/#positions-channel
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        symbols = this.marketSymbols(symbols);
+        const payload = ['!' + 'all'];
+        if (!this.isEmpty(symbols)) {
+            market = this.getMarketFromSymbols(symbols);
+        }
+        let type = undefined;
+        let query = undefined;
+        [type, query] = this.handleMarketTypeAndParams('watchPositions', market, params);
+        if (type === 'spot') {
+            type = 'swap';
+        }
+        const typeId = this.getSupportedMapping(type, {
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        });
+        let messageHash = type + ':positions';
+        if (!this.isEmpty(symbols)) {
+            messageHash += '::' + symbols.join(',');
+        }
+        const channel = typeId + '.positions';
+        let subType = undefined;
+        [subType, query] = this.handleSubTypeAndParams('watchPositions', market, query);
+        const isInverse = (subType === 'inverse');
+        const url = this.getUrlByMarketType(type, isInverse);
+        const client = this.client(url);
+        this.setPositionsCache(client, type, symbols);
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeValue('watchPositions', 'awaitPositionsSnapshot', true);
+        const cache = this.safeValue(this.positions, type);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+            return await client.future(type + ':fetchPositionsSnapshot');
+        }
+        const positions = await this.subscribePrivate(url, messageHash, payload, channel, query, true);
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+    }
+    setPositionsCache(client, type, symbols = undefined) {
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (type in this.positions) {
+            return;
+        }
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = type + ':fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, client, messageHash, type);
+            }
+        }
+        else {
+            this.positions[type] = new Cache.ArrayCacheBySymbolBySide();
+        }
+    }
+    async loadPositionsSnapshot(client, messageHash, type) {
+        const positions = await this.fetchPositions(undefined, { 'type': type });
+        this.positions[type] = new Cache.ArrayCacheBySymbolBySide();
+        const cache = this.positions[type];
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            cache.append(position);
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve(cache);
+        client.resolve(cache, type + ':position');
+    }
+    handlePositions(client, message) {
+        //
+        //    {
+        //        time: 1693158497,
+        //        time_ms: 1693158497204,
+        //        channel: 'futures.positions',
+        //        event: 'update',
+        //        result: [{
+        //            contract: 'XRP_USDT',
+        //            cross_leverage_limit: 0,
+        //            entry_price: 0.5253,
+        //            history_pnl: 0,
+        //            history_point: 0,
+        //            last_close_pnl: 0,
+        //            leverage: 0,
+        //            leverage_max: 50,
+        //            liq_price: 0.0361,
+        //            maintenance_rate: 0.01,
+        //            margin: 4.89609962852,
+        //            mode: 'single',
+        //            realised_pnl: -0.0026265,
+        //            realised_point: 0,
+        //            risk_limit: 500000,
+        //            size: 1,
+        //            time: 1693158497,
+        //            time_ms: 1693158497195,
+        //            update_id: 1,
+        //            user: '10444586'
+        //        }]
+        //    }
+        //
+        const type = this.getMarketTypeByUrl(client.url);
+        const data = this.safeValue(message, 'result', []);
+        const cache = this.positions[type];
+        const newPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const rawPosition = data[i];
+            const position = this.parsePosition(rawPosition);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, type + ':positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(newPositions, type + ':positions');
+    }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -761,7 +905,7 @@ class gate extends gate$1 {
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets();
         let market = undefined;
@@ -871,20 +1015,20 @@ class gate extends gate$1 {
     }
     handleErrorMessage(client, message) {
         // {
-        //     time: 1647274664,
-        //     channel: 'futures.orders',
-        //     event: 'subscribe',
-        //     error: { code: 2, message: 'unknown contract BTC_USDT_20220318' },
+        //     "time": 1647274664,
+        //     "channel": "futures.orders",
+        //     "event": "subscribe",
+        //     "error": { code: 2, message: "unknown contract BTC_USDT_20220318" },
         // }
         // {
-        //     time: 1647276473,
-        //     channel: 'futures.orders',
-        //     event: 'subscribe',
-        //     error: {
-        //       code: 4,
-        //       message: '{"label":"INVALID_KEY","message":"Invalid key provided"}\n'
+        //     "time": 1647276473,
+        //     "channel": "futures.orders",
+        //     "event": "subscribe",
+        //     "error": {
+        //       "code": 4,
+        //       "message": "{"label":"INVALID_KEY","message":"Invalid key provided"}\n"
         //     },
-        //     result: null
+        //     "result": null
         //   }
         const error = this.safeValue(message, 'error');
         const code = this.safeInteger(error, 'code');
@@ -935,27 +1079,27 @@ class gate extends gate$1 {
         //
         // subscribe
         //    {
-        //        time: 1649062304,
-        //        id: 1649062303,
-        //        channel: 'spot.candlesticks',
-        //        event: 'subscribe',
-        //        result: { status: 'success' }
+        //        "time": 1649062304,
+        //        "id": 1649062303,
+        //        "channel": "spot.candlesticks",
+        //        "event": "subscribe",
+        //        "result": { status: "success" }
         //    }
         //
         // candlestick
         //    {
-        //        time: 1649063328,
-        //        channel: 'spot.candlesticks',
-        //        event: 'update',
-        //        result: {
-        //          t: '1649063280',
-        //          v: '58932.23174896',
-        //          c: '45966.47',
-        //          h: '45997.24',
-        //          l: '45966.47',
-        //          o: '45975.18',
-        //          n: '1m_BTC_USDT',
-        //          a: '1.281699'
+        //        "time": 1649063328,
+        //        "channel": "spot.candlesticks",
+        //        "event": "update",
+        //        "result": {
+        //          "t": "1649063280",
+        //          "v": "58932.23174896",
+        //          "c": "45966.47",
+        //          "h": "45997.24",
+        //          "l": "45966.47",
+        //          "o": "45975.18",
+        //          "n": "1m_BTC_USDT",
+        //          "a": "1.281699"
         //        }
         //     }
         //
@@ -973,17 +1117,17 @@ class gate extends gate$1 {
         //   }
         // orderbook
         //   {
-        //       time: 1649770525,
-        //       channel: 'spot.order_book_update',
-        //       event: 'update',
-        //       result: {
-        //         t: 1649770525653,
-        //         e: 'depthUpdate',
-        //         E: 1649770525,
-        //         s: 'LTC_USDT',
-        //         U: 2622525645,
-        //         u: 2622525665,
-        //         b: [
+        //       "time": 1649770525,
+        //       "channel": "spot.order_book_update",
+        //       "event": "update",
+        //       "result": {
+        //         "t": 1649770525653,
+        //         "e": "depthUpdate",
+        //         "E": 1649770525,
+        //         "s": "LTC_USDT",
+        //         "U": 2622525645,
+        //         "u": 2622525665,
+        //         "b": [
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
@@ -991,7 +1135,7 @@ class gate extends gate$1 {
         //           [Array], [Array],
         //           [Array]
         //         ],
-        //         a: [
+        //         "a": [
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
@@ -1005,18 +1149,18 @@ class gate extends gate$1 {
         // balance update
         //
         //    {
-        //        time: 1653664351,
-        //        channel: 'spot.balances',
-        //        event: 'update',
-        //        result: [
+        //        "time": 1653664351,
+        //        "channel": "spot.balances",
+        //        "event": "update",
+        //        "result": [
         //          {
-        //            timestamp: '1653664351',
-        //            timestamp_ms: '1653664351017',
-        //            user: '10406147',
-        //            currency: 'LTC',
-        //            change: '-0.0002000000000000',
-        //            total: '0.09986000000000000000',
-        //            available: '0.09986000000000000000'
+        //            "timestamp": "1653664351",
+        //            "timestamp_ms": "1653664351017",
+        //            "user": "10406147",
+        //            "currency": "LTC",
+        //            "change": "-0.0002000000000000",
+        //            "total": "0.09986000000000000000",
+        //            "available": "0.09986000000000000000"
         //          }
         //        ]
         //    }
@@ -1036,6 +1180,7 @@ class gate extends gate$1 {
             'usertrades': this.handleMyTrades,
             'candlesticks': this.handleOHLCV,
             'orders': this.handleOrder,
+            'positions': this.handlePositions,
             'tickers': this.handleTicker,
             'book_ticker': this.handleTicker,
             'trades': this.handleTrades,
@@ -1076,6 +1221,22 @@ class gate extends gate$1 {
         else {
             return url;
         }
+    }
+    getMarketTypeByUrl(url) {
+        const findBy = {
+            'op-': 'option',
+            'delivery': 'future',
+            'fx': 'swap',
+        };
+        const keys = Object.keys(findBy);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = findBy[key];
+            if (url.indexOf(key) >= 0) {
+                return value;
+            }
+        }
+        return 'spot';
     }
     requestId() {
         // their support said that reqid must be an int32, not documented

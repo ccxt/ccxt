@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingHistory, FundingRateHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -42,12 +42,11 @@ export default class phemex extends Exchange {
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -57,6 +56,8 @@ export default class phemex extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarketLeverageTiers': 'emulated',
@@ -540,9 +541,9 @@ export default class phemex extends Exchange {
         const takerFeeRateEr = this.safeString (market, 'takerFeeRateEr');
         const status = this.safeString (market, 'status');
         const contractSizeString = this.safeString (market, 'contractSize', ' ');
-        let contractSize = undefined;
+        let contractSize: Num = undefined;
         if (settle === 'USDT') {
-            contractSize = 1;
+            contractSize = this.parseNumber ('1');
         } else if (contractSizeString.indexOf (' ')) {
             // "1 USD"
             // "0.005 ETH"
@@ -903,9 +904,9 @@ export default class phemex extends Exchange {
             const valueScale = parseInt (valueScaleString);
             const minValueEv = this.safeString (currency, 'minValueEv');
             const maxValueEv = this.safeString (currency, 'maxValueEv');
-            let minAmount = undefined;
-            let maxAmount = undefined;
-            let precision = undefined;
+            let minAmount: Num = undefined;
+            let maxAmount: Num = undefined;
+            let precision: Num = undefined;
             if (valueScale !== undefined) {
                 const precisionString = this.parsePrecision (valueScaleString);
                 precision = this.parseNumber (precisionString);
@@ -939,7 +940,7 @@ export default class phemex extends Exchange {
         return result;
     }
 
-    customParseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
+    customParseBidAsk (bidask, priceKey = 0, amountKey = 1, market: Market = undefined) {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' customParseBidAsk() requires a market argument');
         }
@@ -953,7 +954,7 @@ export default class phemex extends Exchange {
         ];
     }
 
-    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market: Market = undefined) {
         const result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -975,7 +976,7 @@ export default class phemex extends Exchange {
         return result as any;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name phemex#fetchOrderBook
@@ -984,7 +985,7 @@ export default class phemex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1039,14 +1040,14 @@ export default class phemex extends Exchange {
         return this.parseToInt (preciseString);
     }
 
-    toEv (amount, market = undefined) {
+    toEv (amount, market: Market = undefined) {
         if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
         return this.toEn (amount, market['valueScale']);
     }
 
-    toEp (price, market = undefined) {
+    toEp (price, market: Market = undefined) {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
@@ -1063,28 +1064,28 @@ export default class phemex extends Exchange {
         return precise.toString ();
     }
 
-    fromEp (ep, market = undefined) {
+    fromEp (ep, market: Market = undefined) {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
         return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
-    fromEv (ev, market = undefined) {
+    fromEv (ev, market: Market = undefined) {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
         return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
-    fromEr (er, market = undefined) {
+    fromEr (er, market: Market = undefined) {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
         return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1592467200, // timestamp
@@ -1098,7 +1099,7 @@ export default class phemex extends Exchange {
         //         48759063370, // quote volume
         //     ]
         //
-        let baseVolume = undefined;
+        let baseVolume: Num;
         if ((market !== undefined) && market['spot']) {
             baseVolume = this.parseNumber (this.fromEv (this.safeString (ohlcv, 7), market));
         } else {
@@ -1114,7 +1115,7 @@ export default class phemex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name phemex#fetchOHLCV
@@ -1202,7 +1203,7 @@ export default class phemex extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, userLimit);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // spot
         //
@@ -1291,7 +1292,7 @@ export default class phemex extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name phemex#fetchTicker
@@ -1299,7 +1300,7 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1364,7 +1365,7 @@ export default class phemex extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name phemex#fetchTickers
@@ -1374,10 +1375,10 @@ export default class phemex extends Exchange {
          * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const first = this.safeValue (symbols, 0);
             market = this.market (first);
@@ -1387,7 +1388,7 @@ export default class phemex extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
+        let defaultMethod: string;
         if (type === 'spot') {
             defaultMethod = 'v1GetMdSpotTicker24hrAll';
         } else if (subType === 'inverse') {
@@ -1401,7 +1402,7 @@ export default class phemex extends Exchange {
         return this.parseTickers (result, symbols);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name phemex#fetchTrades
@@ -1411,7 +1412,7 @@ export default class phemex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1445,7 +1446,7 @@ export default class phemex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public) spot & contract
         //
@@ -1497,9 +1498,9 @@ export default class phemex extends Exchange {
         //         "leavesQuoteQtyEv": 0,
         //         "execFeeEv": 0,
         //         "feeRateEr": 0
-        //         "baseCurrency": 'BTC',
-        //         "quoteCurrency": 'USDT',
-        //         "feeCurrency": 'BTC'
+        //         "baseCurrency": "BTC",
+        //         "quoteCurrency": "USDT",
+        //         "feeCurrency": "BTC"
         //     }
         //
         // swap
@@ -1607,22 +1608,22 @@ export default class phemex extends Exchange {
         //         "execStatus": 6
         //     }
         //
-        let priceString = undefined;
-        let amountString = undefined;
-        let timestamp = undefined;
-        let id = undefined;
-        let side = undefined;
-        let costString = undefined;
-        let type = undefined;
+        let priceString: Str;
+        let amountString: Str;
+        let timestamp: Int;
+        let id: Str = undefined;
+        let side: Str = undefined;
+        let costString: Str = undefined;
+        let type: Str = undefined;
         let fee = undefined;
-        let feeCostString = undefined;
-        let feeRateString = undefined;
-        let feeCurrencyCode = undefined;
+        let feeCostString: Str = undefined;
+        let feeRateString: Str = undefined;
+        let feeCurrencyCode: Str = undefined;
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let orderId = undefined;
-        let takerOrMaker = undefined;
+        let orderId: Str = undefined;
+        let takerOrMaker: Str = undefined;
         if (Array.isArray (trade)) {
             const tradeLength = trade.length;
             timestamp = this.safeIntegerProduct (trade, 0, 0.000001);
@@ -1767,17 +1768,17 @@ export default class phemex extends Exchange {
     parseSwapBalance (response) {
         // usdt
         //   {
-        //       info: {
-        //         code: '0',
-        //         msg: '',
-        //         data: {
-        //           account: {
-        //             userID: '940666',
-        //             accountId: '9406660003',
-        //             currency: 'USDT',
-        //             accountBalanceRv: '99.93143972',
-        //             totalUsedBalanceRv: '0.40456',
-        //             bonusBalanceRv: '0'
+        //       "info": {
+        //         "code": "0",
+        //         "msg": '',
+        //         "data": {
+        //           "account": {
+        //             "userID": "940666",
+        //             "accountId": "9406660003",
+        //             "currency": "USDT",
+        //             "accountBalanceRv": "99.93143972",
+        //             "totalUsedBalanceRv": "0.40456",
+        //             "bonusBalanceRv": "0"
         //           },
         //   }
         //
@@ -1812,14 +1813,14 @@ export default class phemex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name phemex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
@@ -1859,17 +1860,17 @@ export default class phemex extends Exchange {
         //
         // usdt
         //   {
-        //       info: {
-        //         code: '0',
-        //         msg: '',
-        //         data: {
-        //           account: {
-        //             userID: '940666',
-        //             accountId: '9406660003',
-        //             currency: 'USDT',
-        //             accountBalanceRv: '99.93143972',
-        //             totalUsedBalanceRv: '0.40456',
-        //             bonusBalanceRv: '0'
+        //       "info": {
+        //         "code": "0",
+        //         "msg": '',
+        //         "data": {
+        //           "account": {
+        //             "userID": "940666",
+        //             "accountId": "9406660003",
+        //             "currency": "USDT",
+        //             "accountBalanceRv": "99.93143972",
+        //             "totalUsedBalanceRv": "0.40456",
+        //             "bonusBalanceRv": "0"
         //           },
         //   }
         //
@@ -2028,7 +2029,7 @@ export default class phemex extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseSpotOrder (order, market = undefined) {
+    parseSpotOrder (order, market: Market = undefined) {
         //
         // spot
         //
@@ -2112,7 +2113,7 @@ export default class phemex extends Exchange {
             };
         }
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp', market))));
+        const stopPrice = this.parseNumber (this.omitZero (this.fromEp (this.safeString (order, 'stopPxEp'))));
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
@@ -2148,7 +2149,7 @@ export default class phemex extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseSwapOrder (order, market = undefined) {
+    parseSwapOrder (order, market: Market = undefined) {
         //
         //     {
         //         "bizError":0,
@@ -2315,7 +2316,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         const isSwap = this.safeValue (market, 'swap', false);
         const hasPnl = ('closedPnl' in order);
         if (isSwap || hasPnl) {
@@ -2340,7 +2341,7 @@ export default class phemex extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2624,11 +2625,8 @@ export default class phemex extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2685,7 +2683,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#cancelOrder
@@ -2695,7 +2693,7 @@ export default class phemex extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -2727,7 +2725,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#cancelAllOrders
@@ -2735,7 +2733,7 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -2757,14 +2755,14 @@ export default class phemex extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2802,7 +2800,7 @@ export default class phemex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name phemex#fetchOrders
@@ -2810,9 +2808,9 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -2841,7 +2839,7 @@ export default class phemex extends Exchange {
         return this.parseOrders (rows, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name phemex#fetchOpenOrders
@@ -2850,9 +2848,9 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -2886,7 +2884,7 @@ export default class phemex extends Exchange {
         }
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name phemex#fetchClosedOrders
@@ -2894,9 +2892,9 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -2965,7 +2963,7 @@ export default class phemex extends Exchange {
         }
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchMyTrades
@@ -2976,7 +2974,7 @@ export default class phemex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -3130,7 +3128,7 @@ export default class phemex extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -3171,7 +3169,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name phemex#fetchDeposits
@@ -3180,7 +3178,7 @@ export default class phemex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -3212,7 +3210,7 @@ export default class phemex extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name phemex#fetchWithdrawals
@@ -3221,7 +3219,7 @@ export default class phemex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -3261,7 +3259,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -3335,11 +3333,13 @@ export default class phemex extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchPositions
@@ -3348,7 +3348,7 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -3465,76 +3465,76 @@ export default class phemex extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //    {
-        //        userID: '811370',
-        //        accountID: '8113700002',
-        //        symbol: 'ETHUSD',
-        //        currency: 'USD',
-        //        side: 'Buy',
-        //        positionStatus: 'Normal',
-        //        crossMargin: false,
-        //        leverageEr: '200000000',
-        //        leverage: '2.00000000',
-        //        initMarginReqEr: '50000000',
-        //        initMarginReq: '0.50000000',
-        //        maintMarginReqEr: '1000000',
-        //        maintMarginReq: '0.01000000',
-        //        riskLimitEv: '5000000000',
-        //        riskLimit: '500000.00000000',
-        //        size: '1',
-        //        value: '22.22370000',
-        //        valueEv: '222237',
-        //        avgEntryPriceEp: '44447400',
-        //        avgEntryPrice: '4444.74000000',
-        //        posCostEv: '111202',
-        //        posCost: '11.12020000',
-        //        assignedPosBalanceEv: '111202',
-        //        assignedPosBalance: '11.12020000',
-        //        bankruptCommEv: '84',
-        //        bankruptComm: '0.00840000',
-        //        bankruptPriceEp: '22224000',
-        //        bankruptPrice: '2222.40000000',
-        //        positionMarginEv: '111118',
-        //        positionMargin: '11.11180000',
-        //        liquidationPriceEp: '22669000',
-        //        liquidationPrice: '2266.90000000',
-        //        deleveragePercentileEr: '0',
-        //        deleveragePercentile: '0E-8',
-        //        buyValueToCostEr: '50112500',
-        //        buyValueToCost: '0.50112500',
-        //        sellValueToCostEr: '50187500',
-        //        sellValueToCost: '0.50187500',
-        //        markPriceEp: '31332499',
-        //        markPrice: '3133.24990000',
-        //        markValueEv: '0',
-        //        markValue: null,
-        //        unRealisedPosLossEv: '0',
-        //        unRealisedPosLoss: null,
-        //        estimatedOrdLossEv: '0',
-        //        estimatedOrdLoss: '0E-8',
-        //        usedBalanceEv: '111202',
-        //        usedBalance: '11.12020000',
-        //        takeProfitEp: '0',
-        //        takeProfit: null,
-        //        stopLossEp: '0',
-        //        stopLoss: null,
-        //        cumClosedPnlEv: '-1546',
-        //        cumFundingFeeEv: '1605',
-        //        cumTransactFeeEv: '8438',
-        //        realisedPnlEv: '0',
-        //        realisedPnl: null,
-        //        cumRealisedPnlEv: '0',
-        //        cumRealisedPnl: null,
-        //        transactTimeNs: '1641571200001885324',
-        //        takerFeeRateEr: '0',
-        //        makerFeeRateEr: '0',
-        //        term: '6',
-        //        lastTermEndTimeNs: '1607711882505745356',
-        //        lastFundingTimeNs: '1641571200000000000',
-        //        curTermRealisedPnlEv: '-1567',
-        //        execSeq: '12112761561'
+        //        "userID": "811370",
+        //        "accountID": "8113700002",
+        //        "symbol": "ETHUSD",
+        //        "currency": "USD",
+        //        "side": "Buy",
+        //        "positionStatus": "Normal",
+        //        "crossMargin": false,
+        //        "leverageEr": "200000000",
+        //        "leverage": "2.00000000",
+        //        "initMarginReqEr": "50000000",
+        //        "initMarginReq": "0.50000000",
+        //        "maintMarginReqEr": "1000000",
+        //        "maintMarginReq": "0.01000000",
+        //        "riskLimitEv": "5000000000",
+        //        "riskLimit": "500000.00000000",
+        //        "size": "1",
+        //        "value": "22.22370000",
+        //        "valueEv": "222237",
+        //        "avgEntryPriceEp": "44447400",
+        //        "avgEntryPrice": "4444.74000000",
+        //        "posCostEv": "111202",
+        //        "posCost": "11.12020000",
+        //        "assignedPosBalanceEv": "111202",
+        //        "assignedPosBalance": "11.12020000",
+        //        "bankruptCommEv": "84",
+        //        "bankruptComm": "0.00840000",
+        //        "bankruptPriceEp": "22224000",
+        //        "bankruptPrice": "2222.40000000",
+        //        "positionMarginEv": "111118",
+        //        "positionMargin": "11.11180000",
+        //        "liquidationPriceEp": "22669000",
+        //        "liquidationPrice": "2266.90000000",
+        //        "deleveragePercentileEr": "0",
+        //        "deleveragePercentile": "0E-8",
+        //        "buyValueToCostEr": "50112500",
+        //        "buyValueToCost": "0.50112500",
+        //        "sellValueToCostEr": "50187500",
+        //        "sellValueToCost": "0.50187500",
+        //        "markPriceEp": "31332499",
+        //        "markPrice": "3133.24990000",
+        //        "markValueEv": "0",
+        //        "markValue": null,
+        //        "unRealisedPosLossEv": "0",
+        //        "unRealisedPosLoss": null,
+        //        "estimatedOrdLossEv": "0",
+        //        "estimatedOrdLoss": "0E-8",
+        //        "usedBalanceEv": "111202",
+        //        "usedBalance": "11.12020000",
+        //        "takeProfitEp": "0",
+        //        "takeProfit": null,
+        //        "stopLossEp": "0",
+        //        "stopLoss": null,
+        //        "cumClosedPnlEv": "-1546",
+        //        "cumFundingFeeEv": "1605",
+        //        "cumTransactFeeEv": "8438",
+        //        "realisedPnlEv": "0",
+        //        "realisedPnl": null,
+        //        "cumRealisedPnlEv": "0",
+        //        "cumRealisedPnl": null,
+        //        "transactTimeNs": "1641571200001885324",
+        //        "takerFeeRateEr": "0",
+        //        "makerFeeRateEr": "0",
+        //        "term": "6",
+        //        "lastTermEndTimeNs": "1607711882505745356",
+        //        "lastFundingTimeNs": "1641571200000000000",
+        //        "curTermRealisedPnlEv": "-1567",
+        //        "execSeq": "12112761561"
         //    }
         //
         const marketId = this.safeString (position, 'symbol');
@@ -3608,7 +3608,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchFundingHistory
@@ -3618,12 +3618,12 @@ export default class phemex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -3690,7 +3690,7 @@ export default class phemex extends Exchange {
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3733,7 +3733,7 @@ export default class phemex extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //     {
         //         "askEp": 2332500,
@@ -3804,7 +3804,7 @@ export default class phemex extends Exchange {
          * @param {string} symbol unified market symbol of the market to set margin in
          * @param {float} amount the amount to set the margin to
          * @param {object} [params] parameters specific to the phemex api endpoint
-         * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+         * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3832,7 +3832,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market: Market = undefined) {
         //
         //     {
         //         "code": 0,
@@ -3854,7 +3854,7 @@ export default class phemex extends Exchange {
         };
     }
 
-    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setMarginMode
@@ -3864,7 +3864,9 @@ export default class phemex extends Exchange {
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setMarginMode', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap'] || market['settle'] === 'USDT') {
@@ -3888,7 +3890,7 @@ export default class phemex extends Exchange {
         return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
-    async setPositionMode (hedged, symbol: string = undefined, params = {}) {
+    async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setPositionMode
@@ -3916,14 +3918,14 @@ export default class phemex extends Exchange {
         return await this.privatePutGPositionsSwitchPosModeSync (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         if (symbols !== undefined) {
@@ -4017,7 +4019,7 @@ export default class phemex extends Exchange {
         return this.parseLeverageTiers (riskLimits, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         /**
          * @param {object} info Exchange market response for 1 market
          * @param {object} market CCXT market
@@ -4088,7 +4090,7 @@ export default class phemex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name phemex#setLeverage
@@ -4147,7 +4149,7 @@ export default class phemex extends Exchange {
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4171,15 +4173,15 @@ export default class phemex extends Exchange {
             const response = await this.privatePostAssetsTransfer (this.extend (request, params));
             //
             //     {
-            //         code: '0',
-            //         msg: 'OK',
-            //         data: {
-            //             linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
-            //             userId: '4018340',
-            //             currency: 'USD',
-            //             amountEv: '10',
-            //             side: '2',
-            //             status: '10'
+            //         "code": "0",
+            //         "msg": "OK",
+            //         "data": {
+            //             "linkKey": "8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9",
+            //             "userId": "4018340",
+            //             "currency": "USD",
+            //             "amountEv": "10",
+            //             "side": "2",
+            //             "status": "10"
             //         }
             //     }
             //
@@ -4196,9 +4198,9 @@ export default class phemex extends Exchange {
             const response = await this.privatePostAssetsUniversalTransfer (this.extend (request, params));
             //
             //     {
-            //         code: '0',
-            //         msg: 'OK',
-            //         data: 'API-923db826-aaaa-aaaa-aaaa-4d98c3a7c9fd'
+            //         "code": "0",
+            //         "msg": "OK",
+            //         "data": "API-923db826-aaaa-aaaa-aaaa-4d98c3a7c9fd"
             //     }
             //
             transfer = this.parseTransfer (response);
@@ -4222,7 +4224,7 @@ export default class phemex extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchTransfers
@@ -4231,7 +4233,7 @@ export default class phemex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         if (code === undefined) {
@@ -4273,17 +4275,17 @@ export default class phemex extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
         //     {
-        //         linkKey: '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
-        //         userId: '4018340',
-        //         currency: 'USD',
-        //         amountEv: '10',
-        //         side: '2',
-        //         status: '10'
+        //         "linkKey": "8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9",
+        //         "userId": "4018340",
+        //         "currency": "USD",
+        //         "amountEv": "10",
+        //         "side": "2",
+        //         "status": "10"
         //     }
         //
         // fetchTransfers
@@ -4302,7 +4304,7 @@ export default class phemex extends Exchange {
         const id = this.safeString (transfer, 'linkKey');
         const status = this.safeString (transfer, 'status');
         const amountEv = this.safeString (transfer, 'amountEv');
-        const amountTransfered = this.fromEv (amountEv, currency);
+        const amountTransfered = this.fromEv (amountEv);
         const currencyId = this.safeString (transfer, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const side = this.safeInteger (transfer, 'side');
@@ -4339,7 +4341,7 @@ export default class phemex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name phemex#fetchFundingRateHistory
@@ -4347,13 +4349,15 @@ export default class phemex extends Exchange {
          * @see https://phemex-docs.github.io/#query-funding-rate-history-2
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {int} [params.until] timestamp in ms of the latest funding rate
-         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
-        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isUsdtSettled = market['settle'] === 'USDT';

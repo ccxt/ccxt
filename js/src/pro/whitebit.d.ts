@@ -1,5 +1,5 @@
 import whitebitRest from '../whitebit.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class whitebit extends whitebitRest {
     describe(): any;
@@ -13,10 +13,10 @@ export default class whitebit extends whitebitRest {
     handleTicker(client: Client, message: any): any;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any, subscription?: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any, subscription?: any): void;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     parseWsOrderType(status: any): string;

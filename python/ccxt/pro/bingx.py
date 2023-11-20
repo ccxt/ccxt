@@ -5,9 +5,10 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NetworkError
 
 
 class bingx(ccxt.async_support.bingx):
@@ -71,7 +72,7 @@ class bingx(ccxt.async_support.bingx):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made in a market
         :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
@@ -107,28 +108,28 @@ class bingx(ccxt.async_support.bingx):
         # first snapshot
         #
         #    {
-        #      id: 'd83b78ce-98be-4dc2-b847-12fe471b5bc5',
-        #      code: 0,
-        #      msg: 'SUCCESS',
-        #      timestamp: 1690214699854
+        #      "id": "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
+        #      "code": 0,
+        #      "msg": "SUCCESS",
+        #      "timestamp": 1690214699854
         #    }
         #
         # subsequent updates
         #
         #     {
-        #         code: 0,
-        #         data: {
-        #           E: 1690214529432,
-        #           T: 1690214529386,
-        #           e: 'trade',
-        #           m: True,
-        #           p: '29110.19',
-        #           q: '0.1868',
-        #           s: 'BTC-USDT',
-        #           t: '57903921'
+        #         "code": 0,
+        #         "data": {
+        #           "E": 1690214529432,
+        #           "T": 1690214529386,
+        #           "e": "trade",
+        #           "m": True,
+        #           "p": "29110.19",
+        #           "q": "0.1868",
+        #           "s": "BTC-USDT",
+        #           "t": "57903921"
         #         },
-        #         dataType: 'BTC-USDT@trade',
-        #         success: True
+        #         "dataType": "BTC-USDT@trade",
+        #         "success": True
         #     }
         #
         #
@@ -136,26 +137,26 @@ class bingx(ccxt.async_support.bingx):
         # first snapshot
         #
         #    {
-        #        id: '2aed93b1-6e1e-4038-aeba-f5eeaec2ca48',
-        #        code: 0,
-        #        msg: '',
-        #        dataType: '',
-        #        data: null
+        #        "id": "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
+        #        "code": 0,
+        #        "msg": '',
+        #        "dataType": '',
+        #        "data": null
         #    }
         #
         # subsequent updates
         #
         #
         #    {
-        #        code: 0,
-        #        dataType: 'BTC-USDT@trade',
-        #        data: [
+        #        "code": 0,
+        #        "dataType": "BTC-USDT@trade",
+        #        "data": [
         #            {
-        #                q: '0.0421',
-        #                p: '29023.5',
-        #                T: 1690221401344,
-        #                m: False,
-        #                s: 'BTC-USDT'
+        #                "q": "0.0421",
+        #                "p": "29023.5",
+        #                "T": 1690221401344,
+        #                "m": False,
+        #                "s": "BTC-USDT"
         #            },
         #            ...
         #        ]
@@ -181,7 +182,7 @@ class bingx(ccxt.async_support.bingx):
             stored.append(trades[j])
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
@@ -228,35 +229,35 @@ class bingx(ccxt.async_support.bingx):
         #
         #
         #    {
-        #        code: 0,
-        #        dataType: 'BTC-USDT@depth20',
-        #        data: {
-        #          bids: [
-        #            ['28852.9', '34.2621'],
+        #        "code": 0,
+        #        "dataType": "BTC-USDT@depth20",
+        #        "data": {
+        #          "bids": [
+        #            ['28852.9', "34.2621"],
         #            ...
         #          ],
-        #          asks: [
-        #            ['28864.9', '23.4079'],
+        #          "asks": [
+        #            ['28864.9', "23.4079"],
         #            ...
         #          ]
         #        },
-        #        dataType: 'BTC-USDT@depth20',
-        #        success: True
+        #        "dataType": "BTC-USDT@depth20",
+        #        "success": True
         #    }
         #
         # swap
         #
         #
         #    {
-        #        code: 0,
-        #        dataType: 'BTC-USDT@depth20',
-        #        data: {
-        #          bids: [
-        #            ['28852.9', '34.2621'],
+        #        "code": 0,
+        #        "dataType": "BTC-USDT@depth20",
+        #        "data": {
+        #          "bids": [
+        #            ['28852.9', "34.2621"],
         #            ...
         #          ],
-        #          asks: [
-        #            ['28864.9', '23.4079'],
+        #          "asks": [
+        #            ['28864.9', "23.4079"],
         #            ...
         #          ]
         #        }
@@ -279,16 +280,17 @@ class bingx(ccxt.async_support.bingx):
     def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
-        #        c: '28909.0',
-        #        o: '28915.4',
-        #        h: '28915.4',
-        #        l: '28896.1',
-        #        v: '27.6919',
-        #        T: 1690907580000
+        #        "c": "28909.0",
+        #        "o": "28915.4",
+        #        "h": "28915.4",
+        #        "l": "28896.1",
+        #        "v": "27.6919",
+        #        "T": 1696687499999,
+        #        "t": 1696687440000
         #    }
         #
         return [
-            self.safe_integer(ohlcv, 'T'),
+            self.safe_integer(ohlcv, 't'),  # needs to be opening-time(t) instead of closing-time(T), to be compatible with fetchOHLCV
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
@@ -301,42 +303,42 @@ class bingx(ccxt.async_support.bingx):
         # spot
         #
         #   {
-        #       code: 0,
-        #       data: {
-        #         E: 1696687498608,
-        #         K: {
-        #           T: 1696687499999,
-        #           c: '27917.829',
-        #           h: '27918.427',
-        #           i: '1min',
-        #           l: '27917.7',
-        #           n: 262,
-        #           o: '27917.91',
-        #           q: '25715.359197',
-        #           s: 'BTC-USDT',
-        #           t: 1696687440000,
-        #           v: '0.921100'
+        #       "code": 0,
+        #       "data": {
+        #         "E": 1696687498608,
+        #         "K": {
+        #           "T": 1696687499999,
+        #           "c": "27917.829",
+        #           "h": "27918.427",
+        #           "i": "1min",
+        #           "l": "27917.7",
+        #           "n": 262,
+        #           "o": "27917.91",
+        #           "q": "25715.359197",
+        #           "s": "BTC-USDT",
+        #           "t": 1696687440000,
+        #           "v": "0.921100"
         #         },
-        #         e: 'kline',
-        #         s: 'BTC-USDT'
+        #         "e": "kline",
+        #         "s": "BTC-USDT"
         #       },
-        #       dataType: 'BTC-USDT@kline_1min',
-        #       success: True
+        #       "dataType": "BTC-USDT@kline_1min",
+        #       "success": True
         #   }
         #
         # swap
         #    {
-        #        code: 0,
-        #        dataType: 'BTC-USDT@kline_1m',
-        #        s: 'BTC-USDT',
-        #        data: [
+        #        "code": 0,
+        #        "dataType": "BTC-USDT@kline_1m",
+        #        "s": "BTC-USDT",
+        #        "data": [
         #            {
-        #            c: '28909.0',
-        #            o: '28915.4',
-        #            h: '28915.4',
-        #            l: '28896.1',
-        #            v: '27.6919',
-        #            T: 1690907580000
+        #            "c": "28909.0",
+        #            "o": "28915.4",
+        #            "h": "28915.4",
+        #            "l": "28896.1",
+        #            "v": "27.6919",
+        #            "T": 1690907580000
         #            }
         #        ]
         #    }
@@ -365,7 +367,7 @@ class bingx(ccxt.async_support.bingx):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://bingx-api.github.io/docs/#/spot/socket/market.html#K%E7%BA%BF%20Streams
@@ -398,7 +400,7 @@ class bingx(ccxt.async_support.bingx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
@@ -439,7 +441,7 @@ class bingx(ccxt.async_support.bingx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
         :see: https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
@@ -448,7 +450,7 @@ class bingx(ccxt.async_support.bingx):
         :param int [since]: the earliest time in ms to trades orders for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
         await self.authenticate()
@@ -514,10 +516,10 @@ class bingx(ccxt.async_support.bingx):
         # {code: 100400, msg: '', timestamp: 1696245808833}
         #
         # {
-        #     code: 100500,
-        #     id: '9cd37d32-da98-440b-bd04-37e7dbcf51ad',
-        #     msg: '',
-        #     timestamp: 1696245842307
+        #     "code": 100500,
+        #     "id": "9cd37d32-da98-440b-bd04-37e7dbcf51ad",
+        #     "msg": '',
+        #     "timestamp": 1696245842307
         # }
         code = self.safe_string(message, 'code')
         try:
@@ -547,21 +549,25 @@ class bingx(ccxt.async_support.bingx):
         #
         # spot
         # {
-        #     ping: '5963ba3db76049b2870f9a686b2ebaac',
-        #     time: '2023-10-02T18:51:55.089+0800'
+        #     "ping": "5963ba3db76049b2870f9a686b2ebaac",
+        #     "time": "2023-10-02T18:51:55.089+0800"
         # }
         # swap
         # Ping
         #
-        if message == 'Ping':
-            await client.send('Pong')
-        else:
-            ping = self.safe_string(message, 'ping')
-            time = self.safe_string(message, 'time')
-            await client.send({
-                'pong': ping,
-                'time': time,
-            })
+        try:
+            if message == 'Ping':
+                await client.send('Pong')
+            else:
+                ping = self.safe_string(message, 'ping')
+                time = self.safe_string(message, 'time')
+                await client.send({
+                    'pong': ping,
+                    'time': time,
+                })
+        except Exception as e:
+            error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
+            client.reset(error)
 
     def handle_order(self, client, message):
         #
@@ -595,31 +601,31 @@ class bingx(ccxt.async_support.bingx):
         #      }
         #
         #      {
-        #         code: 0,
-        #         dataType: 'spot.executionReport',
-        #         data: {
-        #           e: 'executionReport',
-        #           E: 1694681809302,
-        #           s: 'LTC-USDT',
-        #           S: 'BUY',
-        #           o: 'MARKET',
-        #           q: 0,
-        #           p: 62.29,
-        #           x: 'TRADE',
-        #           X: 'FILLED',
-        #           i: '1702245001712369664',
-        #           l: 0.0802,
-        #           z: 0.0802,
-        #           L: 62.308,
-        #           n: -0.0000802,
-        #           N: 'LTC',
-        #           T: 1694681809256,
-        #           t: 38259147,
-        #           O: 1694681809248,
-        #           Z: 4.9971016,
-        #           Y: 4.9971016,
-        #           Q: 5,
-        #           m: False
+        #         "code": 0,
+        #         "dataType": "spot.executionReport",
+        #         "data": {
+        #           "e": "executionReport",
+        #           "E": 1694681809302,
+        #           "s": "LTC-USDT",
+        #           "S": "BUY",
+        #           "o": "MARKET",
+        #           "q": 0,
+        #           "p": 62.29,
+        #           "x": "TRADE",
+        #           "X": "FILLED",
+        #           "i": "1702245001712369664",
+        #           "l": 0.0802,
+        #           "z": 0.0802,
+        #           "L": 62.308,
+        #           "n": -0.0000802,
+        #           "N": "LTC",
+        #           "T": 1694681809256,
+        #           "t": 38259147,
+        #           "O": 1694681809248,
+        #           "Z": 4.9971016,
+        #           "Y": 4.9971016,
+        #           "Q": 5,
+        #           "m": False
         #         }
         #       }
         # swap
@@ -666,31 +672,31 @@ class bingx(ccxt.async_support.bingx):
         #
         #
         #      {
-        #         code: 0,
-        #         dataType: 'spot.executionReport',
-        #         data: {
-        #           e: 'executionReport',
-        #           E: 1694681809302,
-        #           s: 'LTC-USDT',
-        #           S: 'BUY',
-        #           o: 'MARKET',
-        #           q: 0,
-        #           p: 62.29,
-        #           x: 'TRADE',
-        #           X: 'FILLED',
-        #           i: '1702245001712369664',
-        #           l: 0.0802,
-        #           z: 0.0802,
-        #           L: 62.308,
-        #           n: -0.0000802,
-        #           N: 'LTC',
-        #           T: 1694681809256,
-        #           t: 38259147,
-        #           O: 1694681809248,
-        #           Z: 4.9971016,
-        #           Y: 4.9971016,
-        #           Q: 5,
-        #           m: False
+        #         "code": 0,
+        #         "dataType": "spot.executionReport",
+        #         "data": {
+        #           "e": "executionReport",
+        #           "E": 1694681809302,
+        #           "s": "LTC-USDT",
+        #           "S": "BUY",
+        #           "o": "MARKET",
+        #           "q": 0,
+        #           "p": 62.29,
+        #           "x": "TRADE",
+        #           "X": "FILLED",
+        #           "i": "1702245001712369664",
+        #           "l": 0.0802,
+        #           "z": 0.0802,
+        #           "L": 62.308,
+        #           "n": -0.0000802,
+        #           "N": "LTC",
+        #           "T": 1694681809256,
+        #           "t": 38259147,
+        #           "O": 1694681809248,
+        #           "Z": 4.9971016,
+        #           "Y": 4.9971016,
+        #           "Q": 5,
+        #           "m": False
         #         }
         #       }
         #

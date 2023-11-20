@@ -46,12 +46,11 @@ export default class deribit extends Exchange {
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
@@ -59,7 +58,10 @@ export default class deribit extends Exchange {
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
                 'fetchMarginMode': false,
@@ -413,12 +415,12 @@ export default class deribit extends Exchange {
         const response = await this.publicGetGetTime(params);
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: 1583922446019,
-        //         usIn: 1583922446019955,
-        //         usOut: 1583922446019956,
-        //         usDiff: 1,
-        //         testnet: false
+        //         "jsonrpc": "2.0",
+        //         "result": 1583922446019,
+        //         "usIn": 1583922446019955,
+        //         "usOut": 1583922446019956,
+        //         "usDiff": 1,
+        //         "testnet": false
         //     }
         //
         return this.safeInteger(response, 'result');
@@ -503,7 +505,7 @@ export default class deribit extends Exchange {
          * @name deribit#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.publicGetStatus(params);
         //
@@ -535,42 +537,42 @@ export default class deribit extends Exchange {
          * @name deribit#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets();
         const response = await this.privateGetGetSubaccounts(params);
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: [{
-        //                 username: 'someusername',
-        //                 type: 'main',
-        //                 system_name: 'someusername',
-        //                 security_keys_enabled: false,
-        //                 security_keys_assignments: [],
-        //                 receive_notifications: false,
-        //                 login_enabled: true,
-        //                 is_password: true,
-        //                 id: '238216',
-        //                 email: 'pablo@abcdef.com'
+        //         "jsonrpc": "2.0",
+        //         "result": [{
+        //                 "username": "someusername",
+        //                 "type": "main",
+        //                 "system_name": "someusername",
+        //                 "security_keys_enabled": false,
+        //                 "security_keys_assignments": [],
+        //                 "receive_notifications": false,
+        //                 "login_enabled": true,
+        //                 "is_password": true,
+        //                 "id": "238216",
+        //                 "email": "pablo@abcdef.com"
         //             },
         //             {
-        //                 username: 'someusername_1',
-        //                 type: 'subaccount',
-        //                 system_name: 'someusername_1',
-        //                 security_keys_enabled: false,
-        //                 security_keys_assignments: [],
-        //                 receive_notifications: false,
-        //                 login_enabled: false,
-        //                 is_password: false,
-        //                 id: '245499',
-        //                 email: 'pablo@abcdef.com'
+        //                 "username": "someusername_1",
+        //                 "type": "subaccount",
+        //                 "system_name": "someusername_1",
+        //                 "security_keys_enabled": false,
+        //                 "security_keys_assignments": [],
+        //                 "receive_notifications": false,
+        //                 "login_enabled": false,
+        //                 "is_password": false,
+        //                 "id": "245499",
+        //                 "email": "pablo@abcdef.com"
         //             }
         //         ],
-        //         usIn: '1652736468292006',
-        //         usOut: '1652736468292377',
-        //         usDiff: '371',
-        //         testnet: false
+        //         "usIn": "1652736468292006",
+        //         "usOut": "1652736468292377",
+        //         "usDiff": "371",
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', []);
@@ -579,16 +581,16 @@ export default class deribit extends Exchange {
     parseAccount(account, currency = undefined) {
         //
         //      {
-        //          username: 'someusername_1',
-        //          type: 'subaccount',
-        //          system_name: 'someusername_1',
-        //          security_keys_enabled: false,
-        //          security_keys_assignments: [],
-        //          receive_notifications: false,
-        //          login_enabled: false,
-        //          is_password: false,
-        //          id: '245499',
-        //          email: 'pablo@abcdef.com'
+        //          "username": "someusername_1",
+        //          "type": "subaccount",
+        //          "system_name": "someusername_1",
+        //          "security_keys_enabled": false,
+        //          "security_keys_assignments": [],
+        //          "receive_notifications": false,
+        //          "login_enabled": false,
+        //          "is_password": false,
+        //          "id": "245499",
+        //          "email": "pablo@abcdef.com"
         //      }
         //
         return {
@@ -609,26 +611,26 @@ export default class deribit extends Exchange {
         const currenciesResponse = await this.publicGetGetCurrencies(params);
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: [
+        //         "jsonrpc": "2.0",
+        //         "result": [
         //             {
-        //                 withdrawal_priorities: [
-        //                     { value: 0.15, name: 'very_low' },
-        //                     { value: 1.5, name: 'very_high' },
+        //                 "withdrawal_priorities": [
+        //                     { value: 0.15, name: "very_low" },
+        //                     { value: 1.5, name: "very_high" },
         //                 ],
-        //                 withdrawal_fee: 0.0005,
-        //                 min_withdrawal_fee: 0.0005,
-        //                 min_confirmations: 1,
-        //                 fee_precision: 4,
-        //                 currency_long: 'Bitcoin',
-        //                 currency: 'BTC',
-        //                 coin_type: 'BITCOIN'
+        //                 "withdrawal_fee": 0.0005,
+        //                 "min_withdrawal_fee": 0.0005,
+        //                 "min_confirmations": 1,
+        //                 "fee_precision": 4,
+        //                 "currency_long": "Bitcoin",
+        //                 "currency": "BTC",
+        //                 "coin_type": "BITCOIN"
         //             }
         //         ],
-        //         usIn: 1583761588590479,
-        //         usOut: 1583761588590544,
-        //         usDiff: 65,
-        //         testnet: false
+        //         "usIn": 1583761588590479,
+        //         "usOut": 1583761588590544,
+        //         "usDiff": 65,
+        //         "testnet": false
         //     }
         //
         const parsedMarkets = {};
@@ -840,7 +842,7 @@ export default class deribit extends Exchange {
          * @name deribit#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const code = this.codeFromOptions('fetchBalance', params);
@@ -851,44 +853,44 @@ export default class deribit extends Exchange {
         const response = await this.privateGetGetAccountSummary(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             total_pl: 0,
-        //             session_upl: 0,
-        //             session_rpl: 0,
-        //             session_funding: 0,
-        //             portfolio_margining_enabled: false,
-        //             options_vega: 0,
-        //             options_theta: 0,
-        //             options_session_upl: 0,
-        //             options_session_rpl: 0,
-        //             options_pl: 0,
-        //             options_gamma: 0,
-        //             options_delta: 0,
-        //             margin_balance: 0.00062359,
-        //             maintenance_margin: 0,
-        //             limits: {
-        //                 non_matching_engine_burst: 300,
-        //                 non_matching_engine: 200,
-        //                 matching_engine_burst: 20,
-        //                 matching_engine: 2
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "total_pl": 0,
+        //             "session_upl": 0,
+        //             "session_rpl": 0,
+        //             "session_funding": 0,
+        //             "portfolio_margining_enabled": false,
+        //             "options_vega": 0,
+        //             "options_theta": 0,
+        //             "options_session_upl": 0,
+        //             "options_session_rpl": 0,
+        //             "options_pl": 0,
+        //             "options_gamma": 0,
+        //             "options_delta": 0,
+        //             "margin_balance": 0.00062359,
+        //             "maintenance_margin": 0,
+        //             "limits": {
+        //                 "non_matching_engine_burst": 300,
+        //                 "non_matching_engine": 200,
+        //                 "matching_engine_burst": 20,
+        //                 "matching_engine": 2
         //             },
-        //             initial_margin: 0,
-        //             futures_session_upl: 0,
-        //             futures_session_rpl: 0,
-        //             futures_pl: 0,
-        //             equity: 0.00062359,
-        //             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
-        //             delta_total: 0,
-        //             currency: 'BTC',
-        //             balance: 0.00062359,
-        //             available_withdrawal_funds: 0.00062359,
-        //             available_funds: 0.00062359
+        //             "initial_margin": 0,
+        //             "futures_session_upl": 0,
+        //             "futures_session_rpl": 0,
+        //             "futures_pl": 0,
+        //             "equity": 0.00062359,
+        //             "deposit_address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "delta_total": 0,
+        //             "currency": "BTC",
+        //             "balance": 0.00062359,
+        //             "available_withdrawal_funds": 0.00062359,
+        //             "available_funds": 0.00062359
         //         },
-        //         usIn: 1583775838115975,
-        //         usOut: 1583775838116520,
-        //         usDiff: 545,
-        //         testnet: false
+        //         "usIn": 1583775838115975,
+        //         "usOut": 1583775838116520,
+        //         "usDiff": 545,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -901,7 +903,7 @@ export default class deribit extends Exchange {
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -911,13 +913,13 @@ export default class deribit extends Exchange {
         const response = await this.privateGetCreateDepositAddress(this.extend(request, params));
         //
         //     {
-        //         'jsonrpc': '2.0',
-        //         'id': 7538,
-        //         'result': {
-        //             'address': '2N8udZGBc1hLRCFsU9kGwMPpmYUwMFTuCwB',
-        //             'creation_timestamp': 1550575165170,
-        //             'currency': 'BTC',
-        //             'type': 'deposit'
+        //         "jsonrpc": "2.0",
+        //         "id": 7538,
+        //         "result": {
+        //             "address": "2N8udZGBc1hLRCFsU9kGwMPpmYUwMFTuCwB",
+        //             "creation_timestamp": 1550575165170,
+        //             "currency": "BTC",
+        //             "type": "deposit"
         //         }
         //     }
         //
@@ -938,7 +940,7 @@ export default class deribit extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -948,19 +950,19 @@ export default class deribit extends Exchange {
         const response = await this.privateGetGetCurrentDepositAddress(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             type: 'deposit',
-        //             status: 'ready',
-        //             requires_confirmation: true,
-        //             currency: 'BTC',
-        //             creation_timestamp: 1514694684651,
-        //             address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw'
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "type": "deposit",
+        //             "status": "ready",
+        //             "requires_confirmation": true,
+        //             "currency": "BTC",
+        //             "creation_timestamp": 1514694684651,
+        //             "address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw"
         //         },
-        //         usIn: 1583785137274288,
-        //         usOut: 1583785137274454,
-        //         usDiff: 166,
-        //         testnet: false
+        //         "usIn": 1583785137274288,
+        //         "usOut": 1583785137274454,
+        //         "usDiff": 166,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -979,46 +981,46 @@ export default class deribit extends Exchange {
         // fetchTicker /public/ticker
         //
         //     {
-        //         timestamp: 1583778859480,
-        //         stats: { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
-        //         state: 'open',
-        //         settlement_price: 7903.21,
-        //         open_interest: 111543850,
-        //         min_price: 7634,
-        //         max_price: 7866.51,
-        //         mark_price: 7750.02,
-        //         last_price: 7750.5,
-        //         instrument_name: 'BTC-PERPETUAL',
-        //         index_price: 7748.01,
-        //         funding_8h: 0.0000026,
-        //         current_funding: 0,
-        //         best_bid_price: 7750,
-        //         best_bid_amount: 19470,
-        //         best_ask_price: 7750.5,
-        //         best_ask_amount: 343280
+        //         "timestamp": 1583778859480,
+        //         "stats": { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
+        //         "state": "open",
+        //         "settlement_price": 7903.21,
+        //         "open_interest": 111543850,
+        //         "min_price": 7634,
+        //         "max_price": 7866.51,
+        //         "mark_price": 7750.02,
+        //         "last_price": 7750.5,
+        //         "instrument_name": "BTC-PERPETUAL",
+        //         "index_price": 7748.01,
+        //         "funding_8h": 0.0000026,
+        //         "current_funding": 0,
+        //         "best_bid_price": 7750,
+        //         "best_bid_amount": 19470,
+        //         "best_ask_price": 7750.5,
+        //         "best_ask_amount": 343280
         //     }
         //
         // fetchTicker /public/get_book_summary_by_instrument
         // fetchTickers /public/get_book_summary_by_currency
         //
         //     {
-        //         volume: 124.1,
-        //         underlying_price: 7856.445926872601,
-        //         underlying_index: 'SYN.BTC-10MAR20',
-        //         quote_currency: 'USD',
-        //         open_interest: 121.8,
-        //         mid_price: 0.01975,
-        //         mark_price: 0.01984559,
-        //         low: 0.0095,
-        //         last: 0.0205,
-        //         interest_rate: 0,
-        //         instrument_name: 'BTC-10MAR20-7750-C',
-        //         high: 0.0295,
-        //         estimated_delivery_price: 7856.29,
-        //         creation_timestamp: 1583783678366,
-        //         bid_price: 0.0185,
-        //         base_currency: 'BTC',
-        //         ask_price: 0.021
+        //         "volume": 124.1,
+        //         "underlying_price": 7856.445926872601,
+        //         "underlying_index": "SYN.BTC-10MAR20",
+        //         "quote_currency": "USD",
+        //         "open_interest": 121.8,
+        //         "mid_price": 0.01975,
+        //         "mark_price": 0.01984559,
+        //         "low": 0.0095,
+        //         "last": 0.0205,
+        //         "interest_rate": 0,
+        //         "instrument_name": "BTC-10MAR20-7750-C",
+        //         "high": 0.0295,
+        //         "estimated_delivery_price": 7856.29,
+        //         "creation_timestamp": 1583783678366,
+        //         "bid_price": 0.0185,
+        //         "base_currency": "BTC",
+        //         "ask_price": 0.021
         //     },
         //
         const timestamp = this.safeInteger2(ticker, 'timestamp', 'creation_timestamp');
@@ -1056,7 +1058,7 @@ export default class deribit extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1066,30 +1068,30 @@ export default class deribit extends Exchange {
         const response = await this.publicGetTicker(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             timestamp: 1583778859480,
-        //             stats: { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
-        //             state: 'open',
-        //             settlement_price: 7903.21,
-        //             open_interest: 111543850,
-        //             min_price: 7634,
-        //             max_price: 7866.51,
-        //             mark_price: 7750.02,
-        //             last_price: 7750.5,
-        //             instrument_name: 'BTC-PERPETUAL',
-        //             index_price: 7748.01,
-        //             funding_8h: 0.0000026,
-        //             current_funding: 0,
-        //             best_bid_price: 7750,
-        //             best_bid_amount: 19470,
-        //             best_ask_price: 7750.5,
-        //             best_ask_amount: 343280
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "timestamp": 1583778859480,
+        //             "stats": { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
+        //             "state": "open",
+        //             "settlement_price": 7903.21,
+        //             "open_interest": 111543850,
+        //             "min_price": 7634,
+        //             "max_price": 7866.51,
+        //             "mark_price": 7750.02,
+        //             "last_price": 7750.5,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "index_price": 7748.01,
+        //             "funding_8h": 0.0000026,
+        //             "current_funding": 0,
+        //             "best_bid_price": 7750,
+        //             "best_bid_amount": 19470,
+        //             "best_ask_price": 7750.5,
+        //             "best_ask_amount": 343280
         //         },
-        //         usIn: 1583778859483941,
-        //         usOut: 1583778859484075,
-        //         usDiff: 134,
-        //         testnet: false
+        //         "usIn": 1583778859483941,
+        //         "usOut": 1583778859484075,
+        //         "usDiff": 134,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result');
@@ -1102,7 +1104,7 @@ export default class deribit extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1114,32 +1116,32 @@ export default class deribit extends Exchange {
         const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: [
+        //         "jsonrpc": "2.0",
+        //         "result": [
         //             {
-        //                 volume: 124.1,
-        //                 underlying_price: 7856.445926872601,
-        //                 underlying_index: 'SYN.BTC-10MAR20',
-        //                 quote_currency: 'USD',
-        //                 open_interest: 121.8,
-        //                 mid_price: 0.01975,
-        //                 mark_price: 0.01984559,
-        //                 low: 0.0095,
-        //                 last: 0.0205,
-        //                 interest_rate: 0,
-        //                 instrument_name: 'BTC-10MAR20-7750-C',
-        //                 high: 0.0295,
-        //                 estimated_delivery_price: 7856.29,
-        //                 creation_timestamp: 1583783678366,
-        //                 bid_price: 0.0185,
-        //                 base_currency: 'BTC',
-        //                 ask_price: 0.021
+        //                 "volume": 124.1,
+        //                 "underlying_price": 7856.445926872601,
+        //                 "underlying_index": "SYN.BTC-10MAR20",
+        //                 "quote_currency": "USD",
+        //                 "open_interest": 121.8,
+        //                 "mid_price": 0.01975,
+        //                 "mark_price": 0.01984559,
+        //                 "low": 0.0095,
+        //                 "last": 0.0205,
+        //                 "interest_rate": 0,
+        //                 "instrument_name": "BTC-10MAR20-7750-C",
+        //                 "high": 0.0295,
+        //                 "estimated_delivery_price": 7856.29,
+        //                 "creation_timestamp": 1583783678366,
+        //                 "bid_price": 0.0185,
+        //                 "base_currency": "BTC",
+        //                 "ask_price": 0.021
         //             },
         //         ],
-        //         usIn: 1583783678361966,
-        //         usOut: 1583783678372069,
-        //         usDiff: 10103,
-        //         testnet: false
+        //         "usIn": 1583783678361966,
+        //         "usOut": 1583783678372069,
+        //         "usDiff": 10103,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', []);
@@ -1190,21 +1192,21 @@ export default class deribit extends Exchange {
         const response = await this.publicGetGetTradingviewChartData(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             volume: [ 3.6680847969999992, 22.682721123, 3.011587939, 0 ],
-        //             ticks: [ 1583916960000, 1583917020000, 1583917080000, 1583917140000 ],
-        //             status: 'ok',
-        //             open: [ 7834, 7839, 7833.5, 7833 ],
-        //             low: [ 7834, 7833.5, 7832.5, 7833 ],
-        //             high: [ 7839.5, 7839, 7833.5, 7833 ],
-        //             cost: [ 28740, 177740, 23590, 0 ],
-        //             close: [ 7839.5, 7833.5, 7833, 7833 ]
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "volume": [ 3.6680847969999992, 22.682721123, 3.011587939, 0 ],
+        //             "ticks": [ 1583916960000, 1583917020000, 1583917080000, 1583917140000 ],
+        //             "status": "ok",
+        //             "open": [ 7834, 7839, 7833.5, 7833 ],
+        //             "low": [ 7834, 7833.5, 7832.5, 7833 ],
+        //             "high": [ 7839.5, 7839, 7833.5, 7833 ],
+        //             "cost": [ 28740, 177740, 23590, 0 ],
+        //             "close": [ 7839.5, 7833.5, 7833, 7833 ]
         //         },
-        //         usIn: 1583917166709801,
-        //         usOut: 1583917166710175,
-        //         usDiff: 374,
-        //         testnet: false
+        //         "usIn": 1583917166709801,
+        //         "usOut": 1583917166710175,
+        //         "usDiff": 374,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -1310,7 +1312,7 @@ export default class deribit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1361,7 +1363,7 @@ export default class deribit extends Exchange {
          * @name deribit#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const code = this.codeFromOptions('fetchTradingFees', params);
@@ -1373,51 +1375,51 @@ export default class deribit extends Exchange {
         const response = await this.privateGetGetAccountSummary(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             total_pl: 0,
-        //             session_upl: 0,
-        //             session_rpl: 0,
-        //             session_funding: 0,
-        //             portfolio_margining_enabled: false,
-        //             options_vega: 0,
-        //             options_theta: 0,
-        //             options_session_upl: 0,
-        //             options_session_rpl: 0,
-        //             options_pl: 0,
-        //             options_gamma: 0,
-        //             options_delta: 0,
-        //             margin_balance: 0.00062359,
-        //             maintenance_margin: 0,
-        //             limits: {
-        //                 non_matching_engine_burst: 300,
-        //                 non_matching_engine: 200,
-        //                 matching_engine_burst: 20,
-        //                 matching_engine: 2
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "total_pl": 0,
+        //             "session_upl": 0,
+        //             "session_rpl": 0,
+        //             "session_funding": 0,
+        //             "portfolio_margining_enabled": false,
+        //             "options_vega": 0,
+        //             "options_theta": 0,
+        //             "options_session_upl": 0,
+        //             "options_session_rpl": 0,
+        //             "options_pl": 0,
+        //             "options_gamma": 0,
+        //             "options_delta": 0,
+        //             "margin_balance": 0.00062359,
+        //             "maintenance_margin": 0,
+        //             "limits": {
+        //                 "non_matching_engine_burst": 300,
+        //                 "non_matching_engine": 200,
+        //                 "matching_engine_burst": 20,
+        //                 "matching_engine": 2
         //             },
-        //             initial_margin: 0,
-        //             futures_session_upl: 0,
-        //             futures_session_rpl: 0,
-        //             futures_pl: 0,
-        //             equity: 0.00062359,
-        //             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
-        //             delta_total: 0,
-        //             currency: 'BTC',
-        //             balance: 0.00062359,
-        //             available_withdrawal_funds: 0.00062359,
-        //             available_funds: 0.00062359,
-        //             fees: [
-        //                 currency: '',
-        //                 instrument_type: 'perpetual',
-        //                 fee_type: 'relative',
-        //                 maker_fee: 0,
-        //                 taker_fee: 0,
+        //             "initial_margin": 0,
+        //             "futures_session_upl": 0,
+        //             "futures_session_rpl": 0,
+        //             "futures_pl": 0,
+        //             "equity": 0.00062359,
+        //             "deposit_address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "delta_total": 0,
+        //             "currency": "BTC",
+        //             "balance": 0.00062359,
+        //             "available_withdrawal_funds": 0.00062359,
+        //             "available_funds": 0.00062359,
+        //             "fees": [
+        //                 "currency": '',
+        //                 "instrument_type": "perpetual",
+        //                 "fee_type": "relative",
+        //                 "maker_fee": 0,
+        //                 "taker_fee": 0,
         //             ],
         //         },
-        //         usIn: 1583775838115975,
-        //         usOut: 1583775838116520,
-        //         usDiff: 545,
-        //         testnet: false
+        //         "usIn": 1583775838115975,
+        //         "usOut": 1583775838116520,
+        //         "usDiff": 545,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -1483,7 +1485,7 @@ export default class deribit extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1496,41 +1498,41 @@ export default class deribit extends Exchange {
         const response = await this.publicGetGetOrderBook(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             timestamp: 1583781354740,
-        //             stats: { volume: 61249.66735634, low: 7631.5, high: 8311.5 },
-        //             state: 'open',
-        //             settlement_price: 7903.21,
-        //             open_interest: 111536690,
-        //             min_price: 7695.13,
-        //             max_price: 7929.49,
-        //             mark_price: 7813.06,
-        //             last_price: 7814.5,
-        //             instrument_name: 'BTC-PERPETUAL',
-        //             index_price: 7810.12,
-        //             funding_8h: 0.0000031,
-        //             current_funding: 0,
-        //             change_id: 17538025952,
-        //             bids: [
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "timestamp": 1583781354740,
+        //             "stats": { volume: 61249.66735634, low: 7631.5, high: 8311.5 },
+        //             "state": "open",
+        //             "settlement_price": 7903.21,
+        //             "open_interest": 111536690,
+        //             "min_price": 7695.13,
+        //             "max_price": 7929.49,
+        //             "mark_price": 7813.06,
+        //             "last_price": 7814.5,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "index_price": 7810.12,
+        //             "funding_8h": 0.0000031,
+        //             "current_funding": 0,
+        //             "change_id": 17538025952,
+        //             "bids": [
         //                 [7814, 351820],
         //                 [7813.5, 207490],
         //                 [7813, 32160],
         //             ],
-        //             best_bid_price: 7814,
-        //             best_bid_amount: 351820,
-        //             best_ask_price: 7814.5,
-        //             best_ask_amount: 11880,
-        //             asks: [
+        //             "best_bid_price": 7814,
+        //             "best_bid_amount": 351820,
+        //             "best_ask_price": 7814.5,
+        //             "best_ask_amount": 11880,
+        //             "asks": [
         //                 [7814.5, 11880],
         //                 [7815, 18100],
         //                 [7815.5, 2640],
         //             ],
         //         },
-        //         usIn: 1583781354745804,
-        //         usOut: 1583781354745932,
-        //         usDiff: 128,
-        //         testnet: false
+        //         "usIn": 1583781354745804,
+        //         "usOut": 1583781354745932,
+        //         "usDiff": 128,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -1672,7 +1674,7 @@ export default class deribit extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1722,7 +1724,7 @@ export default class deribit extends Exchange {
          * @param {float} amount how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1918,7 +1920,7 @@ export default class deribit extends Exchange {
          * @param {string} id order id
          * @param {string} symbol not used by deribit cancelOrder ()
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1935,7 +1937,7 @@ export default class deribit extends Exchange {
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1960,7 +1962,7 @@ export default class deribit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1990,7 +1992,7 @@ export default class deribit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2021,7 +2023,7 @@ export default class deribit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -2073,7 +2075,7 @@ export default class deribit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -2154,7 +2156,7 @@ export default class deribit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchDeposits() requires a currency code argument');
@@ -2201,7 +2203,7 @@ export default class deribit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchWithdrawals() requires a currency code argument');
@@ -2313,6 +2315,9 @@ export default class deribit extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
+            'network': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -2389,7 +2394,7 @@ export default class deribit extends Exchange {
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2433,7 +2438,7 @@ export default class deribit extends Exchange {
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         let code = undefined;
@@ -2500,7 +2505,7 @@ export default class deribit extends Exchange {
          * @see https://docs.deribit.com/#public-get_historical_volatility
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object[]} a list of [volatility history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#volatility-structure}
+         * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2562,7 +2567,7 @@ export default class deribit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         if (code === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchTransfers() requires a currency code argument');
@@ -2623,7 +2628,7 @@ export default class deribit extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2709,7 +2714,7 @@ export default class deribit extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
@@ -2762,7 +2767,7 @@ export default class deribit extends Exchange {
          * @see https://docs.deribit.com/#public-get_currencies
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const response = await this.publicGetGetCurrencies(params);
@@ -2801,7 +2806,7 @@ export default class deribit extends Exchange {
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
          * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
-         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2834,7 +2839,7 @@ export default class deribit extends Exchange {
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2931,7 +2936,7 @@ export default class deribit extends Exchange {
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the deribit api endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         await this.loadMarkets();
         let paginate = false;
@@ -3008,9 +3013,11 @@ export default class deribit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the deribit api endpoint
-         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
-        this.checkRequiredSymbol('fetchMyLiquidations', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchMyLiquidations() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['spot']) {
@@ -3081,6 +3088,137 @@ export default class deribit extends Exchange {
             'datetime': this.iso8601(timestamp),
         });
     }
+    async fetchGreeks(symbol, params = {}) {
+        /**
+         * @method
+         * @name deribit#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://docs.deribit.com/#public-ticker
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicGetTicker(this.extend(request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "estimated_delivery_price": 36552.72,
+        //             "best_bid_amount": 0.2,
+        //             "best_ask_amount": 9.1,
+        //             "interest_rate": 0.0,
+        //             "best_bid_price": 0.214,
+        //             "best_ask_price": 0.219,
+        //             "open_interest": 368.8,
+        //             "settlement_price": 0.22103022,
+        //             "last_price": 0.215,
+        //             "bid_iv": 60.51,
+        //             "ask_iv": 61.88,
+        //             "mark_iv": 61.27,
+        //             "underlying_index": "BTC-27SEP24",
+        //             "underlying_price": 38992.71,
+        //             "min_price": 0.1515,
+        //             "max_price": 0.326,
+        //             "mark_price": 0.2168,
+        //             "instrument_name": "BTC-27SEP24-40000-C",
+        //             "index_price": 36552.72,
+        //             "greeks": {
+        //                 "rho": 130.63998,
+        //                 "theta": -13.48784,
+        //                 "vega": 141.90146,
+        //                 "gamma": 0.00002,
+        //                 "delta": 0.59621
+        //             },
+        //             "stats": {
+        //                 "volume_usd": 100453.9,
+        //                 "volume": 12.0,
+        //                 "price_change": -2.2727,
+        //                 "low": 0.2065,
+        //                 "high": 0.238
+        //             },
+        //             "state": "open",
+        //             "timestamp": 1699578548021
+        //         },
+        //         "usIn": 1699578548308414,
+        //         "usOut": 1699578548308606,
+        //         "usDiff": 192,
+        //         "testnet": false
+        //     }
+        //
+        const result = this.safeValue(response, 'result', {});
+        return this.parseGreeks(result, market);
+    }
+    parseGreeks(greeks, market = undefined) {
+        //
+        //     {
+        //         "estimated_delivery_price": 36552.72,
+        //         "best_bid_amount": 0.2,
+        //         "best_ask_amount": 9.1,
+        //         "interest_rate": 0.0,
+        //         "best_bid_price": 0.214,
+        //         "best_ask_price": 0.219,
+        //         "open_interest": 368.8,
+        //         "settlement_price": 0.22103022,
+        //         "last_price": 0.215,
+        //         "bid_iv": 60.51,
+        //         "ask_iv": 61.88,
+        //         "mark_iv": 61.27,
+        //         "underlying_index": "BTC-27SEP24",
+        //         "underlying_price": 38992.71,
+        //         "min_price": 0.1515,
+        //         "max_price": 0.326,
+        //         "mark_price": 0.2168,
+        //         "instrument_name": "BTC-27SEP24-40000-C",
+        //         "index_price": 36552.72,
+        //         "greeks": {
+        //             "rho": 130.63998,
+        //             "theta": -13.48784,
+        //             "vega": 141.90146,
+        //             "gamma": 0.00002,
+        //             "delta": 0.59621
+        //         },
+        //         "stats": {
+        //             "volume_usd": 100453.9,
+        //             "volume": 12.0,
+        //             "price_change": -2.2727,
+        //             "low": 0.2065,
+        //             "high": 0.238
+        //         },
+        //         "state": "open",
+        //         "timestamp": 1699578548021
+        //     }
+        //
+        const timestamp = this.safeInteger(greeks, 'timestamp');
+        const marketId = this.safeString(greeks, 'instrument_name');
+        const symbol = this.safeSymbol(marketId, market);
+        const stats = this.safeValue(greeks, 'greeks', {});
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'delta': this.safeNumber(stats, 'delta'),
+            'gamma': this.safeNumber(stats, 'gamma'),
+            'theta': this.safeNumber(stats, 'theta'),
+            'vega': this.safeNumber(stats, 'vega'),
+            'rho': this.safeNumber(stats, 'rho'),
+            'bidSize': this.safeNumber(greeks, 'best_bid_amount'),
+            'askSize': this.safeNumber(greeks, 'best_ask_amount'),
+            'bidImpliedVolatility': this.safeNumber(greeks, 'bid_iv'),
+            'askImpliedVolatility': this.safeNumber(greeks, 'ask_iv'),
+            'markImpliedVolatility': this.safeNumber(greeks, 'mark_iv'),
+            'bidPrice': this.safeNumber(greeks, 'best_bid_price'),
+            'askPrice': this.safeNumber(greeks, 'best_ask_price'),
+            'markPrice': this.safeNumber(greeks, 'mark_price'),
+            'lastPrice': this.safeNumber(greeks, 'last_price'),
+            'underlyingPrice': this.safeNumber(greeks, 'underlying_price'),
+            'info': greeks,
+        };
+    }
     nonce() {
         return this.milliseconds();
     }
@@ -3115,16 +3253,16 @@ export default class deribit extends Exchange {
         }
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         error: {
-        //             message: 'Invalid params',
-        //             data: { reason: 'invalid currency', param: 'currency' },
-        //             code: -32602
+        //         "jsonrpc": "2.0",
+        //         "error": {
+        //             "message": "Invalid params",
+        //             "data": { reason: "invalid currency", param: "currency" },
+        //             "code": -32602
         //         },
-        //         testnet: false,
-        //         usIn: 1583763842150374,
-        //         usOut: 1583763842150410,
-        //         usDiff: 36
+        //         "testnet": false,
+        //         "usIn": 1583763842150374,
+        //         "usOut": 1583763842150410,
+        //         "usDiff": 36
         //     }
         //
         const error = this.safeValue(response, 'error');

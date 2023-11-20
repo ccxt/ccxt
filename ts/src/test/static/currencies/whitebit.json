@@ -1,0 +1,727 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "info": {
+            "name": "Bitcoin",
+            "unified_cryptoasset_id": "1",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "0.001",
+            "max_withdraw": "0",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "0.0005",
+            "max_deposit": "0",
+            "networks": {
+                "deposits": [
+                    "BTC"
+                ],
+                "withdraws": [
+                    "BTC"
+                ],
+                "default": "BTC"
+            },
+            "confirmations": {
+                "BTC": "2"
+            },
+            "limits": {
+                "deposit": {
+                    "BTC": {
+                        "min": "0.0005"
+                    }
+                },
+                "withdraw": {
+                    "BTC": {
+                        "min": "0.001"
+                    }
+                }
+            },
+            "currency_precision": "8",
+            "is_memo": false
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.001,
+                "max": 0
+            }
+        }
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "info": {
+            "name": "Tether US",
+            "unified_cryptoasset_id": "825",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "10",
+            "max_withdraw": "0",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "5",
+            "max_deposit": "0",
+            "networks": {
+                "deposits": [
+                    "POLYGON",
+                    "ARBITRUM",
+                    "SOL",
+                    "CCHAIN",
+                    "EOS",
+                    "TRC20",
+                    "ERC20"
+                ],
+                "withdraws": [
+                    "POLYGON",
+                    "ARBITRUM",
+                    "SOL",
+                    "CCHAIN",
+                    "EOS",
+                    "TRC20",
+                    "ERC20"
+                ],
+                "default": "ERC20"
+            },
+            "confirmations": {
+                "ARBITRUM": "600",
+                "BEP20": "40",
+                "CCHAIN": "970",
+                "EOS": "1",
+                "ERC20": "32",
+                "POLYGON": "500",
+                "SOL": "500",
+                "TRC20": "20"
+            },
+            "limits": {
+                "deposit": {
+                    "ARBITRUM": {
+                        "min": "5"
+                    },
+                    "BEP20": {
+                        "min": "1000000000000000000"
+                    },
+                    "CCHAIN": {
+                        "min": "5"
+                    },
+                    "EOS": {
+                        "min": "10"
+                    },
+                    "ERC20": {
+                        "min": "15"
+                    },
+                    "POLYGON": {
+                        "min": "5"
+                    },
+                    "SOL": {
+                        "min": "5"
+                    },
+                    "TRC20": {
+                        "min": "5"
+                    }
+                },
+                "withdraw": {
+                    "ARBITRUM": {
+                        "min": "10"
+                    },
+                    "BEP20": {
+                        "min": "10"
+                    },
+                    "CCHAIN": {
+                        "min": "10"
+                    },
+                    "EOS": {
+                        "min": "15"
+                    },
+                    "ERC20": {
+                        "min": "25"
+                    },
+                    "POLYGON": {
+                        "min": "10"
+                    },
+                    "SOL": {
+                        "min": "10"
+                    },
+                    "TRC20": {
+                        "min": "10"
+                    }
+                }
+            },
+            "currency_precision": "6",
+            "is_memo": false
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10,
+                "max": 0
+            }
+        }
+    },
+    "EUR": {
+        "id": "EUR",
+        "code": "EUR",
+        "info": {
+            "name": "Euro",
+            "unified_cryptoasset_id": "0",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "10",
+            "max_withdraw": "14500",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "2",
+            "max_deposit": "14500",
+            "providers": {
+                "deposits": [
+                    "ADVCASH",
+                    "NIXMONEY",
+                    "VISAMASTER",
+                    "APPLE_PAY",
+                    "GOOGLE_PAY",
+                    "ANYMONEY",
+                    "PAYUNICARD",
+                    "BLACK_CAT_CARD"
+                ],
+                "withdraws": [
+                    "ADVCASH",
+                    "NIXMONEY",
+                    "SEPA",
+                    "VISAMASTER",
+                    "PAYUNICARD"
+                ]
+            },
+            "limits": {
+                "deposit": {
+                    "ADVCASH": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "ANYMONEY": {
+                        "max": "14500",
+                        "min": "10"
+                    },
+                    "APPLE_PAY": {
+                        "max": "2000",
+                        "min": "10"
+                    },
+                    "BLACK_CAT_CARD": {
+                        "max": "14500",
+                        "min": "2"
+                    },
+                    "GOOGLE_PAY": {
+                        "max": "2000",
+                        "min": "10"
+                    },
+                    "NIXMONEY": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "PAYUNICARD": {
+                        "max": "3000",
+                        "min": "10"
+                    },
+                    "SEPA": {
+                        "min": "10"
+                    },
+                    "SEPA_BLACK_CAT_CARD": {
+                        "max": "14500",
+                        "min": "10"
+                    },
+                    "VISAMASTER": {
+                        "max": "4000",
+                        "min": "10"
+                    }
+                },
+                "withdraw": {
+                    "ADVCASH": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "ANYMONEY": {
+                        "min": "0"
+                    },
+                    "APPLE_PAY": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "BLACK_CAT_CARD": {
+                        "min": "0"
+                    },
+                    "GOOGLE_PAY": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "NIXMONEY": {
+                        "max": "5000",
+                        "min": "10"
+                    },
+                    "PAYUNICARD": {
+                        "max": "3000",
+                        "min": "10"
+                    },
+                    "SEPA": {
+                        "max": "14500",
+                        "min": "10"
+                    },
+                    "SEPA_BLACK_CAT_CARD": {
+                        "max": "14500",
+                        "min": "10"
+                    },
+                    "VISAMASTER": {
+                        "max": "5000",
+                        "min": "10"
+                    }
+                }
+            },
+            "currency_precision": "2",
+            "is_memo": false
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10,
+                "max": 14500
+            }
+        }
+    },
+    "USD": {
+        "id": "USD",
+        "code": "USD",
+        "info": {
+            "name": "United States Dollar",
+            "unified_cryptoasset_id": "6955",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "10",
+            "max_withdraw": "10000",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "10",
+            "max_deposit": "10000",
+            "providers": {
+                "deposits": [
+                    "ADVCASH",
+                    "NIXMONEY",
+                    "VISAMASTER",
+                    "APPLE_PAY",
+                    "GOOGLE_PAY",
+                    "PAYUNICARD"
+                ],
+                "withdraws": [
+                    "ADVCASH",
+                    "NIXMONEY",
+                    "VISAMASTER",
+                    "PAYUNICARD"
+                ]
+            },
+            "limits": {
+                "deposit": {
+                    "ADVCASH": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "APPLE_PAY": {
+                        "max": "2000",
+                        "min": "10"
+                    },
+                    "GOOGLE_PAY": {
+                        "max": "2000",
+                        "min": "10"
+                    },
+                    "NIXMONEY": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "PAYUNICARD": {
+                        "max": "3000",
+                        "min": "10"
+                    },
+                    "VISAMASTER": {
+                        "max": "4000",
+                        "min": "10"
+                    }
+                },
+                "withdraw": {
+                    "ADVCASH": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "APPLE_PAY": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "GOOGLE_PAY": {
+                        "max": "10000",
+                        "min": "10"
+                    },
+                    "NIXMONEY": {
+                        "max": "5000",
+                        "min": "10"
+                    },
+                    "PAYUNICARD": {
+                        "max": "3000",
+                        "min": "10"
+                    },
+                    "VISAMASTER": {
+                        "max": "5000",
+                        "min": "10"
+                    }
+                }
+            },
+            "currency_precision": "2",
+            "is_memo": false
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10,
+                "max": 10000
+            }
+        }
+    },
+    "LTC": {
+        "id": "LTC",
+        "code": "LTC",
+        "info": {
+            "name": "Litecoin",
+            "unified_cryptoasset_id": "2",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "0.05",
+            "max_withdraw": "0",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "0.01",
+            "max_deposit": "0",
+            "networks": {
+                "deposits": [
+                    "LTC"
+                ],
+                "withdraws": [
+                    "LTC"
+                ],
+                "default": "LTC"
+            },
+            "confirmations": {
+                "LTC": "10"
+            },
+            "limits": {
+                "deposit": {
+                    "LTC": {
+                        "min": "0.01"
+                    }
+                },
+                "withdraw": {
+                    "LTC": {
+                        "min": "0.05"
+                    }
+                }
+            },
+            "currency_precision": "8",
+            "is_memo": false
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.05,
+                "max": 0
+            }
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "info": {
+            "name": "Ethereum",
+            "unified_cryptoasset_id": "1027",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "0.006",
+            "max_withdraw": "0",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "0.0035",
+            "max_deposit": "0",
+            "networks": {
+                "deposits": [
+                    "ARBITRUM",
+                    "OPTIMISM",
+                    "BEP20",
+                    "ERC20"
+                ],
+                "withdraws": [
+                    "ARBITRUM",
+                    "OPTIMISM",
+                    "BEP20",
+                    "ERC20"
+                ],
+                "default": "ERC20"
+            },
+            "confirmations": {
+                "ARBITRUM": "600",
+                "BEP20": "40",
+                "ERC20": "32",
+                "OPTIMISM": "1400"
+            },
+            "limits": {
+                "deposit": {
+                    "ARBITRUM": {
+                        "min": "0.0035"
+                    },
+                    "BEP20": {
+                        "min": "0.0035"
+                    },
+                    "ERC20": {
+                        "min": "0.0065"
+                    },
+                    "OPTIMISM": {
+                        "min": "0.0035"
+                    }
+                },
+                "withdraw": {
+                    "ARBITRUM": {
+                        "min": "0.006"
+                    },
+                    "BEP20": {
+                        "min": "0.006"
+                    },
+                    "ERC20": {
+                        "min": "0.01"
+                    },
+                    "OPTIMISM": {
+                        "min": "0.006"
+                    }
+                }
+            },
+            "currency_precision": "18",
+            "is_memo": false
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.006,
+                "max": 0
+            }
+        }
+    },
+    "ADA": {
+        "id": "ADA",
+        "code": "ADA",
+        "info": {
+            "name": "Cardano",
+            "unified_cryptoasset_id": "2010",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "30",
+            "max_withdraw": "0",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "15",
+            "max_deposit": "0",
+            "networks": {
+                "deposits": [
+                    "ADA"
+                ],
+                "withdraws": [
+                    "ADA"
+                ],
+                "default": "ADA"
+            },
+            "confirmations": {
+                "ADA": "40"
+            },
+            "limits": {
+                "deposit": {
+                    "ADA": {
+                        "min": "15"
+                    }
+                },
+                "withdraw": {
+                    "ADA": {
+                        "min": "30"
+                    }
+                }
+            },
+            "currency_precision": "6",
+            "is_memo": false
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 30,
+                "max": 0
+            }
+        }
+    },
+    "XRP": {
+        "id": "XRP",
+        "code": "XRP",
+        "info": {
+            "name": "Ripple",
+            "unified_cryptoasset_id": "52",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "25",
+            "max_withdraw": "0",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "1",
+            "max_deposit": "0",
+            "networks": {
+                "deposits": [
+                    "XRP"
+                ],
+                "withdraws": [
+                    "XRP"
+                ],
+                "default": "XRP"
+            },
+            "confirmations": {
+                "XRP": "1"
+            },
+            "limits": {
+                "deposit": {
+                    "XRP": {
+                        "min": "1"
+                    }
+                },
+                "withdraw": {
+                    "XRP": {
+                        "min": "25"
+                    }
+                }
+            },
+            "currency_precision": "6",
+            "is_memo": true
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 25,
+                "max": 0
+            }
+        }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "name": "USD Coin",
+            "unified_cryptoasset_id": "3408",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "10",
+            "max_withdraw": "0",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "0.5",
+            "max_deposit": "0",
+            "networks": {
+                "deposits": [
+                    "TRC20",
+                    "STELLAR",
+                    "POLYGON",
+                    "SOL",
+                    "CCHAIN",
+                    "ERC20"
+                ],
+                "withdraws": [
+                    "TRC20",
+                    "STELLAR",
+                    "POLYGON",
+                    "SOL",
+                    "CCHAIN",
+                    "ERC20"
+                ],
+                "default": "ERC20"
+            },
+            "confirmations": {
+                "CCHAIN": "970",
+                "ERC20": "32",
+                "POLYGON": "500",
+                "SOL": "500",
+                "STELLAR": "1",
+                "TRC20": "20"
+            },
+            "limits": {
+                "deposit": {
+                    "CCHAIN": {
+                        "min": "5"
+                    },
+                    "ERC20": {
+                        "min": "15"
+                    },
+                    "POLYGON": {
+                        "min": "0.5"
+                    },
+                    "SOL": {
+                        "min": "5"
+                    },
+                    "STELLAR": {
+                        "min": "5"
+                    },
+                    "TRC20": {
+                        "min": "5"
+                    }
+                },
+                "withdraw": {
+                    "CCHAIN": {
+                        "min": "10"
+                    },
+                    "ERC20": {
+                        "min": "25"
+                    },
+                    "POLYGON": {
+                        "min": "10"
+                    },
+                    "SOL": {
+                        "min": "10"
+                    },
+                    "STELLAR": {
+                        "min": "10"
+                    },
+                    "TRC20": {
+                        "min": "10"
+                    }
+                }
+            },
+            "currency_precision": "6",
+            "is_memo": false
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10,
+                "max": 0
+            }
+        }
+    }
+}

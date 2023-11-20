@@ -12,6 +12,7 @@ use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class poloniexfutures extends Exchange {
 
@@ -207,9 +208,9 @@ class poloniexfutures extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for poloniexfutures
-             * @see https://futures-docs.poloniex.com/#$symbol-2
+             * @see https://futures-docs.poloniex.com/#symbol-2
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market $data
+             * @return {array[]} an array of objects representing market $data
              */
             $response = Async\await($this->publicGetContractsActive ($params));
             //
@@ -217,140 +218,138 @@ class poloniexfutures extends Exchange {
             //  "code" => "200000",
             //  "data" => [
             //     array(
-            //       $symbol => 'APTUSDTPERP',
-            //       takerFixFee => '0E-10',
-            //       nextFundingRateTime => '20145603',
-            //       makerFixFee => '0E-10',
-            //       type => 'FFWCSX',
-            //       predictedFundingFeeRate => '0.000000',
-            //       turnoverOf24h => '386037.46704292',
-            //       initialMargin => '0.05',
-            //       isDeleverage => true,
-            //       createdAt => '1666681959000',
-            //       fundingBaseSymbol => '.APTINT8H',
-            //       lowPriceOf24h => '4.34499979019165',
-            //       lastTradePrice => '4.4090000000',
-            //       indexPriceTickSize => '0.001',
-            //       fairMethod => 'FundingRate',
-            //       takerFeeRate => '0.00040',
-            //       order => '102',
-            //       updatedAt => '1671076377000',
-            //       displaySettleCurrency => 'USDT',
-            //       indexPrice => '4.418',
-            //       $multiplier => '1.0',
-            //       maxLeverage => '20',
-            //       fundingQuoteSymbol => '.USDTINT8H',
-            //       quoteCurrency => 'USDT',
-            //       maxOrderQty => '1000000',
-            //       maxPrice => '1000000.0000000000',
-            //       maintainMargin => '0.025',
-            //       $status => 'Open',
-            //       displayNameMap => [Object],
-            //       openInterest => '2367',
-            //       highPriceOf24h => '4.763999938964844',
-            //       fundingFeeRate => '0.000000',
-            //       volumeOf24h => '83540.00000000',
-            //       riskStep => '500000',
-            //       isQuanto => true,
-            //       maxRiskLimit => '20000',
-            //       rootSymbol => 'USDT',
-            //       baseCurrency => 'APT',
-            //       firstOpenDate => '1666701000000',
-            //       $tickSize => '0.001',
-            //       markMethod => 'FairPrice',
-            //       indexSymbol => '.PAPTUSDT',
-            //       markPrice => '4.418',
-            //       minRiskLimit => '1000000',
-            //       settlementFixFee => '0E-10',
-            //       settlementSymbol => '',
-            //       priceChgPctOf24h => '-0.0704',
-            //       fundingRateSymbol => '.APTUSDTPERPFPI8H',
-            //       makerFeeRate => '0.00010',
-            //       isInverse => false,
-            //       $lotSize => '1',
-            //       settleCurrency => 'USDT',
-            //       settlementFeeRate => '0.0'
+            //       "symbol" => "APTUSDTPERP",
+            //       "takerFixFee" => "0E-10",
+            //       "nextFundingRateTime" => "20145603",
+            //       "makerFixFee" => "0E-10",
+            //       "type" => "FFWCSX",
+            //       "predictedFundingFeeRate" => "0.000000",
+            //       "turnoverOf24h" => "386037.46704292",
+            //       "initialMargin" => "0.05",
+            //       "isDeleverage" => true,
+            //       "createdAt" => "1666681959000",
+            //       "fundingBaseSymbol" => ".APTINT8H",
+            //       "lowPriceOf24h" => "4.34499979019165",
+            //       "lastTradePrice" => "4.4090000000",
+            //       "indexPriceTickSize" => "0.001",
+            //       "fairMethod" => "FundingRate",
+            //       "takerFeeRate" => "0.00040",
+            //       "order" => "102",
+            //       "updatedAt" => "1671076377000",
+            //       "displaySettleCurrency" => "USDT",
+            //       "indexPrice" => "4.418",
+            //       "multiplier" => "1.0",
+            //       "maxLeverage" => "20",
+            //       "fundingQuoteSymbol" => ".USDTINT8H",
+            //       "quoteCurrency" => "USDT",
+            //       "maxOrderQty" => "1000000",
+            //       "maxPrice" => "1000000.0000000000",
+            //       "maintainMargin" => "0.025",
+            //       "status" => "Open",
+            //       "displayNameMap" => [Object],
+            //       "openInterest" => "2367",
+            //       "highPriceOf24h" => "4.763999938964844",
+            //       "fundingFeeRate" => "0.000000",
+            //       "volumeOf24h" => "83540.00000000",
+            //       "riskStep" => "500000",
+            //       "isQuanto" => true,
+            //       "maxRiskLimit" => "20000",
+            //       "rootSymbol" => "USDT",
+            //       "baseCurrency" => "APT",
+            //       "firstOpenDate" => "1666701000000",
+            //       "tickSize" => "0.001",
+            //       "markMethod" => "FairPrice",
+            //       "indexSymbol" => ".PAPTUSDT",
+            //       "markPrice" => "4.418",
+            //       "minRiskLimit" => "1000000",
+            //       "settlementFixFee" => "0E-10",
+            //       "settlementSymbol" => '',
+            //       "priceChgPctOf24h" => "-0.0704",
+            //       "fundingRateSymbol" => ".APTUSDTPERPFPI8H",
+            //       "makerFeeRate" => "0.00010",
+            //       "isInverse" => false,
+            //       "lotSize" => "1",
+            //       "settleCurrency" => "USDT",
+            //       "settlementFeeRate" => "0.0"
             //     ),
             //   ]
             // }
             //
-            $result = array();
             $data = $this->safe_value($response, 'data', array());
-            $dataLength = count($data);
-            for ($i = 0; $i < $dataLength; $i++) {
-                $market = $data[$i];
-                $id = $this->safe_string($market, 'symbol');
-                $baseId = $this->safe_string($market, 'baseCurrency');
-                $quoteId = $this->safe_string($market, 'quoteCurrency');
-                $settleId = $this->safe_string($market, 'rootSymbol');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $settle = $this->safe_currency_code($settleId);
-                $symbol = $base . '/' . $quote . ':' . $settle;
-                $inverse = $this->safe_value($market, 'isInverse');
-                $status = $this->safe_string($market, 'status');
-                $multiplier = $this->safe_string($market, 'multiplier');
-                $tickSize = $this->safe_number($market, 'indexPriceTickSize');
-                $lotSize = $this->safe_number($market, 'lotSize');
-                $limitAmountMax = $this->safe_number($market, 'maxOrderQty');
-                $limitPriceMax = $this->safe_number($market, 'maxPrice');
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => $settle,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => $settleId,
-                    'type' => 'swap',
-                    'spot' => false,
-                    'margin' => false,
-                    'swap' => true,
-                    'future' => false,
-                    'option' => false,
-                    'active' => ($status === 'Open'),
-                    'contract' => true,
-                    'linear' => !$inverse,
-                    'inverse' => $inverse,
-                    'taker' => $this->safe_number($market, 'takerFeeRate'),
-                    'maker' => $this->safe_number($market, 'makerFeeRate'),
-                    'contractSize' => $this->parse_number(Precise::string_abs($multiplier)),
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $lotSize,
-                        'price' => $tickSize,
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => $this->parse_number('1'),
-                            'max' => $this->safe_number($market, 'maxLeverage'),
-                        ),
-                        'amount' => array(
-                            'min' => $lotSize,
-                            'max' => $limitAmountMax,
-                        ),
-                        'price' => array(
-                            'min' => $tickSize,
-                            'max' => $limitPriceMax,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => $this->safe_integer($market, 'firstOpenDate'),
-                    'info' => $market,
-                );
-            }
-            return $result;
+            return $this->parse_markets($data);
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $baseId = $this->safe_string($market, 'baseCurrency');
+        $quoteId = $this->safe_string($market, 'quoteCurrency');
+        $settleId = $this->safe_string($market, 'rootSymbol');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $settle = $this->safe_currency_code($settleId);
+        $symbol = $base . '/' . $quote . ':' . $settle;
+        $inverse = $this->safe_value($market, 'isInverse');
+        $status = $this->safe_string($market, 'status');
+        $multiplier = $this->safe_string($market, 'multiplier');
+        $tickSize = $this->safe_number($market, 'indexPriceTickSize');
+        $lotSize = $this->safe_number($market, 'lotSize');
+        $limitAmountMax = $this->safe_number($market, 'maxOrderQty');
+        $limitPriceMax = $this->safe_number($market, 'maxPrice');
+        return array(
+            'id' => $id,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => $settleId,
+            'type' => 'swap',
+            'spot' => false,
+            'margin' => false,
+            'swap' => true,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'Open'),
+            'contract' => true,
+            'linear' => !$inverse,
+            'inverse' => $inverse,
+            'taker' => $this->safe_number($market, 'takerFeeRate'),
+            'maker' => $this->safe_number($market, 'makerFeeRate'),
+            'contractSize' => $this->parse_number(Precise::string_abs($multiplier)),
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $lotSize,
+                'price' => $tickSize,
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => $this->parse_number('1'),
+                    'max' => $this->safe_number($market, 'maxLeverage'),
+                ),
+                'amount' => array(
+                    'min' => $lotSize,
+                    'max' => $limitAmountMax,
+                ),
+                'price' => array(
+                    'min' => $tickSize,
+                    'max' => $limitPriceMax,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => $this->safe_integer($market, 'firstOpenDate'),
+            'info' => $market,
+        );
+    }
+
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //    {
         //        "symbol" => "BTCUSDTPERP",                   // Market of the $symbol
@@ -403,14 +402,14 @@ class poloniexfutures extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -420,19 +419,19 @@ class poloniexfutures extends Exchange {
             $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
             //
             // {
-            //     code => '200000',
-            //     data => {
-            //       sequence => '11574719',
-            //       $symbol => 'BTCUSDTPERP',
-            //       side => 'sell',
-            //       size => '1',
-            //       price => '16990.1',
-            //       bestBidSize => '3',
-            //       bestBidPrice => '16990.1',
-            //       bestAskPrice => '16991.0',
-            //       tradeId => '639c8a529fd7cf0001af4157',
-            //       bestAskSize => '505',
-            //       ts => '1671203410721232337'
+            //     "code" => "200000",
+            //     "data" => {
+            //       "sequence" => "11574719",
+            //       "symbol" => "BTCUSDTPERP",
+            //       "side" => "sell",
+            //       "size" => "1",
+            //       "price" => "16990.1",
+            //       "bestBidSize" => "3",
+            //       "bestBidPrice" => "16990.1",
+            //       "bestAskPrice" => "16991.0",
+            //       "tradeId" => "639c8a529fd7cf0001af4157",
+            //       "bestAskSize" => "505",
+            //       "ts" => "1671203410721232337"
             //     }
             // }
             //
@@ -440,14 +439,14 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTickers ($params));
@@ -455,7 +454,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -464,7 +463,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the poloniexfuturesfutures api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $level = $this->safe_number($params, 'level');
@@ -549,7 +548,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$limit] max number of orders to return, default is null
              * @param {array} [$params] extra parameters specific to the blockchaincom api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -557,7 +556,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -649,7 +648,7 @@ class poloniexfutures extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -658,7 +657,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -707,7 +706,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -760,7 +759,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -776,13 +775,13 @@ class poloniexfutures extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://futures-docs.poloniex.com/#get-account-overview
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $currencyId = $this->safe_string($params, 'currency');
@@ -796,16 +795,16 @@ class poloniexfutures extends Exchange {
             $response = Async\await($this->privateGetAccountOverview (array_merge($request, $params)));
             //
             //     {
-            //         code => '200000',
-            //         data => {
-            //             accountEquity => 0.00005,
-            //             unrealisedPNL => 0,
-            //             marginBalance => 0.00005,
-            //             positionMargin => 0,
-            //             orderMargin => 0,
-            //             frozenFunds => 0,
-            //             availableBalance => 0.00005,
-            //             $currency => 'XBT'
+            //         "code" => "200000",
+            //         "data" => {
+            //             "accountEquity" => 0.00005,
+            //             "unrealisedPNL" => 0,
+            //             "marginBalance" => 0.00005,
+            //             "positionMargin" => 0,
+            //             "orderMargin" => 0,
+            //             "frozenFunds" => 0,
+            //             "availableBalance" => 0.00005,
+            //             "currency" => "XBT"
             //         }
             //     }
             //
@@ -835,7 +834,7 @@ class poloniexfutures extends Exchange {
              * @param {string} [$params->stopPriceType]  TP, IP or MP, defaults to TP
              * @param {bool} [$params->closeOrder] set to true to close position
              * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -888,9 +887,9 @@ class poloniexfutures extends Exchange {
             $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
             //
             //    {
-            //        code => "200000",
-            //        $data => array(
-            //            orderId => "619717484f1d010001510cde",
+            //        "code" => "200000",
+            //        "data" => array(
+            //            "orderId" => "619717484f1d010001510cde",
             //        ),
             //    }
             //
@@ -929,7 +928,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -938,15 +937,15 @@ class poloniexfutures extends Exchange {
             $response = Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
             //
             //    {
-            //        code => "200000",
-            //        $data => {
-            //            $cancelledOrderIds => array(
+            //        "code" => "200000",
+            //        "data" => {
+            //            "cancelledOrderIds" => array(
             //                "619714b8b6353000014c505a",
             //            ),
-            //            cancelFailedOrders => array(
+            //            "cancelFailedOrders" => array(
             //                array(
-            //                    orderId => "63a9c5c2b9e7d70007eb0cd5",
-            //                    orderState => "2"
+            //                    "orderId" => "63a9c5c2b9e7d70007eb0cd5",
+            //                    "orderState" => "2"
             //                }
             //            ),
             //        ),
@@ -969,7 +968,7 @@ class poloniexfutures extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-position-list
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetPositions ($params));
@@ -1024,7 +1023,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //    {
         //        "code" => "200000",
@@ -1075,7 +1074,6 @@ class poloniexfutures extends Exchange {
         $market = $this->safe_market($symbol, $market);
         $timestamp = $this->safe_integer($position, 'currentTimestamp');
         $size = $this->safe_string($position, 'currentQty');
-        $side = null;
         if (Precise::string_gt($size, '0')) {
             $side = 'long';
         } elseif (Precise::string_lt($size, '0')) {
@@ -1126,7 +1124,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
@@ -1198,7 +1196,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
              * @param {array} [$params->stop] When true, all the trigger orders will be cancelled
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1210,9 +1208,9 @@ class poloniexfutures extends Exchange {
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //   {
-            //       code => "200000",
-            //       $data => array(
-            //           $cancelledOrderIds => array(
+            //       "code" => "200000",
+            //       "data" => array(
+            //           "cancelledOrderIds" => array(
             //                "619714b8b6353000014c505a",
             //           ),
             //       ),
@@ -1267,7 +1265,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$params->until] End time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit or $market
-             * @return An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure array of $order structures}
+             * @return An ~@link https://docs.ccxt.com/#/?id=$order-structure array of $order structures~
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value($params, 'stop');
@@ -1357,7 +1355,7 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1370,13 +1368,13 @@ class poloniexfutures extends Exchange {
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1389,7 +1387,7 @@ class poloniexfutures extends Exchange {
              * @param {int} [$params->till] end time in ms
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, or market
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params));
         }) ();
@@ -1403,7 +1401,7 @@ class poloniexfutures extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1471,14 +1469,14 @@ class poloniexfutures extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
         //    {
-        //        code => "200000",
-        //        data => array(
-        //            orderId => "619717484f1d010001510cde",
+        //        "code" => "200000",
+        //        "data" => array(
+        //            "orderId" => "619717484f1d010001510cde",
         //        ),
         //    }
         //
@@ -1528,13 +1526,13 @@ class poloniexfutures extends Exchange {
         // cancelOrder
         //
         //    {
-        //        $cancelledOrderIds => array(
+        //        "cancelledOrderIds" => array(
         //            "619714b8b6353000014c505a",
         //        ),
-        //        cancelFailedOrders => array(
+        //        "cancelFailedOrders" => array(
         //            array(
-        //                orderId => "63a9c5c2b9e7d70007eb0cd5",
-        //                orderState => "2"
+        //                "orderId" => "63a9c5c2b9e7d70007eb0cd5",
+        //                "orderState" => "2"
         //            }
         //        ),
         //    ),
@@ -1602,7 +1600,7 @@ class poloniexfutures extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-premium-index
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1657,7 +1655,7 @@ class poloniexfutures extends Exchange {
              * @param {string} side buy or sell
              * @param {string} type  $limit, $market, limit_stop or market_stop
              * @param {int} endAt end time (milisecond)
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1791,7 +1789,7 @@ class poloniexfutures extends Exchange {
         // bad
         //     array( "code" => "400100", "msg" => "validation.createOrder.clientOidIsRequired" )
         // good
-        //     array( $code => '200000', data => array( ... ))
+        //     array( $code => "200000", data => array( ... ))
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg', '');

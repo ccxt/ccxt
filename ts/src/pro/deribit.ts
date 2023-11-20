@@ -4,7 +4,7 @@ import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ export default class deribit extends deribitRest {
          * @see https://docs.deribit.com/#user-portfolio-currency
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.authenticate (params);
         const messageHash = 'balance';
@@ -94,42 +94,42 @@ export default class deribit extends deribitRest {
         //
         // subscription
         //     {
-        //         jsonrpc: '2.0',
-        //         method: 'subscription',
-        //         params: {
-        //             channel: 'user.portfolio.btc',
-        //             data: {
-        //                 total_pl: 0,
-        //                 session_upl: 0,
-        //                 session_rpl: 0,
-        //                 projected_maintenance_margin: 0,
-        //                 projected_initial_margin: 0,
-        //                 projected_delta_total: 0,
-        //                 portfolio_margining_enabled: false,
-        //                 options_vega: 0,
-        //                 options_value: 0,
-        //                 options_theta: 0,
-        //                 options_session_upl: 0,
-        //                 options_session_rpl: 0,
-        //                 options_pl: 0,
-        //                 options_gamma: 0,
-        //                 options_delta: 0,
-        //                 margin_balance: 0.0015,
-        //                 maintenance_margin: 0,
-        //                 initial_margin: 0,
-        //                 futures_session_upl: 0,
-        //                 futures_session_rpl: 0,
-        //                 futures_pl: 0,
-        //                 fee_balance: 0,
-        //                 estimated_liquidation_ratio_map: {},
-        //                 estimated_liquidation_ratio: 0,
-        //                 equity: 0.0015,
-        //                 delta_total_map: {},
-        //                 delta_total: 0,
-        //                 currency: 'BTC',
-        //                 balance: 0.0015,
-        //                 available_withdrawal_funds: 0.0015,
-        //                 available_funds: 0.0015
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "user.portfolio.btc",
+        //             "data": {
+        //                 "total_pl": 0,
+        //                 "session_upl": 0,
+        //                 "session_rpl": 0,
+        //                 "projected_maintenance_margin": 0,
+        //                 "projected_initial_margin": 0,
+        //                 "projected_delta_total": 0,
+        //                 "portfolio_margining_enabled": false,
+        //                 "options_vega": 0,
+        //                 "options_value": 0,
+        //                 "options_theta": 0,
+        //                 "options_session_upl": 0,
+        //                 "options_session_rpl": 0,
+        //                 "options_pl": 0,
+        //                 "options_gamma": 0,
+        //                 "options_delta": 0,
+        //                 "margin_balance": 0.0015,
+        //                 "maintenance_margin": 0,
+        //                 "initial_margin": 0,
+        //                 "futures_session_upl": 0,
+        //                 "futures_session_rpl": 0,
+        //                 "futures_pl": 0,
+        //                 "fee_balance": 0,
+        //                 "estimated_liquidation_ratio_map": {},
+        //                 "estimated_liquidation_ratio": 0,
+        //                 "equity": 0.0015,
+        //                 "delta_total_map": {},
+        //                 "delta_total": 0,
+        //                 "currency": "BTC",
+        //                 "balance": 0.0015,
+        //                 "available_withdrawal_funds": 0.0015,
+        //                 "available_funds": 0.0015
         //             }
         //         }
         //     }
@@ -154,7 +154,7 @@ export default class deribit extends deribitRest {
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -181,29 +181,29 @@ export default class deribit extends deribitRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         method: 'subscription',
-        //         params: {
-        //             channel: 'ticker.BTC_USDC-PERPETUAL.raw',
-        //             data: {
-        //                 timestamp: 1655393725041,
-        //                 stats: [Object],
-        //                 state: 'open',
-        //                 settlement_price: 21729.5891,
-        //                 open_interest: 164.501,
-        //                 min_price: 20792.9376,
-        //                 max_price: 21426.225,
-        //                 mark_price: 21109.555,
-        //                 last_price: 21132,
-        //                 instrument_name: 'BTC_USDC-PERPETUAL',
-        //                 index_price: 21122.3937,
-        //                 funding_8h: -0.00022427,
-        //                 estimated_delivery_price: 21122.3937,
-        //                 current_funding: -0.00010782,
-        //                 best_bid_price: 21106,
-        //                 best_bid_amount: 1.143,
-        //                 best_ask_price: 21113,
-        //                 best_ask_amount: 0.327
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "timestamp": 1655393725041,
+        //                 "stats": [Object],
+        //                 "state": "open",
+        //                 "settlement_price": 21729.5891,
+        //                 "open_interest": 164.501,
+        //                 "min_price": 20792.9376,
+        //                 "max_price": 21426.225,
+        //                 "mark_price": 21109.555,
+        //                 "last_price": 21132,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "index_price": 21122.3937,
+        //                 "funding_8h": -0.00022427,
+        //                 "estimated_delivery_price": 21122.3937,
+        //                 "current_funding": -0.00010782,
+        //                 "best_bid_price": 21106,
+        //                 "best_bid_amount": 1.143,
+        //                 "best_ask_price": 21113,
+        //                 "best_ask_amount": 0.327
         //             }
         //         }
         //     }
@@ -229,7 +229,7 @@ export default class deribit extends deribitRest {
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -300,7 +300,7 @@ export default class deribit extends deribitRest {
         client.resolve (this.trades[symbol], channel);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchMyTrades
@@ -311,7 +311,7 @@ export default class deribit extends deribitRest {
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.authenticate (params);
         if (symbol !== undefined) {
@@ -397,7 +397,7 @@ export default class deribit extends deribitRest {
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -521,7 +521,7 @@ export default class deribit extends deribitRest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchOrders
@@ -531,7 +531,7 @@ export default class deribit extends deribitRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         await this.authenticate (params);
@@ -564,33 +564,33 @@ export default class deribit extends deribitRest {
         // Does not return a snapshot of current orders
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         method: 'subscription',
-        //         params: {
-        //             channel: 'user.orders.any.any.raw',
-        //             data: {
-        //                 web: true,
-        //                 time_in_force: 'good_til_cancelled',
-        //                 replaced: false,
-        //                 reduce_only: false,
-        //                 profit_loss: 0,
-        //                 price: 50000,
-        //                 post_only: false,
-        //                 order_type: 'limit',
-        //                 order_state: 'open',
-        //                 order_id: '46094375191',
-        //                 max_show: 10,
-        //                 last_update_timestamp: 1655401625037,
-        //                 label: '',
-        //                 is_liquidation: false,
-        //                 instrument_name: 'BTC-PERPETUAL',
-        //                 filled_amount: 0,
-        //                 direction: 'sell',
-        //                 creation_timestamp: 1655401625037,
-        //                 commission: 0,
-        //                 average_price: 0,
-        //                 api: false,
-        //                 amount: 10
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "user.orders.any.any.raw",
+        //             "data": {
+        //                 "web": true,
+        //                 "time_in_force": "good_til_cancelled",
+        //                 "replaced": false,
+        //                 "reduce_only": false,
+        //                 "profit_loss": 0,
+        //                 "price": 50000,
+        //                 "post_only": false,
+        //                 "order_type": "limit",
+        //                 "order_state": "open",
+        //                 "order_id": "46094375191",
+        //                 "max_show": 10,
+        //                 "last_update_timestamp": 1655401625037,
+        //                 "label": '',
+        //                 "is_liquidation": false,
+        //                 "instrument_name": "BTC-PERPETUAL",
+        //                 "filled_amount": 0,
+        //                 "direction": "sell",
+        //                 "creation_timestamp": 1655401625037,
+        //                 "commission": 0,
+        //                 "average_price": 0,
+        //                 "api": false,
+        //                 "amount": 10
         //             }
         //         }
         //     }
@@ -657,18 +657,18 @@ export default class deribit extends deribitRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         method: 'subscription',
-        //         params: {
-        //             channel: 'chart.trades.BTC_USDC-PERPETUAL.1',
-        //             data: {
-        //                 volume: 0,
-        //                 tick: 1655403420000,
-        //                 open: 20951,
-        //                 low: 20951,
-        //                 high: 20951,
-        //                 cost: 0,
-        //                 close: 20951
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "chart.trades.BTC_USDC-PERPETUAL.1",
+        //             "data": {
+        //                 "volume": 0,
+        //                 "tick": 1655403420000,
+        //                 "open": 20951,
+        //                 "low": 20951,
+        //                 "high": 20951,
+        //                 "cost": 0,
+        //                 "close": 20951
         //             }
         //         }
         //     }
@@ -719,40 +719,40 @@ export default class deribit extends deribitRest {
         //
         // subscribe
         //     {
-        //         jsonrpc: '2.0',
-        //         id: 2,
-        //         result: ['ticker.BTC_USDC-PERPETUAL.raw'],
-        //         usIn: '1655393625889396',
-        //         usOut: '1655393625889518',
-        //         usDiff: 122,
-        //         testnet: false
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": ["ticker.BTC_USDC-PERPETUAL.raw"],
+        //         "usIn": "1655393625889396",
+        //         "usOut": "1655393625889518",
+        //         "usDiff": 122,
+        //         "testnet": false
         //     }
         //
         // notification
         //     {
-        //         jsonrpc: '2.0',
-        //         method: 'subscription',
-        //         params: {
-        //             channel: 'ticker.BTC_USDC-PERPETUAL.raw',
-        //             data: {
-        //                 timestamp: 1655393724752,
-        //                 stats: [Object],
-        //                 state: 'open',
-        //                 settlement_price: 21729.5891,
-        //                 open_interest: 164.501,
-        //                 min_price: 20792.9001,
-        //                 max_price: 21426.1864,
-        //                 mark_price: 21109.4757,
-        //                 last_price: 21132,
-        //                 instrument_name: 'BTC_USDC-PERPETUAL',
-        //                 index_price: 21122.3937,
-        //                 funding_8h: -0.00022427,
-        //                 estimated_delivery_price: 21122.3937,
-        //                 current_funding: -0.00011158,
-        //                 best_bid_price: 21106,
-        //                 best_bid_amount: 1.143,
-        //                 best_ask_price: 21113,
-        //                 best_ask_amount: 0.402
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "ticker.BTC_USDC-PERPETUAL.raw",
+        //             "data": {
+        //                 "timestamp": 1655393724752,
+        //                 "stats": [Object],
+        //                 "state": "open",
+        //                 "settlement_price": 21729.5891,
+        //                 "open_interest": 164.501,
+        //                 "min_price": 20792.9001,
+        //                 "max_price": 21426.1864,
+        //                 "mark_price": 21109.4757,
+        //                 "last_price": 21132,
+        //                 "instrument_name": "BTC_USDC-PERPETUAL",
+        //                 "index_price": 21122.3937,
+        //                 "funding_8h": -0.00022427,
+        //                 "estimated_delivery_price": 21122.3937,
+        //                 "current_funding": -0.00011158,
+        //                 "best_bid_price": 21106,
+        //                 "best_bid_amount": 1.143,
+        //                 "best_ask_price": 21113,
+        //                 "best_ask_amount": 0.402
         //             }
         //         }
         //     }
@@ -795,19 +795,19 @@ export default class deribit extends deribitRest {
     handleAuthenticationMessage (client: Client, message) {
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         id: 1,
-        //         result: {
-        //             token_type: 'bearer',
-        //             scope: 'account:read_write block_trade:read_write connection custody:read_write mainaccount name:ccxt trade:read_write wallet:read_write',
-        //             refresh_token: '1686927372328.1EzFBRmt.logRQWXkPA1oE_Tk0gRsls9Hau7YN6a321XUBnxvR4x6cryhbkKcniUJU-czA8_zKXrqQGpQmfoDwhLIjIsWCvRuu6otbg-LKWlrtTX1GQqLcPaTTHAdZGTMV-HM8HiS03QBd9MIXWRfF53sKj2hdR9nZPZ6MH1XrkpAZPB_peuEEB9wlcc3elzWEZFtCmiy1fnQ8TPHwAJMt3nuUmEcMLt_-F554qrsg_-I66D9xMiifJj4dBemdPfV_PkGPRIwIoKlxDjyv2-xfCw-4eKyo6Hu1m2h6gT1DPOTxSXcBgfBQjpi-_uY3iAIj7U6xjC46PHthEdquhEuCTZl7UfCRZSAWwZA',
-        //             expires_in: 31536000,
-        //             access_token: '1686923272328.1CkwEx-u.qHradpIulmuoeboKMEi8PkQ1_4DF8yFE2zywBTtkD32sruVC53b1HwL5OWRuh2nYAndXff4xuXIMRkkEfMAFCeq24prihxxinoS8DDVkKBxedGx4CUPJFeXjmh7wuRGqQOLg1plXOpbF3fwF2KPEkAuETwcpcVY6K9HUVjutNRfxFe2TR7CvuS9x8TATvoPeu7H1ezYl-LkKSaRifdTXuwituXgp4oDbPRyQLniEBWuYF9rY7qbABxuOJlXI1VZ63u7Bh0mGWei-KeVeqHGNpy6OgrFRPXPxa9_U7vaxCyHW3zZ9959TQ1QUMLWtUX-NLBEv3BT5eCieW9HORYIOKfsgkpd3'
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": {
+        //             "token_type": "bearer",
+        //             "scope": "account:read_write block_trade:read_write connection custody:read_write mainaccount name:ccxt trade:read_write wallet:read_write",
+        //             "refresh_token": "1686927372328.1EzFBRmt.logRQWXkPA1oE_Tk0gRsls9Hau7YN6a321XUBnxvR4x6cryhbkKcniUJU-czA8_zKXrqQGpQmfoDwhLIjIsWCvRuu6otbg-LKWlrtTX1GQqLcPaTTHAdZGTMV-HM8HiS03QBd9MIXWRfF53sKj2hdR9nZPZ6MH1XrkpAZPB_peuEEB9wlcc3elzWEZFtCmiy1fnQ8TPHwAJMt3nuUmEcMLt_-F554qrsg_-I66D9xMiifJj4dBemdPfV_PkGPRIwIoKlxDjyv2-xfCw-4eKyo6Hu1m2h6gT1DPOTxSXcBgfBQjpi-_uY3iAIj7U6xjC46PHthEdquhEuCTZl7UfCRZSAWwZA",
+        //             "expires_in": 31536000,
+        //             "access_token": "1686923272328.1CkwEx-u.qHradpIulmuoeboKMEi8PkQ1_4DF8yFE2zywBTtkD32sruVC53b1HwL5OWRuh2nYAndXff4xuXIMRkkEfMAFCeq24prihxxinoS8DDVkKBxedGx4CUPJFeXjmh7wuRGqQOLg1plXOpbF3fwF2KPEkAuETwcpcVY6K9HUVjutNRfxFe2TR7CvuS9x8TATvoPeu7H1ezYl-LkKSaRifdTXuwituXgp4oDbPRyQLniEBWuYF9rY7qbABxuOJlXI1VZ63u7Bh0mGWei-KeVeqHGNpy6OgrFRPXPxa9_U7vaxCyHW3zZ9959TQ1QUMLWtUX-NLBEv3BT5eCieW9HORYIOKfsgkpd3"
         //         },
-        //         usIn: '1655391872327712',
-        //         usOut: '1655391872328515',
-        //         usDiff: 803,
-        //         testnet: false
+        //         "usIn": "1655391872327712",
+        //         "usOut": "1655391872328515",
+        //         "usDiff": 803,
+        //         "testnet": false
         //     }
         //
         const messageHash = 'authenticated';
