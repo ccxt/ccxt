@@ -2,7 +2,6 @@ import Exchange from './abstract/bitteam.js';
 // import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidAddress, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-// import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, Market, Order, OrderBook, Str, Ticker, Trade } from './base/types.js';
 
 /**
@@ -560,7 +559,7 @@ export default class bitteam extends Exchange {
             let networkFeesById = {};
             const blockChain = this.safeString (currency, 'blockChain');
             // if only one blockChain
-            if ((blockChain !== undefined) || (blockChain !== '')) {
+            if ((blockChain !== undefined) && (blockChain !== '')) {
                 fee = this.parseNumber (withdrawCommissionFixed);
                 networkFeesById[blockChain] = fee;
             } else {
