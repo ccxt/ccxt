@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.52'
+__version__ = '4.1.57'
 
 # ----------------------------------------------------------------------------
 
@@ -67,6 +67,7 @@ from ccxt.base.errors import OrderNotFillable                         # noqa: F4
 from ccxt.base.errors import DuplicateOrderId                         # noqa: F401
 from ccxt.base.errors import ContractUnavailable                      # noqa: F401
 from ccxt.base.errors import NotSupported                             # noqa: F401
+from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import NetworkError                             # noqa: F401
 from ccxt.base.errors import DDoSProtection                           # noqa: F401
 from ccxt.base.errors import RateLimitExceeded                        # noqa: F401
@@ -74,7 +75,6 @@ from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F4
 from ccxt.base.errors import OnMaintenance                            # noqa: F401
 from ccxt.base.errors import InvalidNonce                             # noqa: F401
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
-from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 from ccxt.ace import ace                                              # noqa: F401
@@ -105,7 +105,6 @@ from ccxt.bitpanda import bitpanda                                    # noqa: F4
 from ccxt.bitrue import bitrue                                        # noqa: F401
 from ccxt.bitso import bitso                                          # noqa: F401
 from ccxt.bitstamp import bitstamp                                    # noqa: F401
-from ccxt.bitstamp1 import bitstamp1                                  # noqa: F401
 from ccxt.bittrex import bittrex                                      # noqa: F401
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.bl3p import bl3p                                            # noqa: F401
@@ -153,7 +152,6 @@ from ccxt.kucoinfutures import kucoinfutures                          # noqa: F4
 from ccxt.kuna import kuna                                            # noqa: F401
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
-from ccxt.lbank2 import lbank2                                        # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
 from ccxt.lykke import lykke                                          # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
@@ -166,6 +164,7 @@ from ccxt.okcoin import okcoin                                        # noqa: F4
 from ccxt.okex import okex                                            # noqa: F401
 from ccxt.okex5 import okex5                                          # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
+from ccxt.p2b import p2b                                              # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
@@ -212,7 +211,6 @@ exchanges = [
     'bitrue',
     'bitso',
     'bitstamp',
-    'bitstamp1',
     'bittrex',
     'bitvavo',
     'bl3p',
@@ -260,7 +258,6 @@ exchanges = [
     'kuna',
     'latoken',
     'lbank',
-    'lbank2',
     'luno',
     'lykke',
     'mercado',
@@ -273,6 +270,7 @@ exchanges = [
     'okex',
     'okex5',
     'okx',
+    'p2b',
     'paymium',
     'phemex',
     'poloniex',

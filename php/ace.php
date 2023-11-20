@@ -31,11 +31,11 @@ class ace extends Exchange {
                 'createOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => false,
@@ -44,6 +44,8 @@ class ace extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -165,9 +167,9 @@ class ace extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for ace
-         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---$market-pair
+         * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetOapiV2ListMarketPair ();
         //
@@ -184,70 +186,68 @@ class ace extends Exchange {
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            $base = $this->safe_string($market, 'base');
-            $baseCode = $this->safe_currency_code($base);
-            $quote = $this->safe_string($market, 'quote');
-            $quoteCode = $this->safe_currency_code($quote);
-            $symbol = $base . '/' . $quote;
-            $result[] = array(
-                'id' => $this->safe_string($market, 'symbol'),
-                'uppercaseId' => null,
-                'symbol' => $symbol,
-                'base' => $baseCode,
-                'baseId' => $this->safe_integer($market, 'baseCurrencyId'),
-                'quote' => $quoteCode,
-                'quoteId' => $this->safe_integer($market, 'quoteCurrencyId'),
-                'settle' => null,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'derivative' => false,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'minLimitBaseAmount'),
-                        'max' => $this->safe_number($market, 'maxLimitBaseAmount'),
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'precision' => array(
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
-                ),
-                'active' => null,
-                'created' => null,
-                'info' => $market,
-            );
-        }
-        return $result;
+        return $this->parse_markets($response);
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_market($market): array {
+        $baseId = $this->safe_string($market, 'base');
+        $base = $this->safe_currency_code($baseId);
+        $quoteId = $this->safe_string($market, 'quote');
+        $quote = $this->safe_currency_code($quoteId);
+        $symbol = $base . '/' . $quote;
+        return array(
+            'id' => $this->safe_string($market, 'symbol'),
+            'uppercaseId' => null,
+            'symbol' => $symbol,
+            'base' => $base,
+            'baseId' => $baseId,
+            'quote' => $quote,
+            'quoteId' => $quoteId,
+            'settle' => null,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'minLimitBaseAmount'),
+                    'max' => $this->safe_number($market, 'maxLimitBaseAmount'),
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'precision' => array(
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
+            ),
+            'active' => null,
+            'created' => null,
+            'info' => $market,
+        );
+    }
+
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -287,7 +287,7 @@ class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -312,7 +312,7 @@ class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $response = $this->publicGetOapiV2ListTradePrice ();
@@ -344,7 +344,7 @@ class ace extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -397,7 +397,7 @@ class ace extends Exchange {
         return $this->parse_order_book($orderBook, $market['symbol'], null, 'bids', 'asks');
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "changeRate" => 0,
@@ -485,7 +485,7 @@ class ace extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -512,7 +512,6 @@ class ace extends Exchange {
         //             "type" => 1
         //         }
         //
-        $id = null;
         $timestamp = null;
         $symbol = null;
         $price = null;
@@ -590,7 +589,7 @@ class ace extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -626,7 +625,7 @@ class ace extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -650,7 +649,7 @@ class ace extends Exchange {
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -691,9 +690,11 @@ class ace extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $this->check_required_symbol('fetchOpenOrders', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -738,7 +739,7 @@ class ace extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchOrderTrades
         //         {
@@ -788,7 +789,7 @@ class ace extends Exchange {
             $symbol = $baseId . '/' . $quoteId;
         }
         $side = null;
-        $tradeSide = $this->safe_number($trade, 'buyOrSell');
+        $tradeSide = $this->safe_integer($trade, 'buyOrSell');
         if ($tradeSide !== null) {
             $side = ($tradeSide === 1) ? 'buy' : 'sell';
         }
@@ -827,7 +828,7 @@ class ace extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades to retrieve
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          */
         $this->load_markets();
         $market = $this->safe_market($symbol);
@@ -881,7 +882,7 @@ class ace extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->safe_market($symbol);
@@ -966,7 +967,7 @@ class ace extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---account-balance
          * @param {array} [$params] extra parameters specific to the ace api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privatePostV2CoinCustomerAccount ($params);

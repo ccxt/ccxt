@@ -1,0 +1,876 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "info": [
+            {
+                "asset": "BTC",
+                "chain": "BTC",
+                "withdrawal_precision": 8,
+                "can_deposit": true,
+                "can_withdraw": true,
+                "deposit_least_amount": "0.001",
+                "withdraw_least_amount": "0.001",
+                "withdraw_tx_fee": "0.00049",
+                "explorer_asset_url": ""
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.00049,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "deposit": {
+                "min": 0.001
+            },
+            "withdraw": {
+                "min": 0.001
+            }
+        },
+        "networks": {
+            "BTC": {
+                "info": {
+                    "asset": "BTC",
+                    "chain": "BTC",
+                    "withdrawal_precision": 8,
+                    "can_deposit": true,
+                    "can_withdraw": true,
+                    "deposit_least_amount": "0.001",
+                    "withdraw_least_amount": "0.001",
+                    "withdraw_tx_fee": "0.00049",
+                    "explorer_asset_url": ""
+                },
+                "id": "BTC",
+                "network": "BTC",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.001
+                    },
+                    "withdraw": {
+                        "min": 0.001
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00049,
+                "precision": 1e-8
+            }
+        }
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "info": [
+            {
+                "asset": "USDT",
+                "chain": "TRC20",
+                "withdrawal_precision": 6,
+                "can_deposit": true,
+                "can_withdraw": true,
+                "deposit_least_amount": "1.4",
+                "withdraw_least_amount": "1.4",
+                "withdraw_tx_fee": "1.4",
+                "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+            },
+            {
+                "asset": "USDT",
+                "chain": "ERC20",
+                "withdrawal_precision": 6,
+                "can_deposit": true,
+                "can_withdraw": true,
+                "deposit_least_amount": "8.6",
+                "withdraw_least_amount": "8.6",
+                "withdraw_tx_fee": "8.6",
+                "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
+            },
+            {
+                "asset": "USDT",
+                "chain": "BSC",
+                "withdrawal_precision": 8,
+                "can_deposit": true,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.49",
+                "withdraw_least_amount": "0.6",
+                "withdraw_tx_fee": "0.44",
+                "explorer_asset_url": "https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955"
+            },
+            {
+                "asset": "USDT",
+                "chain": "CSC",
+                "withdrawal_precision": 8,
+                "can_deposit": true,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.01",
+                "withdraw_least_amount": "0.5",
+                "withdraw_tx_fee": "0.0084",
+                "explorer_asset_url": "https://www.coinex.net/token/0x398dca951cd4fc18264d995dcd171aa5debda129"
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0084,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "deposit": {
+                "min": 0.01
+            },
+            "withdraw": {
+                "min": 0.5
+            }
+        },
+        "networks": {
+            "TRC20": {
+                "info": {
+                    "asset": "USDT",
+                    "chain": "TRC20",
+                    "withdrawal_precision": 6,
+                    "can_deposit": true,
+                    "can_withdraw": true,
+                    "deposit_least_amount": "1.4",
+                    "withdraw_least_amount": "1.4",
+                    "withdraw_tx_fee": "1.4",
+                    "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                },
+                "id": "TRC20",
+                "network": "TRC20",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 1.4
+                    },
+                    "withdraw": {
+                        "min": 1.4
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1.4,
+                "precision": 0.000001
+            },
+            "ERC20": {
+                "info": {
+                    "asset": "USDT",
+                    "chain": "ERC20",
+                    "withdrawal_precision": 6,
+                    "can_deposit": true,
+                    "can_withdraw": true,
+                    "deposit_least_amount": "8.6",
+                    "withdraw_least_amount": "8.6",
+                    "withdraw_tx_fee": "8.6",
+                    "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 8.6
+                    },
+                    "withdraw": {
+                        "min": 8.6
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 8.6,
+                "precision": 0.000001
+            },
+            "BSC": {
+                "info": {
+                    "asset": "USDT",
+                    "chain": "BSC",
+                    "withdrawal_precision": 8,
+                    "can_deposit": true,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.49",
+                    "withdraw_least_amount": "0.6",
+                    "withdraw_tx_fee": "0.44",
+                    "explorer_asset_url": "https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955"
+                },
+                "id": "BSC",
+                "network": "BSC",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.49
+                    },
+                    "withdraw": {
+                        "min": 0.6
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.44,
+                "precision": 1e-8
+            },
+            "CSC": {
+                "info": {
+                    "asset": "USDT",
+                    "chain": "CSC",
+                    "withdrawal_precision": 8,
+                    "can_deposit": true,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.01",
+                    "withdraw_least_amount": "0.5",
+                    "withdraw_tx_fee": "0.0084",
+                    "explorer_asset_url": "https://www.coinex.net/token/0x398dca951cd4fc18264d995dcd171aa5debda129"
+                },
+                "id": "CSC",
+                "network": "CSC",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.01
+                    },
+                    "withdraw": {
+                        "min": 0.5
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.0084,
+                "precision": 1e-8
+            }
+        }
+    },
+    "LTC": {
+        "id": "LTC",
+        "code": "LTC",
+        "info": [
+            {
+                "asset": "LTC",
+                "chain": "LTC",
+                "withdrawal_precision": 8,
+                "can_deposit": true,
+                "can_withdraw": true,
+                "deposit_least_amount": "0.01",
+                "withdraw_least_amount": "0.01",
+                "withdraw_tx_fee": "0.001",
+                "explorer_asset_url": ""
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.001,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "deposit": {
+                "min": 0.01
+            },
+            "withdraw": {
+                "min": 0.01
+            }
+        },
+        "networks": {
+            "LTC": {
+                "info": {
+                    "asset": "LTC",
+                    "chain": "LTC",
+                    "withdrawal_precision": 8,
+                    "can_deposit": true,
+                    "can_withdraw": true,
+                    "deposit_least_amount": "0.01",
+                    "withdraw_least_amount": "0.01",
+                    "withdraw_tx_fee": "0.001",
+                    "explorer_asset_url": ""
+                },
+                "id": "LTC",
+                "network": "LTC",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.01
+                    },
+                    "withdraw": {
+                        "min": 0.01
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.001,
+                "precision": 1e-8
+            }
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "info": [
+            {
+                "asset": "ETH",
+                "chain": "ERC20",
+                "withdrawal_precision": 8,
+                "can_deposit": true,
+                "can_withdraw": true,
+                "deposit_least_amount": "0.02",
+                "withdraw_least_amount": "0.02",
+                "withdraw_tx_fee": "0.0015",
+                "explorer_asset_url": ""
+            },
+            {
+                "asset": "ETH",
+                "chain": "ZKSYNC",
+                "withdrawal_precision": 8,
+                "can_deposit": false,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.001",
+                "withdraw_least_amount": "0.001",
+                "withdraw_tx_fee": "0.001",
+                "explorer_asset_url": ""
+            },
+            {
+                "asset": "ETH",
+                "chain": "ARBITRUM",
+                "withdrawal_precision": 8,
+                "can_deposit": false,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.001",
+                "withdraw_least_amount": "0.001",
+                "withdraw_tx_fee": "0.001",
+                "explorer_asset_url": ""
+            },
+            {
+                "asset": "ETH",
+                "chain": "ARBITRUM_NOVA",
+                "withdrawal_precision": 8,
+                "can_deposit": false,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.001",
+                "withdraw_least_amount": "0.001",
+                "withdraw_tx_fee": "0.001",
+                "explorer_asset_url": ""
+            },
+            {
+                "asset": "ETH",
+                "chain": "AURORA",
+                "withdrawal_precision": 8,
+                "can_deposit": false,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.00001",
+                "withdraw_least_amount": "0.00001",
+                "withdraw_tx_fee": "0.000005",
+                "explorer_asset_url": ""
+            },
+            {
+                "asset": "ETH",
+                "chain": "BOBA",
+                "withdrawal_precision": 8,
+                "can_deposit": false,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.001",
+                "withdraw_least_amount": "0.001",
+                "withdraw_tx_fee": "0.001",
+                "explorer_asset_url": ""
+            },
+            {
+                "asset": "ETH",
+                "chain": "OPTIMISM",
+                "withdrawal_precision": 8,
+                "can_deposit": false,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.001",
+                "withdraw_least_amount": "0.001",
+                "withdraw_tx_fee": "0.001",
+                "explorer_asset_url": ""
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.000005,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "deposit": {
+                "min": 0.00001
+            },
+            "withdraw": {
+                "min": 0.00001
+            }
+        },
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "asset": "ETH",
+                    "chain": "ERC20",
+                    "withdrawal_precision": 8,
+                    "can_deposit": true,
+                    "can_withdraw": true,
+                    "deposit_least_amount": "0.02",
+                    "withdraw_least_amount": "0.02",
+                    "withdraw_tx_fee": "0.0015",
+                    "explorer_asset_url": ""
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.02
+                    },
+                    "withdraw": {
+                        "min": 0.02
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0015,
+                "precision": 1e-8
+            },
+            "ZKSYNC": {
+                "info": {
+                    "asset": "ETH",
+                    "chain": "ZKSYNC",
+                    "withdrawal_precision": 8,
+                    "can_deposit": false,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.001",
+                    "withdraw_least_amount": "0.001",
+                    "withdraw_tx_fee": "0.001",
+                    "explorer_asset_url": ""
+                },
+                "id": "ZKSYNC",
+                "network": "ZKSYNC",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.001
+                    },
+                    "withdraw": {
+                        "min": 0.001
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.001,
+                "precision": 1e-8
+            },
+            "ARBITRUM": {
+                "info": {
+                    "asset": "ETH",
+                    "chain": "ARBITRUM",
+                    "withdrawal_precision": 8,
+                    "can_deposit": false,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.001",
+                    "withdraw_least_amount": "0.001",
+                    "withdraw_tx_fee": "0.001",
+                    "explorer_asset_url": ""
+                },
+                "id": "ARBITRUM",
+                "network": "ARBITRUM",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.001
+                    },
+                    "withdraw": {
+                        "min": 0.001
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.001,
+                "precision": 1e-8
+            },
+            "ARBITRUM_NOVA": {
+                "info": {
+                    "asset": "ETH",
+                    "chain": "ARBITRUM_NOVA",
+                    "withdrawal_precision": 8,
+                    "can_deposit": false,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.001",
+                    "withdraw_least_amount": "0.001",
+                    "withdraw_tx_fee": "0.001",
+                    "explorer_asset_url": ""
+                },
+                "id": "ARBITRUM_NOVA",
+                "network": "ARBITRUM_NOVA",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.001
+                    },
+                    "withdraw": {
+                        "min": 0.001
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.001,
+                "precision": 1e-8
+            },
+            "AURORA": {
+                "info": {
+                    "asset": "ETH",
+                    "chain": "AURORA",
+                    "withdrawal_precision": 8,
+                    "can_deposit": false,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.00001",
+                    "withdraw_least_amount": "0.00001",
+                    "withdraw_tx_fee": "0.000005",
+                    "explorer_asset_url": ""
+                },
+                "id": "AURORA",
+                "network": "AURORA",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.00001
+                    },
+                    "withdraw": {
+                        "min": 0.00001
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.000005,
+                "precision": 1e-8
+            },
+            "BOBA": {
+                "info": {
+                    "asset": "ETH",
+                    "chain": "BOBA",
+                    "withdrawal_precision": 8,
+                    "can_deposit": false,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.001",
+                    "withdraw_least_amount": "0.001",
+                    "withdraw_tx_fee": "0.001",
+                    "explorer_asset_url": ""
+                },
+                "id": "BOBA",
+                "network": "BOBA",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.001
+                    },
+                    "withdraw": {
+                        "min": 0.001
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.001,
+                "precision": 1e-8
+            },
+            "OPTIMISM": {
+                "info": {
+                    "asset": "ETH",
+                    "chain": "OPTIMISM",
+                    "withdrawal_precision": 8,
+                    "can_deposit": false,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.001",
+                    "withdraw_least_amount": "0.001",
+                    "withdraw_tx_fee": "0.001",
+                    "explorer_asset_url": ""
+                },
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.001
+                    },
+                    "withdraw": {
+                        "min": 0.001
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.001,
+                "precision": 1e-8
+            }
+        }
+    },
+    "ADA": {
+        "id": "ADA",
+        "code": "ADA",
+        "info": [
+            {
+                "asset": "ADA",
+                "chain": "ADA",
+                "withdrawal_precision": 6,
+                "can_deposit": true,
+                "can_withdraw": true,
+                "deposit_least_amount": "1",
+                "withdraw_least_amount": "100",
+                "withdraw_tx_fee": "1",
+                "explorer_asset_url": ""
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {},
+            "deposit": {
+                "min": 1
+            },
+            "withdraw": {
+                "min": 100
+            }
+        },
+        "networks": {
+            "ADA": {
+                "info": {
+                    "asset": "ADA",
+                    "chain": "ADA",
+                    "withdrawal_precision": 6,
+                    "can_deposit": true,
+                    "can_withdraw": true,
+                    "deposit_least_amount": "1",
+                    "withdraw_least_amount": "100",
+                    "withdraw_tx_fee": "1",
+                    "explorer_asset_url": ""
+                },
+                "id": "ADA",
+                "network": "ADA",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 1
+                    },
+                    "withdraw": {
+                        "min": 100
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 0.000001
+            }
+        }
+    },
+    "XRP": {
+        "id": "XRP",
+        "code": "XRP",
+        "info": [
+            {
+                "asset": "XRP",
+                "chain": "XRP",
+                "withdrawal_precision": 6,
+                "can_deposit": true,
+                "can_withdraw": true,
+                "deposit_least_amount": "0.02",
+                "withdraw_least_amount": "20",
+                "withdraw_tx_fee": "0.02",
+                "explorer_asset_url": ""
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.02,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {},
+            "deposit": {
+                "min": 0.02
+            },
+            "withdraw": {
+                "min": 20
+            }
+        },
+        "networks": {
+            "XRP": {
+                "info": {
+                    "asset": "XRP",
+                    "chain": "XRP",
+                    "withdrawal_precision": 6,
+                    "can_deposit": true,
+                    "can_withdraw": true,
+                    "deposit_least_amount": "0.02",
+                    "withdraw_least_amount": "20",
+                    "withdraw_tx_fee": "0.02",
+                    "explorer_asset_url": ""
+                },
+                "id": "XRP",
+                "network": "XRP",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.02
+                    },
+                    "withdraw": {
+                        "min": 20
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.02,
+                "precision": 0.000001
+            }
+        }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": [
+            {
+                "asset": "USDC",
+                "chain": "ERC20",
+                "withdrawal_precision": 6,
+                "can_deposit": true,
+                "can_withdraw": true,
+                "deposit_least_amount": "8.7",
+                "withdraw_least_amount": "8.7",
+                "withdraw_tx_fee": "8.7",
+                "explorer_asset_url": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+            },
+            {
+                "asset": "USDC",
+                "chain": "TRC20",
+                "withdrawal_precision": 8,
+                "can_deposit": true,
+                "can_withdraw": false,
+                "deposit_least_amount": "1.4",
+                "withdraw_least_amount": "1.4",
+                "withdraw_tx_fee": "1.4",
+                "explorer_asset_url": "https://tronscan.org/#/token20/TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"
+            },
+            {
+                "asset": "USDC",
+                "chain": "CSC",
+                "withdrawal_precision": 8,
+                "can_deposit": true,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.01",
+                "withdraw_least_amount": "0.5",
+                "withdraw_tx_fee": "0.0095",
+                "explorer_asset_url": "https://www.coinex.net/token/0xf335b2440e62a953a42865adf7bd73f4c6671a7b"
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0095,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "deposit": {
+                "min": 0.01
+            },
+            "withdraw": {
+                "min": 0.5
+            }
+        },
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "asset": "USDC",
+                    "chain": "ERC20",
+                    "withdrawal_precision": 6,
+                    "can_deposit": true,
+                    "can_withdraw": true,
+                    "deposit_least_amount": "8.7",
+                    "withdraw_least_amount": "8.7",
+                    "withdraw_tx_fee": "8.7",
+                    "explorer_asset_url": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 8.7
+                    },
+                    "withdraw": {
+                        "min": 8.7
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 8.7,
+                "precision": 0.000001
+            },
+            "TRC20": {
+                "info": {
+                    "asset": "USDC",
+                    "chain": "TRC20",
+                    "withdrawal_precision": 8,
+                    "can_deposit": true,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "1.4",
+                    "withdraw_least_amount": "1.4",
+                    "withdraw_tx_fee": "1.4",
+                    "explorer_asset_url": "https://tronscan.org/#/token20/TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"
+                },
+                "id": "TRC20",
+                "network": "TRC20",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 1.4
+                    },
+                    "withdraw": {
+                        "min": 1.4
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 1.4,
+                "precision": 1e-8
+            },
+            "CSC": {
+                "info": {
+                    "asset": "USDC",
+                    "chain": "CSC",
+                    "withdrawal_precision": 8,
+                    "can_deposit": true,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.01",
+                    "withdraw_least_amount": "0.5",
+                    "withdraw_tx_fee": "0.0095",
+                    "explorer_asset_url": "https://www.coinex.net/token/0xf335b2440e62a953a42865adf7bd73f4c6671a7b"
+                },
+                "id": "CSC",
+                "network": "CSC",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.01
+                    },
+                    "withdraw": {
+                        "min": 0.5
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.0095,
+                "precision": 1e-8
+            }
+        }
+    }
+}

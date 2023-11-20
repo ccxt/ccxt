@@ -40,7 +40,6 @@ var bitpanda = require('./src/bitpanda.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
-var bitstamp1 = require('./src/bitstamp1.js');
 var bittrex = require('./src/bittrex.js');
 var bitvavo = require('./src/bitvavo.js');
 var bl3p = require('./src/bl3p.js');
@@ -88,7 +87,6 @@ var kucoinfutures = require('./src/kucoinfutures.js');
 var kuna = require('./src/kuna.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
-var lbank2 = require('./src/lbank2.js');
 var luno = require('./src/luno.js');
 var lykke = require('./src/lykke.js');
 var mercado = require('./src/mercado.js');
@@ -101,6 +99,7 @@ var okcoin = require('./src/okcoin.js');
 var okex = require('./src/okex.js');
 var okex5 = require('./src/okex5.js');
 var okx = require('./src/okx.js');
+var p2b = require('./src/p2b.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
@@ -181,7 +180,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.1.52';
+const version = '4.1.57';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -212,7 +211,6 @@ const exchanges = {
     'bitrue': bitrue,
     'bitso': bitso,
     'bitstamp': bitstamp,
-    'bitstamp1': bitstamp1,
     'bittrex': bittrex,
     'bitvavo': bitvavo,
     'bl3p': bl3p,
@@ -260,7 +258,6 @@ const exchanges = {
     'kuna': kuna,
     'latoken': latoken,
     'lbank': lbank,
-    'lbank2': lbank2,
     'luno': luno,
     'lykke': lykke,
     'mercado': mercado,
@@ -273,6 +270,7 @@ const exchanges = {
     'okex': okex,
     'okex5': okex5,
     'okx': okx,
+    'p2b': p2b,
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
@@ -422,7 +420,6 @@ exports.bitpanda = bitpanda;
 exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;
-exports.bitstamp1 = bitstamp1;
 exports.bittrex = bittrex;
 exports.bitvavo = bitvavo;
 exports.bl3p = bl3p;
@@ -470,7 +467,6 @@ exports.kucoinfutures = kucoinfutures;
 exports.kuna = kuna;
 exports.latoken = latoken;
 exports.lbank = lbank;
-exports.lbank2 = lbank2;
 exports.luno = luno;
 exports.lykke = lykke;
 exports.mercado = mercado;
@@ -483,6 +479,7 @@ exports.okcoin = okcoin;
 exports.okex = okex;
 exports.okex5 = okex5;
 exports.okx = okx;
+exports.p2b = p2b;
 exports.paymium = paymium;
 exports.phemex = phemex;
 exports.poloniex = poloniex;

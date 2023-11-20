@@ -142,7 +142,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks } from './types.js';
+import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js'
 
 // ----------------------------------------------------------------------------
@@ -195,7 +195,7 @@ export default class Exchange {
     minFundingAddressLength = 1 // used in checkAddress
     substituteCommonCurrencyCodes = true  // reserved
     quoteJsonNumbers = true // treat numbers in json as quoted precise strings
-    number = Number // or String (a pointer to a function)
+    number: (numberString: string) => number = Number // or String (a pointer to a function)
     handleContentTypeApplicationZip = false
 
     // whether fees should be summed by currency code
@@ -480,13 +480,12 @@ export default class Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
-                'fetchBorrowRates': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
+                'fetchCrossBorrowRate': undefined,
+                'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
@@ -501,6 +500,8 @@ export default class Exchange {
                 'fetchFundingRateHistory': undefined,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
+                'fetchIsolatedBorrowRate': undefined,
+                'fetchIsolatedBorrowRates': undefined,
                 'fetchL2OrderBook': true,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -1656,7 +1657,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
-    async fetchTime (params = {}): Promise<number> {
+    async fetchTime (params = {}): Promise<Int> {
         throw new NotSupported (this.id + ' fetchTime() is not supported yet');
     }
 
@@ -1676,23 +1677,23 @@ export default class Exchange {
         return result;
     }
 
-    parseTicker (ticker: object, market = undefined): Ticker {
+    parseTicker (ticker: object, market: Market = undefined): Ticker {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
-    parseTrade (trade: object, market = undefined): Trade {
+    parseTrade (trade: object, market: Market = undefined): Trade {
         throw new NotSupported (this.id + ' parseTrade() is not supported yet');
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined) {
         throw new NotSupported (this.id + ' parseTransaction() is not supported yet');
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
@@ -1700,19 +1701,23 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         throw new NotSupported (this.id + ' parseLedgerEntry() is not supported yet');
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         throw new NotSupported (this.id + ' parseOrder() is not supported yet');
     }
 
-    async fetchBorrowRates (params = {}): Promise<any> {
-        throw new NotSupported (this.id + ' fetchBorrowRates() is not supported yet');
+    async fetchCrossBorrowRates (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchCrossBorrowRates() is not supported yet');
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    async fetchIsolatedBorrowRates (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchIsolatedBorrowRates() is not supported yet');
+    }
+
+    parseMarketLeverageTiers (info, market: Market = undefined) {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
@@ -1720,31 +1725,31 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
-    parseFundingRateHistory (info, market = undefined): FundingRateHistory {
+    parseFundingRateHistory (info, market: Market = undefined): FundingRateHistory {
         throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         throw new NotSupported (this.id + ' parseBorrowInterest() is not supported yet');
     }
 
-    parseWsTrade (trade, market = undefined): Trade {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         throw new NotSupported (this.id + ' parseWsTrade() is not supported yet');
     }
 
-    parseWsOrder (order, market = undefined): Order {
+    parseWsOrder (order, market: Market = undefined): Order {
         throw new NotSupported (this.id + ' parseWsOrder() is not supported yet');
     }
 
-    parseWsOrderTrade (trade, market = undefined): Trade {
+    parseWsOrderTrade (trade, market: Market = undefined): Trade {
         throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return this.parseOHLCV (ohlcv, market);
     }
 
@@ -1779,13 +1784,20 @@ export default class Exchange {
     parseToNumeric (number) {
         const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true
+        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is false
-        if (stringVersion.indexOf ('.') > 0) {
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        if (stringVersion.indexOf ('.') >= 0) {
             return parseFloat (stringVersion);
         }
         return parseInt (stringVersion);
+    }
+
+    isRoundNumber (value) {
+        // this method is similar to isInteger, but this is more loyal and does not check for types.
+        // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
+        const res = this.parseToNumeric ((value % 1));
+        return res === 0;
     }
 
     afterConstruct () {
@@ -1808,7 +1820,7 @@ export default class Exchange {
         };
     }
 
-    safeLedgerEntry (entry: object, currency: object = undefined) {
+    safeLedgerEntry (entry: object, currency: Currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
         let before = this.safeString (entry, 'before');
@@ -1883,7 +1895,7 @@ export default class Exchange {
         }, currency);
     }
 
-    safeMarketStructure (market: object = undefined) {
+    safeMarketStructure (market = undefined): MarketInterface {
         const cleanStructure = {
             'id': undefined,
             'lowercaseId': undefined,
@@ -1978,7 +1990,7 @@ export default class Exchange {
             } else {
                 this.markets_by_id[value['id']] = [ value ] as any;
             }
-            const market = this.deepExtend (this.safeMarket (), {
+            const market = this.deepExtend (this.safeMarketStructure (), {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
@@ -2090,7 +2102,7 @@ export default class Exchange {
         return balance as any;
     }
 
-    safeOrder (order: object, market: object = undefined): Order {
+    safeOrder (order: object, market: Market = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
@@ -2349,7 +2361,7 @@ export default class Exchange {
         });
     }
 
-    parseOrders (orders: object, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
+    parseOrders (orders: object, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -2434,7 +2446,7 @@ export default class Exchange {
         };
     }
 
-    safeLiquidation (liquidation: object, market: object = undefined): Liquidation {
+    safeLiquidation (liquidation: object, market: Market = undefined): Liquidation {
         const contracts = this.safeString (liquidation, 'contracts');
         const contractSize = this.safeString (market, 'contractSize');
         const price = this.safeString (liquidation, 'price');
@@ -2454,7 +2466,7 @@ export default class Exchange {
         return liquidation as Liquidation;
     }
 
-    safeTrade (trade: object, market: object = undefined): Trade {
+    safeTrade (trade: object, market: Market = undefined): Trade {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
         let cost = this.safeString (trade, 'cost');
@@ -2609,7 +2621,7 @@ export default class Exchange {
         return result;
     }
 
-    safeTicker (ticker: object, market = undefined): Ticker {
+    safeTicker (ticker: object, market: Market = undefined): Ticker {
         let open = this.safeValue (ticker, 'open');
         let close = this.safeValue (ticker, 'close');
         let last = this.safeValue (ticker, 'last');
@@ -2866,7 +2878,7 @@ export default class Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined) : OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeInteger (ohlcv, 0), // timestamp
@@ -3115,7 +3127,7 @@ export default class Exchange {
         return result;
     }
 
-    parseTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTrades (trades, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
@@ -3127,7 +3139,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    parseTransactions (transactions, currency: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         transactions = this.toArray (transactions);
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
@@ -3139,7 +3151,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers, currency: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseTransfers (transfers, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         transfers = this.toArray (transfers);
         let result = [];
         for (let i = 0; i < transfers.length; i++) {
@@ -3151,7 +3163,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data, currency: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let result = [];
         const arrayData = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
@@ -3346,7 +3358,7 @@ export default class Exchange {
          * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not supported yet');
     }
@@ -3369,7 +3381,7 @@ export default class Exchange {
         return [ price, amount ];
     }
 
-    safeCurrency (currencyId?: string, currency: any = undefined) {
+    safeCurrency (currencyId: Str, currency: Currency = undefined): CurrencyInterface {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
@@ -3383,54 +3395,15 @@ export default class Exchange {
         return {
             'id': currencyId,
             'code': code,
+            'precision': undefined,
         };
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const result = {
-            'id': marketId,
+    safeMarket (marketId: Str, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
+        const result = this.safeMarketStructure ({
             'symbol': marketId,
-            'base': undefined,
-            'quote': undefined,
-            'baseId': undefined,
-            'quoteId': undefined,
-            'active': undefined,
-            'type': undefined,
-            'linear': undefined,
-            'inverse': undefined,
-            'spot': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'margin': false,
-            'contract': false,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'optionType': undefined,
-            'strike': undefined,
-            'settle': undefined,
-            'settleId': undefined,
-            'precision': {
-                'amount': undefined,
-                'price': undefined,
-            },
-            'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'info': undefined,
-        };
+            'marketId': marketId,
+        });
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
@@ -3438,13 +3411,16 @@ export default class Exchange {
                 if (numMarkets === 1) {
                     return markets[0];
                 } else {
-                    if ((marketType === undefined) && (market === undefined)) {
-                        throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                    if (marketType === undefined) {
+                        if (market === undefined) {
+                            throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                        } else {
+                            marketType = market['type'];
+                        }
                     }
-                    const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (currentMarket[inferredMarketType]) {
+                        if (currentMarket[marketType]) {
                             return currentMarket;
                         }
                     }
@@ -3577,15 +3553,28 @@ export default class Exchange {
         }
     }
 
-    async fetchBorrowRate (code: string, params = {}) {
+    async fetchCrossBorrowRate (code: string, params = {}) {
         await this.loadMarkets ();
         if (!this.has['fetchBorrowRates']) {
-            throw new NotSupported (this.id + ' fetchBorrowRate() is not supported yet');
+            throw new NotSupported (this.id + ' fetchCrossBorrowRate() is not supported yet');
         }
-        const borrowRates = await this.fetchBorrowRates (params);
+        const borrowRates = await this.fetchCrossBorrowRates (params);
         const rate = this.safeValue (borrowRates, code);
         if (rate === undefined) {
-            throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+            throw new ExchangeError (this.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code);
+        }
+        return rate;
+    }
+
+    async fetchIsolatedBorrowRate (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        if (!this.has['fetchBorrowRates']) {
+            throw new NotSupported (this.id + ' fetchIsolatedBorrowRate() is not supported yet');
+        }
+        const borrowRates = await this.fetchIsolatedBorrowRates (params);
+        const rate = this.safeValue (borrowRates, symbol);
+        if (rate === undefined) {
+            throw new ExchangeError (this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
         return rate;
     }
@@ -3620,7 +3609,7 @@ export default class Exchange {
         return result;
     }
 
-    handleMarketTypeAndParams (methodName, market = undefined, params = {}): any {
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}): any {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
         let methodType = defaultType;
@@ -3859,7 +3848,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         throw new NotSupported (this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -3884,7 +3873,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingHistory() is not supported yet');
     }
 
-    parseLastPrice (price, market = undefined): any {
+    parseLastPrice (price, market: Market = undefined): any {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
 
@@ -3902,7 +3891,7 @@ export default class Exchange {
         }
     }
 
-    account (): Balance {
+    account (): Account {
         return {
             'free': undefined,
             'used': undefined,
@@ -3931,24 +3920,22 @@ export default class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code);
     }
 
-    market (symbol: string) {
+    market (symbol: string): MarketInterface {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            } else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
-                for (let i = 0; i < markets.length; i++) {
-                    const market = markets[i];
-                    if (market[defaultType]) {
-                        return market;
-                    }
+        if (symbol in this.markets) {
+            return this.markets[symbol];
+        } else if (symbol in this.markets_by_id) {
+            const markets = this.markets_by_id[symbol];
+            const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
+            for (let i = 0; i < markets.length; i++) {
+                const market = markets[i];
+                if (market[defaultType]) {
+                    return market;
                 }
-                return markets[0];
             }
+            return markets[0];
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }
@@ -4053,12 +4040,12 @@ export default class Exchange {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
-    safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): number {
+    safeNumber (obj: object, key: IndexType, defaultNumber: number = undefined): Num {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
     }
 
-    safeNumberN (obj: object, arr: IndexType[], defaultNumber: number = undefined): number {
+    safeNumberN (obj: object, arr: IndexType[], defaultNumber: number = undefined): Num {
         const value = this.safeStringN (obj, arr);
         return this.parseNumber (value, defaultNumber);
     }
@@ -4151,7 +4138,7 @@ export default class Exchange {
         return await this.createOrder (symbol, 'market', side, amount, undefined, query);
     }
 
-    safeCurrencyCode (currencyId?: string, currency: any = undefined) {
+    safeCurrencyCode (currencyId: Str, currency: Currency = undefined): string {
         currency = this.safeCurrency (currencyId, currency);
         return currency['code'];
     }
@@ -4264,7 +4251,7 @@ export default class Exchange {
         return result;
     }
 
-    parseBorrowInterests (response, market = undefined) {
+    parseBorrowInterests (response, market: Market = undefined) {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
@@ -4284,16 +4271,16 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    safeSymbol (marketId, market = undefined, delimiter = undefined, marketType = undefined) {
+    safeSymbol (marketId: Str, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): string {
         market = this.safeMarket (marketId, market, delimiter, marketType);
         return market['symbol'];
     }
 
-    parseFundingRate (contract: string, market = undefined) {
+    parseFundingRate (contract: string, market: Market = undefined) {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 
-    parseFundingRates (response, market = undefined) {
+    parseFundingRates (response, market: Market = undefined) {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parseFundingRate (response[i], market);
@@ -4385,7 +4372,7 @@ export default class Exchange {
         return await this.fetchTradingFees (params);
     }
 
-    parseOpenInterest (interest, market = undefined): OpenInterest {
+    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
@@ -4561,16 +4548,6 @@ export default class Exchange {
         }
     }
 
-    checkRequiredSymbol (methodName: string, symbol: string) {
-        /**
-         * @ignore
-         * @method
-         * @param {string} symbol unified symbol of the market
-         * @param {string} methodName name of the method that requires a symbol
-         */
-        this.checkRequiredArgument (methodName, symbol, 'symbol');
-    }
-
     parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
         /**
          * @ignore
@@ -4600,7 +4577,7 @@ export default class Exchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined): any {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined): any {
         throw new NotSupported (this.id + ' parseDepositWithdrawFee() is not supported yet');
     }
 
@@ -4646,7 +4623,7 @@ export default class Exchange {
         return fee;
     }
 
-    parseIncome (info, market = undefined) {
+    parseIncome (info, market: Market = undefined) {
         throw new NotSupported (this.id + ' parseIncome () is not supported yet');
     }
 
@@ -4659,7 +4636,7 @@ export default class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -4698,7 +4675,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {
             return await this.fetchDepositsWithdrawals (code, since, limit, params);
@@ -5035,7 +5012,7 @@ export default class Exchange {
         return [ request, params ];
     }
 
-    safeOpenInterest (interest, market = undefined): OpenInterest {
+    safeOpenInterest (interest, market: Market = undefined): OpenInterest {
         return this.extend (interest, {
             'symbol': this.safeString (market, 'symbol'),
             'baseVolume': this.safeNumber (interest, 'baseVolume'), // deprecated
@@ -5048,7 +5025,7 @@ export default class Exchange {
         });
     }
 
-    parseLiquidation (liquidation, market = undefined): Liquidation {
+    parseLiquidation (liquidation, market: Market = undefined): Liquidation {
         throw new NotSupported (this.id + ' parseLiquidation () is not supported yet');
     }
 
@@ -5061,7 +5038,7 @@ export default class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         const result = [];
         for (let i = 0; i < liquidations.length; i++) {
@@ -5074,7 +5051,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseGreeks (greeks, market = undefined): Greeks {
+    parseGreeks (greeks, market: Market = undefined): Greeks {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 }

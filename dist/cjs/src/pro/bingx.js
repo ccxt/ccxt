@@ -299,11 +299,12 @@ class bingx extends bingx$1 {
         //        "h": "28915.4",
         //        "l": "28896.1",
         //        "v": "27.6919",
-        //        "T": 1690907580000
+        //        "T": 1696687499999,
+        //        "t": 1696687440000
         //    }
         //
         return [
-            this.safeInteger(ohlcv, 'T'),
+            this.safeInteger(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
@@ -480,7 +481,7 @@ class bingx extends bingx$1 {
          * @param {int} [since] the earliest time in ms to trades orders for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -597,16 +598,22 @@ class bingx extends bingx$1 {
         // swap
         // Ping
         //
-        if (message === 'Ping') {
-            await client.send('Pong');
+        try {
+            if (message === 'Ping') {
+                await client.send('Pong');
+            }
+            else {
+                const ping = this.safeString(message, 'ping');
+                const time = this.safeString(message, 'time');
+                await client.send({
+                    'pong': ping,
+                    'time': time,
+                });
+            }
         }
-        else {
-            const ping = this.safeString(message, 'ping');
-            const time = this.safeString(message, 'time');
-            await client.send({
-                'pong': ping,
-                'time': time,
-            });
+        catch (e) {
+            const error = new errors.NetworkError(this.id + ' pong failed with error ' + this.json(e));
+            client.reset(error);
         }
     }
     handleOrder(client, message) {

@@ -1495,6 +1495,9 @@ abstract class binanceus extends \ccxt\binance {
     public function fapiprivate_delete_listenkey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function fapipublicv2_get_ticker_price($params = array()) {
+        return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));
+    }
     public function fapiprivatev2_get_account($params = array()) {
         return $this->request('account', 'fapiPrivateV2', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3465,6 +3468,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function fapiPrivateDeleteListenKey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPublicV2GetTickerPrice($params = array()) {
+        return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));
     }
     public function fapiPrivateV2GetAccount($params = array()) {
         return $this->request('account', 'fapiPrivateV2', 'GET', $params, null, null, array("cost" => 1));

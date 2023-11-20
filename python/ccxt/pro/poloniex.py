@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
@@ -124,7 +123,7 @@ class poloniex(ccxt.async_support.poloniex):
             client.subscriptions[messageHash] = future
         return future
 
-    async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: List[str] = None, params={}):
+    async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: Strings = None, params={}):
         """
          * @ignore
         Connects to a websocket channel
@@ -180,7 +179,7 @@ class poloniex(ccxt.async_support.poloniex):
         :see: https://docs.poloniex.com/#public-channels-market-data-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -193,7 +192,7 @@ class poloniex(ccxt.async_support.poloniex):
         :see: https://docs.poloniex.com/#public-channels-market-data-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         name = 'ticker'
@@ -211,7 +210,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -228,7 +227,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniex watchOrderBook
         :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         watchOrderBookOptions = self.safe_value(self.options, 'watchOrderBook')
@@ -237,7 +236,7 @@ class poloniex(ccxt.async_support.poloniex):
         orderbook = await self.subscribe(name, name, False, [symbol], params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders
@@ -245,7 +244,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param int [since]: not used by poloniex watchOrders
         :param int [limit]: not used by poloniex watchOrders
         :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         name = 'orders'
@@ -258,7 +257,7 @@ class poloniex(ccxt.async_support.poloniex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user using orders stream
         :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders
@@ -266,7 +265,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param int [since]: not used by poloniex watchMyTrades
         :param int [limit]: not used by poloniex watchMyTrades
         :param dict [params]: extra parameters specific to the poloniex strean
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         name = 'orders'
@@ -285,7 +284,7 @@ class poloniex(ccxt.async_support.poloniex):
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs.poloniex.com/#authenticated-channels-market-data-balances
         :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         name = 'balances'

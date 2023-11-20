@@ -6,9 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.probit import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import BadResponse
@@ -49,12 +50,11 @@ class probit(Exchange, ImplicitAPI):
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
@@ -65,6 +65,8 @@ class probit(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -284,72 +286,70 @@ class probit(Exchange, ImplicitAPI):
         #     }
         #
         markets = self.safe_value(response, 'data', [])
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'id')
-            baseId = self.safe_string(market, 'base_currency_id')
-            quoteId = self.safe_string(market, 'quote_currency_id')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            closed = self.safe_value(market, 'closed', False)
-            takerFeeRate = self.safe_string(market, 'taker_fee_rate')
-            taker = Precise.string_div(takerFeeRate, '100')
-            makerFeeRate = self.safe_string(market, 'maker_fee_rate')
-            maker = Precise.string_div(makerFeeRate, '100')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': not closed,
-                'contract': False,
-                'linear': 'rfwf',
-                'inverse': 3,
-                'taker': self.parse_number(taker),
-                'maker': self.parse_number(maker),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_precision'))),
-                    'price': self.safe_number(market, 'price_increment'),
-                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'cost_precision'))),
+        return self.parse_markets(markets)
+
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'id')
+        baseId = self.safe_string(market, 'base_currency_id')
+        quoteId = self.safe_string(market, 'quote_currency_id')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        closed = self.safe_value(market, 'closed', False)
+        takerFeeRate = self.safe_string(market, 'taker_fee_rate')
+        taker = Precise.string_div(takerFeeRate, '100')
+        makerFeeRate = self.safe_string(market, 'maker_fee_rate')
+        maker = Precise.string_div(makerFeeRate, '100')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': not closed,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.parse_number(taker),
+            'maker': self.parse_number(maker),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_precision'))),
+                'price': self.safe_number(market, 'price_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(market, 'min_quantity'),
-                        'max': self.safe_number(market, 'max_quantity'),
-                    },
-                    'price': {
-                        'min': self.safe_number(market, 'min_price'),
-                        'max': self.safe_number(market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'min_cost'),
-                        'max': self.safe_number(market, 'max_cost'),
-                    },
+                'amount': {
+                    'min': self.safe_number(market, 'min_quantity'),
+                    'max': self.safe_number(market, 'max_quantity'),
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': self.safe_number(market, 'min_price'),
+                    'max': self.safe_number(market, 'max_price'),
+                },
+                'cost': {
+                    'min': self.safe_number(market, 'min_cost'),
+                    'max': self.safe_number(market, 'max_cost'),
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     async def fetch_currencies(self, params={}):
         """
@@ -531,7 +531,7 @@ class probit(Exchange, ImplicitAPI):
         :see: https://docs-en.probit.com/reference/balance
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetBalance(params)
@@ -555,7 +555,7 @@ class probit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -576,13 +576,13 @@ class probit(Exchange, ImplicitAPI):
         dataBySide = self.group_by(data, 'side')
         return self.parse_order_book(dataBySide, market['symbol'], None, 'buy', 'sell', 'price', 'quantity')
 
-    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         :see: https://docs-en.probit.com/reference/ticker
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         request = {}
@@ -615,7 +615,7 @@ class probit(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -645,7 +645,7 @@ class probit(Exchange, ImplicitAPI):
             raise BadResponse(self.id + ' fetchTicker() returned an empty response')
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "last":"0.022902",
@@ -688,7 +688,7 @@ class probit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs-en.probit.com/reference/trade
         fetch all trades made by the user
@@ -696,10 +696,10 @@ class probit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
-        market = None
+        market: Market = None
         now = self.milliseconds()
         request = {
             'limit': 100,
@@ -745,7 +745,7 @@ class probit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -785,7 +785,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -816,7 +816,7 @@ class probit(Exchange, ImplicitAPI):
         #
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         id = self.safe_string(trade, 'id')
-        marketId = None
+        marketId: Str = None
         if id is not None:
             parts = id.split(':')
             marketId = self.safe_string(parts, 0)
@@ -872,7 +872,7 @@ class probit(Exchange, ImplicitAPI):
             parts = iso8601.split('-')
             year = self.safe_string(parts, 0)
             month = self.safe_integer(parts, 1)
-            monthString = None
+            monthString: Str = None
             if after:
                 monthString = self.sum(month, str(1))
             if month < 10:
@@ -955,7 +955,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "market_id":"ETH-BTC",
@@ -978,7 +978,7 @@ class probit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'base_volume'),
         ]
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs-en.probit.com/reference/open_order-1
         fetch all unfilled currently open orders
@@ -986,12 +986,12 @@ class probit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         since = self.parse8601(since)
         request = {}
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market_id'] = market['id']
@@ -999,7 +999,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs-en.probit.com/reference/order
         fetches information on multiple closed orders made by the user
@@ -1007,7 +1007,7 @@ class probit(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1015,7 +1015,7 @@ class probit(Exchange, ImplicitAPI):
             'end_time': self.iso8601(self.milliseconds()),
             'limit': 100,
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market_id'] = market['id']
@@ -1027,15 +1027,16 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_order(self, id: str, symbol: String = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs-en.probit.com/reference/order-3
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchOrder', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1060,7 +1061,7 @@ class probit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         id,
@@ -1136,7 +1137,7 @@ class probit(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1208,16 +1209,17 @@ class probit(Exchange, ImplicitAPI):
             order['remaining'] = None
         return order
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://docs-en.probit.com/reference/order-2
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('cancelOrder', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1228,7 +1230,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'destination_tag')
         currencyId = self.safe_string(depositAddress, 'currency_id')
@@ -1250,7 +1252,7 @@ class probit(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1300,7 +1302,7 @@ class probit(Exchange, ImplicitAPI):
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: a list of `address structures <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1323,7 +1325,7 @@ class probit(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         # In order to use self method
@@ -1357,14 +1359,14 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
 
-    async def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of transaction structures to retrieve
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         request = {
             'type': 'deposit',
@@ -1372,14 +1374,14 @@ class probit(Exchange, ImplicitAPI):
         result = await self.fetch_transactions(code, since, limit, self.extend(request, params))
         return result
 
-    async def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of transaction structures to retrieve
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         request = {
             'type': 'withdrawal',
@@ -1387,7 +1389,7 @@ class probit(Exchange, ImplicitAPI):
         result = await self.fetch_transactions(code, since, limit, self.extend(request, params))
         return result
 
-    async def fetch_transactions(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
          * @deprecated
         use fetchDepositsWithdrawals instead
@@ -1397,10 +1399,10 @@ class probit(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transaction structures to retrieve
         :param int [params.until]: the latest time in ms to fetch transactions for
         :param dict [params]: extra parameters specific to the probit api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        currency = None
+        currency: Currency = None
         request = {}
         if code is not None:
             currency = self.currency(code)
@@ -1447,7 +1449,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1523,13 +1525,13 @@ class probit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         :see: https://docs-en.probit.com/reference/currency
         fetch deposit and withdraw fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :returns dict[]: a list of `fees structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+        :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         response = await self.publicGetCurrencyWithPlatform(params)
@@ -1591,7 +1593,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'id')
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         # {
         #     "id": "USDT",

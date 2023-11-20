@@ -157,6 +157,7 @@ interface Exchange {
     privateGetV5AssetWithdrawWithdrawableAmount (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQuerySubMembers (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserQueryApi (params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserSubApikeys (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserGetMemberType (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserAffCustomerInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserDelSubmember (params?: {}): Promise<implicitReturnType>;
@@ -263,6 +264,7 @@ interface Exchange {
     privatePostV5PositionConfirmPendingMmr (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountSetHedgingMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpModify (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpReset (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferInterTransfer (params?: {}): Promise<implicitReturnType>;

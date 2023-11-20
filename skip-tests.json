@@ -1138,21 +1138,6 @@
     },
     "lbank": {
         "skipMethods": {
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTicker":{
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTrades":{
-                "fees": "mising"
-            }
-        }
-    },
-    "lbank2": {
-        "skipMethods": {
             "loadMarkets": "settle must be defined when contract is true",
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1250,6 +1235,13 @@
                 "active":"is undefined"
             },
             "fetchOrderBooks": "fetchOrderBooks returned 0 length"
+        }
+    },
+    "p2b": {
+        "httpsProxy": "http://51.83.140.52:11230",
+        "skipMethods": {
+            "loadMarkets": "invalid URL",
+            "fetchTrades": "requires order id"
         }
     },
     "paymium": {
