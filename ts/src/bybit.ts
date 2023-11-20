@@ -34,6 +34,7 @@ export default class bybit extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': true,
+                'borrowCrossMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -96,6 +97,7 @@ export default class bybit extends Exchange {
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
+                'repayCrossMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -6596,29 +6598,24 @@ export default class bybit extends Exchange {
         return this.parseTransfers (data, currency, since, limit);
     }
 
-    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async borrowCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name bybit#borrowMargin
+         * @name bybit#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string} symbol not used by bybit.borrowMargin ()
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('borrowMargin', params);
-        if (marginMode === 'isolated') {
-            throw new NotSupported (this.id + ' borrowMargin () cannot use isolated margin');
-        }
         const request = {
             'coin': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeLoan (this.extend (request, query));
+        const response = await this.privatePostV5SpotCrossMarginTradeLoan (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -6633,34 +6630,29 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const transaction = this.parseMarginLoan (result, currency);
         return this.extend (transaction, {
-            'symbol': symbol,
+            'symbol': undefined,
             'amount': amount,
         });
     }
 
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async repayCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name bybit#repayMargin
+         * @name bybit#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string} symbol not used by bybit.repayMargin ()
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('repayMargin', params);
-        if (marginMode === 'isolated') {
-            throw new NotSupported (this.id + ' repayMargin () cannot use isolated margin');
-        }
         const request = {
             'coin': currency['id'],
             'qty': this.numberToString (amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeRepay (this.extend (request, query));
+        const response = await this.privatePostV5SpotCrossMarginTradeRepay (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -6675,7 +6667,7 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const transaction = this.parseMarginLoan (result, currency);
         return this.extend (transaction, {
-            'symbol': symbol,
+            'symbol': undefined,
             'amount': amount,
         });
     }
