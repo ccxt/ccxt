@@ -93,7 +93,7 @@
         ],
         "fetchPositionsForSymbol": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "linear swap",
                 "method": "fetchPositionsForSymbol",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/positions/BTC_USDT",
                 "input": [
