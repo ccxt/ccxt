@@ -1,10 +1,9 @@
-import { Precise } from 'ccxt';
 import Exchange from './abstract/bitteam.js';
 // import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidAddress, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-// import { Precise } from './base/Precise.js';
+import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Market, Order, OrderBook, Str, Ticker } from './base/types.js';
+import { Int, Market, Order, OrderBook, Str, Ticker, Trade } from './base/types.js';
 
 /**
  * @class bitteam
@@ -93,7 +92,7 @@ export default class bitteam extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': false,
-                'fetchTrades': false, // todo
+                'fetchTrades': true,
                 'fetchTradingFee': false, // todo
                 'fetchTradingFees': false, // todo
                 'fetchTradingLimits': false, // todo
@@ -138,13 +137,13 @@ export default class bitteam extends Exchange {
                         'trade/api/login-confirmation': 1, // not unified
                         'trade/api/orderbooks/{symbol}': 1,
                         'trade/api/orders': 1,
-                        'trade/api/pair/{name}': 1, // todo: fetchTicker?
+                        'trade/api/pair/{name}': 1,
                         'trade/api/pairs': 1,
                         'trade/api/pairs/precisions': 1, // not unified
                         'trade/api/rates': 1, // not unified
                         'trade/api/stats': 1, // not unified
                         'trade/api/trade/{id}': 1, // not unified
-                        'trade/api/trades': 1, // todo: fetchTrades
+                        'trade/api/trades': 1,
                         'trade/api/transaction/{id}': 1, // todo: ? looks like a private endpoint
                     },
                     'post': {
@@ -163,8 +162,13 @@ export default class bitteam extends Exchange {
                 },
             },
             'fees': {
+                // todo: check fees
                 'trading': {
-                    // todo
+                    'feeSide': 'get',
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.002'),
                 },
             },
             'precisionMode': DECIMAL_PLACES, // todo: check
@@ -612,7 +616,7 @@ export default class bitteam extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
-        // todo: check offset and order
+        // todo: check offset and order (ASC/DESC)
         // also filtration by symbol breaks pagination
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -683,7 +687,7 @@ export default class bitteam extends Exchange {
         //         "slippage": null
         //     }
         //
-        const id = this.safeString (order, 'orderId');
+        const id = this.safeString (order, 'id'); // todo: check
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
         const clientOrderId = this.safeString (order, 'orderCid'); // todo: check
@@ -691,17 +695,11 @@ export default class bitteam extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
-        // todo: check prices and amount
-        const quotePrecisionString = this.parsePrecision (this.safeString (order, 'quoteDecimals'));
-        const priceRawString = this.safeString (order, 'price');
-        const price = Precise.stringMul (quotePrecisionString, priceRawString);
-        const stopPriceRawString = this.safeString (order, 'stopPrice');
-        const stopPrice = Precise.stringMul (quotePrecisionString, stopPriceRawString);
-        const basePrecisionString = this.parsePrecision (this.safeString (order, 'baseDecimals'));
-        const amountRawString = this.safeString (order, 'quantity');
-        const amount = Precise.stringMul (basePrecisionString, amountRawString);
-        const filledRawString = this.safeString (order, 'executed');
-        const filled = Precise.stringMul (basePrecisionString, filledRawString);
+        // todo: check prices and amount calculation
+        const price = this.parseValueToPricision (order, 'price', 'quoteDecimals');
+        const stopPrice = this.parseValueToPricision (order, 'stopPrice', 'quoteDecimals');
+        const amount = this.parseValueToPricision (order, 'quantity', 'baseDecimals');
+        const filled = this.parseValueToPricision (order, 'executed', 'baseDecimals');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -748,6 +746,16 @@ export default class bitteam extends Exchange {
             'conditional': 'limit',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    parseValueToPricision (o, valueKey, precisionKey) {
+        const valueRawString = this.safeString (o, valueKey);
+        const precisionRawString = this.safeString (o, precisionKey);
+        if (valueRawString === undefined || precisionRawString === undefined) {
+            return undefined;
+        }
+        const precisionString = this.parsePrecision (precisionRawString);
+        return Precise.stringMul (valueRawString, precisionString);
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -1053,6 +1061,254 @@ export default class bitteam extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market);
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name bitteam#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiTrades
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch (default 10)
+         * @param {object} [params] extra parameters specific to the bitteam api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pairId'] = market['numericId'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetTradeApiTrades (this.extend (request, params));
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 148660,
+        //             "count1sec": 0.5833333333333334,
+        //             "trades": [
+        //                 {
+        //                     "id": 34780955,
+        //                     "tradeId": "2151622",
+        //                     "makerOrderId": 106450569,
+        //                     "takerOrderId": 106450582,
+        //                     "pairId": 36,
+        //                     "quantity": 1.47110229391e+21,
+        //                     "price": 23997000000000000,
+        //                     "isBuyerMaker": true,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 18,
+        //                     "side": "sell",
+        //                     "timestamp": 1700442122,
+        //                     "rewarded": true,
+        //                     "makerUserId": 15712,
+        //                     "takerUserId": 848,
+        //                     "baseCurrencyId": 5,
+        //                     "quoteCurrencyId": 9,
+        //                     "feeMaker": {
+        //                         "amount": "2942204587820000000",
+        //                         "symbol": "btt",
+        //                         "userId": 15712,
+        //                         "decimals": 18,
+        //                         "symbolId": 5
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "70604080000000000",
+        //                         "symbol": "del",
+        //                         "userId": 848,
+        //                         "decimals": 18,
+        //                         "symbolId": 9
+        //                     },
+        //                     "pair": "btt_del",
+        //                     "createdAt": "2023-11-20T01:02:02.487Z",
+        //                     "updatedAt": "2023-11-20T01:05:00.091Z"
+        //                 },
+        //                 {
+        //                     "id": 34786377,
+        //                     "tradeId": "1296391",
+        //                     "makerOrderId": 106468055,
+        //                     "takerOrderId": 106468065,
+        //                     "pairId": 39,
+        //                     "quantity": 580415219,
+        //                     "price": 1000347,
+        //                     "isBuyerMaker": false,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "side": "buy",
+        //                     "timestamp": 1700453414,
+        //                     "rewarded": true,
+        //                     "makerUserId": 15916,
+        //                     "takerUserId": 15916,
+        //                     "baseCurrencyId": 24,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "1160830.438",
+        //                         "symbol": "usdt",
+        //                         "userId": 15916,
+        //                         "decimals": 6,
+        //                         "symbolId": 3
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "11612.33246161986",
+        //                         "symbol": "busd",
+        //                         "userId": 15916,
+        //                         "decimals": 8,
+        //                         "symbolId": 24
+        //                     },
+        //                     "pair": "busd_usdt",
+        //                     "createdAt": "2023-11-20T04:10:14.168Z",
+        //                     "updatedAt": "2023-11-20T04:10:14.168Z"
+        //                 },
+        //                 {
+        //                     "id": 34786379,
+        //                     "tradeId": "3463675",
+        //                     "makerOrderId": 106468062,
+        //                     "takerOrderId": 106468067,
+        //                     "pairId": 24,
+        //                     "quantity": 2.21507950051e+21,
+        //                     "price": 17524,
+        //                     "isBuyerMaker": false,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "side": "buy",
+        //                     "timestamp": 1700453414,
+        //                     "rewarded": true,
+        //                     "makerUserId": 11249,
+        //                     "takerUserId": 11249,
+        //                     "baseCurrencyId": 9,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "4430159001020000000",
+        //                         "symbol": "usdt",
+        //                         "userId": 11249,
+        //                         "decimals": 6,
+        //                         "symbolId": 3
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "77634.10633387448",
+        //                         "symbol": "del",
+        //                         "userId": 11249,
+        //                         "decimals": 18,
+        //                         "symbolId": 9
+        //                     },
+        //                     "pair": "del_usdt",
+        //                     "createdAt": "2023-11-20T04:10:14.568Z",
+        //                     "updatedAt": "2023-11-20T04:10:14.568Z"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //     {
+        //         "id": 34780955,
+        //         "tradeId": "2151622",
+        //         "makerOrderId": 106450569,
+        //         "takerOrderId": 106450582,
+        //         "pairId": 36,
+        //         "quantity": 1.47110229391e+21,
+        //         "price": 23997000000000000,
+        //         "isBuyerMaker": true,
+        //         "baseDecimals": 18,
+        //         "quoteDecimals": 18,
+        //         "side": "sell",
+        //         "timestamp": 1700442122,
+        //         "rewarded": true,
+        //         "makerUserId": 15712,
+        //         "takerUserId": 848,
+        //         "baseCurrencyId": 5,
+        //         "quoteCurrencyId": 9,
+        //         "feeMaker": {
+        //             "amount": "2942204587820000000",
+        //             "symbol": "btt",
+        //             "userId": 15712,
+        //             "decimals": 18,
+        //             "symbolId": 5
+        //         },
+        //         "feeTaker": {
+        //             "amount": "70604080000000000",
+        //             "symbol": "del",
+        //             "userId": 848,
+        //             "decimals": 18,
+        //             "symbolId": 9
+        //         },
+        //         "pair": "btt_del",
+        //         "createdAt": "2023-11-20T01:02:02.487Z",
+        //         "updatedAt": "2023-11-20T01:05:00.091Z"
+        //     },
+        //
+        const marketId = this.safeString (trade, 'pair');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const price = this.parseValueToPricision (trade, 'price', 'quoteDecimals');
+        const amount = this.parseValueToPricision (trade, 'quantity', 'baseDecimals');
+        const order = undefined; // todo
+        const side = this.safeString (trade, 'side');
+        const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
+        let takerOrMaker = undefined;
+        // todo: check logic
+        if (isBuyerMaker !== undefined) {
+            if (isBuyerMaker === true) {
+                if (side === 'buy') {
+                    takerOrMaker = 'maker';
+                } else if (side === 'sell') {
+                    takerOrMaker = 'taker';
+                }
+            } else {
+                if (side === 'buy') {
+                    takerOrMaker = 'taker';
+                } else if (side === 'sell') {
+                    takerOrMaker = 'maker';
+                }
+            }
+        }
+        let fee = undefined;
+        let feeInfo = undefined;
+        if (takerOrMaker === 'taker') {
+            feeInfo = this.safeValue (trade, 'feeTaker');
+        } else if (takerOrMaker === 'maker') {
+            feeInfo = this.safeValue (trade, 'feeMaker');
+        }
+        // todo: bad values for fees that are not in USDT
+        if (feeInfo !== undefined) {
+            const feeCost = this.parseValueToPricision (feeInfo, 'amount', 'decimals');
+            const feeCurrencyId = this.safeString (feeInfo, 'symbol');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        return this.safeTrade ({
+            'id': id,
+            'order': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined, // todo: or set it to limit when maker and market when taker?
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': fee,
+            'info': trade,
         }, market);
     }
 
