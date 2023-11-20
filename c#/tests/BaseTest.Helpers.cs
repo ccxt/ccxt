@@ -26,7 +26,7 @@ public partial class testMainClass : BaseTest
     public bool verbose = Tests.verbose;
     public bool debug = Tests.debug;
     public static string httpsAgent = "";
-    public static string ext = ".cs";
+    public string ext = ".cs";
     public bool loadKeys = false;
 
     public bool staticTestsFailed = false;
@@ -167,8 +167,29 @@ public partial class testMainClass : BaseTest
 
     public async Task<object> callExchangeMethodDynamically(object exchange, object methodName, params object[] args)
     {
-        var res = exchange.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(exchange, args);
-        return await ((Task<object>)res);
+        // args ??= new object[] { };
+        // if (args.Length == 0)
+        // {
+        //     args = new object[] { null };
+        // }
+        var realArgs = (args.Length == 0) ? new List<object> { } : args[0] as List<object>;
+        var method = exchange.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        var parameters = method.GetParameters();
+        var newArgs = new object[parameters.Length];
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (i < realArgs.Count)
+            {
+                newArgs[i] = realArgs[i];
+            }
+            else
+            {
+                newArgs[i] = null;
+            }
+        }
+        var res = method.Invoke(exchange, newArgs);
+        var awaittedResult = await ((Task<object>)res);
+        return awaittedResult;
     }
 
     public static void addProxy(object exchange, object proxy)
@@ -228,11 +249,12 @@ public partial class testMainClass : BaseTest
         return e.Message;
     }
 
-    public void setFetchResponse(object exchange2, object response)
+    public Exchange setFetchResponse(object exchange2, object response)
     {
         var exchange = exchange2 as Exchange;
 
         exchange.fetchResponse = response;
+        return exchange;
 
     }
 

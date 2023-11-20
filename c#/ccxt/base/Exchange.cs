@@ -180,46 +180,60 @@ public partial class Exchange
         var result = "";
         HttpResponseMessage response = null;
         object responseBody = null;
+        try
+        {
 
-        if (method == "GET")
-        {
-            response = await this.client.GetAsync(url);
-            result = await response.Content.ReadAsStringAsync();
-        }
-        else
-        {
-            contentType = contentType == "" ? "application/json" : contentType;
+            if (method == "GET")
+            {
+                response = await this.client.GetAsync(url);
+                result = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                contentType = contentType == "" ? "application/json" : contentType;
 #if NET7_0_OR_GREATER
             var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
 #else
-            var contentTypeHeader = contentType;
+                var contentTypeHeader = contentType;
 #endif
-            var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
-            if (method == "POST")
-            {
-                response = await this.client.PostAsync(url, stringContent);
-            }
-            else if (method == "DELETE")
-            {
-                response = await this.client.DeleteAsync(url);
-            }
-            else if (method == "PUT")
-            {
-                response = await this.client.PutAsync(url, stringContent);
-            }
-            else if (method == "PATCH")
-            {
-                // workaround for the lack of putAsync
-                // https://github.com/RicoSuter/NSwag/issues/107
-                var methodInner = new HttpMethod("PATCH");
-                var request = new HttpRequestMessage(methodInner, url)
+                var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
+                if (method == "POST")
                 {
-                    Content = stringContent
-                };
+                    response = await this.client.PostAsync(url, stringContent);
+                }
+                else if (method == "DELETE")
+                {
+                    response = await this.client.DeleteAsync(url);
+                }
+                else if (method == "PUT")
+                {
+                    response = await this.client.PutAsync(url, stringContent);
+                }
+                else if (method == "PATCH")
+                {
+                    // workaround for the lack of putAsync
+                    // https://github.com/RicoSuter/NSwag/issues/107
+                    var methodInner = new HttpMethod("PATCH");
+                    var request = new HttpRequestMessage(methodInner, url)
+                    {
+                        Content = stringContent
+                    };
 
-                response = await client.SendAsync(request);
+                    response = await client.SendAsync(request);
+                }
+                result = await response.Content.ReadAsStringAsync();
             }
-            result = await response.Content.ReadAsStringAsync();
+
+        }
+        catch (Exception e)
+        {
+            if (e is HttpRequestException || e is WebException || e is HttpListenerException) // add more exceptions here
+            {
+                var errorMessage = this.id + ' ' + method + ' ' + url + ' ' + e.Message;
+                throw new NetworkError(errorMessage);
+
+            }
+            throw e;
         }
 
         this.client.DefaultRequestHeaders.Clear();
