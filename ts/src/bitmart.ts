@@ -132,7 +132,7 @@ export default class bitmart extends Exchange {
                         'spot/quotation/v3/tickers': 6, // 10 times/2 sec = 5/s => 30/5 = 6
                         'spot/quotation/v3/ticker': 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
                         'spot/quotation/v3/lite-klines': 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
-                        'spot/quotation/v3/klines': 6, // 10 times/2 sec = 5/s => 30/5 = 6
+                        'spot/quotation/v3/klines': 7, // should be 6 but errors
                         'spot/quotation/v3/books': 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
                         'spot/quotation/v3/trades': 4, // 15 times/2 sec = 7.5/s => 30/7.5 = 4
                         'spot/v1/ticker': 5,
@@ -148,7 +148,7 @@ export default class bitmart extends Exchange {
                         'contract/public/depth': 5,
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
-                        'contract/public/kline': 5,
+                        'contract/public/kline': 6, // should be 5 but errors
                         'account/v1/currencies': 30,
                     },
                 },
