@@ -112,6 +112,10 @@ function io_dir_read($path) {
     return $cleanFiles;
 }
 
+function convert_ascii($input) {
+    return $input; // stub for c#
+}
+
 function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
     return $testFiles[$methodName]($exchange, $skippedProperties, ... $args);
 }

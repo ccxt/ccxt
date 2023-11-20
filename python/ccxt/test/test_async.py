@@ -172,6 +172,8 @@ def io_file_read(path, decode=True):
 def io_dir_read(path):
     return os.listdir(path)
 
+def convert_ascii (input):
+    return input # stub for c#
 
 async def call_method(testFiles, methodName, exchange, skippedProperties, args):
     return await getattr(testFiles[methodName], methodName)(

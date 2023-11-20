@@ -68,6 +68,11 @@ function jsonStringify (elem) {
     return JSON.stringify (elem,  (k, v) => (v === undefined ? null : v)); // preserve undefined values and convert them to null
 }
 
+function convertAscii (input)
+{
+    return input; // stub for c#
+}
+
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
@@ -960,11 +965,11 @@ export default class testMainClass extends baseMainTestClass {
                             this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput);
                             return undefined;
                         } else {
-                            this.assertStaticError (newOutputString === storedOutputString, messageError, storedOutput, newOutput);
+                            this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput);
                             return undefined;
                         }
                     } else {
-                        this.assertStaticError (newOutputString === storedOutputString, messageError, storedOutput, newOutput);
+                        this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput);
                         return undefined;
                     }
                 } else {
