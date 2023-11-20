@@ -15,6 +15,13 @@ class bitmart extends \ccxt\async\bitmart {
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'cancelOrderWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelAllOrdersWs' => false,
                 'ws' => true,
                 'watchTicker' => true,
                 'watchOrderBook' => true,

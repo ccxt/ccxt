@@ -11,6 +11,13 @@ class bitmart extends bitmart$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
                 'ws': true,
                 'watchTicker': true,
                 'watchOrderBook': true,
