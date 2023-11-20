@@ -3396,24 +3396,24 @@ export default class kucoin extends Exchange {
         const type = this.safeString (accountsByType, requestedType, requestedType);
         params = this.omit (params, 'type');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let method = 'privateGetAccounts';
+        let response = undefined;
         const request = {};
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
         const cross = (marginMode === 'cross') || (type === 'cross');
         if (isolated) {
-            method = 'privateGetIsolatedAccounts';
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
             }
+            response = await this.privateGetIsolatedAccounts (this.extend (request, query));
         } else if (cross) {
-            method = 'privateGetMarginAccount';
+            response = await this.privateGetMarginAccount (this.extend (request, query));
         } else {
             if (currency !== undefined) {
                 request['currency'] = currency['id'];
             }
             request['type'] = type;
+            response = await this.privateGetAccounts (this.extend (request, query));
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // Spot and Cross
         //
