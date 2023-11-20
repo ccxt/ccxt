@@ -38,7 +38,7 @@ export default class htx extends htxRest {
                     'ws': {
                         'api': {
                             'spot': {
-                                'public': 'wss://{hostname}/ws',
+                                'public': 'wss://{hostname}/feed',
                                 'private': 'wss://{hostname}/ws/v2',
                             },
                             'future': {
@@ -341,9 +341,13 @@ export default class htx extends htxRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const allowedSpotLimits = [ 150 ];
+        const allowedSpotLimits = [ 20, 150 ];
         const allowedSwapLimits = [ 20, 150 ];
-        limit = (limit === undefined) ? 150 : limit;
+        // 2) 5-level/20-level incremental MBP is a tick by tick feed,
+        // which means whenever there is an order book change at that level, it pushes an update;
+        // 150-levels/400-level incremental MBP feed is based on the gap
+        // between two snapshots at 100ms interval.
+        limit = (limit === undefined) ? 20 : limit;
         if (market['spot'] && !this.inArray (limit, allowedSpotLimits)) {
             throw new ExchangeError (this.id + ' watchOrderBook spot market accepts limits of 150 only');
         }
@@ -567,7 +571,7 @@ export default class htx extends htxRest {
         if (prevSeqNum !== undefined && prevSeqNum > orderbook['nonce']) {
             throw new InvalidNonce (this.id + ' watchOrderBook() received a mesage out of order');
         }
-        if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
+        if ((prevSeqNum === undefined || prevSeqNum === orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
