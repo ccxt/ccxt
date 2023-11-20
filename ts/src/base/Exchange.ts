@@ -2659,15 +2659,15 @@ export default class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend (ticker, {
-            'bid': this.safeNumber (ticker, 'bid'),
+            'bid': this.parseNumber (this.omitZero (this.safeNumber (ticker, 'bid'))),
             'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.parseNumber (this.omitZero (this.safeNumber (ticker, 'ask'))),
             'askVolume': this.safeNumber (ticker, 'askVolume'),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'open': this.parseNumber (open),
-            'close': this.parseNumber (close),
-            'last': this.parseNumber (last),
+            'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high"'))),
+            'low': this.parseNumber (this.omitZero (this.safeNumber (ticker, 'low'))),
+            'open': this.parseNumber (this.omitZero (this.parseNumber (open))),
+            'close': this.parseNumber (this.omitZero (this.parseNumber (close))),
+            'last': this.parseNumber (this.omitZero (this.parseNumber (last))),
             'change': this.parseNumber (change),
             'percentage': this.parseNumber (percentage),
             'average': this.parseNumber (average),
