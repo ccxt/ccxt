@@ -938,7 +938,7 @@ export default class testMainClass extends baseMainTestClass {
             const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString () : "undefined";
             const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString () : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
-            if (strictTypeCheck) {
+            if (strictTypeCheck && (this.lang !== 'C#')) { // in c# types are different, so we can't do strict type check
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput);
@@ -949,6 +949,11 @@ export default class testMainClass extends baseMainTestClass {
                 if (isBoolean || isString || isUndefined)  {
                     this.assertStaticError (newOutputString === storedOutputString, messageError, storedOutput, newOutput);
                 } else {
+                    if (this.lang === "C#") { // tmp fix, stil failing with the "1.0" != "1" error
+                        const stringifiedNewOutput = exchange.numberToString (sanitizedNewOutput);
+                        const stringifiedStoredOutput = exchange.numberToString (sanitizedStoredOutput);
+                        this.assertStaticError (stringifiedNewOutput === stringifiedStoredOutput, messageError, storedOutput, newOutput);
+                    }
                     const numericNewOutput =  exchange.parseToNumeric (newOutputString);
                     const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
                     this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput);
