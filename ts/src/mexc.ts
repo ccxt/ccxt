@@ -438,18 +438,18 @@ export default class mexc extends Exchange {
                 'networks': {
                     'BTC': 'BTC',
                     'BCH': 'BCH',
-                    'TRC20': 'TRC20',
-                    'ERC20': 'ERC20',
-                    'BEP20': 'BEP20(BSC)',
-                    'OPTIMISM': 'OP',
-                    'SOL': 'SOL',
+                    'TRC20': 'Tron(TRC20)',
+                    'ERC20': 'Ethereum(ERC20)',
+                    'BEP20': 'BNBSmartChain(BEP20)',
+                    'OPTIMISM': 'Optimism(OP)',
+                    'SOL': 'Solana(SOL)',
                     'CRC20': 'CRONOS',
-                    'ALGO': 'ALGO',
+                    'ALGO': 'Algorand(ALGO)',
                     'XRP': 'XRP',
-                    'MATIC': 'MATIC',
+                    'MATIC': 'Polygon(MATIC)',
                     'AVAXX': 'AVAX_XCHAIN',
-                    'AVAXC': 'AVAX_CCHAIN',
-                    'ARBONE': 'Arbitrum One',
+                    'AVAXC': 'AvalancheCChain(AVAXCCHAIN)',
+                    'ARBONE': 'ArbitrumOne(ARB)',
                     'ARBNOVA': 'ARBNOVA',
                     'FTM': 'FTM',
                     'WAVES': 'WAVES',
@@ -1036,10 +1036,15 @@ export default class mexc extends Exchange {
         networkId = parts.join ('');
         networkId = networkId.replace ('-20', '20');
         const networksById = {
-            'ETH': 'ETH',
-            'ERC20': 'ERC20',
-            'BEP20(BSC)': 'BEP20',
-            'TRX': 'TRC20',
+            'Ethereum(ERC20)': 'ERC20',
+            'Algorand(ALGO)': 'ALGO',
+            'ArbitrumOne(ARB)': 'ARBONE',
+            'AvalancheCChain(AVAXCCHAIN)': 'AVAXC',
+            'BNBSmartChain(BEP20)': 'BEP20',
+            'Polygon(MATIC)': 'MATIC',
+            'Optimism(OP)': 'OPTIMISM',
+            'Solana(SOL)': 'SOL',
+            'Tron(TRC20)': 'TRC20',
         };
         return this.safeString (networksById, networkId, networkId);
     }
