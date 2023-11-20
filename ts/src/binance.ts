@@ -9021,7 +9021,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async repayCrossMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async repayCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
          * @name binance#repayCrossMargin
