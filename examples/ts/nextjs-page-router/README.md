@@ -32,3 +32,12 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Screenshots
+##### Index
+![menu](https://github.com/ccxt/ccxt/assets/12142844/645b5fe8-fd13-44f8-bded-20733843ccea)
+##### Client side websocket example
+![websocket](https://github.com/ccxt/ccxt/assets/12142844/7c28f8c9-aefd-4db3-8aff-6ff06b93a8bc)
+##### Server side private endpoint fetch balance
+![balance](https://github.com/ccxt/ccxt/assets/12142844/bd253903-43ea-4225-a7ca-193aaa29f42a)
+
