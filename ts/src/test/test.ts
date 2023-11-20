@@ -952,7 +952,7 @@ export default class testMainClass extends baseMainTestClass {
                     if (this.lang === "C#") { // tmp fix, stil failing with the "1.0" != "1" error
                         const stringifiedNewOutput = exchange.numberToString (sanitizedNewOutput);
                         const stringifiedStoredOutput = exchange.numberToString (sanitizedStoredOutput);
-                        this.assertStaticError (stringifiedNewOutput === stringifiedStoredOutput, messageError, storedOutput, newOutput);
+                        this.assertStaticError (stringifiedNewOutput.toString () === stringifiedStoredOutput.toString (), messageError, storedOutput, newOutput);
                     }
                     const numericNewOutput =  exchange.parseToNumeric (newOutputString);
                     const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
