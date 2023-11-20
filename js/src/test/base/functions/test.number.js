@@ -4,11 +4,10 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// @ts-nocheck
-// eslint-disable-next-line
-import { functions } from '../../../../ccxt.js';
-import Precise from '../../../base/Precise.js';
 import assert from 'assert';
+import { functions } from '../../../../ccxt.js';
+// eslint-disable-next-line import/newline-after-import
+import Precise from '../../../base/Precise.js';
 const { numberToString, decimalToPrecision, ROUND, TRUNCATE, DECIMAL_PLACES, TICK_SIZE, PAD_WITH_ZERO, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
 // numberToString
@@ -326,4 +325,5 @@ assert(Precise.stringLe('3.1415', '3.14150000000000000000001'));
 // $this->assertSame (0,   Exchange::sum ());
 // $this->assertSame (2,   Exchange::sum (2));
 // $this->assertSame (432, Exchange::sum (2, 30, 400));
+// eslint-disable-next-line eol-last
 // $this->assertSame (439, Exchange::sum (2, null, [88], 30, '7', 400, null));

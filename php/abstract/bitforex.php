@@ -7,6 +7,12 @@ namespace ccxt\abstract;
 
 
 abstract class bitforex extends \ccxt\Exchange {
+    public function public_get_api_v1_ping($params = array()) {
+        return $this->request('/api/v1/ping', 'public', 'GET', $params, null, null, array("cost" => 0.2));
+    }
+    public function public_get_api_v1_time($params = array()) {
+        return $this->request('/api/v1/time', 'public', 'GET', $params, null, null, array("cost" => 0.2));
+    }
     public function public_get_api_v1_market_symbols($params = array()) {
         return $this->request('api/v1/market/symbols', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
@@ -44,7 +50,7 @@ abstract class bitforex extends \ccxt\Exchange {
         return $this->request('api/v1/trade/cancelOrder', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_api_v1_trade_cancelmultiorder($params = array()) {
-        return $this->request('api/v1/trade/cancelMultiOrder', 'private', 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('api/v1/trade/cancelMultiOrder', 'private', 'POST', $params, null, null, array("cost" => 6.67));
     }
     public function private_post_api_v1_trade_cancelallorder($params = array()) {
         return $this->request('api/v1/trade/cancelAllOrder', 'private', 'POST', $params, null, null, array("cost" => 20));
@@ -57,6 +63,15 @@ abstract class bitforex extends \ccxt\Exchange {
     }
     public function private_post_api_v1_trade_orderinfos($params = array()) {
         return $this->request('api/v1/trade/orderInfos', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function private_post_api_v1_trade_mytrades($params = array()) {
+        return $this->request('api/v1/trade/myTrades', 'private', 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function publicGetApiV1Ping($params = array()) {
+        return $this->request('/api/v1/ping', 'public', 'GET', $params, null, null, array("cost" => 0.2));
+    }
+    public function publicGetApiV1Time($params = array()) {
+        return $this->request('/api/v1/time', 'public', 'GET', $params, null, null, array("cost" => 0.2));
     }
     public function publicGetApiV1MarketSymbols($params = array()) {
         return $this->request('api/v1/market/symbols', 'public', 'GET', $params, null, null, array("cost" => 20));
@@ -95,7 +110,7 @@ abstract class bitforex extends \ccxt\Exchange {
         return $this->request('api/v1/trade/cancelOrder', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostApiV1TradeCancelMultiOrder($params = array()) {
-        return $this->request('api/v1/trade/cancelMultiOrder', 'private', 'POST', $params, null, null, array("cost" => 20));
+        return $this->request('api/v1/trade/cancelMultiOrder', 'private', 'POST', $params, null, null, array("cost" => 6.67));
     }
     public function privatePostApiV1TradeCancelAllOrder($params = array()) {
         return $this->request('api/v1/trade/cancelAllOrder', 'private', 'POST', $params, null, null, array("cost" => 20));
@@ -108,5 +123,8 @@ abstract class bitforex extends \ccxt\Exchange {
     }
     public function privatePostApiV1TradeOrderInfos($params = array()) {
         return $this->request('api/v1/trade/orderInfos', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function privatePostApiV1TradeMyTrades($params = array()) {
+        return $this->request('api/v1/trade/myTrades', 'private', 'POST', $params, null, null, array("cost" => 2));
     }
 }

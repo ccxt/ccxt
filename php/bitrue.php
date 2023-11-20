@@ -35,17 +35,19 @@ class bitrue extends Exchange {
                 'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -88,7 +90,7 @@ class bitrue extends Exchange {
                     'kline' => 'https://www.bitrue.com/kline-api',
                 ),
                 'www' => 'https://www.bitrue.com',
-                'referral' => 'https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000',
+                'referral' => 'https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE',
                 'doc' => array(
                     'https://github.com/Bitrue-exchange/bitrue-official-api-docs',
                 ),
@@ -242,11 +244,6 @@ class bitrue extends Exchange {
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
-                    'TRON' => 'TRX',
-                ),
-                'networksById' => array(
-                    'TRX' => 'TRC20',
-                    'ETH' => 'ERC20',
                 ),
             ),
             'commonCurrencies' => array(
@@ -348,7 +345,7 @@ class bitrue extends Exchange {
     public function fetch_status($params = array ()) {
         /**
          * the latest known information on the availability of the exchange API
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
          */
         $response = $this->v1PublicGetPing ($params);
@@ -372,7 +369,7 @@ class bitrue extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->v1PublicGetTime ($params);
@@ -459,7 +456,7 @@ class bitrue extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} an associative dictionary of currencies
          */
         $response = $this->v1PublicGetExchangeInfo ($params);
@@ -492,17 +489,17 @@ class bitrue extends Exchange {
         //         ],
         //         "coins":array(
         //           array(
-        //               coin => "near",
-        //               coinFulName => "NEAR Protocol",
-        //               chains => array( "BEP20", ),
-        //               chainDetail => array(
+        //               "coin" => "near",
+        //               "coinFulName" => "NEAR Protocol",
+        //               "chains" => array( "BEP20", ),
+        //               "chainDetail" => array(
         //                 array(
-        //                     chain => "BEP20",
-        //                     $enableWithdraw => true,
-        //                     $enableDeposit => true,
-        //                     withdrawFee => "0.2000",
-        //                     minWithdraw => "5.0000",
-        //                     maxWithdraw => "1000000000000000.0000",
+        //                     "chain" => "BEP20",
+        //                     "enableWithdraw" => true,
+        //                     "enableDeposit" => true,
+        //                     "withdrawFee" => "0.2000",
+        //                     "minWithdraw" => "5.0000",
+        //                     "maxWithdraw" => "1000000000000000.0000",
         //                 ),
         //               ),
         //           ),
@@ -516,45 +513,66 @@ class bitrue extends Exchange {
             $id = $this->safe_string($currency, 'coin');
             $name = $this->safe_string($currency, 'coinFulName');
             $code = $this->safe_currency_code($id);
-            $enableDeposit = $this->safe_value($currency, 'enableDeposit');
-            $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
-            $networkIds = $this->safe_value($currency, 'chains', array());
+            $deposit = null;
+            $withdraw = null;
+            $minWithdrawString = null;
+            $maxWithdrawString = null;
+            $minWithdrawFeeString = null;
+            $networkDetails = $this->safe_value($currency, 'chainDetail', array());
             $networks = array();
-            for ($j = 0; $j < count($networkIds); $j++) {
-                $networkId = $networkIds[$j];
-                $network = $this->safe_network($networkId);
+            for ($j = 0; $j < count($networkDetails); $j++) {
+                $entry = $networkDetails[$j];
+                $networkId = $this->safe_string($entry, 'chain');
+                $network = $this->network_id_to_code($networkId, $code);
+                $enableDeposit = $this->safe_value($entry, 'enableDeposit');
+                $deposit = ($enableDeposit) ? $enableDeposit : $deposit;
+                $enableWithdraw = $this->safe_value($entry, 'enableWithdraw');
+                $withdraw = ($enableWithdraw) ? $enableWithdraw : $withdraw;
+                $networkWithdrawFeeString = $this->safe_string($entry, 'withdrawFee');
+                if ($networkWithdrawFeeString !== null) {
+                    $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $networkWithdrawFeeString : Precise::string_min($networkWithdrawFeeString, $minWithdrawFeeString);
+                }
+                $networkMinWithdrawString = $this->safe_string($entry, 'minWithdraw');
+                if ($networkMinWithdrawString !== null) {
+                    $minWithdrawString = ($minWithdrawString === null) ? $networkMinWithdrawString : Precise::string_min($networkMinWithdrawString, $minWithdrawString);
+                }
+                $networkMaxWithdrawString = $this->safe_string($entry, 'maxWithdraw');
+                if ($networkMaxWithdrawString !== null) {
+                    $maxWithdrawString = ($maxWithdrawString === null) ? $networkMaxWithdrawString : Precise::string_max($networkMaxWithdrawString, $maxWithdrawString);
+                }
                 $networks[$network] = array(
-                    'info' => $networkId,
+                    'info' => $entry,
                     'id' => $networkId,
                     'network' => $network,
-                    'active' => null,
-                    'fee' => null,
+                    'deposit' => $enableDeposit,
+                    'withdraw' => $enableWithdraw,
+                    'active' => $enableDeposit && $enableWithdraw,
+                    'fee' => $this->parse_number($networkWithdrawFeeString),
                     'precision' => null,
                     'limits' => array(
                         'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
+                            'min' => $this->parse_number($networkMinWithdrawString),
+                            'max' => $this->parse_number($networkMaxWithdrawString),
                         ),
                     ),
                 );
             }
-            $active = ($enableWithdraw && $enableDeposit);
             $result[$code] = array(
                 'id' => $id,
                 'name' => $name,
                 'code' => $code,
                 'precision' => null,
                 'info' => $currency,
-                'active' => $active,
-                'deposit' => $enableDeposit,
-                'withdraw' => $enableWithdraw,
+                'active' => $deposit && $withdraw,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'networks' => $networks,
-                'fee' => $this->safe_number($currency, 'withdrawFee'),
+                'fee' => $this->parse_number($minWithdrawFeeString),
                 // 'fees' => fees,
                 'limits' => array(
                     'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'minWithdraw'),
-                        'max' => $this->safe_number($currency, 'maxWithdraw'),
+                        'min' => $this->parse_number($minWithdrawString),
+                        'max' => $this->parse_number($maxWithdrawString),
                     ),
                 ),
             );
@@ -565,8 +583,8 @@ class bitrue extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for bitrue
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->v1PublicGetExchangeInfo ($params);
         //
@@ -614,81 +632,78 @@ class bitrue extends Exchange {
             $this->load_time_difference();
         }
         $markets = $this->safe_value($response, 'symbols', array());
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $lowercaseId = $this->safe_string_lower($market, 'symbol');
-            $baseId = $this->safe_string($market, 'baseAsset');
-            $quoteId = $this->safe_string($market, 'quoteAsset');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $filters = $this->safe_value($market, 'filters', array());
-            $filtersByType = $this->index_by($filters, 'filterType');
-            $status = $this->safe_string($market, 'status');
-            $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-            $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
-            $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
-            $defaultAmountPrecision = $this->safe_string($market, 'quantityPrecision');
-            $pricePrecision = $this->safe_string($priceFilter, 'priceScale', $defaultPricePrecision);
-            $amountPrecision = $this->safe_string($amountFilter, 'volumeScale', $defaultAmountPrecision);
-            $entry = array(
-                'id' => $id,
-                'lowercaseId' => $lowercaseId,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => ($status === 'TRADING'),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($amountPrecision)),
-                    'price' => $this->parse_number($this->parse_precision($pricePrecision)),
-                    'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
-                    'quote' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($amountFilter, 'minQty'),
-                        'max' => $this->safe_number($amountFilter, 'maxQty'),
-                    ),
-                    'price' => array(
-                        'min' => $this->safe_number($priceFilter, 'minPrice'),
-                        'max' => $this->safe_number($priceFilter, 'maxPrice'),
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($amountFilter, 'minVal'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-            $result[] = $entry;
-        }
-        return $result;
+        return $this->parse_markets($markets);
     }
 
-    public function parse_balance($response) {
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $lowercaseId = $this->safe_string_lower($market, 'symbol');
+        $baseId = $this->safe_string($market, 'baseAsset');
+        $quoteId = $this->safe_string($market, 'quoteAsset');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $filters = $this->safe_value($market, 'filters', array());
+        $filtersByType = $this->index_by($filters, 'filterType');
+        $status = $this->safe_string($market, 'status');
+        $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+        $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
+        $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
+        $defaultAmountPrecision = $this->safe_string($market, 'quantityPrecision');
+        $pricePrecision = $this->safe_string($priceFilter, 'priceScale', $defaultPricePrecision);
+        $amountPrecision = $this->safe_string($amountFilter, 'volumeScale', $defaultAmountPrecision);
+        return array(
+            'id' => $id,
+            'lowercaseId' => $lowercaseId,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'TRADING'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($amountPrecision)),
+                'price' => $this->parse_number($this->parse_precision($pricePrecision)),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($amountFilter, 'minQty'),
+                    'max' => $this->safe_number($amountFilter, 'maxQty'),
+                ),
+                'price' => array(
+                    'min' => $this->safe_number($priceFilter, 'minPrice'),
+                    'max' => $this->safe_number($priceFilter, 'maxPrice'),
+                ),
+                'cost' => array(
+                    'min' => $this->safe_number($amountFilter, 'minVal'),
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
+    }
+
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
         );
@@ -708,11 +723,11 @@ class bitrue extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->v1PrivateGetAccount ($params);
@@ -736,12 +751,12 @@ class bitrue extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
@@ -773,7 +788,17 @@ class bitrue extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
+        //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "symbol" => "LTCBTC",
+        //         "bidPrice" => "4.00000000",
+        //         "bidQty" => "431.00000000",
+        //         "askPrice" => "4.00000200",
+        //         "askQty" => "9.00000000"
+        //     }
         //
         // fetchTicker
         //
@@ -798,17 +823,17 @@ class bitrue extends Exchange {
             'datetime' => null,
             'high' => $this->safe_string($ticker, 'high24hr'),
             'low' => $this->safe_string($ticker, 'low24hr'),
-            'bid' => $this->safe_string($ticker, 'highestBid'),
-            'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'lowestAsk'),
-            'askVolume' => null,
+            'bid' => $this->safe_string_2($ticker, 'highestBid', 'bidPrice'),
+            'bidVolume' => $this->safe_string($ticker, 'bidQty'),
+            'ask' => $this->safe_string_2($ticker, 'lowestAsk', 'askPrice'),
+            'askVolume' => $this->safe_string($ticker, 'askQty'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $this->safe_string($ticker, 'percentChange'),
+            'percentage' => Precise::string_mul($this->safe_string($ticker, 'percentChange'), '10000'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
@@ -816,11 +841,11 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
@@ -861,15 +886,15 @@ class bitrue extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -902,7 +927,7 @@ class bitrue extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //      {
         //         "i":"1660825020",
@@ -927,31 +952,38 @@ class bitrue extends Exchange {
     public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchBidsAsks', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
-        $method = null;
-        if ($type === 'future') {
-            $method = 'fapiPublicGetTickerBookTicker';
-        } elseif ($type === 'delivery') {
-            $method = 'dapiPublicGetTickerBookTicker';
-        } else {
-            $method = 'publicGetTickerBookTicker';
+        $symbols = $this->market_symbols($symbols);
+        $market = null;
+        $request = array();
+        if ($symbols !== null) {
+            $first = $this->safe_string($symbols, 0);
+            $market = $this->market($first);
+            $request['symbol'] = $market['id'];
         }
-        $response = $this->$method ($query);
-        return $this->parse_tickers($response, $symbols);
+        $response = $this->v1PublicGetTickerBookTicker (array_merge($request, $params));
+        //     {
+        //         "symbol" => "LTCBTC",
+        //         "bidPrice" => "4.00000000",
+        //         "bidQty" => "431.00000000",
+        //         "askPrice" => "4.00000200",
+        //         "askQty" => "9.00000000"
+        //     }
+        $data = array();
+        $data[$market['id']] = $response;
+        return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -992,7 +1024,7 @@ class bitrue extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // aggregate trades
         //  - "T" is $timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual $timestamp of trades matter
@@ -1083,14 +1115,14 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1157,7 +1189,7 @@ class bitrue extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1253,15 +1285,22 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#signed-endpoint-examples-for-post-apiv1order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
+         * @param {string} [$params->clientOrderId] a unique id for the order, automatically generated if not sent
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {decimal} [$params->icebergQty]
+         * @param {long} [$params->recvWindow]
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1314,7 +1353,7 @@ class bitrue extends Exchange {
         /**
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -1336,14 +1375,14 @@ class bitrue extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -1389,14 +1428,14 @@ class bitrue extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of open order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -1437,7 +1476,7 @@ class bitrue extends Exchange {
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -1448,9 +1487,9 @@ class bitrue extends Exchange {
         $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         $request = array(
             'symbol' => $market['id'],
-            // 'orderId' => $id,
-            // 'origClientOrderId' => $id,
-            // 'newClientOrderId' => $id,
+            // "orderId" => $id,
+            // "origClientOrderId" => $id,
+            // "newClientOrderId" => $id,
         );
         if ($origClientOrderId === null) {
             $request['orderId'] = $id;
@@ -1473,11 +1512,11 @@ class bitrue extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $method = $this->safe_string($this->options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
         if (($symbol === null) && ($method === 'v2PrivateGetMyTrades')) {
@@ -1524,14 +1563,14 @@ class bitrue extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $code argument');
@@ -1594,14 +1633,14 @@ class bitrue extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $code argument');
@@ -1658,7 +1697,7 @@ class bitrue extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1780,6 +1819,7 @@ class bitrue extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'internal' => false,
+            'comment' => null,
             'fee' => $fee,
         );
     }
@@ -1790,8 +1830,8 @@ class bitrue extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @param {string} $tag
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -1843,13 +1883,13 @@ class bitrue extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //   {
-        //       coin => 'adx',
-        //       coinFulName => 'Ambire AdEx',
-        //       chains => array( 'BSC' ),
-        //       $chainDetail => [ [Object] ]
+        //       "coin" => "adx",
+        //       "coinFulName" => "Ambire AdEx",
+        //       "chains" => array( "BSC" ),
+        //       "chainDetail" => [ [Object] ]
         //   }
         //
         $chainDetails = $this->safe_value($fee, 'chainDetail', array());
@@ -1885,13 +1925,13 @@ class bitrue extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
-         * @param {[string]|null} $codes list of unified currency $codes
-         * @param {array} $params extra parameters specific to the bitrue api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         * @param {string[]|null} $codes list of unified currency $codes
+         * @param {array} [$params] extra parameters specific to the bitrue api endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
         $this->load_markets();
         $response = $this->v1PublicGetExchangeInfo ($params);

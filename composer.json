@@ -1,7 +1,7 @@
 {
     "name": "ccxt/ccxt",
     "type": "library",
-    "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for more than 90 bitcoin/altcoin exchanges",
+    "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for more than 100 bitcoin/altcoin exchanges",
     "keywords": [
         "algorithmic",
         "algotrading",
@@ -213,11 +213,6 @@
         "homepage": "https://github.com/kroitor",
         "role": "Developer"
     }, {
-        "name": "Vitaly Gordon",
-        "email": "rocket.mind@gmail.com",
-        "homepage": "https://github.com/xpl",
-        "role": "Developer"
-    }, {
         "name": "Carlo Revelli",
         "email": "carlo.revelli@berkeley.edu",
         "homepage": "https://github.com/frosty00",
@@ -242,10 +237,12 @@
         "ext-gmp": "*",
         "symfony/polyfill-mbstring": "^1.7",
         "pear/console_table": "1.3.1",
-        "ratchet/pawl": ">=0.4.1",
         "react/http": ">=1.6.0",
         "react/async": "^4.0.0",
-        "react/promise": "^2.9.0"
+        "react/promise": "^3.0.0",
+        "react/promise-timer": "^1.10",
+        "evenement/evenement": "^3.0",
+        "guzzlehttp/psr7": "^2.0"
     },
     "suggest": {
         "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",

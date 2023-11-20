@@ -1,6 +1,6 @@
 
 
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 async function fetchTickers (exchange) {
     let tickers = undefined

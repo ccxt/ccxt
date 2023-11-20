@@ -41,10 +41,10 @@ export default class independentreserve extends independentreserveRest {
          * @name independentreserve#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -52,25 +52,25 @@ export default class independentreserve extends independentreserveRest {
         const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
         const messageHash = 'trades:' + symbol;
         const trades = await this.watch(url, messageHash, undefined, messageHash);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
         //    {
-        //        Channel: 'ticker-btc-usd',
-        //        Nonce: 130,
-        //        Data: {
-        //          TradeGuid: '7a669f2a-d564-472b-8493-6ef982eb1e96',
-        //          Pair: 'btc-aud',
-        //          TradeDate: '2023-02-12T10:04:13.0804889+11:00',
-        //          Price: 31640,
-        //          Volume: 0.00079029,
-        //          BidGuid: 'ba8a78b5-be69-4d33-92bb-9df0daa6314e',
-        //          OfferGuid: '27d20270-f21f-4c25-9905-152e70b2f6ec',
-        //          Side: 'Buy'
+        //        "Channel": "ticker-btc-usd",
+        //        "Nonce": 130,
+        //        "Data": {
+        //          "TradeGuid": "7a669f2a-d564-472b-8493-6ef982eb1e96",
+        //          "Pair": "btc-aud",
+        //          "TradeDate": "2023-02-12T10:04:13.0804889+11:00",
+        //          "Price": 31640,
+        //          "Volume": 0.00079029,
+        //          "BidGuid": "ba8a78b5-be69-4d33-92bb-9df0daa6314e",
+        //          "OfferGuid": "27d20270-f21f-4c25-9905-152e70b2f6ec",
+        //          "Side": "Buy"
         //        },
-        //        Time: 1676156653111,
-        //        Event: 'Trade'
+        //        "Time": 1676156653111,
+        //        "Event": "Trade"
         //    }
         //
         const data = this.safeValue(message, 'Data', {});
@@ -125,8 +125,8 @@ export default class independentreserve extends independentreserveRest {
          * @name independentreserve#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -147,24 +147,24 @@ export default class independentreserve extends independentreserveRest {
     handleOrderBook(client, message) {
         //
         //    {
-        //        Channel: "orderbook/1/eth/aud",
-        //        Data: {
-        //          Bids: [
+        //        "Channel": "orderbook/1/eth/aud",
+        //        "Data": {
+        //          "Bids": [
         //            {
-        //              Price: 2198.09,
-        //              Volume: 0.16143952,
+        //              "Price": 2198.09,
+        //              "Volume": 0.16143952,
         //            },
         //          ],
-        //          Offers: [
+        //          "Offers": [
         //            {
-        //              Price: 2201.25,
-        //              Volume: 15,
+        //              "Price": 2201.25,
+        //              "Volume": 15,
         //            },
         //          ],
-        //          Crc32: 1519697650,
+        //          "Crc32": 1519697650,
         //        },
-        //        Time: 1676150558254,
-        //        Event: "OrderBookSnapshot",
+        //        "Time": 1676150558254,
+        //        "Event": "OrderBookSnapshot",
         //    }
         //
         const event = this.safeString(message, 'Event');
@@ -247,8 +247,8 @@ export default class independentreserve extends independentreserveRest {
     handleHeartbeat(client, message) {
         //
         //    {
-        //        Time: 1676156208182,
-        //        Event: 'Heartbeat'
+        //        "Time": 1676156208182,
+        //        "Event": "Heartbeat"
         //    }
         //
         return message;
@@ -256,9 +256,9 @@ export default class independentreserve extends independentreserveRest {
     handleSubscriptions(client, message) {
         //
         //    {
-        //        Data: [ 'ticker-btc-sgd' ],
-        //        Time: 1676157556223,
-        //        Event: 'Subscriptions'
+        //        "Data": [ "ticker-btc-sgd" ],
+        //        "Time": 1676157556223,
+        //        "Event": "Subscriptions"
         //    }
         //
         return message;

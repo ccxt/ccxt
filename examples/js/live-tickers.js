@@ -1,11 +1,14 @@
 
 
 import asTable from 'as-table';
-import { noLocate as log } from 'ololog';
+import ololog from 'ololog';
 import ansicolor from 'ansicolor';
-import ccxt from '../../ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 ansicolor.nice
+
+const { noLocate } = ololog;
+const log = noLocate;
 
 let printSupportedExchanges = function () {
     log ('Supported exchanges:', ccxt.exchanges.join (', ').green)

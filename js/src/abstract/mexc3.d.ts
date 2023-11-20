@@ -48,6 +48,9 @@ interface mexc {
     spotPrivateGetRebateDetail(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetRebateDetailKickback(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetRebateReferCode(params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetRebateAffiliateCommission(params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetRebateAffiliateWithdraw(params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetRebateAffiliateCommissionDetail(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetMxDeductEnable(params?: {}): Promise<implicitReturnType>;
     spotPrivateGetUserDataStream(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrder(params?: {}): Promise<implicitReturnType>;
@@ -158,6 +161,19 @@ interface mexc {
     spot2PrivateDeleteOrderCancel(params?: {}): Promise<implicitReturnType>;
     spot2PrivateDeleteOrderCancelBySymbol(params?: {}): Promise<implicitReturnType>;
     spot2PrivateDeleteAssetWithdraw(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetSubAccountUniversalTransfer(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetSubAccountList(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetSubAccountApiKey(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetCapitalDepositSubAddress(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetCapitalDepositSubHisrec(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateGetCapitalDepositSubHisrecGetall(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostSubAccountVirtualSubAccount(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostSubAccountApiKey(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostCapitalDepositSubAddress(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostCapitalWithdrawApply(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostSubAccountUniversalTransfer(params?: {}): Promise<implicitReturnType>;
+    brokerPrivatePostSubAccountFutures(params?: {}): Promise<implicitReturnType>;
+    brokerPrivateDeleteSubAccountApiKey(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class mexc extends _mexc {
 }

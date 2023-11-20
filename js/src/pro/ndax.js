@@ -44,7 +44,7 @@ export default class ndax extends ndaxRest {
          * @name ndax#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the ndax api endpoint
+         * @param {object} [params] extra parameters specific to the ndax api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -109,10 +109,10 @@ export default class ndax extends ndaxRest {
          * @name ndax#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the ndax api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         await this.loadMarkets();
@@ -138,7 +138,7 @@ export default class ndax extends ndaxRest {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     handleTrades(client, message) {
         const payload = this.safeValue(message, 'o', []);
@@ -191,10 +191,10 @@ export default class ndax extends ndaxRest {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the ndax api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the ndax api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         await this.loadMarkets();
@@ -221,15 +221,15 @@ export default class ndax extends ndaxRest {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     handleOHLCV(client, message) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeTicker',
-        //         o: [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeTicker",
+        //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
         const payload = this.safeValue(message, 'o', []);
@@ -322,8 +322,8 @@ export default class ndax extends ndaxRest {
          * @name ndax#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the ndax api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the ndax api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -364,10 +364,10 @@ export default class ndax extends ndaxRest {
     handleOrderBook(client, message) {
         //
         //     {
-        //         m: 3,
-        //         i: 2,
-        //         n: 'Level2UpdateEvent',
-        //         o: [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
+        //         "m": 3,
+        //         "i": 2,
+        //         "n": "Level2UpdateEvent",
+        //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
         const payload = this.safeValue(message, 'o', []);
@@ -443,10 +443,10 @@ export default class ndax extends ndaxRest {
     handleOrderBookSubscription(client, message, subscription) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
         const payload = this.safeValue(message, 'o', []);
@@ -477,10 +477,10 @@ export default class ndax extends ndaxRest {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
@@ -506,17 +506,17 @@ export default class ndax extends ndaxRest {
         //     }
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         //     {
-        //         m: 3,
-        //         i: 2,
-        //         n: 'Level2UpdateEvent',
-        //         o: '[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]'
+        //         "m": 3,
+        //         "i": 2,
+        //         "n": "Level2UpdateEvent",
+        //         "o": "[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]"
         //     }
         //
         const payload = this.safeString(message, 'o');
