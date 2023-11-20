@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/woo.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1002,8 +1002,8 @@ export default class woo extends Exchange {
          */
         const stop = this.safeValue (params, 'stop', false);
         params = this.omit (params, 'stop');
-        if (!stop) {
-            this.checkRequiredSymbol ('cancelOrder', symbol);
+        if (!stop && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         let market: Market = undefined;
@@ -1060,7 +1060,9 @@ export default class woo extends Exchange {
         if (stop) {
             return await this.v3PrivateDeleteAlgoOrdersPending (params);
         }
-        this.checkRequiredSymbol ('cancelOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],

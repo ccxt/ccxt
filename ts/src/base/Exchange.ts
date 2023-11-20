@@ -4548,16 +4548,6 @@ export default class Exchange {
         }
     }
 
-    checkRequiredSymbol (methodName: string, symbol: string) {
-        /**
-         * @ignore
-         * @method
-         * @param {string} symbol unified symbol of the market
-         * @param {string} methodName name of the method that requires a symbol
-         */
-        this.checkRequiredArgument (methodName, symbol, 'symbol');
-    }
-
     parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
         /**
          * @ignore

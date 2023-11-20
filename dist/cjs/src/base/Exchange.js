@@ -370,13 +370,12 @@ class Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
-                'fetchBorrowRates': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
+                'fetchCrossBorrowRate': undefined,
+                'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
@@ -391,6 +390,8 @@ class Exchange {
                 'fetchFundingRateHistory': undefined,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
+                'fetchIsolatedBorrowRate': undefined,
+                'fetchIsolatedBorrowRates': undefined,
                 'fetchL2OrderBook': true,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -1410,8 +1411,11 @@ class Exchange {
     parseOrder(order, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseOrder() is not supported yet');
     }
-    async fetchBorrowRates(params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchBorrowRates() is not supported yet');
+    async fetchCrossBorrowRates(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchCrossBorrowRates() is not supported yet');
+    }
+    async fetchIsolatedBorrowRates(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchIsolatedBorrowRates() is not supported yet');
     }
     parseMarketLeverageTiers(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseMarketLeverageTiers() is not supported yet');
@@ -3004,7 +3008,7 @@ class Exchange {
          * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new errors.NotSupported(this.id + ' fetchPositionsBySymbol() is not supported yet');
     }
@@ -3181,15 +3185,27 @@ class Exchange {
             throw new errors.NotSupported(this.id + ' ' + key + ' does not have a value in mapping');
         }
     }
-    async fetchBorrowRate(code, params = {}) {
+    async fetchCrossBorrowRate(code, params = {}) {
         await this.loadMarkets();
         if (!this.has['fetchBorrowRates']) {
-            throw new errors.NotSupported(this.id + ' fetchBorrowRate() is not supported yet');
+            throw new errors.NotSupported(this.id + ' fetchCrossBorrowRate() is not supported yet');
         }
-        const borrowRates = await this.fetchBorrowRates(params);
+        const borrowRates = await this.fetchCrossBorrowRates(params);
         const rate = this.safeValue(borrowRates, code);
         if (rate === undefined) {
-            throw new errors.ExchangeError(this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+            throw new errors.ExchangeError(this.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code);
+        }
+        return rate;
+    }
+    async fetchIsolatedBorrowRate(symbol, params = {}) {
+        await this.loadMarkets();
+        if (!this.has['fetchBorrowRates']) {
+            throw new errors.NotSupported(this.id + ' fetchIsolatedBorrowRate() is not supported yet');
+        }
+        const borrowRates = await this.fetchIsolatedBorrowRates(params);
+        const rate = this.safeValue(borrowRates, symbol);
+        if (rate === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
         return rate;
     }
@@ -3427,7 +3443,7 @@ class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         throw new errors.NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -4081,15 +4097,6 @@ class Exchange {
             throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() cannot have a symbol argument for cross margin');
         }
     }
-    checkRequiredSymbol(methodName, symbol) {
-        /**
-         * @ignore
-         * @method
-         * @param {string} symbol unified symbol of the market
-         * @param {string} methodName name of the method that requires a symbol
-         */
-        this.checkRequiredArgument(methodName, symbol, 'symbol');
-    }
     parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
         /**
          * @ignore
@@ -4173,7 +4180,7 @@ class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -4209,7 +4216,7 @@ class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {
             return await this.fetchDepositsWithdrawals(code, since, limit, params);
@@ -4564,7 +4571,7 @@ class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         const result = [];
         for (let i = 0; i < liquidations.length; i++) {

@@ -61,14 +61,13 @@ class coinlist(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
                 'fetchBorrowInterest': False,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDepositAddress': False,
@@ -83,6 +82,8 @@ class coinlist(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
@@ -487,7 +488,7 @@ class coinlist(Exchange, ImplicitAPI):
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         request = {}
@@ -522,7 +523,7 @@ class coinlist(Exchange, ImplicitAPI):
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-market-summary
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -612,7 +613,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -730,7 +731,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
         :param dict [params]: extra parameters specific to the coinlist api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -850,7 +851,7 @@ class coinlist(Exchange, ImplicitAPI):
         fetch the trading fees for multiple markets
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privateGetV1Fees(params)
@@ -1023,7 +1024,7 @@ class coinlist(Exchange, ImplicitAPI):
         fetch all the accounts associated with a profile
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-accounts
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: a dictionary of `account structures <https://github.com/ccxt/ccxt/wiki/Manual#account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
         await self.load_markets()
         response = await self.privateGetV1Accounts(params)
@@ -1059,7 +1060,7 @@ class coinlist(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetV1Balances(params)
@@ -1106,7 +1107,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades structures to retrieve(default 200, max 500)
         :param dict [params]: extra parameters specific to the coinlist api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1163,7 +1164,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         request = {
             'order_id': id,
@@ -1180,7 +1181,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinlist api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param string|str[] [params.status]: the status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending'(default ['accepted', 'done', 'canceled', 'rejected', 'pending'])
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         status = self.safe_string(params, 'status')
@@ -1238,7 +1239,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int|str id: order id
         :param str symbol: not used by coinlist fetchOrder()
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1280,7 +1281,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of open order structures to retrieve(default 200, max 500)
         :param dict [params]: extra parameters specific to the coinlist api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1297,7 +1298,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of closed order structures to retrieve(default 200, max 500)
         :param dict [params]: extra parameters specific to the coinlist api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1314,7 +1315,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of canceled order structures to retrieve(default 200, max 500)
         :param dict [params]: extra parameters specific to the coinlist api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns dict: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1328,7 +1329,7 @@ class coinlist(Exchange, ImplicitAPI):
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-orders
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1353,7 +1354,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by coinlist cancelOrder()
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1376,7 +1377,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str symbol: not used by coinlist cancelOrders()
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         params = ids
@@ -1396,7 +1397,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately(default False)
         :param float [params.triggerPrice]: only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders(the price at which an order is triggered)
         :param str [params.clientOrderId]: client order id(default None)
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1459,7 +1460,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         if amount is None:
@@ -1632,7 +1633,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1679,7 +1680,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transfer structures to retrieve(default 200, max 500)
         :param dict [params]: extra parameters specific to the coinlist api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = None
@@ -1789,7 +1790,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal
         :param int [limit]: max number of deposit/withdrawals to return(default 200, max 500)
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: a list of `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDepositsWithdrawals() requires a code argument')
@@ -1862,7 +1863,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the coinlist api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1956,7 +1957,7 @@ class coinlist(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entrys to return(default 200, max 500)
         :param dict [params]: extra parameters specific to the coinlist api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         traderId = self.safe_string_2(params, 'trader_id', 'traderId')
         if traderId is None:

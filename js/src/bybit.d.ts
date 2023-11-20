@@ -127,7 +127,7 @@ export default class bybit extends Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OpenInterest[]>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
-    fetchBorrowRate(code: string, params?: {}): Promise<{
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
         currency: string;
         rate: number;
         period: number;

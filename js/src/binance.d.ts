@@ -20,7 +20,7 @@ export default class binance extends Exchange {
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseMarket(market: any): Market;
-    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    parseBalanceHelper(entry: any): import("./base/types.js").Account;
     parseBalance(response: any, type?: any, marginMode?: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -318,7 +318,7 @@ export default class binance extends Exchange {
     };
     reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    fetchBorrowRate(code: string, params?: {}): Promise<{
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
         currency: string;
         rate: number;
         period: number;

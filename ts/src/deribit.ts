@@ -3045,7 +3045,9 @@ export default class deribit extends Exchange {
          * @param {object} [params] exchange specific parameters for the deribit api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
-        this.checkRequiredSymbol ('fetchMyLiquidations', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyLiquidations() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
