@@ -2,7 +2,6 @@ import Exchange from './abstract/bitteam.js';
 // import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidAddress, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-// import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, Market, Order, OrderBook, Str, Ticker, Trade } from './base/types.js';
 
 /**
@@ -118,7 +117,7 @@ export default class bitteam extends Exchange {
                 // todo
             },
             'urls': {
-                'logo': '',
+                'logo': '', // todo
                 'api': {
                     'public': 'https://bit.team',
                     'private': 'https://bit.team',
@@ -544,7 +543,7 @@ export default class bitteam extends Exchange {
             const numericId = this.safeNumber (currency, 'id');
             const code = this.safeCurrencyCode (id);
             const active = this.safeValue (currency, 'active', false);
-            const decimalPlaces = this.safeString (currency, 'decimal_places');
+            const decimalPlaces = this.safeString (currency, 'decimals'); // todo: or precision key?
             const precision = this.parseNumber (this.parsePrecision (decimalPlaces));
             const txLimits = this.safeValue (currency, 'txLimits', {});
             const minWithdraw = this.safeString (txLimits, 'minWithdraw');
@@ -560,7 +559,7 @@ export default class bitteam extends Exchange {
             let networkFeesById = {};
             const blockChain = this.safeString (currency, 'blockChain');
             // if only one blockChain
-            if ((blockChain !== undefined) || (blockChain !== '')) {
+            if ((blockChain !== undefined) && (blockChain !== '')) {
                 fee = this.parseNumber (withdrawCommissionFixed);
                 networkFeesById[blockChain] = fee;
             } else {
@@ -571,7 +570,6 @@ export default class bitteam extends Exchange {
             for (let j = 0; j < networkIds.length; j++) {
                 const networkId = networkIds[j];
                 const networkCode = this.networkIdToCode (networkId);
-                // todo: check all networkIds for unified codes
                 const networkFee = this.safeNumber (networkFeesById, networkId);
                 networks[networkCode] = {
                     'id': networkId,
