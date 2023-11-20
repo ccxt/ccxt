@@ -406,6 +406,6 @@ public partial class Exchange
         this.name = SafeString(extendedProperties, "name");
         this.httpsProxy = SafeString(extendedProperties, "httpsProxy");
         this.httpProxy = SafeString(extendedProperties, "httpProxy");
-        this.accounts = SafeValue(extendedProperties, "accounts") as dict;
+        this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
     }
 }
