@@ -2451,19 +2451,19 @@ export default class kucoin extends Exchange {
             }
             request['symbol'] = market['id'];
         }
-        params = this.omit (params, [ 'stop', 'hf' ]);
-        let method = 'privateGetOrdersOrderId';
+        params = this.omit (params, [ 'stop', 'hf', 'clientOid', 'clientOrderId' ]);
+        let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (stop) {
-                method = 'privateGetStopOrderQueryOrderByClientOid';
                 if (symbol !== undefined) {
                     request['symbol'] = market['id'];
                 }
+                response = await this.privateGetStopOrderQueryOrderByClientOid (this.extend (request, params));
             } else if (hf) {
-                method = 'privateGetHfOrdersClientOrderClientOid';
+                response = await this.privateGetHfOrdersClientOrderClientOid (this.extend (request, params));
             } else {
-                method = 'privateGetOrderClientOrderClientOid';
+                response = await this.privateGetOrderClientOrderClientOid (this.extend (request, params));
             }
         } else {
             // a special case for undefined ids
@@ -2472,17 +2472,17 @@ export default class kucoin extends Exchange {
             if (id === undefined) {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
             }
-            if (stop) {
-                method = 'privateGetStopOrderOrderId';
-            } else if (hf) {
-                method = 'privateGetHfOrdersOrderId';
-            }
             request['orderId'] = id;
+            if (stop) {
+                response = await this.privateGetStopOrderOrderId (this.extend (request, params));
+            } else if (hf) {
+                response = await this.privateGetHfOrdersOrderId (this.extend (request, params));
+            } else {
+                response = await this.privateGetOrdersOrderId (this.extend (request, params));
+            }
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, params));
         let responseData = this.safeValue (response, 'data');
-        if (method === 'privateGetStopOrderQueryOrderByClientOid') {
+        if (Array.isArray (responseData)) {
             responseData = this.safeValue (responseData, 0);
         }
         return this.parseOrder (responseData, market);
