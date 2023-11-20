@@ -3956,42 +3956,36 @@ export default class kucoin extends Exchange {
             marginMode = 'cross'; // cross as default marginMode
         }
         const request = {};
-        let method = 'privateGetMarginBorrowOutstanding';
-        if (marginMode === 'isolated') {
-            if (code !== undefined) {
-                const currency = this.currency (code);
-                request['balanceCurrency'] = currency['id'];
-            }
-            method = 'privateGetIsolatedAccounts';
-        } else {
-            if (code !== undefined) {
-                const currency = this.currency (code);
-                request['currency'] = currency['id'];
-            }
+        let response = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['quoteCurrency'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
+        if (marginMode === 'isolated') {
+            response = await this.privateGetIsolatedAccounts (this.extend (request, params));
+        } else {
+            response = await this.privateGetMarginAccounts (this.extend (request, params));
+        }
         //
         // Cross
         //
         //     {
         //         "code": "200000",
         //         "data": {
-        //             "currentPage": 1,
-        //             "pageSize": 10,
-        //             "totalNum": 1,
-        //             "totalPage": 1,
-        //             "items": [
+        //             "totalAssetOfQuoteCurrency": "0",
+        //             "totalLiabilityOfQuoteCurrency": "0",
+        //             "debtRatio": "0",
+        //             "status": "EFFECTIVE",
+        //             "accounts": [
         //                 {
-        //                     "tradeId": "62e1e320ff219600013b44e2",
-        //                     "currency": "USDT",
-        //                     "principal": "100",
-        //                     "accruedInterest": "0.00016667",
-        //                     "liability": "100.00016667",
-        //                     "repaidSize": "0",
-        //                     "dailyIntRate": "0.00004",
-        //                     "term": 7,
-        //                     "createdAt": 1658970912000,
-        //                     "maturityTime": 1659575713000
+        //                     "currency": "1INCH",
+        //                     "total": "0",
+        //                     "available": "0",
+        //                     "hold": "0",
+        //                     "liability": "0",
+        //                     "maxBorrowSize": "0",
+        //                     "borrowEnabled": true,
+        //                     "transferInEnabled": true
         //                 }
         //             ]
         //         }
@@ -4006,34 +4000,38 @@ export default class kucoin extends Exchange {
         //             "liabilityConversionBalance": "0.01480001",
         //             "assets": [
         //                 {
-        //                     "symbol": "NKN-USDT",
-        //                     "status": "CLEAR",
+        //                     "symbol": "MANA-USDT",
         //                     "debtRatio": "0",
+        //                     "status": "BORROW",
         //                     "baseAsset": {
-        //                         "currency": "NKN",
-        //                         "totalBalance": "0",
-        //                         "holdBalance": "0",
-        //                         "availableBalance": "0",
-        //                         "liability": "0",
-        //                         "interest": "0",
-        //                         "borrowableAmount": "0"
+        //                         "currency": "MANA",
+        //                         "borrowEnabled": true,
+        //                         "repayEnabled": true,
+        //                         "transferEnabled": true,
+        //                         "borrowed": "0",
+        //                         "totalAsset": "0",
+        //                         "available": "0",
+        //                         "hold": "0",
+        //                         "maxBorrowSize": "1000"
         //                     },
         //                     "quoteAsset": {
         //                         "currency": "USDT",
-        //                         "totalBalance": "0",
-        //                         "holdBalance": "0",
-        //                         "availableBalance": "0",
-        //                         "liability": "0",
-        //                         "interest": "0",
-        //                         "borrowableAmount": "0"
+        //                         "borrowEnabled": true,
+        //                         "repayEnabled": true,
+        //                         "transferEnabled": true,
+        //                         "borrowed": "0",
+        //                         "totalAsset": "0",
+        //                         "available": "0",
+        //                         "hold": "0",
+        //                         "maxBorrowSize": "50000"
         //                     }
-        //                 },
+        //                 }
         //             ]
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const assets = (marginMode === 'isolated') ? this.safeValue (data, 'assets', []) : this.safeValue (data, 'items', []);
+        const assets = (marginMode === 'isolated') ? this.safeValue (data, 'assets', []) : this.safeValue (data, 'accounts', []);
         return this.parseBorrowInterests (assets, undefined);
     }
 
@@ -4042,43 +4040,45 @@ export default class kucoin extends Exchange {
         // Cross
         //
         //     {
-        //         "tradeId": "62e1e320ff219600013b44e2",
-        //         "currency": "USDT",
-        //         "principal": "100",
-        //         "accruedInterest": "0.00016667",
-        //         "liability": "100.00016667",
-        //         "repaidSize": "0",
-        //         "dailyIntRate": "0.00004",
-        //         "term": 7,
-        //         "createdAt": 1658970912000,
-        //         "maturityTime": 1659575713000
-        //     },
+        //         "currency": "1INCH",
+        //         "total": "0",
+        //         "available": "0",
+        //         "hold": "0",
+        //         "liability": "0",
+        //         "maxBorrowSize": "0",
+        //         "borrowEnabled": true,
+        //         "transferInEnabled": true
+        //     }
         //
         // Isolated
         //
         //     {
-        //         "symbol": "BTC-USDT",
-        //         "status": "CLEAR",
+        //         "symbol": "MANA-USDT",
         //         "debtRatio": "0",
+        //         "status": "BORROW",
         //         "baseAsset": {
-        //             "currency": "BTC",
-        //             "totalBalance": "0",
-        //             "holdBalance": "0",
-        //             "availableBalance": "0",
-        //             "liability": "0",
-        //             "interest": "0",
-        //             "borrowableAmount": "0.0592"
+        //             "currency": "MANA",
+        //             "borrowEnabled": true,
+        //             "repayEnabled": true,
+        //             "transferEnabled": true,
+        //             "borrowed": "0",
+        //             "totalAsset": "0",
+        //             "available": "0",
+        //             "hold": "0",
+        //             "maxBorrowSize": "1000"
         //         },
         //         "quoteAsset": {
         //             "currency": "USDT",
-        //             "totalBalance": "149.99991731",
-        //             "holdBalance": "0",
-        //             "availableBalance": "149.99991731",
-        //             "liability": "0",
-        //             "interest": "0",
-        //             "borrowableAmount": "1349"
+        //             "borrowEnabled": true,
+        //             "repayEnabled": true,
+        //             "transferEnabled": true,
+        //             "borrowed": "0",
+        //             "totalAsset": "0",
+        //             "available": "0",
+        //             "hold": "0",
+        //             "maxBorrowSize": "50000"
         //         }
-        //     },
+        //     }
         //
         const marketId = this.safeString (info, 'symbol');
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
@@ -4094,7 +4094,7 @@ export default class kucoin extends Exchange {
             interest = this.safeNumber (isolatedBase, 'interest');
             currencyId = this.safeString (isolatedBase, 'currency');
         } else {
-            amountBorrowed = this.safeNumber (info, 'principal');
+            amountBorrowed = this.safeNumber (info, 'liability');
             interest = this.safeNumber (info, 'accruedInterest');
             currencyId = this.safeString (info, 'currency');
         }
