@@ -985,14 +985,14 @@ export default class testMainClass extends baseMainTestClass {
             }
         // body is defined
         }
-        if (type === 'json') {
+        if (type === 'json' && (storedOutput !== undefined) && (newOutput !== undefined)) {
             if (typeof storedOutput === 'string') {
                 storedOutput = jsonParse (storedOutput);
             }
             if (typeof newOutput === 'string') {
                 newOutput = jsonParse (newOutput);
             }
-        } else if (type === 'urlencoded') {
+        } else if (type === 'urlencoded' && (storedOutput !== undefined) && (newOutput !== undefined)) {
             storedOutput = this.urlencodedToDict (storedOutput);
             newOutput = this.urlencodedToDict (newOutput);
         }
@@ -1088,6 +1088,7 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         await close (exchange);
+        return true; // in c# methods that will be used with promiseAll need to return something
     }
 
     async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
@@ -1110,6 +1111,7 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         await close (exchange);
+        return true; // in c# methods that will be used with promiseAll need to return something
     }
 
     getNumberOfTestsFromExchange (exchange, exchangeData: object) {
@@ -1433,6 +1435,7 @@ export default class testMainClass extends baseMainTestClass {
         const clientOrderId = spotOrderRequest['client_id'];
         assert (clientOrderId.startsWith (id.toString ()), 'clientOrderId does not start with id');
         await close (exchange);
+        return true;
     }
 }
 // ***** AUTO-TRANSPILER-END *****

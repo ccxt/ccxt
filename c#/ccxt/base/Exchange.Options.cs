@@ -96,7 +96,26 @@ public partial class Exchange
     public object last_request_headers { get; set; }
     public object last_json_response { get; set; }
     public object last_http_response { get; set; }
-    public object last_request_body { get; set; }
+
+    private object lastReqBody = null;
+    public object last_request_body
+    {
+        get
+        {
+            return lastReqBody;
+        }
+        set
+        {
+            if (value is Dictionary<string, object> && ((dict)value).Keys.Count == 0)
+            {
+                lastReqBody = null;
+            }
+            else
+            {
+                lastReqBody = value;
+            }
+        }
+    }
     public object last_request_url { get; set; }
 
     public object name { get; set; }
