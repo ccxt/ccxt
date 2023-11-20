@@ -26,6 +26,22 @@
                 "input": [
                     "LTC/USDT"
                 ]
+            },
+            {
+                "description": "Swap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.bitrue.com/fapi/v2/openOrders?contractName=E-ETH-USDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Swap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://dapi.bitrue.com/dapi/v2/openOrders?contractName=E-ETH-USD",
+                "input": [
+                    "ETH/USD:ETH"
+                ]
             }
         ],
         "fetchClosedOrders": [
