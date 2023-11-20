@@ -346,6 +346,7 @@ class blockchaincom extends blockchaincom$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
             });
         }
         return result;
@@ -476,20 +477,20 @@ class blockchaincom extends blockchaincom$1 {
     parseOrder(order, market = undefined) {
         //
         //     {
-        //         clOrdId: '00001',
-        //         ordType: 'MARKET',
-        //         ordStatus: 'FILLED',
-        //         side: 'BUY',
-        //         symbol: 'USDC-USDT',
-        //         exOrdId: '281775861306290',
-        //         price: null,
-        //         text: 'Fill',
-        //         lastShares: '30.0',
-        //         lastPx: '0.9999',
-        //         leavesQty: '0.0',
-        //         cumQty: '30.0',
-        //         avgPx: '0.9999',
-        //         timestamp: '1633940339619'
+        //         "clOrdId": "00001",
+        //         "ordType": "MARKET",
+        //         "ordStatus": "FILLED",
+        //         "side": "BUY",
+        //         "symbol": "USDC-USDT",
+        //         "exOrdId": "281775861306290",
+        //         "price": null,
+        //         "text": "Fill",
+        //         "lastShares": "30.0",
+        //         "lastPx": "0.9999",
+        //         "leavesQty": "0.0",
+        //         "cumQty": "30.0",
+        //         "avgPx": "0.9999",
+        //         "timestamp": "1633940339619"
         //     }
         //
         const clientOrderId = this.safeString(order, 'clOrdId');
@@ -647,9 +648,9 @@ class blockchaincom extends blockchaincom$1 {
         const response = await this.privateGetFees(params);
         //
         //     {
-        //         makerRate: "0.002",
-        //         takerRate: "0.004",
-        //         volumeInUSD: "0.0"
+        //         "makerRate": "0.002",
+        //         "takerRate": "0.004",
+        //         "volumeInUSD": "0.0"
         //     }
         //
         const makerFee = this.safeNumber(response, 'makerRate');
@@ -882,7 +883,7 @@ class blockchaincom extends blockchaincom$1 {
         }
         const address = this.safeString(transaction, 'address');
         const txid = this.safeString(transaction, 'txhash');
-        const result = {
+        return {
             'info': transaction,
             'id': id,
             'txid': txid,
@@ -901,9 +902,9 @@ class blockchaincom extends blockchaincom$1 {
             'status': this.parseTransactionState(state),
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
-        return result;
     }
     async fetchWithdrawalWhitelist(params = {}) {
         /**
@@ -969,13 +970,13 @@ class blockchaincom extends blockchaincom$1 {
         const response = await this.privatePostWithdrawals(this.extend(request, params));
         //
         //     {
-        //         amount: "30.0",
-        //         currency: "USDT",
-        //         beneficiary: "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        //         withdrawalId: "99df5ef7-eab6-4033-be49-312930fbd1ea",
-        //         fee: "34.005078",
-        //         state: "PENDING",
-        //         timestamp: "1634218452595"
+        //         "amount": "30.0",
+        //         "currency": "USDT",
+        //         "beneficiary": "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+        //         "withdrawalId": "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         "fee": "34.005078",
+        //         "state": "PENDING",
+        //         "timestamp": "1634218452595"
         //     },
         //
         return this.parseTransaction(response, currency);

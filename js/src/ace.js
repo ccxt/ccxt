@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/ace.js';
-import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -189,66 +189,64 @@ export default class ace extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const base = this.safeString(market, 'base');
-            const baseCode = this.safeCurrencyCode(base);
-            const quote = this.safeString(market, 'quote');
-            const quoteCode = this.safeCurrencyCode(quote);
-            const symbol = base + '/' + quote;
-            result.push({
-                'id': this.safeString(market, 'symbol'),
-                'uppercaseId': undefined,
-                'symbol': symbol,
-                'base': baseCode,
-                'baseId': this.safeInteger(market, 'baseCurrencyId'),
-                'quote': quoteCode,
-                'quoteId': this.safeInteger(market, 'quoteCurrencyId'),
-                'settle': undefined,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'derivative': false,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(market, 'minLimitBaseAmount'),
-                        'max': this.safeNumber(market, 'maxLimitBaseAmount'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseMarkets(response);
+    }
+    parseMarket(market) {
+        const baseId = this.safeString(market, 'base');
+        const base = this.safeCurrencyCode(baseId);
+        const quoteId = this.safeString(market, 'quote');
+        const quote = this.safeCurrencyCode(quoteId);
+        const symbol = base + '/' + quote;
+        return {
+            'id': this.safeString(market, 'symbol'),
+            'uppercaseId': undefined,
+            'symbol': symbol,
+            'base': base,
+            'baseId': baseId,
+            'quote': quote,
+            'quoteId': quoteId,
+            'settle': undefined,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(market, 'minLimitBaseAmount'),
+                    'max': this.safeNumber(market, 'maxLimitBaseAmount'),
                 },
-                'precision': {
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'active': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'precision': {
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
+            },
+            'active': undefined,
+            'created': undefined,
+            'info': market,
+        };
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -339,7 +337,7 @@ export default class ace extends Exchange {
             const ticker = this.parseTicker(rawTicker, market);
             tickers.push(ticker);
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -516,7 +514,7 @@ export default class ace extends Exchange {
         //             "type": 1
         //         }
         //
-        let id = undefined;
+        let id;
         let timestamp = undefined;
         let symbol = undefined;
         let price = undefined;
@@ -702,9 +700,7 @@ export default class ace extends Exchange {
          * @param {object} [params] extra parameters specific to the ace api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires the symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -798,7 +794,7 @@ export default class ace extends Exchange {
             symbol = baseId + '/' + quoteId;
         }
         let side = undefined;
-        const tradeSide = this.safeNumber(trade, 'buyOrSell');
+        const tradeSide = this.safeInteger(trade, 'buyOrSell');
         if (tradeSide !== undefined) {
             side = (tradeSide === 1) ? 'buy' : 'sell';
         }
@@ -880,10 +876,7 @@ export default class ace extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'attachment');
-        const trades = this.safeValue(data, 'trades');
-        if (trades === undefined) {
-            return trades;
-        }
+        const trades = this.safeValue(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -997,9 +990,9 @@ export default class ace extends Exchange {
         //                 "currencyName": "BTC"
         //             }
         //         ],
-        //         message: null,
-        //         parameters: null,
-        //         status: '200'
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": "200"
         //     }
         //
         return this.parseBalance(balances);
@@ -1019,7 +1012,7 @@ export default class ace extends Exchange {
                 'timeStamp': nonce,
             }, params);
             const dataKeys = Object.keys(data);
-            const sortedDataKeys = this.sortBy(dataKeys, 0);
+            const sortedDataKeys = this.sortBy(dataKeys, 0, false, '');
             for (let i = 0; i < sortedDataKeys.length; i++) {
                 const key = sortedDataKeys[i];
                 auth += this.safeString(data, key);

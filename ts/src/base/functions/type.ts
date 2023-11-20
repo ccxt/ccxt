@@ -1,6 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 
-import { implicitReturnType } from '../types.js';
+import { implicitReturnType, Int, Str } from '../types.js';
 
 const isNumber = Number.isFinite;
 const isInteger = Number.isInteger;
@@ -39,13 +39,13 @@ const safeFloat = (o: implicitReturnType, k: string | number, $default?: number)
     return isNumber (n) ? n : $default;
 };
 
-const safeInteger = (o: implicitReturnType, k: string | number, $default?: number): number => {
+const safeInteger = (o: implicitReturnType, k: string | number, $default?: number): Int => {
     const n = asInteger (prop (o, k));
     return isNumber (n) ? n : $default;
 };
 
-const safeIntegerProduct = (o: implicitReturnType, k: string | number, $factor: number, $default?: number): number => {
-    const n = asInteger (prop (o, k))
+const safeIntegerProduct = (o: implicitReturnType, k: string | number, $factor: number, $default?: number): Int => {
+    const n = asFloat (prop (o, k))
     return isNumber (n) ? parseInt (n * $factor as any) : $default
 };
 
@@ -59,17 +59,17 @@ const safeValue = (o: implicitReturnType, k: string | number, $default?) => {
     return hasProps (x) ? x : $default;
 }
 
-const safeString = (o: implicitReturnType, k: string | number, $default?: string): string => {
+const safeString = (o: implicitReturnType, k: string | number, $default?: string): Str => {
     const x = prop (o, k);
     return isStringCoercible (x) ? String (x) : $default;
 }
 
-const safeStringLower = (o: implicitReturnType, k: string | number, $default?: string): string => {
+const safeStringLower = (o: implicitReturnType, k: string | number, $default?: string): Str => {
     const x = prop (o, k);
     return isStringCoercible (x) ? String (x).toLowerCase () : $default
 };
 
-const safeStringUpper = (o: implicitReturnType, k: string | number, $default?: string): string => {
+const safeStringUpper = (o: implicitReturnType, k: string | number, $default?: string): Str => {
     const x = prop (o, k)
     return isStringCoercible (x) ? String (x).toUpperCase () : $default
 };
@@ -80,17 +80,17 @@ const safeFloat2 = (o: implicitReturnType, k1: string | number, k2: string | num
     return isNumber (n) ? n : $default;
 };
 
-const safeInteger2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?: number): number => {
+const safeInteger2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?: number): Int => {
     const n = asInteger (prop2 (o, k1, k2));
     return isNumber (n) ? n : $default;
 };
 
-const safeIntegerProduct2 = (o: implicitReturnType, k1: string | number, k2: string | number, $factor: number, $default?: number): number => {
+const safeIntegerProduct2 = (o: implicitReturnType, k1: string | number, k2: string | number, $factor: number, $default?: number): Int => {
     const n = asInteger (prop2 (o, k1, k2));
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
 };
 
-const safeTimestamp2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?): number => {
+const safeTimestamp2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?): Int => {
     const n = asFloat (prop2 (o, k1, k2));
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
 };
@@ -100,17 +100,17 @@ const safeValue2 = (o: implicitReturnType, k1: string | number, k2: string | num
     return hasProps (x) ? x : $default;
 };
 
-const safeString2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?: string): string => {
+const safeString2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?: string): Str => {
     const x = prop2 (o, k1, k2);
     return isStringCoercible (x) ? String (x) : $default;
 };
 
-const safeStringLower2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?: string): string => {
+const safeStringLower2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?: string): Str => {
     const x = prop2 (o, k1, k2);
     return isStringCoercible (x) ? String (x).toLowerCase () : $default;
 };
 
-const safeStringUpper2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?: string): string => {
+const safeStringUpper2 = (o: implicitReturnType, k1: string | number, k2: string | number, $default?: string): Str => {
     const x = prop2 (o, k1, k2);
     return isStringCoercible (x) ? String (x).toUpperCase () : $default;
 };
@@ -120,17 +120,17 @@ const safeFloatN = (o: implicitReturnType, k: (string | number)[], $default?: nu
     return isNumber (n) ? n : $default;
 };
 
-const safeIntegerN = (o: implicitReturnType, k: (string | number)[], $default?: number): number => {
+const safeIntegerN = (o: implicitReturnType, k: (string | number)[], $default?: number): Int => {
     const n = asInteger (getValueFromKeysInArray (o, k));
     return isNumber (n) ? n : $default;
 };
 
-const safeIntegerProductN = (o: implicitReturnType, k: (string | number)[], $factor: number, $default?: number): number => {
+const safeIntegerProductN = (o: implicitReturnType, k: (string | number)[], $factor: number, $default?: number): Int => {
     const n = asInteger (getValueFromKeysInArray (o, k));
     return isNumber (n) ? parseInt (n * $factor as any) : $default;
 };
 
-const safeTimestampN = (o: implicitReturnType, k: (string | number)[], $default?: number): number => {
+const safeTimestampN = (o: implicitReturnType, k: (string | number)[], $default?: number): Int => {
     const n = asFloat (getValueFromKeysInArray (o, k));
     return isNumber (n) ? parseInt (n * 1000 as any) : $default;
 };
@@ -140,17 +140,17 @@ const safeValueN = (o: implicitReturnType, k: (string | number)[], $default?) =>
     return hasProps (x) ? x : $default;
 };
 
-const safeStringN = (o: implicitReturnType, k: (string | number)[], $default?: string): string => {
+const safeStringN = (o: implicitReturnType, k: (string | number)[], $default?: string): Str => {
     const x = getValueFromKeysInArray (o, k);
     return isStringCoercible (x) ? String (x) : $default;
 };
 
-const safeStringLowerN = (o: implicitReturnType, k: (string | number)[], $default?: string): string => {
+const safeStringLowerN = (o: implicitReturnType, k: (string | number)[], $default?: string): Str => {
     const x = getValueFromKeysInArray (o, k);
     return isStringCoercible (x) ? String (x).toLowerCase () : $default;
 };
 
-const safeStringUpperN = (o: implicitReturnType, k: (string | number)[], $default?: string): string => {
+const safeStringUpperN = (o: implicitReturnType, k: (string | number)[], $default?: string): Str => {
     const x = getValueFromKeysInArray (o, k);
     return isStringCoercible (x) ? String (x).toUpperCase () : $default;
 };

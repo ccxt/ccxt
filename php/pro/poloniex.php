@@ -331,20 +331,20 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //    {
-        //        symbol => 'BTC_USDT',
-        //        amount => '840.7240416',
-        //        high => '24832.35',
-        //        quantity => '0.033856',
-        //        tradeCount => 1,
-        //        low => '24832.35',
-        //        closeTime => 1676942519999,
-        //        startTime => 1676942460000,
-        //        close => '24832.35',
-        //        open => '24832.35',
-        //        ts => 1676942492072
+        //        "symbol" => "BTC_USDT",
+        //        "amount" => "840.7240416",
+        //        "high" => "24832.35",
+        //        "quantity" => "0.033856",
+        //        "tradeCount" => 1,
+        //        "low" => "24832.35",
+        //        "closeTime" => 1676942519999,
+        //        "startTime" => 1676942460000,
+        //        "close" => "24832.35",
+        //        "open" => "24832.35",
+        //        "ts" => 1676942492072
         //    }
         //
         return array(
@@ -360,20 +360,20 @@ class poloniex extends \ccxt\async\poloniex {
     public function handle_ohlcv(Client $client, $message) {
         //
         //    {
-        //        $channel => 'candles_minute_1',
-        //        $data => array(
+        //        "channel" => "candles_minute_1",
+        //        "data" => array(
         //            {
-        //                $symbol => 'BTC_USDT',
-        //                amount => '840.7240416',
-        //                high => '24832.35',
-        //                quantity => '0.033856',
-        //                tradeCount => 1,
-        //                low => '24832.35',
-        //                closeTime => 1676942519999,
-        //                startTime => 1676942460000,
-        //                close => '24832.35',
-        //                open => '24832.35',
-        //                ts => 1676942492072
+        //                "symbol" => "BTC_USDT",
+        //                "amount" => "840.7240416",
+        //                "high" => "24832.35",
+        //                "quantity" => "0.033856",
+        //                "tradeCount" => 1,
+        //                "low" => "24832.35",
+        //                "closeTime" => 1676942519999,
+        //                "startTime" => 1676942460000,
+        //                "close" => "24832.35",
+        //                "open" => "24832.35",
+        //                "ts" => 1676942492072
         //            }
         //        )
         //    }
@@ -404,17 +404,17 @@ class poloniex extends \ccxt\async\poloniex {
     public function handle_trade(Client $client, $message) {
         //
         //    {
-        //        channel => 'trades',
-        //        $data => array(
+        //        "channel" => "trades",
+        //        "data" => array(
         //            {
-        //                $symbol => 'BTC_USDT',
-        //                amount => '13.41634893',
-        //                quantity => '0.000537',
-        //                takerSide => 'buy',
-        //                createTime => 1676950548834,
-        //                price => '24983.89',
-        //                id => '62486976',
-        //                ts => 1676950548839
+        //                "symbol" => "BTC_USDT",
+        //                "amount" => "13.41634893",
+        //                "quantity" => "0.000537",
+        //                "takerSide" => "buy",
+        //                "createTime" => 1676950548834,
+        //                "price" => "24983.89",
+        //                "id" => "62486976",
+        //                "ts" => 1676950548839
         //            }
         //        )
         //    }
@@ -446,14 +446,14 @@ class poloniex extends \ccxt\async\poloniex {
         // handleTrade
         //
         //    {
-        //        symbol => 'BTC_USDT',
-        //        amount => '13.41634893',
-        //        quantity => '0.000537',
-        //        takerSide => 'buy',
-        //        createTime => 1676950548834,
-        //        price => '24983.89',
-        //        id => '62486976',
-        //        ts => 1676950548839
+        //        "symbol" => "BTC_USDT",
+        //        "amount" => "13.41634893",
+        //        "quantity" => "0.000537",
+        //        "takerSide" => "buy",
+        //        "createTime" => 1676950548834,
+        //        "price" => "24983.89",
+        //        "id" => "62486976",
+        //        "ts" => 1676950548839
         //    }
         //
         // private $trade
@@ -579,8 +579,8 @@ class poloniex extends \ccxt\async\poloniex {
         // Order is created
         //
         //    {
-        //        channel => 'orders',
-        //        $data => array(
+        //        "channel" => "orders",
+        //        "data" => array(
         //            {
         //                "symbol" => "BTC_USDT",
         //                "type" => "LIMIT",
@@ -769,22 +769,22 @@ class poloniex extends \ccxt\async\poloniex {
     public function handle_ticker(Client $client, $message) {
         //
         //    {
-        //        channel => 'ticker',
-        //        $data => array(
+        //        "channel" => "ticker",
+        //        "data" => array(
         //            {
-        //                $symbol => 'BTC_USDT',
-        //                startTime => 1677280800000,
-        //                open => '23154.32',
-        //                high => '23212.21',
-        //                low => '22761.01',
-        //                close => '23148.86',
-        //                quantity => '105.179566',
-        //                amount => '2423161.17436702',
-        //                tradeCount => 17582,
-        //                dailyChange => '-0.0002',
-        //                markPrice => '23151.09',
-        //                closeTime => 1677367197924,
-        //                ts => 1677367251090
+        //                "symbol" => "BTC_USDT",
+        //                "startTime" => 1677280800000,
+        //                "open" => "23154.32",
+        //                "high" => "23212.21",
+        //                "low" => "22761.01",
+        //                "close" => "23148.86",
+        //                "quantity" => "105.179566",
+        //                "amount" => "2423161.17436702",
+        //                "tradeCount" => 17582,
+        //                "dailyChange" => "-0.0002",
+        //                "markPrice" => "23151.09",
+        //                "closeTime" => 1677367197924,
+        //                "ts" => 1677367251090
         //            }
         //        )
         //    }
@@ -821,11 +821,11 @@ class poloniex extends \ccxt\async\poloniex {
         // $snapshot
         //
         //    {
-        //        channel => 'book_lv2',
-        //        $data => [
+        //        "channel" => "book_lv2",
+        //        "data" => [
         //            {
-        //                $symbol => 'BTC_USDT',
-        //                createTime => 1677368876253,
+        //                "symbol" => "BTC_USDT",
+        //                "createTime" => 1677368876253,
         //                "asks" => [
         //                    ["5.65", "0.02"],
         //                    ...
@@ -834,34 +834,34 @@ class poloniex extends \ccxt\async\poloniex {
         //                    ["6.16", "0.6"],
         //                    ...
         //                ],
-        //                lastId => 164148724,
-        //                id => 164148725,
-        //                ts => 1677368876316
+        //                "lastId" => 164148724,
+        //                "id" => 164148725,
+        //                "ts" => 1677368876316
         //            }
         //        ],
-        //        action => 'snapshot'
+        //        "action" => "snapshot"
         //    }
         //
         // $update
         //
         //    {
-        //        channel => 'book_lv2',
-        //        $data => [
+        //        "channel" => "book_lv2",
+        //        "data" => [
         //            {
-        //                $symbol => 'BTC_USDT',
-        //                createTime => 1677368876882,
+        //                "symbol" => "BTC_USDT",
+        //                "createTime" => 1677368876882,
         //                "asks" => [
         //                    ["6.35", "3"]
         //                ],
         //                "bids" => [
         //                    ["5.65", "0.02"]
         //                ],
-        //                lastId => 164148725,
-        //                id => 164148726,
-        //                ts => 1677368876890
+        //                "lastId" => 164148725,
+        //                "id" => 164148726,
+        //                "ts" => 1677368876890
         //            }
         //        ],
-        //        action => 'update'
+        //        "action" => "update"
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
@@ -1043,10 +1043,10 @@ class poloniex extends \ccxt\async\poloniex {
     public function handle_authenticate(Client $client, $message) {
         //
         //    {
-        //        $success => true,
-        //        ret_msg => '',
-        //        op => 'auth',
-        //        conn_id => 'ce3dpomvha7dha97tvp0-2xh'
+        //        "success" => true,
+        //        "ret_msg" => '',
+        //        "op" => "auth",
+        //        "conn_id" => "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
         $data = $this->safe_value($message, 'data');

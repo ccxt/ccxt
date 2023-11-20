@@ -411,72 +411,71 @@ export default class upbit extends Exchange {
         //
         //    [
         //        {
-        //            market: "KRW-BTC",
-        //            korean_name: "비트코인",
-        //            english_name: "Bitcoin"
+        //            "market": "KRW-BTC",
+        //            "korean_name": "비트코인",
+        //            "english_name": "Bitcoin"
         //        },
         //        ...,
         //    ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString(market, 'market');
-            const [quoteId, baseId] = id.split('-');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.safeNumber(this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
-                'maker': this.safeNumber(this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'price': this.parseNumber('1e-8'),
-                    'amount': this.parseNumber('1e-8'),
+        return this.parseMarkets(response);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'market');
+        const [quoteId, baseId] = id.split('-');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber(this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
+            'maker': this.safeNumber(this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'price': this.parseNumber('1e-8'),
+                'amount': this.parseNumber('1e-8'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     parseBalance(response) {
         const result = {
@@ -508,15 +507,15 @@ export default class upbit extends Exchange {
         const response = await this.privateGetAccounts(params);
         //
         //     [ {          currency: "BTC",
-        //                   balance: "0.005",
-        //                    locked: "0.0",
-        //         avg_krw_buy_price: "7446000",
-        //                  modified:  false     },
+        //                   "balance": "0.005",
+        //                    "locked": "0.0",
+        //         "avg_krw_buy_price": "7446000",
+        //                  "modified":  false     },
         //       {          currency: "ETH",
-        //                   balance: "0.1",
-        //                    locked: "0.0",
-        //         avg_krw_buy_price: "250000",
-        //                  modified:  false    }   ]
+        //                   "balance": "0.1",
+        //                    "locked": "0.0",
+        //         "avg_krw_buy_price": "250000",
+        //                  "modified":  false    }   ]
         //
         return this.parseBalance(response);
     }
@@ -551,31 +550,31 @@ export default class upbit extends Exchange {
         const response = await this.publicGetOrderbook(this.extend(request, params));
         //
         //     [ {          market:   "BTC-ETH",
-        //               timestamp:    1542899030043,
-        //          total_ask_size:    109.57065201,
-        //          total_bid_size:    125.74430631,
-        //         orderbook_units: [ { ask_price: 0.02926679,
-        //                              bid_price: 0.02919904,
-        //                               ask_size: 4.20293961,
-        //                               bid_size: 11.65043576 },
+        //               "timestamp":    1542899030043,
+        //          "total_ask_size":    109.57065201,
+        //          "total_bid_size":    125.74430631,
+        //         "orderbook_units": [ { ask_price: 0.02926679,
+        //                              "bid_price": 0.02919904,
+        //                               "ask_size": 4.20293961,
+        //                               "bid_size": 11.65043576 },
         //                            ...,
         //                            { ask_price: 0.02938209,
-        //                              bid_price: 0.0291231,
-        //                               ask_size: 0.05135782,
-        //                               bid_size: 13.5595     }   ] },
+        //                              "bid_price": 0.0291231,
+        //                               "ask_size": 0.05135782,
+        //                               "bid_size": 13.5595     }   ] },
         //       {          market:   "KRW-BTC",
-        //               timestamp:    1542899034662,
-        //          total_ask_size:    12.89790974,
-        //          total_bid_size:    4.88395783,
-        //         orderbook_units: [ { ask_price: 5164000,
-        //                              bid_price: 5162000,
-        //                               ask_size: 2.57606495,
-        //                               bid_size: 0.214       },
+        //               "timestamp":    1542899034662,
+        //          "total_ask_size":    12.89790974,
+        //          "total_bid_size":    4.88395783,
+        //         "orderbook_units": [ { ask_price: 5164000,
+        //                              "bid_price": 5162000,
+        //                               "ask_size": 2.57606495,
+        //                               "bid_size": 0.214       },
         //                            ...,
         //                            { ask_price: 5176000,
-        //                              bid_price: 5152000,
-        //                               ask_size: 2.752,
-        //                               bid_size: 0.4650305 }    ] }   ]
+        //                              "bid_price": 5152000,
+        //                               "ask_size": 2.752,
+        //                               "bid_size": 0.4650305 }    ] }   ]
         //
         const result = {};
         for (let i = 0; i < response.length; i++) {
@@ -611,31 +610,31 @@ export default class upbit extends Exchange {
     parseTicker(ticker, market = undefined) {
         //
         //       {                market: "BTC-ETH",
-        //                    trade_date: "20181122",
-        //                    trade_time: "104543",
-        //                trade_date_kst: "20181122",
-        //                trade_time_kst: "194543",
-        //               trade_timestamp:  1542883543097,
-        //                 opening_price:  0.02976455,
-        //                    high_price:  0.02992577,
-        //                     low_price:  0.02934283,
-        //                   trade_price:  0.02947773,
-        //            prev_closing_price:  0.02966,
-        //                        change: "FALL",
-        //                  change_price:  0.00018227,
-        //                   change_rate:  0.0061453136,
-        //           signed_change_price:  -0.00018227,
-        //            signed_change_rate:  -0.0061453136,
-        //                  trade_volume:  1.00000005,
-        //               acc_trade_price:  100.95825586,
-        //           acc_trade_price_24h:  289.58650166,
-        //              acc_trade_volume:  3409.85311036,
-        //          acc_trade_volume_24h:  9754.40510513,
-        //         highest_52_week_price:  0.12345678,
-        //          highest_52_week_date: "2018-02-01",
-        //          lowest_52_week_price:  0.023936,
-        //           lowest_52_week_date: "2017-12-08",
-        //                     timestamp:  1542883543813  }
+        //                    "trade_date": "20181122",
+        //                    "trade_time": "104543",
+        //                "trade_date_kst": "20181122",
+        //                "trade_time_kst": "194543",
+        //               "trade_timestamp":  1542883543097,
+        //                 "opening_price":  0.02976455,
+        //                    "high_price":  0.02992577,
+        //                     "low_price":  0.02934283,
+        //                   "trade_price":  0.02947773,
+        //            "prev_closing_price":  0.02966,
+        //                        "change": "FALL",
+        //                  "change_price":  0.00018227,
+        //                   "change_rate":  0.0061453136,
+        //           "signed_change_price":  -0.00018227,
+        //            "signed_change_rate":  -0.0061453136,
+        //                  "trade_volume":  1.00000005,
+        //               "acc_trade_price":  100.95825586,
+        //           "acc_trade_price_24h":  289.58650166,
+        //              "acc_trade_volume":  3409.85311036,
+        //          "acc_trade_volume_24h":  9754.40510513,
+        //         "highest_52_week_price":  0.12345678,
+        //          "highest_52_week_date": "2018-02-01",
+        //          "lowest_52_week_price":  0.023936,
+        //           "lowest_52_week_date": "2017-12-08",
+        //                     "timestamp":  1542883543813  }
         //
         const timestamp = this.safeInteger(ticker, 'trade_timestamp');
         const marketId = this.safeString2(ticker, 'market', 'code');
@@ -695,31 +694,31 @@ export default class upbit extends Exchange {
         const response = await this.publicGetTicker(this.extend(request, params));
         //
         //     [ {                market: "BTC-ETH",
-        //                    trade_date: "20181122",
-        //                    trade_time: "104543",
-        //                trade_date_kst: "20181122",
-        //                trade_time_kst: "194543",
-        //               trade_timestamp:  1542883543097,
-        //                 opening_price:  0.02976455,
-        //                    high_price:  0.02992577,
-        //                     low_price:  0.02934283,
-        //                   trade_price:  0.02947773,
-        //            prev_closing_price:  0.02966,
-        //                        change: "FALL",
-        //                  change_price:  0.00018227,
-        //                   change_rate:  0.0061453136,
-        //           signed_change_price:  -0.00018227,
-        //            signed_change_rate:  -0.0061453136,
-        //                  trade_volume:  1.00000005,
-        //               acc_trade_price:  100.95825586,
-        //           acc_trade_price_24h:  289.58650166,
-        //              acc_trade_volume:  3409.85311036,
-        //          acc_trade_volume_24h:  9754.40510513,
-        //         highest_52_week_price:  0.12345678,
-        //          highest_52_week_date: "2018-02-01",
-        //          lowest_52_week_price:  0.023936,
-        //           lowest_52_week_date: "2017-12-08",
-        //                     timestamp:  1542883543813  } ]
+        //                    "trade_date": "20181122",
+        //                    "trade_time": "104543",
+        //                "trade_date_kst": "20181122",
+        //                "trade_time_kst": "194543",
+        //               "trade_timestamp":  1542883543097,
+        //                 "opening_price":  0.02976455,
+        //                    "high_price":  0.02992577,
+        //                     "low_price":  0.02934283,
+        //                   "trade_price":  0.02947773,
+        //            "prev_closing_price":  0.02966,
+        //                        "change": "FALL",
+        //                  "change_price":  0.00018227,
+        //                   "change_rate":  0.0061453136,
+        //           "signed_change_price":  -0.00018227,
+        //            "signed_change_rate":  -0.0061453136,
+        //                  "trade_volume":  1.00000005,
+        //               "acc_trade_price":  100.95825586,
+        //           "acc_trade_price_24h":  289.58650166,
+        //              "acc_trade_volume":  3409.85311036,
+        //          "acc_trade_volume_24h":  9754.40510513,
+        //         "highest_52_week_price":  0.12345678,
+        //          "highest_52_week_date": "2018-02-01",
+        //          "lowest_52_week_price":  0.023936,
+        //           "lowest_52_week_date": "2017-12-08",
+        //                     "timestamp":  1542883543813  } ]
         //
         const result = {};
         for (let t = 0; t < response.length; t++) {
@@ -727,7 +726,7 @@ export default class upbit extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -747,15 +746,15 @@ export default class upbit extends Exchange {
         // fetchTrades
         //
         //       {             market: "BTC-ETH",
-        //             trade_date_utc: "2018-11-22",
-        //             trade_time_utc: "13:55:24",
-        //                  timestamp:  1542894924397,
-        //                trade_price:  0.02914289,
-        //               trade_volume:  0.20074397,
-        //         prev_closing_price:  0.02966,
-        //               change_price:  -0.00051711,
-        //                    ask_bid: "ASK",
-        //              sequential_id:  15428949259430000 }
+        //             "trade_date_utc": "2018-11-22",
+        //             "trade_time_utc": "13:55:24",
+        //                  "timestamp":  1542894924397,
+        //                "trade_price":  0.02914289,
+        //               "trade_volume":  0.20074397,
+        //         "prev_closing_price":  0.02966,
+        //               "change_price":  -0.00051711,
+        //                    "ask_bid": "ASK",
+        //              "sequential_id":  15428949259430000 }
         //
         // fetchOrder trades
         //
@@ -838,25 +837,25 @@ export default class upbit extends Exchange {
         const response = await this.publicGetTradesTicks(this.extend(request, params));
         //
         //     [ {             market: "BTC-ETH",
-        //             trade_date_utc: "2018-11-22",
-        //             trade_time_utc: "13:55:24",
-        //                  timestamp:  1542894924397,
-        //                trade_price:  0.02914289,
-        //               trade_volume:  0.20074397,
-        //         prev_closing_price:  0.02966,
-        //               change_price:  -0.00051711,
-        //                    ask_bid: "ASK",
-        //              sequential_id:  15428949259430000 },
+        //             "trade_date_utc": "2018-11-22",
+        //             "trade_time_utc": "13:55:24",
+        //                  "timestamp":  1542894924397,
+        //                "trade_price":  0.02914289,
+        //               "trade_volume":  0.20074397,
+        //         "prev_closing_price":  0.02966,
+        //               "change_price":  -0.00051711,
+        //                    "ask_bid": "ASK",
+        //              "sequential_id":  15428949259430000 },
         //       {             market: "BTC-ETH",
-        //             trade_date_utc: "2018-11-22",
-        //             trade_time_utc: "13:03:10",
-        //                  timestamp:  1542891790123,
-        //                trade_price:  0.02917,
-        //               trade_volume:  7.392,
-        //         prev_closing_price:  0.02966,
-        //               change_price:  -0.00049,
-        //                    ask_bid: "ASK",
-        //              sequential_id:  15428917910540000 }  ]
+        //             "trade_date_utc": "2018-11-22",
+        //             "trade_time_utc": "13:03:10",
+        //                  "timestamp":  1542891790123,
+        //                "trade_price":  0.02917,
+        //               "trade_volume":  7.392,
+        //         "prev_closing_price":  0.02966,
+        //               "change_price":  -0.00049,
+        //                    "ask_bid": "ASK",
+        //              "sequential_id":  15428917910540000 }  ]
         //
         return this.parseTrades(response, market, since, limit);
     }
@@ -928,17 +927,17 @@ export default class upbit extends Exchange {
     parseOHLCV(ohlcv, market = undefined) {
         //
         //     {
-        //         market: "BTC-ETH",
-        //         candle_date_time_utc: "2018-11-22T13:47:00",
-        //         candle_date_time_kst: "2018-11-22T22:47:00",
-        //         opening_price: 0.02915963,
-        //         high_price: 0.02915963,
-        //         low_price: 0.02915448,
-        //         trade_price: 0.02915448,
-        //         timestamp: 1542894473674,
-        //         candle_acc_trade_price: 0.0981629437535248,
-        //         candle_acc_trade_volume: 3.36693173,
-        //         unit: 1
+        //         "market": "BTC-ETH",
+        //         "candle_date_time_utc": "2018-11-22T13:47:00",
+        //         "candle_date_time_kst": "2018-11-22T22:47:00",
+        //         "opening_price": 0.02915963,
+        //         "high_price": 0.02915963,
+        //         "low_price": 0.02915448,
+        //         "trade_price": 0.02915448,
+        //         "timestamp": 1542894473674,
+        //         "candle_acc_trade_price": 0.0981629437535248,
+        //         "candle_acc_trade_volume": 3.36693173,
+        //         "unit": 1
         //     }
         //
         return [
@@ -975,44 +974,46 @@ export default class upbit extends Exchange {
             'timeframe': timeframeValue,
             'count': limit,
         };
-        let method = 'publicGetCandlesTimeframe';
-        if (timeframeValue === 'minutes') {
-            const numMinutes = Math.round(timeframePeriod / 60);
-            request['unit'] = numMinutes;
-            method += 'Unit';
-        }
+        let response = undefined;
         if (since !== undefined) {
             // convert `since` to `to` value
             request['to'] = this.iso8601(this.sum(since, timeframePeriod * limit * 1000));
         }
-        const response = await this[method](this.extend(request, params));
+        if (timeframeValue === 'minutes') {
+            const numMinutes = Math.round(timeframePeriod / 60);
+            request['unit'] = numMinutes;
+            response = await this.publicGetCandlesTimeframeUnit(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetCandlesTimeframe(this.extend(request, params));
+        }
         //
         //     [
         //         {
-        //             market: "BTC-ETH",
-        //             candle_date_time_utc: "2018-11-22T13:47:00",
-        //             candle_date_time_kst: "2018-11-22T22:47:00",
-        //             opening_price: 0.02915963,
-        //             high_price: 0.02915963,
-        //             low_price: 0.02915448,
-        //             trade_price: 0.02915448,
-        //             timestamp: 1542894473674,
-        //             candle_acc_trade_price: 0.0981629437535248,
-        //             candle_acc_trade_volume: 3.36693173,
-        //             unit: 1
+        //             "market": "BTC-ETH",
+        //             "candle_date_time_utc": "2018-11-22T13:47:00",
+        //             "candle_date_time_kst": "2018-11-22T22:47:00",
+        //             "opening_price": 0.02915963,
+        //             "high_price": 0.02915963,
+        //             "low_price": 0.02915448,
+        //             "trade_price": 0.02915448,
+        //             "timestamp": 1542894473674,
+        //             "candle_acc_trade_price": 0.0981629437535248,
+        //             "candle_acc_trade_volume": 3.36693173,
+        //             "unit": 1
         //         },
         //         {
-        //             market: "BTC-ETH",
-        //             candle_date_time_utc: "2018-11-22T10:06:00",
-        //             candle_date_time_kst: "2018-11-22T19:06:00",
-        //             opening_price: 0.0294,
-        //             high_price: 0.02940882,
-        //             low_price: 0.02934283,
-        //             trade_price: 0.02937354,
-        //             timestamp: 1542881219276,
-        //             candle_acc_trade_price: 0.0762597110943884,
-        //             candle_acc_trade_volume: 2.5949617,
-        //             unit: 1
+        //             "market": "BTC-ETH",
+        //             "candle_date_time_utc": "2018-11-22T10:06:00",
+        //             "candle_date_time_kst": "2018-11-22T19:06:00",
+        //             "opening_price": 0.0294,
+        //             "high_price": 0.02940882,
+        //             "low_price": 0.02934283,
+        //             "trade_price": 0.02937354,
+        //             "timestamp": 1542881219276,
+        //             "candle_acc_trade_price": 0.0762597110943884,
+        //             "candle_acc_trade_volume": 2.5949617,
+        //             "unit": 1
         //         }
         //     ]
         //
@@ -1084,22 +1085,22 @@ export default class upbit extends Exchange {
         const response = await this.privatePostOrders(this.extend(request, params));
         //
         //     {
-        //         'uuid': 'cdd92199-2897-4e14-9448-f923320408ad',
-        //         'side': 'bid',
-        //         'ord_type': 'limit',
-        //         'price': '100.0',
-        //         'avg_price': '0.0',
-        //         'state': 'wait',
-        //         'market': 'KRW-BTC',
-        //         'created_at': '2018-04-10T15:42:23+09:00',
-        //         'volume': '0.01',
-        //         'remaining_volume': '0.01',
-        //         'reserved_fee': '0.0015',
-        //         'remaining_fee': '0.0015',
-        //         'paid_fee': '0.0',
-        //         'locked': '1.0015',
-        //         'executed_volume': '0.0',
-        //         'trades_count': 0
+        //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
+        //         "side": "bid",
+        //         "ord_type": "limit",
+        //         "price": "100.0",
+        //         "avg_price": "0.0",
+        //         "state": "wait",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2018-04-10T15:42:23+09:00",
+        //         "volume": "0.01",
+        //         "remaining_volume": "0.01",
+        //         "reserved_fee": "0.0015",
+        //         "remaining_fee": "0.0015",
+        //         "paid_fee": "0.0",
+        //         "locked": "1.0015",
+        //         "executed_volume": "0.0",
+        //         "trades_count": 0
         //     }
         //
         return this.parseOrder(response);
@@ -1307,6 +1308,8 @@ export default class upbit extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'internal': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,

@@ -311,7 +311,6 @@ class lykke extends lykke$1 {
                 'option': false,
                 'contract': false,
                 'active': true,
-                'info': market,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
@@ -341,6 +340,8 @@ class lykke extends lykke$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
+                'info': market,
             });
         }
         return result;
@@ -521,15 +522,15 @@ class lykke extends lykke$1 {
         //     {
         //         "payload":[
         //             {
-        //                 assetPairId: 'BTCUSD',
-        //                 timestamp: '1643298038203',
-        //                 bids: [
+        //                 "assetPairId": "BTCUSD",
+        //                 "timestamp": "1643298038203",
+        //                 "bids": [
         //                     {
         //                         "v":0.59034382,
         //                         "p":36665.329
         //                     }
         //                 ],
-        //                 asks: [
+        //                 "asks": [
         //                     {
         //                         "v":-0.003,
         //                         "p":36729.686
@@ -810,7 +811,7 @@ class lykke extends lykke$1 {
         if (type === 'market') {
             price = this.safeNumber(payload, 'price');
         }
-        return {
+        return this.safeOrder({
             'id': id,
             'info': result,
             'clientOrderId': undefined,
@@ -829,7 +830,7 @@ class lykke extends lykke$1 {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1161,6 +1162,8 @@ class lykke extends lykke$1 {
             'currency': code,
             'status': undefined,
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

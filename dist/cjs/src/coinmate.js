@@ -288,6 +288,7 @@ class coinmate extends coinmate$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -360,7 +361,7 @@ class coinmate extends coinmate$1 {
         const ticker = this.safeValue(response, 'data');
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const last = this.safeNumber(ticker, 'last');
-        return {
+        return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -381,7 +382,7 @@ class coinmate extends coinmate$1 {
             'baseVolume': this.safeNumber(ticker, 'amount'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -429,34 +430,34 @@ class coinmate extends coinmate$1 {
         // deposits
         //
         //     {
-        //         transactionId: 1862815,
-        //         timestamp: 1516803982388,
-        //         amountCurrency: 'LTC',
-        //         amount: 1,
-        //         fee: 0,
-        //         walletType: 'LTC',
-        //         transferType: 'DEPOSIT',
-        //         transferStatus: 'COMPLETED',
-        //         txid:
-        //         'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
-        //         destination: 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
-        //         destinationTag: null
+        //         "transactionId": 1862815,
+        //         "timestamp": 1516803982388,
+        //         "amountCurrency": "LTC",
+        //         "amount": 1,
+        //         "fee": 0,
+        //         "walletType": "LTC",
+        //         "transferType": "DEPOSIT",
+        //         "transferStatus": "COMPLETED",
+        //         "txid":
+        //         "ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245",
+        //         "destination": "LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn",
+        //         "destinationTag": null
         //     }
         //
         // withdrawals
         //
         //     {
-        //         transactionId: 2140966,
-        //         timestamp: 1519314282976,
-        //         amountCurrency: 'EUR',
-        //         amount: 8421.7228,
-        //         fee: 16.8772,
-        //         walletType: 'BANK_WIRE',
-        //         transferType: 'WITHDRAWAL',
-        //         transferStatus: 'COMPLETED',
-        //         txid: null,
-        //         destination: null,
-        //         destinationTag: null
+        //         "transactionId": 2140966,
+        //         "timestamp": 1519314282976,
+        //         "amountCurrency": "EUR",
+        //         "amount": 8421.7228,
+        //         "fee": 16.8772,
+        //         "walletType": "BANK_WIRE",
+        //         "transferType": "WITHDRAWAL",
+        //         "transferStatus": "COMPLETED",
+        //         "txid": null,
+        //         "destination": null,
+        //         "destinationTag": null
         //     }
         //
         // withdraw
@@ -487,6 +488,7 @@ class coinmate extends coinmate$1 {
             'tagTo': undefined,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'cost': this.safeNumber(transaction, 'fee'),
                 'currency': code,
@@ -581,16 +583,16 @@ class coinmate extends coinmate$1 {
         // fetchMyTrades (private)
         //
         //     {
-        //         transactionId: 2671819,
-        //         createdTimestamp: 1529649127605,
-        //         currencyPair: 'LTC_BTC',
-        //         type: 'BUY',
-        //         orderType: 'LIMIT',
-        //         orderId: 101810227,
-        //         amount: 0.01,
-        //         price: 0.01406,
-        //         fee: 0,
-        //         feeType: 'MAKER'
+        //         "transactionId": 2671819,
+        //         "createdTimestamp": 1529649127605,
+        //         "currencyPair": "LTC_BTC",
+        //         "type": "BUY",
+        //         "orderType": "LIMIT",
+        //         "orderId": 101810227,
+        //         "amount": 0.01,
+        //         "price": 0.01406,
+        //         "fee": 0,
+        //         "feeType": "MAKER"
         //     }
         //
         // fetchTrades (public)
@@ -693,9 +695,9 @@ class coinmate extends coinmate$1 {
         const response = await this.privatePostTraderFees(this.extend(request, params));
         //
         //     {
-        //         error: false,
-        //         errorMessage: null,
-        //         data: { maker: '0.3', taker: '0.35', timestamp: '1646253217815' }
+        //         "error": false,
+        //         "errorMessage": null,
+        //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
         const data = this.safeValue(response, 'data', {});
@@ -734,13 +736,11 @@ class coinmate extends coinmate$1 {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinmate api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -774,42 +774,42 @@ class coinmate extends coinmate$1 {
         // limit sell
         //
         //     {
-        //         id: 781246605,
-        //         timestamp: 1584480015133,
-        //         trailingUpdatedTimestamp: null,
-        //         type: 'SELL',
-        //         currencyPair: 'ETH_BTC',
-        //         price: 0.0345,
-        //         amount: 0.01,
-        //         stopPrice: null,
-        //         originalStopPrice: null,
-        //         marketPriceAtLastUpdate: null,
-        //         marketPriceAtOrderCreation: null,
-        //         orderTradeType: 'LIMIT',
-        //         hidden: false,
-        //         trailing: false,
-        //         clientOrderId: null
+        //         "id": 781246605,
+        //         "timestamp": 1584480015133,
+        //         "trailingUpdatedTimestamp": null,
+        //         "type": "SELL",
+        //         "currencyPair": "ETH_BTC",
+        //         "price": 0.0345,
+        //         "amount": 0.01,
+        //         "stopPrice": null,
+        //         "originalStopPrice": null,
+        //         "marketPriceAtLastUpdate": null,
+        //         "marketPriceAtOrderCreation": null,
+        //         "orderTradeType": "LIMIT",
+        //         "hidden": false,
+        //         "trailing": false,
+        //         "clientOrderId": null
         //     }
         //
         // limit buy
         //
         //     {
-        //         id: 67527001,
-        //         timestamp: 1517931722613,
-        //         trailingUpdatedTimestamp: null,
-        //         type: 'BUY',
-        //         price: 5897.24,
-        //         remainingAmount: 0.002367,
-        //         originalAmount: 0.1,
-        //         stopPrice: null,
-        //         originalStopPrice: null,
-        //         marketPriceAtLastUpdate: null,
-        //         marketPriceAtOrderCreation: null,
-        //         status: 'CANCELLED',
-        //         orderTradeType: 'LIMIT',
-        //         hidden: false,
-        //         avgPrice: null,
-        //         trailing: false,
+        //         "id": 67527001,
+        //         "timestamp": 1517931722613,
+        //         "trailingUpdatedTimestamp": null,
+        //         "type": "BUY",
+        //         "price": 5897.24,
+        //         "remainingAmount": 0.002367,
+        //         "originalAmount": 0.1,
+        //         "stopPrice": null,
+        //         "originalStopPrice": null,
+        //         "marketPriceAtLastUpdate": null,
+        //         "marketPriceAtOrderCreation": null,
+        //         "status": "CANCELLED",
+        //         "orderTradeType": "LIMIT",
+        //         "hidden": false,
+        //         "avgPrice": null,
+        //         "trailing": false,
         //     }
         //
         const id = this.safeString(order, 'id');

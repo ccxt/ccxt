@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import bybitRest from '../bybit.js';
-import { AuthenticationError, ExchangeError, BadRequest, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -23,10 +23,10 @@ export default class bybit extends bybitRest {
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
+                'watchTickers': true,
                 'watchTrades': true,
+                'watchPositions': true,
                 'watchTradesForSymbols': true,
-                'watchPosition': undefined,
             },
             'urls': {
                 'api': {
@@ -69,6 +69,10 @@ export default class bybit extends bybitRest {
             'options': {
                 'watchTicker': {
                     'name': 'tickers', // 'tickers' for 24hr statistical ticker or 'tickers_lt' for leverage token ticker
+                },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true, // or false
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'spot': {
                     'timeframes': {
@@ -118,7 +122,7 @@ export default class bybit extends bybitRest {
         return requestId;
     }
 
-    getUrlByMarketType (symbol: string = undefined, isPrivate = false, method = undefined, params = {}) {
+    getUrlByMarketType (symbol: Str = undefined, isPrivate = false, method = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;
@@ -183,7 +187,38 @@ export default class bybit extends bybitRest {
         }
         topic += '.' + market['id'];
         const topics = [ topic ];
-        return await this.watchTopics (url, messageHash, topics, params);
+        return await this.watchTopics (url, messageHash, topics, messageHash, params);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchTickers
+         * @description n watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHash = 'tickers::' + symbols.join (',');
+        const url = this.getUrlByMarketType (symbols[0], false, params);
+        params = this.cleanParams (params);
+        const options = this.safeValue (this.options, 'watchTickers', {});
+        const topic = this.safeString (options, 'name', 'tickers');
+        const marketIds = this.marketIds (symbols);
+        const topics = [ ];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            topics.push (topic + '.' + marketId);
+        }
+        const ticker = await this.watchTopics (url, messageHash, topics, params);
+        if (this.newUpdates) {
+            return ticker;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
@@ -290,7 +325,7 @@ export default class bybit extends bybitRest {
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeValue (message, 'data', {});
-        const isSpot = this.safeString (data, 'openInterestValue') === undefined;
+        const isSpot = this.safeString (data, 'fundingRate') === undefined;
         const type = isSpot ? 'spot' : 'contract';
         let symbol = undefined;
         let parsed = undefined;
@@ -315,6 +350,17 @@ export default class bybit extends bybitRest {
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
         client.resolve (this.tickers[symbol], messageHash);
+        // watchTickers part
+        const messageHashes = this.findMessageHashes (client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHashTicker = messageHashes[i];
+            const parts = messageHashTicker.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            if (this.inArray (parsed['symbol'], symbols)) {
+                client.resolve (parsed, messageHashTicker);
+            }
+        }
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -340,7 +386,7 @@ export default class bybit extends bybitRest {
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
         const topics = [ 'kline.' + timeframeId + '.' + market['id'] ];
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
-        ohlcv = await this.watchTopics (url, messageHash, topics, params);
+        ohlcv = await this.watchTopics (url, messageHash, topics, messageHash, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -441,7 +487,7 @@ export default class bybit extends bybitRest {
         this.resolveMultipleOHLCV (client, 'multipleOHLCV::', symbol, timeframe, stored);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "start": 1670363160000,
@@ -499,7 +545,7 @@ export default class bybit extends bybitRest {
             }
         }
         const topics = [ 'orderbook.' + limit.toString () + '.' + market['id'] ];
-        const orderbook = await this.watchTopics (url, messageHash, topics, params);
+        const orderbook = await this.watchTopics (url, messageHash, topics, messageHash, params);
         return orderbook.limit ();
     }
 
@@ -640,7 +686,7 @@ export default class bybit extends bybitRest {
         params = this.cleanParams (params);
         const messageHash = 'trade:' + symbol;
         const topic = 'publicTrade.' + market['id'];
-        const trades = await this.watchTopics (url, messageHash, [ topic ], params);
+        const trades = await this.watchTopics (url, messageHash, [ topic ], messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -810,7 +856,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchMyTrades
@@ -838,7 +884,7 @@ export default class bybit extends bybitRest {
             'usdc': 'user.openapi.perp.trade',
         };
         const topic = this.safeValue (topicByMarket, this.getPrivateType (url));
-        const trades = await this.watchTopics (url, messageHash, [ topic ], params);
+        const trades = await this.watchTopics (url, messageHash, [ topic ], messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -938,7 +984,149 @@ export default class bybit extends bybitRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchPositions
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const method = 'watchPositions';
+        let messageHash = '';
+        if (!this.isEmpty (symbols)) {
+            symbols = this.marketSymbols (symbols);
+            messageHash = '::' + symbols.join (',');
+        }
+        const firstSymbol = this.safeString (symbols, 0);
+        const url = this.getUrlByMarketType (firstSymbol, true, method, params);
+        messageHash = 'positions' + messageHash;
+        const client = this.client (url);
+        await this.authenticate (url);
+        this.setPositionsCache (client, symbols);
+        const cache = this.positions;
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const topics = [ 'position' ];
+        const newPositions = await this.watchTopics (url, messageHash, topics, 'position', params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
+        if (this.positions !== undefined) {
+            return this.positions;
+        }
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+            }
+        } else {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash) {
+        // as only one ws channel gives positions for all types, for snapshot must load all positions
+        const fetchFunctions = [
+            this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'linear' }),
+            this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'inverse' }),
+        ];
+        const promises = await Promise.all (fetchFunctions);
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions;
+        for (let i = 0; i < promises.length; i++) {
+            const positions = promises[i];
+            for (let ii = 0; ii < positions.length; ii++) {
+                const position = positions[ii];
+                cache.append (position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (cache, 'position');
+    }
+
+    handlePositions (client, message) {
+        //
+        //    {
+        //        topic: 'position',
+        //        id: '504b2671629b08e3c4f6960382a59363:3bc4028023786545:0:01',
+        //        creationTime: 1694566055295,
+        //        data: [{
+        //            bustPrice: '15.00',
+        //            category: 'inverse',
+        //            createdTime: '1670083436351',
+        //            cumRealisedPnl: '0.00011988',
+        //            entryPrice: '19358.58553268',
+        //            leverage: '10',
+        //            liqPrice: '15.00',
+        //            markPrice: '25924.00',
+        //            positionBalance: '0.0000156',
+        //            positionIdx: 0,
+        //            positionMM: '0.001',
+        //            positionIM: '0.0000015497',
+        //            positionStatus: 'Normal',
+        //            positionValue: '0.00015497',
+        //            riskId: 1,
+        //            riskLimitValue: '150',
+        //            side: 'Buy',
+        //            size: '3',
+        //            stopLoss: '0.00',
+        //            symbol: 'BTCUSD',
+        //            takeProfit: '0.00',
+        //            tpslMode: 'Full',
+        //            tradeMode: 0,
+        //            autoAddMargin: 1,
+        //            trailingStop: '0.00',
+        //            unrealisedPnl: '0.00003925',
+        //            updatedTime: '1694566055293',
+        //            adlRankIndicator: 3
+        //        }]
+        //    }
+        //
+        // each account is connected to a different endpoint
+        // and has exactly one subscriptionhash which is the account type
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        const rawPositions = this.safeValue (message, 'data', []);
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition (rawPosition);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, 'positions');
+    }
+
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOrders
@@ -965,7 +1153,7 @@ export default class bybit extends bybitRest {
             'usdc': [ 'user.openapi.perp.order' ],
         };
         const topics = this.safeValue (topicsByMarket, this.getPrivateType (url));
-        const orders = await this.watchTopics (url, messageHash, topics, params);
+        const orders = await this.watchTopics (url, messageHash, topics, messageHash, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1092,32 +1280,32 @@ export default class bybit extends bybitRest {
     parseWsSpotOrder (order, market = undefined) {
         //
         //    {
-        //        e: 'executionReport',
-        //        E: '1653297251061', // timestamp
-        //        s: 'LTCUSDT', // symbol
-        //        c: '1653297250740', // user id
-        //        S: 'SELL', // side
-        //        o: 'MARKET_OF_BASE', // order type
-        //        f: 'GTC', // time in force
-        //        q: '0.16233', // quantity
-        //        p: '0', // price
-        //        X: 'NEW', // status
-        //        i: '1162336018974750208', // order id
-        //        M: '0',
-        //        l: '0', // last filled
-        //        z: '0', // total filled
-        //        L: '0', // last traded price
-        //        n: '0', // trading fee
-        //        N: '', // fee asset
-        //        u: true,
-        //        w: true,
-        //        m: false, // is limit_maker
-        //        O: '1653297251042', // order creation
-        //        Z: '0', // total filled
-        //        A: '0', // account id
-        //        C: false, // is close
-        //        v: '0', // leverage
-        //        d: 'NO_LIQ'
+        //        "e": "executionReport",
+        //        "E": "1653297251061", // timestamp
+        //        "s": "LTCUSDT", // symbol
+        //        "c": "1653297250740", // user id
+        //        "S": "SELL", // side
+        //        "o": "MARKET_OF_BASE", // order type
+        //        "f": "GTC", // time in force
+        //        "q": "0.16233", // quantity
+        //        "p": "0", // price
+        //        "X": "NEW", // status
+        //        "i": "1162336018974750208", // order id
+        //        "M": "0",
+        //        "l": "0", // last filled
+        //        "z": "0", // total filled
+        //        "L": "0", // last traded price
+        //        "n": "0", // trading fee
+        //        "N": '', // fee asset
+        //        "u": true,
+        //        "w": true,
+        //        "m": false, // is limit_maker
+        //        "O": "1653297251042", // order creation
+        //        "Z": "0", // total filled
+        //        "A": "0", // account id
+        //        "C": false, // is close
+        //        "v": "0", // leverage
+        //        "d": "NO_LIQ"
         //    }
         // v5
         //    {
@@ -1279,7 +1467,7 @@ export default class bybit extends bybitRest {
             }
         }
         const topics = [ this.safeValue (topicByMarket, this.getPrivateType (url)) ];
-        return await this.watchTopics (url, messageHash, topics, params);
+        return await this.watchTopics (url, messageHash, topics, messageHash, params);
     }
 
     handleBalance (client: Client, message) {
@@ -1518,14 +1706,14 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTopics (url, messageHash, topics = [], params = {}) {
+    async watchTopics (url, messageHash, topics, subscriptionHash, params = {}) {
         const request = {
             'op': 'subscribe',
             'req_id': this.requestId (),
             'args': topics,
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, subscriptionHash);
     }
 
     async authenticate (url, params = {}) {
@@ -1555,28 +1743,28 @@ export default class bybit extends bybitRest {
     handleErrorMessage (client: Client, message) {
         //
         //   {
-        //       success: false,
-        //       ret_msg: 'error:invalid op',
-        //       conn_id: '5e079fdd-9c7f-404d-9dbf-969d650838b5',
-        //       request: { op: '', args: null }
+        //       "success": false,
+        //       "ret_msg": "error:invalid op",
+        //       "conn_id": "5e079fdd-9c7f-404d-9dbf-969d650838b5",
+        //       "request": { op: '', args: null }
         //   }
         //
         // auth error
         //
         //   {
-        //       success: false,
-        //       ret_msg: 'error:USVC1111',
-        //       conn_id: 'e73770fb-a0dc-45bd-8028-140e20958090',
-        //       request: {
-        //         op: 'auth',
-        //         args: [
-        //           '9rFT6uR4uz9Imkw4Wx',
-        //           '1653405853543',
-        //           '542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889'
+        //       "success": false,
+        //       "ret_msg": "error:USVC1111",
+        //       "conn_id": "e73770fb-a0dc-45bd-8028-140e20958090",
+        //       "request": {
+        //         "op": "auth",
+        //         "args": [
+        //           "9rFT6uR4uz9Imkw4Wx",
+        //           "1653405853543",
+        //           "542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889"
         //         ]
         //   }
         //
-        //   { code: '-10009', desc: 'Invalid period!' }
+        //   { code: '-10009', desc: "Invalid period!" }
         //
         const code = this.safeString2 (message, 'code', 'ret_code');
         try {
@@ -1652,6 +1840,7 @@ export default class bybit extends bybitRest {
             'execution': this.handleMyTrades,
             'ticketInfo': this.handleMyTrades,
             'user.openapi.perp.trade': this.handleMyTrades,
+            'position': this.handlePositions,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
@@ -1684,10 +1873,10 @@ export default class bybit extends bybitRest {
     handlePong (client: Client, message) {
         //
         //   {
-        //       success: true,
-        //       ret_msg: 'pong',
-        //       conn_id: 'db3158a0-8960-44b9-a9de-ac350ee13158',
-        //       request: { op: 'ping', args: null }
+        //       "success": true,
+        //       "ret_msg": "pong",
+        //       "conn_id": "db3158a0-8960-44b9-a9de-ac350ee13158",
+        //       "request": { op: "ping", args: null }
         //   }
         //
         //   { pong: 1653296711335 }
@@ -1699,10 +1888,10 @@ export default class bybit extends bybitRest {
     handleAuthenticate (client: Client, message) {
         //
         //    {
-        //        success: true,
-        //        ret_msg: '',
-        //        op: 'auth',
-        //        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        //        "success": true,
+        //        "ret_msg": '',
+        //        "op": "auth",
+        //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
         const success = this.safeValue (message, 'success');
@@ -1723,16 +1912,16 @@ export default class bybit extends bybitRest {
     handleSubscriptionStatus (client: Client, message) {
         //
         //    {
-        //        topic: 'kline',
-        //        event: 'sub',
-        //        params: {
-        //          symbol: 'LTCUSDT',
-        //          binary: 'false',
-        //          klineType: '1m',
-        //          symbolName: 'LTCUSDT'
+        //        "topic": "kline",
+        //        "event": "sub",
+        //        "params": {
+        //          "symbol": "LTCUSDT",
+        //          "binary": "false",
+        //          "klineType": "1m",
+        //          "symbolName": "LTCUSDT"
         //        },
-        //        code: '0',
-        //        msg: 'Success'
+        //        "code": "0",
+        //        "msg": "Success"
         //    }
         //
         return message;

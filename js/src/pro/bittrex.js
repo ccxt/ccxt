@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bittrexRest from '../bittrex.js';
-import { InvalidNonce, BadRequest } from '../base/errors.js';
+import { InvalidNonce, BadRequest, ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -47,6 +47,12 @@ export default class bittrex extends bittrexRest {
                 'I': this.milliseconds(),
                 'watchOrderBook': {
                     'maxRetries': 3,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'INVALID_APIKEY': AuthenticationError,
+                    'UNAUTHORIZED_USER': AuthenticationError,
                 },
             },
         });
@@ -99,6 +105,7 @@ export default class bittrex extends bittrexRest {
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
     async authenticate(params = {}) {
+        this.checkRequiredCredentials();
         await this.loadMarkets();
         const request = await this.negotiate();
         return await this.sendRequestToAuthenticate(request, false, params);
@@ -119,7 +126,7 @@ export default class bittrex extends bittrexRest {
                 'negotiation': negotiation,
                 'method': this.handleAuthenticate,
             };
-            this.spawn(this.watch, url, messageHash, request, requestId, subscription);
+            this.watch(url, messageHash, request, requestId, subscription);
         }
         return await future;
     }
@@ -142,8 +149,8 @@ export default class bittrex extends bittrexRest {
     handleAuthenticationExpiring(client, message) {
         //
         //     {
-        //         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
-        //         M: [ { H: 'C3', M: 'authenticationExpiring', A: [] } ]
+        //         "C": "d-B1733F58-B,0|vT7,1|vT8,2|vBR,3",
+        //         "M": [ { H: "C3", M: "authenticationExpiring", A: [] } ]
         //     }
         //
         // resend the authentication request and refresh the subscription
@@ -175,16 +182,16 @@ export default class bittrex extends bittrexRest {
             const response = await this.signalrGetNegotiate(this.extend(request, params));
             //
             //     {
-            //         Url: '/signalr/v1.1/signalr',
-            //         ConnectionToken: 'lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O',
-            //         ConnectionId: 'a2afb0f7-346f-4f32-b7c7-01e04584b86a',
-            //         KeepAliveTimeout: 20,
-            //         DisconnectTimeout: 30,
-            //         ConnectionTimeout: 110,
-            //         TryWebSockets: true,
-            //         ProtocolVersion: '1.5',
-            //         TransportConnectTimeout: 5,
-            //         LongPollDelay: 0
+            //         "Url": "/signalr/v1.1/signalr",
+            //         "ConnectionToken": "lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O",
+            //         "ConnectionId": "a2afb0f7-346f-4f32-b7c7-01e04584b86a",
+            //         "KeepAliveTimeout": 20,
+            //         "DisconnectTimeout": 30,
+            //         "ConnectionTimeout": 110,
+            //         "TryWebSockets": true,
+            //         "ProtocolVersion": "1.5",
+            //         "TransportConnectTimeout": 5,
+            //         "LongPollDelay": 0
             //     }
             //
             const result = {
@@ -231,22 +238,22 @@ export default class bittrex extends bittrexRest {
     handleOrder(client, message) {
         //
         //     {
-        //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //         sequence: 41,
-        //         delta: {
-        //             id: 'b91eff76-10eb-4382-834a-b753b770283e',
-        //             marketSymbol: 'BTC-USDT',
-        //             direction: 'BUY',
-        //             type: 'LIMIT',
-        //             quantity: '0.01000000',
-        //             limit: '3000.00000000',
-        //             timeInForce: 'GOOD_TIL_CANCELLED',
-        //             fillQuantity: '0.00000000',
-        //             commission: '0.00000000',
-        //             proceeds: '0.00000000',
-        //             status: 'OPEN',
-        //             createdAt: '2020-10-07T12:51:43.16Z',
-        //             updatedAt: '2020-10-07T12:51:43.16Z'
+        //         "accountId": "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        //         "sequence": 41,
+        //         "delta": {
+        //             "id": "b91eff76-10eb-4382-834a-b753b770283e",
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.01000000",
+        //             "limit": "3000.00000000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED",
+        //             "fillQuantity": "0.00000000",
+        //             "commission": "0.00000000",
+        //             "proceeds": "0.00000000",
+        //             "status": "OPEN",
+        //             "createdAt": "2020-10-07T12:51:43.16Z",
+        //             "updatedAt": "2020-10-07T12:51:43.16Z"
         //         }
         //     }
         //
@@ -280,13 +287,13 @@ export default class bittrex extends bittrexRest {
     handleBalance(client, message) {
         //
         //     {
-        //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //         sequence: 9,
-        //         delta: {
-        //             currencySymbol: 'USDT',
-        //             total: '32.88918476',
-        //             available: '2.82918476',
-        //             updatedAt: '2020-10-06T13:49:20.29Z'
+        //         "accountId": "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        //         "sequence": 9,
+        //         "delta": {
+        //             "currencySymbol": "USDT",
+        //             "total": "32.88918476",
+        //             "available": "2.82918476",
+        //             "updatedAt": "2020-10-06T13:49:20.29Z"
         //         }
         //     }
         //
@@ -364,10 +371,10 @@ export default class bittrex extends bittrexRest {
         // ticker subscription update
         //
         //     {
-        //         symbol: 'BTC-USDT',
-        //         lastTradeRate: '10701.02140008',
-        //         bidRate: '10701.02140007',
-        //         askRate: '10705.71049998'
+        //         "symbol": "BTC-USDT",
+        //         "lastTradeRate": "10701.02140008",
+        //         "bidRate": "10701.02140007",
+        //         "askRate": "10705.71049998"
         //     }
         //
         const ticker = this.parseTicker(message);
@@ -416,17 +423,17 @@ export default class bittrex extends bittrexRest {
     handleOHLCV(client, message) {
         //
         //     {
-        //         sequence: 28286,
-        //         marketSymbol: 'BTC-USD',
-        //         interval: 'MINUTE_1',
-        //         delta: {
-        //             startsAt: '2020-10-05T18:52:00Z',
-        //             open: '10706.62600000',
-        //             high: '10706.62600000',
-        //             low: '10703.25900000',
-        //             close: '10703.26000000',
-        //             volume: '0.86822264',
-        //             quoteVolume: '9292.84594774'
+        //         "sequence": 28286,
+        //         "marketSymbol": "BTC-USD",
+        //         "interval": "MINUTE_1",
+        //         "delta": {
+        //             "startsAt": "2020-10-05T18:52:00Z",
+        //             "open": "10706.62600000",
+        //             "high": "10706.62600000",
+        //             "low": "10703.25900000",
+        //             "close": "10703.26000000",
+        //             "volume": "0.86822264",
+        //             "quoteVolume": "9292.84594774"
         //         }
         //     }
         //
@@ -483,17 +490,17 @@ export default class bittrex extends bittrexRest {
     handleTrades(client, message) {
         //
         //     {
-        //         deltas: [
+        //         "deltas": [
         //             {
-        //                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
-        //                 executedAt: '2020-10-05T23:02:17.49Z',
-        //                 quantity: '0.00166790',
-        //                 rate: '10763.97000000',
-        //                 takerSide: 'BUY'
+        //                 "id": "5bf67885-a0a8-4c62-b73d-534e480e3332",
+        //                 "executedAt": "2020-10-05T23:02:17.49Z",
+        //                 "quantity": "0.00166790",
+        //                 "rate": "10763.97000000",
+        //                 "takerSide": "BUY"
         //             }
         //         ],
-        //         sequence: 24391,
-        //         marketSymbol: 'BTC-USD'
+        //         "sequence": 24391,
+        //         "marketSymbol": "BTC-USD"
         //     }
         //
         const deltas = this.safeValue(message, 'deltas', []);
@@ -526,7 +533,9 @@ export default class bittrex extends bittrexRest {
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets();
-        symbol = this.symbol(symbol);
+        if (symbol !== undefined) {
+            symbol = this.symbol(symbol);
+        }
         const authentication = await this.authenticate();
         const trades = await this.subscribeToMyTrades(authentication, params);
         if (this.newUpdates) {
@@ -541,18 +550,18 @@ export default class bittrex extends bittrexRest {
     handleMyTrades(client, message) {
         //
         //     {
-        //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //         sequence: 42,
-        //         deltas: [
+        //         "accountId": "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        //         "sequence": 42,
+        //         "deltas": [
         //             {
-        //                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
-        //                 marketSymbol: 'BTC-USDT',
-        //                 executedAt: '2020-10-05T23:02:17.49Z',
-        //                 quantity: '0.00166790',
-        //                 rate: '10763.97000000',
-        //                 orderId: "string (uuid)",
-        //                 commission: '0.00000000',
-        //                 isTaker: False
+        //                 "id": "5bf67885-a0a8-4c62-b73d-534e480e3332",
+        //                 "marketSymbol": "BTC-USDT",
+        //                 "executedAt": "2020-10-05T23:02:17.49Z",
+        //                 "quantity": "0.00166790",
+        //                 "rate": "10763.97000000",
+        //                 "orderId": "string (uuid)",
+        //                 "commission": "0.00000000",
+        //                 "isTaker": False
         //             }
         //         ]
         //     }
@@ -677,8 +686,8 @@ export default class bittrex extends bittrexRest {
     handleDelta(bookside, delta) {
         //
         //     {
-        //         quantity: '0.05100000',
-        //         rate: '10694.86410031'
+        //         "quantity": "0.05100000",
+        //         "rate": "10694.86410031"
         //     }
         //
         const price = this.safeFloat(delta, 'rate');
@@ -688,8 +697,8 @@ export default class bittrex extends bittrexRest {
     handleDeltas(bookside, deltas) {
         //
         //     [
-        //         { quantity: '0.05100000', rate: '10694.86410031' },
-        //         { quantity: '0', rate: '10665.72578226' }
+        //         { quantity: '0.05100000', rate: "10694.86410031" },
+        //         { quantity: "0", rate: "10665.72578226" }
         //     ]
         //
         for (let i = 0; i < deltas.length; i++) {
@@ -699,14 +708,14 @@ export default class bittrex extends bittrexRest {
     handleOrderBook(client, message) {
         //
         //     {
-        //         marketSymbol: 'BTC-USDT',
-        //         depth: 25,
-        //         sequence: 3009387,
-        //         bidDeltas: [
-        //             { quantity: '0.05100000', rate: '10694.86410031' },
-        //             { quantity: '0', rate: '10665.72578226' }
+        //         "marketSymbol": "BTC-USDT",
+        //         "depth": 25,
+        //         "sequence": 3009387,
+        //         "bidDeltas": [
+        //             { quantity: '0.05100000', rate: "10694.86410031" },
+        //             { quantity: "0", rate: "10665.72578226" }
         //         ],
-        //         askDeltas: []
+        //         "askDeltas": []
         //     }
         //
         const marketId = this.safeString(message, 'marketSymbol');
@@ -726,14 +735,14 @@ export default class bittrex extends bittrexRest {
     handleOrderBookMessage(client, message, orderbook) {
         //
         //     {
-        //         marketSymbol: 'BTC-USDT',
-        //         depth: 25,
-        //         sequence: 3009387,
-        //         bidDeltas: [
-        //             { quantity: '0.05100000', rate: '10694.86410031' },
-        //             { quantity: '0', rate: '10665.72578226' }
+        //         "marketSymbol": "BTC-USDT",
+        //         "depth": 25,
+        //         "sequence": 3009387,
+        //         "bidDeltas": [
+        //             { quantity: '0.05100000', rate: "10694.86410031" },
+        //             { quantity: "0", rate: "10665.72578226" }
         //         ],
-        //         askDeltas: []
+        //         "askDeltas": []
         //     }
         //
         const marketId = this.safeString(message, 'marketSymbol');
@@ -762,14 +771,14 @@ export default class bittrex extends bittrexRest {
         //
         // success
         //
-        //     { R: [ { Success: true, ErrorCode: null } ], I: '1601891513224' }
+        //     { R: [ { Success: true, ErrorCode: null } ], I: "1601891513224" }
         //
         // failure
         // todo add error handling and future rejections
         //
         //     {
-        //         I: '1601942374563',
-        //         E: "There was an error invoking Hub method 'c3.Authenticate'."
+        //         "I": "1601942374563",
+        //         "E": "There was an error invoking Hub method "c3.Authenticate"."
         //     }
         //
         const I = this.safeString(message, 'I'); // noqa: E741
@@ -791,23 +800,77 @@ export default class bittrex extends bittrexRest {
         }
         return message;
     }
+    handleErrorMessage(client, message) {
+        //
+        //    {
+        //        "R": [{ Success: false, ErrorCode: "UNAUTHORIZED_USER" }, ... ],
+        //        "I": "1698601759267"
+        //    }
+        //    {
+        //        "R": { Success: false, ErrorCode: "INVALID_APIKEY" },
+        //        "I": "1698601759266"
+        //    }
+        //
+        const R = this.safeValue(message, 'R');
+        if (R === undefined) {
+            // Return there is no error
+            return false;
+        }
+        const I = this.safeString(message, 'I');
+        let errorCode = undefined;
+        if (Array.isArray(R)) {
+            for (let i = 0; i < R.length; i++) {
+                const response = this.safeValue(R, i);
+                const success = this.safeValue(response, 'Success', true);
+                if (!success) {
+                    errorCode = this.safeString(response, 'ErrorCode');
+                    break;
+                }
+            }
+        }
+        else {
+            const success = this.safeValue(R, 'Success', true);
+            if (!success) {
+                errorCode = this.safeString(R, 'ErrorCode');
+            }
+        }
+        if (errorCode === undefined) {
+            // Return there is no error
+            return false;
+        }
+        const feedback = this.id + ' ' + errorCode;
+        try {
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            if (message !== undefined) {
+                this.throwBroadlyMatchedException(this.exceptions['broad'], errorCode, feedback);
+            }
+            throw new ExchangeError(feedback);
+        }
+        catch (e) {
+            if (e instanceof AuthenticationError) {
+                client.reject(e, 'authenticate');
+            }
+            client.reject(e, I);
+        }
+        return true;
+    }
     handleMessage(client, message) {
         //
         // subscription confirmation
         //
         //     {
-        //         R: [
+        //         "R": [
         //             { Success: true, ErrorCode: null }
         //         ],
-        //         I: '1601899375696'
+        //         "I": "1601899375696"
         //     }
         //
         // heartbeat subscription update
         //
         //     {
-        //         C: 'd-6010FB90-B,0|o_b,0|o_c,2|8,1F4E',
-        //         M: [
-        //             { H: 'C3', M: 'heartbeat', A: [] }
+        //         "C": "d-6010FB90-B,0|o_b,0|o_c,2|8,1F4E",
+        //         "M": [
+        //             { H: "C3", M: "heartbeat", A: [] }
         //         ]
         //     }
         //
@@ -818,13 +881,13 @@ export default class bittrex extends bittrexRest {
         // subscription update
         //
         //     {
-        //         C: 'd-ED78B69D-E,0|rq4,0|rq5,2|puI,60C',
-        //         M: [
+        //         "C": "d-ED78B69D-E,0|rq4,0|rq5,2|puI,60C",
+        //         "M": [
         //             {
-        //                 H: 'C3',
-        //                 M: 'ticker', // orderBook, trade, candle, balance, order
-        //                 A: [
-        //                     'q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=='
+        //                 "H": "C3",
+        //                 "M": "ticker", // orderBook, trade, candle, balance, order
+        //                 "A": [
+        //                     "q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=="
         //                 ]
         //             }
         //         ]
@@ -833,10 +896,13 @@ export default class bittrex extends bittrexRest {
         // authentication expiry notification
         //
         //     {
-        //         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
-        //         M: [ { H: 'C3', M: 'authenticationExpiring', A: [] } ]
+        //         "C": "d-B1733F58-B,0|vT7,1|vT8,2|vBR,3",
+        //         "M": [ { H: "C3", M: "authenticationExpiring", A: [] } ]
         //     }
         //
+        if (this.handleErrorMessage(client, message)) {
+            return;
+        }
         const methods = {
             'authenticationExpiring': this.handleAuthenticationExpiring,
             'order': this.handleOrder,

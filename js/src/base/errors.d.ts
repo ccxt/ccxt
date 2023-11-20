@@ -22,6 +22,9 @@ declare class ArgumentsRequired extends ExchangeError {
 declare class BadRequest extends ExchangeError {
     constructor(message: any);
 }
+declare class OperationRejected extends BadRequest {
+    constructor(message: any);
+}
 declare class BadSymbol extends BadRequest {
     constructor(message: any);
 }
@@ -94,6 +97,9 @@ declare class InvalidNonce extends NetworkError {
 declare class RequestTimeout extends NetworkError {
     constructor(message: any);
 }
+declare class OperationFailed extends BaseError {
+    constructor(message: any);
+}
 declare const errors: {
     BaseError: typeof BaseError;
     ExchangeError: typeof ExchangeError;
@@ -126,6 +132,9 @@ declare const errors: {
     AuthenticationError: typeof AuthenticationError;
     AddressPending: typeof AddressPending;
     ContractUnavailable: typeof ContractUnavailable;
+    NoChange: typeof NoChange;
+    OperationRejected: typeof OperationRejected;
+    OperationFailed: typeof OperationFailed;
 };
-export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable };
+export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed };
 export default errors;

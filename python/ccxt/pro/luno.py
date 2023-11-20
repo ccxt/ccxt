@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.base.types import Int, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 
 
 class luno(ccxt.async_support.luno):
@@ -37,10 +37,10 @@ class luno(ccxt.async_support.luno):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://www.luno.com/en/developers/api#tag/Streaming-API
+        :see: https://www.luno.com/en/developers/api#tag/Streaming-API
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of    trades to fetch
@@ -68,17 +68,17 @@ class luno(ccxt.async_support.luno):
     def handle_trades(self, client: Client, message, subscription):
         #
         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [],
-        #         create_update: {
-        #             order_id: 'BXHSYXAUMH8C2RW',
-        #             type: 'ASK',
-        #             price: '24081.09000000',
-        #             volume: '0.07780000'
+        #         "sequence": "110980825",
+        #         "trade_updates": [],
+        #         "create_update": {
+        #             "order_id": "BXHSYXAUMH8C2RW",
+        #             "type": "ASK",
+        #             "price": "24081.09000000",
+        #             "volume": "0.07780000"
         #         },
-        #         delete_update: null,
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "delete_update": null,
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #
         rawTrades = self.safe_value(message, 'trade_updates', [])
@@ -100,7 +100,7 @@ class luno(ccxt.async_support.luno):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # watchTrades(public)
         #
@@ -129,7 +129,7 @@ class luno(ccxt.async_support.luno):
             'fee': None,
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -174,17 +174,17 @@ class luno(ccxt.async_support.luno):
         #
         #  update
         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [],
-        #         create_update: {
-        #             order_id: 'BXHSYXAUMH8C2RW',
-        #             type: 'ASK',
-        #             price: '24081.09000000',
-        #             volume: '0.07780000'
+        #         "sequence": "110980825",
+        #         "trade_updates": [],
+        #         "create_update": {
+        #             "order_id": "BXHSYXAUMH8C2RW",
+        #             "type": "ASK",
+        #             "price": "24081.09000000",
+        #             "volume": "0.07780000"
         #         },
-        #         delete_update: null,
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "delete_update": null,
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #
         symbol = subscription['symbol']
@@ -238,32 +238,32 @@ class luno(ccxt.async_support.luno):
         #
         #  create
         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [],
-        #         create_update: {
-        #             order_id: 'BXHSYXAUMH8C2RW',
-        #             type: 'ASK',
-        #             price: '24081.09000000',
-        #             volume: '0.07780000'
+        #         "sequence": "110980825",
+        #         "trade_updates": [],
+        #         "create_update": {
+        #             "order_id": "BXHSYXAUMH8C2RW",
+        #             "type": "ASK",
+        #             "price": "24081.09000000",
+        #             "volume": "0.07780000"
         #         },
-        #         delete_update: null,
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "delete_update": null,
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #  del         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [],
-        #         create_update: null,
-        #         delete_update: {
+        #         "sequence": "110980825",
+        #         "trade_updates": [],
+        #         "create_update": null,
+        #         "delete_update": {
         #             "order_id": "BXMC2CJ7HNB88U4"
         #         },
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #  trade
         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [
+        #         "sequence": "110980825",
+        #         "trade_updates": [
         #             {
         #                 "base": "0.1",
         #                 "counter": "5232.00",
@@ -271,10 +271,10 @@ class luno(ccxt.async_support.luno):
         #                 "taker_order_id": "BXMC2CJ7HNB88U5"
         #             }
         #         ],
-        #         create_update: null,
-        #         delete_update: null,
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "create_update": null,
+        #         "delete_update": null,
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #
         createUpdate = self.safe_value(message, 'create_update')

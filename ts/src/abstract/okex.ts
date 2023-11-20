@@ -29,7 +29,7 @@ interface okx {
     publicGetMarketIndexComponents (params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTickers (params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketBlockTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetPublicBlockTrades (params?: {}): Promise<implicitReturnType>;
     publicGetPublicInstruments (params?: {}): Promise<implicitReturnType>;
     publicGetPublicDeliveryExerciseHistory (params?: {}): Promise<implicitReturnType>;
     publicGetPublicOpenInterest (params?: {}): Promise<implicitReturnType>;
@@ -68,6 +68,7 @@ interface okx {
     publicGetTradingBotGridMinInvestment (params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotPublicRsiBackTesting (params?: {}): Promise<implicitReturnType>;
     publicGetAssetExchangeList (params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceStakingDefiEthApyHistory (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSfpDcdProducts (params?: {}): Promise<implicitReturnType>;
@@ -87,6 +88,7 @@ interface okx {
     privateGetTradeOrdersHistoryArchive (params?: {}): Promise<implicitReturnType>;
     privateGetTradeFills (params?: {}): Promise<implicitReturnType>;
     privateGetTradeFillsHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeFillsArchive (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
@@ -149,6 +151,12 @@ interface okx {
     privateGetTradingBotGridOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridSubOrders (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotGridAiParam (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotPublicRsiBackTesting (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotSignalOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotSignalPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotSignalSubOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotSignalEventHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotRecurringOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotRecurringOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotRecurringOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
@@ -158,6 +166,8 @@ interface okx {
     privateGetFinanceStakingDefiOffers (params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiOrdersActive (params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiOrdersHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiEthBalance (params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiEthPurchaseRedeemHistory (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingCurrentSubpositions (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingSubpositionsHistory (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingInstruments (params?: {}): Promise<implicitReturnType>;
@@ -190,6 +200,7 @@ interface okx {
     privatePostSprdOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSprdCancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSprdMassCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostSprdAmendOrder (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     privatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelOrder (params?: {}): Promise<implicitReturnType>;
@@ -197,6 +208,7 @@ interface okx {
     privatePostTradeAmendOrder (params?: {}): Promise<implicitReturnType>;
     privatePostTradeAmendBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeClosePosition (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeFillsArchive (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelAlgos (params?: {}): Promise<implicitReturnType>;
     privatePostTradeAmendAlgos (params?: {}): Promise<implicitReturnType>;
@@ -248,6 +260,8 @@ interface okx {
     privatePostFinanceStakingDefiPurchase (params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiRedeem (params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiEthPurchase (params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiEthRedeem (params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingAlgoOrder (params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingCloseSubposition (params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingSetInstruments (params?: {}): Promise<implicitReturnType>;
@@ -264,6 +278,7 @@ interface okx {
     privatePostBrokerNdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
     privatePostFinanceSfpDcdQuote (params?: {}): Promise<implicitReturnType>;
     privatePostFinanceSfpDcdOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostBrokerNdReportSubaccountIp (params?: {}): Promise<implicitReturnType>;
     privatePostBrokerFdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
 }
 abstract class okx extends _okx {}

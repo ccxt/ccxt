@@ -68,18 +68,18 @@ class kucoin extends \ccxt\async\kucoin {
                 $response = Async\await($this->privatePostBulletPrivate ($params));
                 //
                 //     {
-                //         code => "200000",
-                //         $data => {
-                //             $instanceServers => array(
+                //         "code" => "200000",
+                //         "data" => {
+                //             "instanceServers" => array(
                 //                 {
-                //                     $pingInterval =>  50000,
-                //                     $endpoint => "wss://push-private.kucoin.com/endpoint",
-                //                     protocol => "websocket",
-                //                     encrypt => true,
-                //                     pingTimeout => 10000
+                //                     "pingInterval" =>  50000,
+                //                     "endpoint" => "wss://push-private.kucoin.com/endpoint",
+                //                     "protocol" => "websocket",
+                //                     "encrypt" => true,
+                //                     "pingTimeout" => 10000
                 //                 }
                 //             ),
-                //             $token => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //             "token" => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
                 //         }
                 //     }
                 //
@@ -210,18 +210,18 @@ class kucoin extends \ccxt\async\kucoin {
         // market/ticker
         //
         //     {
-        //         type => 'message',
-        //         $topic => '/market/ticker:BTC-USDT',
-        //         subject => 'trade.ticker',
-        //         $data => {
-        //             bestAsk => '62163',
-        //             bestAskSize => '0.99011388',
-        //             bestBid => '62162.9',
-        //             bestBidSize => '0.04794181',
-        //             price => '62162.9',
-        //             sequence => '1621383371852',
-        //             size => '0.00832274',
-        //             time => 1634641987564
+        //         "type" => "message",
+        //         "topic" => "/market/ticker:BTC-USDT",
+        //         "subject" => "trade.ticker",
+        //         "data" => {
+        //             "bestAsk" => "62163",
+        //             "bestAskSize" => "0.99011388",
+        //             "bestBid" => "62162.9",
+        //             "bestBidSize" => "0.04794181",
+        //             "price" => "62162.9",
+        //             "sequence" => "1621383371852",
+        //             "size" => "0.00832274",
+        //             "time" => 1634641987564
         //         }
         //     }
         //
@@ -291,22 +291,22 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         $data => array(
-        //             $symbol => 'BTC-USDT',
-        //             $candles => array(
-        //                 '1624881240',
-        //                 '34138.8',
-        //                 '34121.6',
-        //                 '34138.8',
-        //                 '34097.9',
-        //                 '3.06097133',
-        //                 '104430.955068564'
+        //         "data" => array(
+        //             "symbol" => "BTC-USDT",
+        //             "candles" => array(
+        //                 "1624881240",
+        //                 "34138.8",
+        //                 "34121.6",
+        //                 "34138.8",
+        //                 "34097.9",
+        //                 "3.06097133",
+        //                 "104430.955068564"
         //             ),
-        //             time => 1624881284466023700
+        //             "time" => 1624881284466023700
         //         ),
-        //         subject => 'trade.candles.update',
-        //         $topic => '/market/candles:BTC-USDT_1min',
-        //         type => 'message'
+        //         "subject" => "trade.candles.update",
+        //         "topic" => "/market/candles:BTC-USDT_1min",
+        //         "type" => "message"
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
@@ -390,21 +390,21 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_trade(Client $client, $message) {
         //
         //     {
-        //         $data => array(
-        //             sequence => '1568787654360',
-        //             $symbol => 'BTC-USDT',
-        //             side => 'buy',
-        //             size => '0.00536577',
-        //             price => '9345',
-        //             takerOrderId => '5e356c4a9f1a790008f8d921',
-        //             time => '1580559434436443257',
-        //             type => 'match',
-        //             makerOrderId => '5e356bffedf0010008fa5d7f',
-        //             tradeId => '5e356c4aeefabd62c62a1ece'
+        //         "data" => array(
+        //             "sequence" => "1568787654360",
+        //             "symbol" => "BTC-USDT",
+        //             "side" => "buy",
+        //             "size" => "0.00536577",
+        //             "price" => "9345",
+        //             "takerOrderId" => "5e356c4a9f1a790008f8d921",
+        //             "time" => "1580559434436443257",
+        //             "type" => "match",
+        //             "makerOrderId" => "5e356bffedf0010008fa5d7f",
+        //             "tradeId" => "5e356c4aeefabd62c62a1ece"
         //         ),
-        //         subject => 'trade.l3match',
-        //         topic => '/market/match:BTC-USDT',
-        //         type => 'message'
+        //         "subject" => "trade.l3match",
+        //         "topic" => "/market/match:BTC-USDT",
+        //         "type" => "message"
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
@@ -620,8 +620,8 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
-        //         $id => '1578090438322',
-        //         type => 'ack'
+        //         "id" => "1578090438322",
+        //         "type" => "ack"
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -641,8 +641,8 @@ class kucoin extends \ccxt\async\kucoin {
         // involves system status and maintenance updates
         //
         //     {
-        //         id => '1578090234088', // connectId
-        //         type => 'welcome',
+        //         "id" => "1578090234088", // connectId
+        //         "type" => "welcome",
         //     }
         //
         return $message;
@@ -654,13 +654,16 @@ class kucoin extends \ccxt\async\kucoin {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @param {boolean} [$params->stop] trigger $orders are watched if true
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             $url = Async\await($this->negotiate(true));
-            $topic = '/spotMarket/tradeOrders';
+            $topic = $stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
             $request = array(
                 'privateChannel' => true,
             );
@@ -685,60 +688,80 @@ class kucoin extends \ccxt\async\kucoin {
             'match' => 'open',
             'update' => 'open',
             'canceled' => 'canceled',
+            'cancel' => 'canceled',
+            'TRIGGERED' => 'triggered',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_ws_order($order, $market = null) {
         //
-        //     {
-        //         'symbol' => 'XCAD-USDT',
-        //         'orderType' => 'limit',
-        //         'side' => 'buy',
-        //         'orderId' => '6249167327218b000135e749',
-        //         'type' => 'canceled',
-        //         'orderTime' => 1648957043065280224,
-        //         'size' => '100.452',
-        //         'filledSize' => '0',
-        //         'price' => '2.9635',
-        //         'clientOid' => 'buy-XCAD-USDT-1648957043010159',
-        //         'remainSize' => '0',
-        //         'status' => 'done',
-        //         'ts' => 1648957054031001037
-        //     }
+        // /spotMarket/tradeOrders
         //
-        $id = $this->safe_string($order, 'orderId');
-        $clientOrderId = $this->safe_string($order, 'clientOid');
-        $orderType = $this->safe_string_lower($order, 'orderType');
-        $price = $this->safe_string($order, 'price');
-        $filled = $this->safe_string($order, 'filledSize');
-        $amount = $this->safe_string($order, 'size');
+        //    {
+        //        "symbol" => "XCAD-USDT",
+        //        "orderType" => "limit",
+        //        "side" => "buy",
+        //        "orderId" => "6249167327218b000135e749",
+        //        "type" => "canceled",
+        //        "orderTime" => 1648957043065280224,
+        //        "size" => "100.452",
+        //        "filledSize" => "0",
+        //        "price" => "2.9635",
+        //        "clientOid" => "buy-XCAD-USDT-1648957043010159",
+        //        "remainSize" => "0",
+        //        "status" => "done",
+        //        "ts" => 1648957054031001037
+        //    }
+        //
+        // /spotMarket/advancedOrders
+        //
+        //    {
+        //        "createdAt" => 1589789942337,
+        //        "orderId" => "5ec244f6a8a75e0009958237",
+        //        "orderPrice" => "0.00062",
+        //        "orderType" => "stop",
+        //        "side" => "sell",
+        //        "size" => "1",
+        //        "stop" => "entry",
+        //        "stopPrice" => "0.00062",
+        //        "symbol" => "KCS-BTC",
+        //        "tradeType" => "TRADE",
+        //        "triggerSuccess" => true,
+        //        "ts" => 1589790121382281286,
+        //        "type" => "triggered"
+        //    }
+        //
         $rawType = $this->safe_string($order, 'type');
         $status = $this->parse_ws_order_status($rawType);
-        $timestamp = $this->safe_integer($order, 'orderTime');
+        $timestamp = $this->safe_integer_2($order, 'orderTime', 'createdAt');
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
-        $side = $this->safe_string_lower($order, 'side');
+        $triggerPrice = $this->safe_string($order, 'stopPrice');
+        $triggerSuccess = $this->safe_value($order, 'triggerSuccess');
+        $triggerFail = ($triggerSuccess !== true) && ($triggerSuccess !== null);  // TODO => updated to $triggerSuccess === False once transpiler transpiles it correctly
+        if (($status === 'triggered') && $triggerFail) {
+            $status = 'canceled';
+        }
         return $this->safe_order(array(
             'info' => $order,
-            'symbol' => $symbol,
-            'id' => $id,
-            'clientOrderId' => $clientOrderId,
+            'symbol' => $market['symbol'],
+            'id' => $this->safe_string($order, 'orderId'),
+            'clientOrderId' => $this->safe_string($order, 'clientOid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'type' => $orderType,
+            'type' => $this->safe_string_lower($order, 'orderType'),
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $side,
-            'price' => $price,
-            'stopPrice' => null,
-            'triggerPrice' => null,
-            'amount' => $amount,
+            'side' => $this->safe_string_lower($order, 'side'),
+            'price' => $this->safe_string_2($order, 'price', 'orderPrice'),
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
+            'amount' => $this->safe_string($order, 'size'),
             'cost' => null,
             'average' => null,
-            'filled' => $filled,
+            'filled' => $this->safe_string($order, 'filledSize'),
             'remaining' => null,
             'status' => $status,
             'fee' => null,
@@ -747,32 +770,51 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function handle_order(Client $client, $message) {
+        //
+        // Trigger Orders
+        //
+        //    {
+        //        "createdAt" => 1692745706437,
+        //        "error" => "Balance insufficient!",       // not always there
+        //        "orderId" => "vs86kp757vlda6ni003qs70v",
+        //        "orderPrice" => "0.26",
+        //        "orderType" => "stop",
+        //        "side" => "sell",
+        //        "size" => "5",
+        //        "stop" => "loss",
+        //        "stopPrice" => "0.26",
+        //        "symbol" => "ADA-USDT",
+        //        "tradeType" => "TRADE",
+        //        "triggerSuccess" => false,                // not always there
+        //        "ts" => "1692745706442929298",
+        //        "type" => "open"
+        //    }
+        //
         $messageHash = 'orders';
         $data = $this->safe_value($message, 'data');
         $parsed = $this->parse_ws_order($data);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
+        $triggerPrice = $this->safe_value($parsed, 'triggerPrice');
+        $isTriggerOrder = ($triggerPrice !== null);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->triggerOrders = new ArrayCacheBySymbolById ($limit);
         }
-        $cachedOrders = $this->orders;
+        $cachedOrders = $isTriggerOrder ? $this->triggerOrders : $this->orders;
         $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
         $order = $this->safe_value($orders, $orderId);
         if ($order !== null) {
             // todo add others to calculate average etc
-            $stopPrice = $this->safe_value($order, 'stopPrice');
-            if ($stopPrice !== null) {
-                $parsed['stopPrice'] = $stopPrice;
-            }
             if ($order['status'] === 'closed') {
                 $parsed['status'] = 'closed';
             }
         }
         $cachedOrders->append ($parsed);
-        $client->resolve ($this->orders, $messageHash);
+        $client->resolve ($cachedOrders, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($this->orders, $symbolSpecificMessageHash);
+        $client->resolve ($cachedOrders, $symbolSpecificMessageHash);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -823,17 +865,17 @@ class kucoin extends \ccxt\async\kucoin {
     public function parse_ws_trade($trade, $market = null) {
         //
         // {
-        //     $fee => 0.00262148,
-        //     $feeCurrency => 'USDT',
-        //     $feeRate => 0.001,
-        //     orderId => '62417436b29df8000183df2f',
-        //     orderType => 'market',
-        //     $price => 131.074,
-        //     $side => 'sell',
-        //     size => 0.02,
-        //     $symbol => 'LTC-USDT',
-        //     time => '1648456758734571745',
-        //     $tradeId => '624174362e113d2f467b3043'
+        //     "fee" => 0.00262148,
+        //     "feeCurrency" => "USDT",
+        //     "feeRate" => 0.001,
+        //     "orderId" => "62417436b29df8000183df2f",
+        //     "orderType" => "market",
+        //     "price" => 131.074,
+        //     "side" => "sell",
+        //     "size" => 0.02,
+        //     "symbol" => "LTC-USDT",
+        //     "time" => "1648456758734571745",
+        //     "tradeId" => "624174362e113d2f467b3043"
         //   }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -975,6 +1017,7 @@ class kucoin extends \ccxt\async\kucoin {
             'account.balance' => array($this, 'handle_balance'),
             '/spot/tradeFills' => array($this, 'handle_my_trade'),
             'orderChange' => array($this, 'handle_order'),
+            'stopOrder' => array($this, 'handle_order'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($method === null) {
@@ -1003,10 +1046,10 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_error_message(Client $client, $message) {
         //
         //    {
-        //        id => '1',
-        //        type => 'error',
-        //        code => 415,
-        //        $data => 'type is not supported'
+        //        "id" => "1",
+        //        "type" => "error",
+        //        "code" => 415,
+        //        "data" => "type is not supported"
         //    }
         //
         $data = $this->safe_string($message, 'data', '');

@@ -60,18 +60,18 @@ class kucoin extends kucoin$1 {
             response = await this.privatePostBulletPrivate(params);
             //
             //     {
-            //         code: "200000",
-            //         data: {
-            //             instanceServers: [
+            //         "code": "200000",
+            //         "data": {
+            //             "instanceServers": [
             //                 {
-            //                     pingInterval:  50000,
-            //                     endpoint: "wss://push-private.kucoin.com/endpoint",
-            //                     protocol: "websocket",
-            //                     encrypt: true,
-            //                     pingTimeout: 10000
+            //                     "pingInterval":  50000,
+            //                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+            //                     "protocol": "websocket",
+            //                     "encrypt": true,
+            //                     "pingTimeout": 10000
             //                 }
             //             ],
-            //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+            //             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
             //         }
             //     }
             //
@@ -195,18 +195,18 @@ class kucoin extends kucoin$1 {
         // market/ticker
         //
         //     {
-        //         type: 'message',
-        //         topic: '/market/ticker:BTC-USDT',
-        //         subject: 'trade.ticker',
-        //         data: {
-        //             bestAsk: '62163',
-        //             bestAskSize: '0.99011388',
-        //             bestBid: '62162.9',
-        //             bestBidSize: '0.04794181',
-        //             price: '62162.9',
-        //             sequence: '1621383371852',
-        //             size: '0.00832274',
-        //             time: 1634641987564
+        //         "type": "message",
+        //         "topic": "/market/ticker:BTC-USDT",
+        //         "subject": "trade.ticker",
+        //         "data": {
+        //             "bestAsk": "62163",
+        //             "bestAskSize": "0.99011388",
+        //             "bestBid": "62162.9",
+        //             "bestBidSize": "0.04794181",
+        //             "price": "62162.9",
+        //             "sequence": "1621383371852",
+        //             "size": "0.00832274",
+        //             "time": 1634641987564
         //         }
         //     }
         //
@@ -275,22 +275,22 @@ class kucoin extends kucoin$1 {
     handleOHLCV(client, message) {
         //
         //     {
-        //         data: {
-        //             symbol: 'BTC-USDT',
-        //             candles: [
-        //                 '1624881240',
-        //                 '34138.8',
-        //                 '34121.6',
-        //                 '34138.8',
-        //                 '34097.9',
-        //                 '3.06097133',
-        //                 '104430.955068564'
+        //         "data": {
+        //             "symbol": "BTC-USDT",
+        //             "candles": [
+        //                 "1624881240",
+        //                 "34138.8",
+        //                 "34121.6",
+        //                 "34138.8",
+        //                 "34097.9",
+        //                 "3.06097133",
+        //                 "104430.955068564"
         //             ],
-        //             time: 1624881284466023700
+        //             "time": 1624881284466023700
         //         },
-        //         subject: 'trade.candles.update',
-        //         topic: '/market/candles:BTC-USDT_1min',
-        //         type: 'message'
+        //         "subject": "trade.candles.update",
+        //         "topic": "/market/candles:BTC-USDT_1min",
+        //         "type": "message"
         //     }
         //
         const data = this.safeValue(message, 'data', {});
@@ -371,21 +371,21 @@ class kucoin extends kucoin$1 {
     handleTrade(client, message) {
         //
         //     {
-        //         data: {
-        //             sequence: '1568787654360',
-        //             symbol: 'BTC-USDT',
-        //             side: 'buy',
-        //             size: '0.00536577',
-        //             price: '9345',
-        //             takerOrderId: '5e356c4a9f1a790008f8d921',
-        //             time: '1580559434436443257',
-        //             type: 'match',
-        //             makerOrderId: '5e356bffedf0010008fa5d7f',
-        //             tradeId: '5e356c4aeefabd62c62a1ece'
+        //         "data": {
+        //             "sequence": "1568787654360",
+        //             "symbol": "BTC-USDT",
+        //             "side": "buy",
+        //             "size": "0.00536577",
+        //             "price": "9345",
+        //             "takerOrderId": "5e356c4a9f1a790008f8d921",
+        //             "time": "1580559434436443257",
+        //             "type": "match",
+        //             "makerOrderId": "5e356bffedf0010008fa5d7f",
+        //             "tradeId": "5e356c4aeefabd62c62a1ece"
         //         },
-        //         subject: 'trade.l3match',
-        //         topic: '/market/match:BTC-USDT',
-        //         type: 'message'
+        //         "subject": "trade.l3match",
+        //         "topic": "/market/match:BTC-USDT",
+        //         "type": "message"
         //     }
         //
         const data = this.safeValue(message, 'data', {});
@@ -595,8 +595,8 @@ class kucoin extends kucoin$1 {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         id: '1578090438322',
-        //         type: 'ack'
+        //         "id": "1578090438322",
+        //         "type": "ack"
         //     }
         //
         const id = this.safeString(message, 'id');
@@ -615,8 +615,8 @@ class kucoin extends kucoin$1 {
         // involves system status and maintenance updates
         //
         //     {
-        //         id: '1578090234088', // connectId
-        //         type: 'welcome',
+        //         "id": "1578090234088", // connectId
+        //         "type": "welcome",
         //     }
         //
         return message;
@@ -628,13 +628,16 @@ class kucoin extends kucoin$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
+         * @param {boolean} [params.stop] trigger orders are watched if true
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        const stop = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
         const url = await this.negotiate(true);
-        const topic = '/spotMarket/tradeOrders';
+        const topic = stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
         const request = {
             'privateChannel': true,
         };
@@ -657,59 +660,79 @@ class kucoin extends kucoin$1 {
             'match': 'open',
             'update': 'open',
             'canceled': 'canceled',
+            'cancel': 'canceled',
+            'TRIGGERED': 'triggered',
         };
         return this.safeString(statuses, status, status);
     }
     parseWsOrder(order, market = undefined) {
         //
-        //     {
-        //         'symbol': 'XCAD-USDT',
-        //         'orderType': 'limit',
-        //         'side': 'buy',
-        //         'orderId': '6249167327218b000135e749',
-        //         'type': 'canceled',
-        //         'orderTime': 1648957043065280224,
-        //         'size': '100.452',
-        //         'filledSize': '0',
-        //         'price': '2.9635',
-        //         'clientOid': 'buy-XCAD-USDT-1648957043010159',
-        //         'remainSize': '0',
-        //         'status': 'done',
-        //         'ts': 1648957054031001037
-        //     }
+        // /spotMarket/tradeOrders
         //
-        const id = this.safeString(order, 'orderId');
-        const clientOrderId = this.safeString(order, 'clientOid');
-        const orderType = this.safeStringLower(order, 'orderType');
-        const price = this.safeString(order, 'price');
-        const filled = this.safeString(order, 'filledSize');
-        const amount = this.safeString(order, 'size');
+        //    {
+        //        "symbol": "XCAD-USDT",
+        //        "orderType": "limit",
+        //        "side": "buy",
+        //        "orderId": "6249167327218b000135e749",
+        //        "type": "canceled",
+        //        "orderTime": 1648957043065280224,
+        //        "size": "100.452",
+        //        "filledSize": "0",
+        //        "price": "2.9635",
+        //        "clientOid": "buy-XCAD-USDT-1648957043010159",
+        //        "remainSize": "0",
+        //        "status": "done",
+        //        "ts": 1648957054031001037
+        //    }
+        //
+        // /spotMarket/advancedOrders
+        //
+        //    {
+        //        "createdAt": 1589789942337,
+        //        "orderId": "5ec244f6a8a75e0009958237",
+        //        "orderPrice": "0.00062",
+        //        "orderType": "stop",
+        //        "side": "sell",
+        //        "size": "1",
+        //        "stop": "entry",
+        //        "stopPrice": "0.00062",
+        //        "symbol": "KCS-BTC",
+        //        "tradeType": "TRADE",
+        //        "triggerSuccess": true,
+        //        "ts": 1589790121382281286,
+        //        "type": "triggered"
+        //    }
+        //
         const rawType = this.safeString(order, 'type');
-        const status = this.parseWsOrderStatus(rawType);
-        const timestamp = this.safeInteger(order, 'orderTime');
+        let status = this.parseWsOrderStatus(rawType);
+        const timestamp = this.safeInteger2(order, 'orderTime', 'createdAt');
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
-        const side = this.safeStringLower(order, 'side');
+        const triggerPrice = this.safeString(order, 'stopPrice');
+        const triggerSuccess = this.safeValue(order, 'triggerSuccess');
+        const triggerFail = (triggerSuccess !== true) && (triggerSuccess !== undefined); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
+        if ((status === 'triggered') && triggerFail) {
+            status = 'canceled';
+        }
         return this.safeOrder({
             'info': order,
-            'symbol': symbol,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'symbol': market['symbol'],
+            'id': this.safeString(order, 'orderId'),
+            'clientOrderId': this.safeString(order, 'clientOid'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
-            'type': orderType,
+            'type': this.safeStringLower(order, 'orderType'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': amount,
+            'side': this.safeStringLower(order, 'side'),
+            'price': this.safeString2(order, 'price', 'orderPrice'),
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': this.safeString(order, 'size'),
             'cost': undefined,
             'average': undefined,
-            'filled': filled,
+            'filled': this.safeString(order, 'filledSize'),
             'remaining': undefined,
             'status': status,
             'fee': undefined,
@@ -717,32 +740,51 @@ class kucoin extends kucoin$1 {
         }, market);
     }
     handleOrder(client, message) {
+        //
+        // Trigger Orders
+        //
+        //    {
+        //        "createdAt": 1692745706437,
+        //        "error": "Balance insufficient!",       // not always there
+        //        "orderId": "vs86kp757vlda6ni003qs70v",
+        //        "orderPrice": "0.26",
+        //        "orderType": "stop",
+        //        "side": "sell",
+        //        "size": "5",
+        //        "stop": "loss",
+        //        "stopPrice": "0.26",
+        //        "symbol": "ADA-USDT",
+        //        "tradeType": "TRADE",
+        //        "triggerSuccess": false,                // not always there
+        //        "ts": "1692745706442929298",
+        //        "type": "open"
+        //    }
+        //
         const messageHash = 'orders';
         const data = this.safeValue(message, 'data');
         const parsed = this.parseWsOrder(data);
         const symbol = this.safeString(parsed, 'symbol');
         const orderId = this.safeString(parsed, 'id');
+        const triggerPrice = this.safeValue(parsed, 'triggerPrice');
+        const isTriggerOrder = (triggerPrice !== undefined);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
+            this.triggerOrders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const cachedOrders = this.orders;
+        const cachedOrders = isTriggerOrder ? this.triggerOrders : this.orders;
         const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
         const order = this.safeValue(orders, orderId);
         if (order !== undefined) {
             // todo add others to calculate average etc
-            const stopPrice = this.safeValue(order, 'stopPrice');
-            if (stopPrice !== undefined) {
-                parsed['stopPrice'] = stopPrice;
-            }
             if (order['status'] === 'closed') {
                 parsed['status'] = 'closed';
             }
         }
         cachedOrders.append(parsed);
-        client.resolve(this.orders, messageHash);
+        client.resolve(cachedOrders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
-        client.resolve(this.orders, symbolSpecificMessageHash);
+        client.resolve(cachedOrders, symbolSpecificMessageHash);
     }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -790,17 +832,17 @@ class kucoin extends kucoin$1 {
     parseWsTrade(trade, market = undefined) {
         //
         // {
-        //     fee: 0.00262148,
-        //     feeCurrency: 'USDT',
-        //     feeRate: 0.001,
-        //     orderId: '62417436b29df8000183df2f',
-        //     orderType: 'market',
-        //     price: 131.074,
-        //     side: 'sell',
-        //     size: 0.02,
-        //     symbol: 'LTC-USDT',
-        //     time: '1648456758734571745',
-        //     tradeId: '624174362e113d2f467b3043'
+        //     "fee": 0.00262148,
+        //     "feeCurrency": "USDT",
+        //     "feeRate": 0.001,
+        //     "orderId": "62417436b29df8000183df2f",
+        //     "orderType": "market",
+        //     "price": 131.074,
+        //     "side": "sell",
+        //     "size": 0.02,
+        //     "symbol": "LTC-USDT",
+        //     "time": "1648456758734571745",
+        //     "tradeId": "624174362e113d2f467b3043"
         //   }
         //
         const marketId = this.safeString(trade, 'symbol');
@@ -939,6 +981,7 @@ class kucoin extends kucoin$1 {
             'account.balance': this.handleBalance,
             '/spot/tradeFills': this.handleMyTrade,
             'orderChange': this.handleOrder,
+            'stopOrder': this.handleOrder,
         };
         const method = this.safeValue(methods, subject);
         if (method === undefined) {
@@ -965,10 +1008,10 @@ class kucoin extends kucoin$1 {
     handleErrorMessage(client, message) {
         //
         //    {
-        //        id: '1',
-        //        type: 'error',
-        //        code: 415,
-        //        data: 'type is not supported'
+        //        "id": "1",
+        //        "type": "error",
+        //        "code": 415,
+        //        "data": "type is not supported"
         //    }
         //
         const data = this.safeString(message, 'data', '');
