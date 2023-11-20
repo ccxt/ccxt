@@ -7993,7 +7993,7 @@ export default class htx extends Exchange {
     async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name huobi#borrowMargin
+         * @name huobi#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
@@ -8029,7 +8029,7 @@ export default class htx extends Exchange {
     async borrowCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name huobi#borrowMargin
+         * @name huobi#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
@@ -8062,7 +8062,7 @@ export default class htx extends Exchange {
     async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name huobi#repayMargin
+         * @name huobi#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
          * @param {string} code unified currency code of the currency to repay
@@ -8103,7 +8103,7 @@ export default class htx extends Exchange {
     async repayCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name huobi#repayMargin
+         * @name huobi#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
          * @param {string} code unified currency code of the currency to repay

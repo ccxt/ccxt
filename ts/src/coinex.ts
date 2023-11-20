@@ -4639,7 +4639,7 @@ export default class coinex extends Exchange {
     async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name coinex#borrowMargin
+         * @name coinex#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
          * @param {string} symbol unified market symbol, required for coinex
@@ -4677,7 +4677,7 @@ export default class coinex extends Exchange {
     async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name coinex#repayMargin
+         * @name coinex#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
          * @param {string} symbol unified market symbol, required for coinex

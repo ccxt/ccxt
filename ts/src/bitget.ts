@@ -6269,7 +6269,7 @@ export default class bitget extends Exchange {
     async borrowCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name bitget#borrowMargin
+         * @name bitget#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
          * @param {string} code unified currency code of the currency to borrow
@@ -6305,7 +6305,7 @@ export default class bitget extends Exchange {
     async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name bitget#borrowMargin
+         * @name bitget#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
          * @param {string} symbol unified market symbol
@@ -6348,7 +6348,7 @@ export default class bitget extends Exchange {
     async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name bitget#repayMargin
+         * @name bitget#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
@@ -6393,7 +6393,7 @@ export default class bitget extends Exchange {
     async repayCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name bitget#repayMargin
+         * @name bitget#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay

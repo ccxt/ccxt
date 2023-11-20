@@ -2134,12 +2134,7 @@ export default class mexc extends Exchange {
     async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         await this.loadMarkets ();
         const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
-        let response = undefined;
-        if (marginMode !== undefined) {
-            response = await this.spotPrivatePostMarginOrder (this.extend (request, params));
-        } else {
-            response = await this.spotPrivatePostOrder (this.extend (request, params));
-        }
+        const response = await this.spotPrivatePostOrder (this.extend (request, params));
         //
         // spot
         //

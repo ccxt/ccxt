@@ -9024,7 +9024,7 @@ export default class binance extends Exchange {
     async repayCrossMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name binance#repayMargin
+         * @name binance#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
          * @param {string} code unified currency code of the currency to repay
@@ -9052,7 +9052,7 @@ export default class binance extends Exchange {
     async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name binance#repayMargin
+         * @name binance#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
          * @param {string} symbol unified market symbol, required for isolated margin
@@ -9083,7 +9083,7 @@ export default class binance extends Exchange {
     async borrowCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name binance#borrowMargin
+         * @name binance#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
          * @param {string} code unified currency code of the currency to borrow
@@ -9111,7 +9111,7 @@ export default class binance extends Exchange {
     async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name binance#borrowMargin
+         * @name binance#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
          * @param {string} symbol unified market symbol, required for isolated margin

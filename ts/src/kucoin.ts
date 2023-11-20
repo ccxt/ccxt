@@ -4118,7 +4118,7 @@ export default class kucoin extends Exchange {
     async borrowCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name kucoin#borrowMargin
+         * @name kucoin#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://docs.kucoin.com/#1-margin-borrowing
          * @param {string} code unified currency code of the currency to borrow
@@ -4154,7 +4154,7 @@ export default class kucoin extends Exchange {
     async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name kucoin#borrowMargin
+         * @name kucoin#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://docs.kucoin.com/#1-margin-borrowing
          * @param {string} symbol unified market symbol, required for isolated margin
@@ -4194,7 +4194,7 @@ export default class kucoin extends Exchange {
     async repayCrossMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name kucoin#repayMargin
+         * @name kucoin#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://docs.kucoin.com/#2-repayment
          * @param {string} code unified currency code of the currency to repay
@@ -4228,7 +4228,7 @@ export default class kucoin extends Exchange {
     async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name kucoin#repayMargin
+         * @name kucoin#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://docs.kucoin.com/#2-repayment
          * @param {string} symbol unified market symbol
