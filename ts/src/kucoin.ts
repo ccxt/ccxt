@@ -3222,18 +3222,18 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = 'privateGetDeposits';
-        if (since !== undefined) {
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        let response = undefined;
+        if (since !== undefined && since < 1550448000000) {
             // if since is earlier than 2019-02-18T00:00:00Z
-            if (since < 1550448000000) {
-                request['startAt'] = this.parseToInt (since / 1000);
-                method = 'privateGetHistDeposits';
-            } else {
+            request['startAt'] = this.parseToInt (since / 1000);
+            response = await this.privateGetHistDeposits (this.extend (request, params));
+        } else {
+            if (since !== undefined) {
                 request['startAt'] = since;
             }
+            response = await this.privateGetDeposits (this.extend (request, params));
         }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
