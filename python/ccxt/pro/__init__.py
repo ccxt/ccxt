@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.0.44'
+__version__ = '4.1.58'
 
 # ----------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ from ccxt.pro.binance import binance                                      # noqa
 from ccxt.pro.binancecoinm import binancecoinm                            # noqa: F401
 from ccxt.pro.binanceus import binanceus                                  # noqa: F401
 from ccxt.pro.binanceusdm import binanceusdm                              # noqa: F401
+from ccxt.pro.bingx import bingx                                          # noqa: F401
 from ccxt.pro.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.pro.bitfinex2 import bitfinex2                                  # noqa: F401
@@ -47,6 +48,7 @@ from ccxt.pro.gateio import gateio                                        # noqa
 from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
+from ccxt.pro.htx import htx                                              # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
 from ccxt.pro.huobipro import huobipro                                    # noqa: F401
@@ -80,6 +82,7 @@ exchanges = [
     'binancecoinm',
     'binanceus',
     'binanceusdm',
+    'bingx',
     'bitcoincom',
     'bitfinex',
     'bitfinex2',
@@ -108,6 +111,7 @@ exchanges = [
     'gemini',
     'hitbtc',
     'hollaex',
+    'htx',
     'huobi',
     'huobijp',
     'huobipro',

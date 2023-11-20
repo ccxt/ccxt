@@ -52,7 +52,7 @@ class wazirx extends \ccxt\async\wazirx {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.wazirx.com/#account-update
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate($params));
@@ -95,8 +95,8 @@ class wazirx extends \ccxt\async\wazirx {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'a');
             $code = $this->safe_currency_code($currencyId);
-            $available = $this->safe_number($balance, 'b');
-            $locked = $this->safe_number($balance, 'l');
+            $available = $this->safe_string($balance, 'b');
+            $locked = $this->safe_string($balance, 'l');
             $account = $this->account();
             $account['free'] = $available;
             $account['used'] = $locked;
@@ -303,7 +303,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -371,7 +371,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate($params));
@@ -461,7 +461,7 @@ class wazirx extends \ccxt\async\wazirx {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        "E":1631683058904,      Event time
@@ -678,8 +678,8 @@ class wazirx extends \ccxt\async\wazirx {
         //             "a" => 114144050,
         //             "b" => 114144121,
         //             "f" => "0.2",
-        //             "ga" => '0.0',
-        //             "gc" => 'usdt',
+        //             "ga" => "0.0",
+        //             "gc" => "usdt",
         //             "m" => true,
         //             "o" => 26946170,
         //             "p" => "5.0",
@@ -709,10 +709,10 @@ class wazirx extends \ccxt\async\wazirx {
     public function handle_connected(Client $client, $message) {
         //
         //     {
-        //         data => array(
-        //             timeout_duration => 1800
+        //         "data" => array(
+        //             "timeout_duration" => 1800
         //         ),
-        //         event => 'connected'
+        //         "event" => "connected"
         //     }
         //
         return $message;
@@ -721,11 +721,11 @@ class wazirx extends \ccxt\async\wazirx {
     public function handle_subscribed(Client $client, $message) {
         //
         //     {
-        //         data => array(
-        //             streams => ['!ticker@arr']
+        //         "data" => array(
+        //             "streams" => ["!ticker@arr"]
         //         ),
-        //         event => 'subscribed',
-        //         id => 0
+        //         "event" => "subscribed",
+        //         "id" => 0
         //     }
         //
         return $message;
@@ -743,8 +743,8 @@ class wazirx extends \ccxt\async\wazirx {
         //     }
         //
         //     {
-        //         $message => 'HeartBeat $message not received, closing the connection',
-        //         status => 'error'
+        //         "message" => "HeartBeat $message not received, closing the connection",
+        //         "status" => "error"
         //     }
         //
         throw new ExchangeError($this->id . ' ' . $this->json($message));

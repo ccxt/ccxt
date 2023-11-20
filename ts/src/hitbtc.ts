@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Strings, Market, Currency } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -20,7 +20,6 @@ export default class hitbtc extends Exchange {
             // 20 requests per second => ( 1000ms / rateLimit ) / 20 = cost = 15 (All Other)
             'rateLimit': 3.333, // TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
-            'pro': false,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -33,17 +32,19 @@ export default class hitbtc extends Exchange {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
+                'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistories': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRates': undefined,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -53,15 +54,22 @@ export default class hitbtc extends Exchange {
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': undefined,
-                'fetchMarketLeverageTiers': undefined,
+                'fetchLiquidations': false,
+                'fetchMarginMode': true,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -81,6 +89,7 @@ export default class hitbtc extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -112,56 +121,79 @@ export default class hitbtc extends Exchange {
                 'public': {
                     'get': {
                         'public/currency': 10,
+                        'public/currency/{currency}': 10,
                         'public/symbol': 10,
+                        'public/symbol/{symbol}': 10,
                         'public/ticker': 10,
+                        'public/ticker/{symbol}': 10,
                         'public/price/rate': 10,
+                        'public/price/history': 10,
+                        'public/price/ticker': 10,
+                        'public/price/ticker/{symbol}': 10,
                         'public/trades': 10,
+                        'public/trades/{symbol}': 10,
                         'public/orderbook': 10,
+                        'public/orderbook/{symbol}': 10,
                         'public/candles': 10,
+                        'public/candles/{symbol}': 10,
                         'public/futures/info': 10,
+                        'public/futures/info/{symbol}': 10,
                         'public/futures/history/funding': 10,
+                        'public/futures/history/funding/{symbol}': 10,
                         'public/futures/candles/index_price': 10,
+                        'public/futures/candles/index_price/{symbol}': 10,
                         'public/futures/candles/mark_price': 10,
+                        'public/futures/candles/mark_price/{symbol}': 10,
                         'public/futures/candles/premium_index': 10,
+                        'public/futures/candles/premium_index/{symbol}': 10,
                         'public/futures/candles/open_interest': 10,
+                        'public/futures/candles/open_interest/{symbol}': 10,
                     },
                 },
                 'private': {
                     'get': {
                         'spot/balance': 15,
-                        'spot/order': 15,
-                        'spot/order/{client_order_id}': 15,
+                        'spot/balance/{currency}': 15,
+                        'spot/order': 1,
+                        'spot/order/{client_order_id}': 1,
                         'spot/fee': 15,
                         'spot/fee/{symbol}': 15,
                         'spot/history/order': 15,
                         'spot/history/trade': 15,
-                        'margin/account': 15,
-                        'margin/account/isolated/{symbol}': 15,
-                        'margin/order': 15,
-                        'margin/order/{client_order_id}': 15,
-                        'margin/history/clearing': 15,
+                        'margin/account': 1,
+                        'margin/account/isolated/{symbol}': 1,
+                        'margin/account/cross/{currency}': 1,
+                        'margin/order': 1,
+                        'margin/order/{client_order_id}': 1,
+                        'margin/config': 15,
                         'margin/history/order': 15,
-                        'margin/history/positions': 15,
                         'margin/history/trade': 15,
+                        'margin/history/positions': 15,
+                        'margin/history/clearing': 15,
                         'futures/balance': 15,
-                        'futures/account': 15,
-                        'futures/account/isolated/{symbol}': 15,
-                        'futures/order': 15,
-                        'futures/order/{client_order_id}': 15,
+                        'futures/balance/{currency}': 15,
+                        'futures/account': 1,
+                        'futures/account/isolated/{symbol}': 1,
+                        'futures/order': 1,
+                        'futures/order/{client_order_id}': 1,
+                        'futures/config': 15,
                         'futures/fee': 15,
                         'futures/fee/{symbol}': 15,
-                        'futures/history/clearing': 15,
                         'futures/history/order': 15,
-                        'futures/history/positions': 15,
                         'futures/history/trade': 15,
-                        'wallet/balance': 15,
-                        'wallet/crypto/address': 15,
-                        'wallet/crypto/address/recent-deposit': 15,
-                        'wallet/crypto/address/recent-withdraw': 15,
-                        'wallet/crypto/address/check-mine': 15,
-                        'wallet/transactions': 15,
-                        'wallet/crypto/check-offchain-available': 15,
-                        'wallet/crypto/fee/estimate': 15,
+                        'futures/history/positions': 15,
+                        'futures/history/clearing': 15,
+                        'wallet/balance': 30,
+                        'wallet/balance/{currency}': 30,
+                        'wallet/crypto/address': 30,
+                        'wallet/crypto/address/recent-deposit': 30,
+                        'wallet/crypto/address/recent-withdraw': 30,
+                        'wallet/crypto/address/check-mine': 30,
+                        'wallet/transactions': 30,
+                        'wallet/transactions/{tx_id}': 30,
+                        'wallet/crypto/fee/estimate': 30,
+                        'wallet/airdrops': 30,
+                        'wallet/amount-locks': 30,
                         'sub-account': 15,
                         'sub-account/acl': 15,
                         'sub-account/balance/{subAccID}': 15,
@@ -169,12 +201,19 @@ export default class hitbtc extends Exchange {
                     },
                     'post': {
                         'spot/order': 1,
+                        'spot/order/list': 1,
                         'margin/order': 1,
+                        'margin/order/list': 1,
                         'futures/order': 1,
-                        'wallet/convert': 15,
-                        'wallet/crypto/address': 15,
-                        'wallet/crypto/withdraw': 15,
-                        'wallet/transfer': 15,
+                        'futures/order/list': 1,
+                        'wallet/crypto/address': 30,
+                        'wallet/crypto/withdraw': 30,
+                        'wallet/convert': 30,
+                        'wallet/transfer': 30,
+                        'wallet/internal/withdraw': 30,
+                        'wallet/crypto/check-offchain-available': 30,
+                        'wallet/crypto/fees/estimate': 30,
+                        'wallet/airdrops/{id}/claim': 30,
                         'sub-account/freeze': 15,
                         'sub-account/activate': 15,
                         'sub-account/transfer': 15,
@@ -193,15 +232,15 @@ export default class hitbtc extends Exchange {
                         'margin/order': 1,
                         'margin/order/{client_order_id}': 1,
                         'futures/position': 1,
-                        'futures/position/isolated/{symbol}': 1,
+                        'futures/position/{margin_mode}/{symbol}': 1,
                         'futures/order': 1,
                         'futures/order/{client_order_id}': 1,
-                        'wallet/crypto/withdraw/{id}': 1,
+                        'wallet/crypto/withdraw/{id}': 30,
                     },
                     'put': {
                         'margin/account/isolated/{symbol}': 1,
                         'futures/account/isolated/{symbol}': 1,
-                        'wallet/crypto/withdraw/{id}': 1,
+                        'wallet/crypto/withdraw/{id}': 30,
                     },
                 },
             },
@@ -589,7 +628,6 @@ export default class hitbtc extends Exchange {
                 'STEPN': 'GMT',
                 'STX': 'STOX',
                 'TV': 'Tokenville',
-                'USD': 'USDT',
                 'XMT': 'MTL',
                 'XPNT': 'PNT',
             },
@@ -643,6 +681,9 @@ export default class hitbtc extends Exchange {
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
+            if (id.endsWith ('_BQX')) {
+                continue; // seems like an invalid symbol and if we try to access it individually we get: {"timestamp":"2023-09-02T14:38:20.351Z","error":{"description":"Try get /public/symbol, to get list of all available symbols.","code":2001,"message":"No such symbol: EOSUSD_BQX"},"path":"/api/3/public/symbol/EOSUSD_BQX","requestId":"e1e9fce6-16374591"}
+            }
             const market = this.safeValue (response, id);
             const marketType = this.safeString (market, 'type');
             const expiry = this.safeInteger (market, 'expiry');
@@ -733,6 +774,7 @@ export default class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -937,7 +979,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -951,13 +993,13 @@ export default class hitbtc extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name hitbtc#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const type = this.safeStringLower (params, 'type', 'spot');
         params = this.omit (params, [ 'type' ]);
@@ -988,24 +1030,44 @@ export default class hitbtc extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name hitbtc#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api.hitbtc.com/#tickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        const response = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (response, symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetPublicTickerSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "ask": "0.020572",
+        //         "bid": "0.020566",
+        //         "last": "0.020574",
+        //         "low": "0.020388",
+        //         "high": "0.021084",
+        //         "open": "0.020913",
+        //         "volume": "138444.3666",
+        //         "volume_quote": "2853.6874972480",
+        //         "timestamp": "2021-06-02T17:52:36.731Z"
+        //     }
+        //
+        return this.parseTicker (response, market) as Ticker;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name hitbtc#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://api.hitbtc.com/#tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1043,10 +1105,10 @@ export default class hitbtc extends Exchange {
             const entry = response[marketId];
             result[symbol] = this.parseTicker (entry, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //       "ask": "62756.01",
@@ -1090,34 +1152,40 @@ export default class hitbtc extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name hitbtc#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://api.hitbtc.com/#trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            // symbol is optional for hitbtc fetchTrades
-            request['symbols'] = market['id'];
-        }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response = await this.publicGetPublicTrades (this.extend (request, params));
-        const marketIds = Object.keys (response);
+        let response = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            response = await this.publicGetPublicTradesSymbol (this.extend (request, params));
+        } else {
+            response = await this.publicGetPublicTrades (this.extend (request, params));
+        }
+        if (symbol !== undefined) {
+            return this.parseTrades (response, market) as Trade[];
+        }
         let trades = [];
+        const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketInner = this.market (marketId);
@@ -1125,10 +1193,10 @@ export default class hitbtc extends Exchange {
             const parsed = this.parseTrades (rawTrades, marketInner);
             trades = this.arrayConcat (trades, parsed);
         }
-        return trades;
+        return trades as Trade[];
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchMyTrades
@@ -1169,43 +1237,43 @@ export default class hitbtc extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // createOrder (market)
         //
         //  {
-        //      id: '1569252895',
-        //      position_id: '0',
-        //      quantity: '10',
-        //      price: '0.03919424',
-        //      fee: '0.000979856000',
-        //      timestamp: '2022-01-25T19:38:36.153Z',
-        //      taker: true
+        //      "id": "1569252895",
+        //      "position_id": "0",
+        //      "quantity": "10",
+        //      "price": "0.03919424",
+        //      "fee": "0.000979856000",
+        //      "timestamp": "2022-01-25T19:38:36.153Z",
+        //      "taker": true
         //  }
         //
         // fetchTrades
         //
         //  {
-        //      id: 974786185,
-        //      price: '0.032462',
-        //      qty: '0.3673',
-        //      side: 'buy',
-        //      timestamp: '2020-10-16T12:57:39.846Z'
+        //      "id": 974786185,
+        //      "price": "0.032462",
+        //      "qty": "0.3673",
+        //      "side": "buy",
+        //      "timestamp": "2020-10-16T12:57:39.846Z"
         //  }
         //
         // fetchMyTrades spot
         //
         //  {
-        //      id: 277210397,
-        //      clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
-        //      orderId: 28102855393,
-        //      symbol: 'ETHBTC',
-        //      side: 'sell',
-        //      quantity: '0.002',
-        //      price: '0.073365',
-        //      fee: '0.000000147',
-        //      timestamp: '2018-04-28T18:39:55.345Z',
-        //      taker: true
+        //      "id": 277210397,
+        //      "clientOrderId": "6e102f3e7f3f4e04aeeb1cdc95592f1a",
+        //      "orderId": 28102855393,
+        //      "symbol": "ETHBTC",
+        //      "side": "sell",
+        //      "quantity": "0.002",
+        //      "price": "0.073365",
+        //      "fee": "0.000000147",
+        //      "timestamp": "2018-04-28T18:39:55.345Z",
+        //      "taker": true
         //  }
         //
         // fetchMyTrades swap and margin
@@ -1236,6 +1304,8 @@ export default class hitbtc extends Exchange {
         let takerOrMaker = undefined;
         if (taker !== undefined) {
             takerOrMaker = taker ? 'taker' : 'maker';
+        } else {
+            takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
         if (feeCostString !== undefined) {
             const info = this.safeValue (market, 'info', {});
@@ -1332,7 +1402,7 @@ export default class hitbtc extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // transaction
         //
@@ -1380,6 +1450,9 @@ export default class hitbtc extends Exchange {
         const sender = this.safeValue (native, 'senders');
         const addressFrom = this.safeString (sender, 0);
         const amount = this.safeNumber (native, 'amount');
+        const subType = this.safeString (transaction, 'subtype');
+        const internal = subType === 'OFFCHAIN';
+        // https://api.hitbtc.com/#check-if-offchain-is-available
         const fee = {
             'currency': undefined,
             'cost': undefined,
@@ -1395,7 +1468,6 @@ export default class hitbtc extends Exchange {
             'id': id,
             'txid': txhash,
             'type': type,
-            'code': code, // kept here for backward-compatibility, but will be removed soon
             'currency': code,
             'network': undefined,
             'amount': amount,
@@ -1410,11 +1482,12 @@ export default class hitbtc extends Exchange {
             'tagTo': tagTo,
             'updated': updated,
             'comment': undefined,
+            'internal': internal,
             'fee': fee,
         };
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name hitbtc#fetchDepositsWithdrawals
@@ -1428,7 +1501,7 @@ export default class hitbtc extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name hitbtc#fetchDeposits
@@ -1442,7 +1515,7 @@ export default class hitbtc extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name hitbtc#fetchWithdrawals
@@ -1456,11 +1529,12 @@ export default class hitbtc extends Exchange {
         return await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
     }
 
-    async fetchOrderBooks (symbols: string[] = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchOrderBooks
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @see https://api.hitbtc.com/#order-books
          * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int} [limit] max number of entries per orderbook to return, default is undefined
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
@@ -1485,24 +1559,34 @@ export default class hitbtc extends Exchange {
             const timestamp = this.parse8601 (this.safeString (orderbook, 'timestamp'));
             result[symbol] = this.parseOrderBook (response[marketId], symbol, timestamp, 'bid', 'ask');
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name hitbtc#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://api.hitbtc.com/#order-books
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        const result = await this.fetchOrderBooks ([ symbol ], limit, params);
-        return result[symbol];
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        const response = await this.publicGetPublicOrderbookSymbol (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
+        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask') as OrderBook;
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, market: Market = undefined) {
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -1583,24 +1667,36 @@ export default class hitbtc extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name hitbtc#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://api.hitbtc.com/#candles
+         * @see https://api.hitbtc.com/#futures-index-price-candles
+         * @see https://api.hitbtc.com/#futures-mark-price-candles
+         * @see https://api.hitbtc.com/#futures-premium-index-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
+        }
         const market = this.market (symbol);
-        const request = {
-            'symbols': market['id'],
+        let request = {
+            'symbol': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
+        [ request, params ] = this.handleUntilOption ('till', request, params);
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
         }
@@ -1609,51 +1705,47 @@ export default class hitbtc extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        let method = 'publicGetPublicCandles';
+        let response = undefined;
         if (price === 'mark') {
-            method = 'publicGetPublicFuturesCandlesMarkPrice';
+            response = await this.publicGetPublicFuturesCandlesMarkPriceSymbol (this.extend (request, params));
         } else if (price === 'index') {
-            method = 'publicGetPublicFuturesCandlesIndexPrice';
+            response = await this.publicGetPublicFuturesCandlesIndexPriceSymbol (this.extend (request, params));
         } else if (price === 'premiumIndex') {
-            method = 'publicGetPublicFuturesCandlesPremiumIndex';
+            response = await this.publicGetPublicFuturesCandlesPremiumIndexSymbol (this.extend (request, params));
+        } else {
+            response = await this.publicGetPublicCandlesSymbol (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // Spot and Swap
         //
-        //     {
-        //         "ETHUSDT": [
-        //             {
-        //                 "timestamp": "2021-10-25T07:38:00.000Z",
-        //                 "open": "4173.391",
-        //                 "close": "4170.923",
-        //                 "min": "4170.923",
-        //                 "max": "4173.986",
-        //                 "volume": "0.1879",
-        //                 "volume_quote": "784.2517846"
-        //             }
-        //         ]
-        //     }
+        //     [
+        //         {
+        //             "timestamp": "2021-10-25T07:38:00.000Z",
+        //             "open": "4173.391",
+        //             "close": "4170.923",
+        //             "min": "4170.923",
+        //             "max": "4173.986",
+        //             "volume": "0.1879",
+        //             "volume_quote": "784.2517846"
+        //         }
+        //     ]
         //
         // Mark, Index and Premium Index
         //
-        //     {
-        //         "BTCUSDT_PERP": [
-        //             {
-        //                 "timestamp": "2022-04-01T01:28:00.000Z",
-        //                 "open": "45146.39",
-        //                 "close": "45219.43",
-        //                 "min": "45146.39",
-        //                 "max": "45219.43"
-        //             },
-        //         ]
-        //     }
+        //     [
+        //         {
+        //             "timestamp": "2022-04-01T01:28:00.000Z",
+        //             "open": "45146.39",
+        //             "close": "45219.43",
+        //             "min": "45146.39",
+        //             "max": "45219.43"
+        //         },
+        //     ]
         //
-        const ohlcvs = this.safeValue (response, market['id']);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         // Spot and Swap
         //
@@ -1687,7 +1779,7 @@ export default class hitbtc extends Exchange {
         ];
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hitbtc#fetchClosedOrders
@@ -1726,10 +1818,10 @@ export default class hitbtc extends Exchange {
         }
         const response = await this[method] (this.extend (request, query));
         const parsed = this.parseOrders (response, market, since, limit);
-        return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false);
+        return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false) as Order[];
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchOrder
@@ -1783,7 +1875,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchOrderTrades
@@ -1858,7 +1950,7 @@ export default class hitbtc extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name hitbtc#fetchOpenOrders
@@ -1912,7 +2004,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchOpenOrder
@@ -1947,7 +2039,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#cancelAllOrders
@@ -1980,7 +2072,7 @@ export default class hitbtc extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#cancelOrder
@@ -2051,22 +2143,51 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#createOrder
          * @description create a trade order
+         * @see https://api.hitbtc.com/#create-new-spot-order
+         * @see https://api.hitbtc.com/#create-margin-order
+         * @see https://api.hitbtc.com/#create-futures-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [params.margin] true for creating a margin order
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let request = undefined;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        [ request, params ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.privatePostFuturesOrder (this.extend (request, params));
+        } else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            response = await this.privatePostMarginOrder (this.extend (request, params));
+        } else {
+            response = await this.privatePostSpotOrder (this.extend (request, params));
+        }
+        return this.parseOrder (response, market);
+    }
+
+    createOrderRequest (market: object, marketType: string, type: OrderType, side: OrderSide, amount, price = undefined, marginMode: Str = undefined, params = {}) {
+        const isLimit = (type === 'limit');
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const isPostOnly = this.isPostOnly (type === 'market', undefined, params);
         const request = {
             'type': type,
             'side': side,
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToPrecision (market['symbol'], amount),
             'symbol': market['id'],
             // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
@@ -2080,7 +2201,6 @@ export default class hitbtc extends Exchange {
             // 'take_rate': 0.001, // Optional
             // 'make_rate': 0.001, // Optional
         };
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
@@ -2089,40 +2209,43 @@ export default class hitbtc extends Exchange {
         if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
-        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
-        const expireTime = this.safeString (params, 'expire_time');
-        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop_price');
-        if ((type === 'limit') || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
+        if (isPostOnly) {
+            request['post_only'] = true;
+        }
+        if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+        }
+        if (isLimit || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
             if (price === undefined) {
                 throw new ExchangeError (this.id + ' createOrder() requires a price argument for limit orders');
             }
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         if ((timeInForce === 'GTD')) {
+            const expireTime = this.safeString (params, 'expire_time');
             if (expireTime === undefined) {
                 throw new ExchangeError (this.id + ' createOrder() requires an expire_time parameter for a GTD order');
             }
-            request['expire_time'] = expireTime;
         }
-        if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
-            if (stopPrice === undefined) {
-                throw new ExchangeError (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (market['symbol'], triggerPrice);
+            if (isLimit) {
+                request['type'] = 'stopLimit';
+            } else if (type === 'market') {
+                request['type'] = 'stopMarket';
             }
-            request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+        } else if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
+            throw new ExchangeError (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privatePostSpotOrder',
-            'swap': 'privatePostFuturesOrder',
-            'margin': 'privatePostMarginOrder',
-        });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (marginMode !== undefined) {
-            method = 'privatePostMarginOrder';
+        params = this.omit (params, [ 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ]);
+        if (marketType === 'swap') {
+            // set default margin mode to cross
+            if (marginMode === undefined) {
+                marginMode = 'cross';
+            }
+            request['margin_mode'] = marginMode;
         }
-        const response = await this[method] (this.extend (request, query));
-        return this.parseOrder (response, market);
+        return [ request, params ];
     }
 
     parseOrderStatus (status) {
@@ -2137,7 +2260,7 @@ export default class hitbtc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // limit
         //     {
@@ -2227,6 +2350,7 @@ export default class hitbtc extends Exchange {
         const postOnly = this.safeValue (order, 'post_only');
         const timeInForce = this.safeString (order, 'time_in_force');
         const rawTrades = this.safeValue (order, 'trades');
+        const stopPrice = this.safeString (order, 'stop_price');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2234,6 +2358,7 @@ export default class hitbtc extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'price': price,
             'amount': amount,
@@ -2249,7 +2374,88 @@ export default class hitbtc extends Exchange {
             'average': average,
             'trades': rawTrades,
             'fee': undefined,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
         }, market);
+    }
+
+    async fetchMarginMode (symbol: Str = undefined, params = {}): Promise<MarginMode> {
+        /**
+         * @method
+         * @name hitbtc#fetchMarginMode
+         * @description fetches margin mode of the user
+         * @see https://api.hitbtc.com/#get-margin-position-parameters
+         * @see https://api.hitbtc.com/#get-futures-position-parameters
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @returns {object} Struct of MarginMode
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarginMode', market, params);
+        let response = undefined;
+        if (marketType === 'margin') {
+            response = await this.privateGetMarginConfig (params);
+        } else if (marketType === 'swap') {
+            response = await this.privateGetFuturesConfig (params);
+        } else {
+            throw new BadSymbol (this.id + ' fetchMarginMode() supports swap contracts and margin only');
+        }
+        //
+        // margin
+        //     {
+        //         "config": [{
+        //             "symbol": "BTCUSD",
+        //             "margin_call_leverage_mul": "1.50",
+        //             "liquidation_leverage_mul": "2.00",
+        //             "max_initial_leverage": "10.00",
+        //             "margin_mode": "Isolated",
+        //             "force_close_fee": "0.05",
+        //             "enabled": true,
+        //             "active": true,
+        //             "limit_base": "50000.00",
+        //             "limit_power": "2.2",
+        //             "unlimited_threshold": "10.0"
+        //         }]
+        //     }
+        //
+        // swap
+        //     {
+        //         "config": [{
+        //             "symbol": "BTCUSD_PERP",
+        //             "margin_call_leverage_mul": "1.20",
+        //             "liquidation_leverage_mul": "2.00",
+        //             "max_initial_leverage": "100.00",
+        //             "margin_mode": "Isolated",
+        //             "force_close_fee": "0.001",
+        //             "enabled": true,
+        //             "active": false,
+        //             "limit_base": "5000000.000000000000",
+        //             "limit_power": "1.25",
+        //             "unlimited_threshold": "2.00"
+        //         }]
+        //     }
+        //
+        const config = this.safeValue (response, 'config', []);
+        const marginModes = [];
+        for (let i = 0; i < config.length; i++) {
+            const data = this.safeValue (config, i);
+            const marketId = this.safeString (data, 'symbol');
+            const marketInner = this.safeMarket (marketId);
+            marginModes.push ({
+                'info': data,
+                'symbol': this.safeString (marketInner, 'symbol'),
+                'marginMode': this.safeStringLower (data, 'margin_mode'),
+            });
+        }
+        const filteredMargin = this.filterBySymbol (marginModes, symbol);
+        return this.safeValue (filteredMargin, 0) as MarginMode;
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
@@ -2285,18 +2491,18 @@ export default class hitbtc extends Exchange {
         const response = await this.privatePostWalletTransfer (this.extend (request, params));
         //
         //     [
-        //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         //     ]
         //
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
         //     [
-        //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         //     ]
         //
         const timestamp = this.milliseconds ();
@@ -2389,20 +2595,83 @@ export default class hitbtc extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name hitbtc#fetchFundingRateHistory
-         * @description fetches historical funding rate prices
-         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @name hitbtc#fetchFundingRates
+         * @description fetches funding rates for multiple markets
+         * @see https://api.hitbtc.com/#futures-info
+         * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
+        const request = {};
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            market = this.market (symbols[0]);
+            const queryMarketIds = this.marketIds (symbols);
+            request['symbols'] = queryMarketIds.join (',');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchFundingRates', market, params);
+        if (type !== 'swap') {
+            throw new NotSupported (this.id + ' fetchFundingRates() does not support ' + type + ' markets');
+        }
+        const response = await this.publicGetPublicFuturesInfo (this.extend (request, params));
+        //
+        //     {
+        //         "BTCUSDT_PERP": {
+        //             "contract_type": "perpetual",
+        //             "mark_price": "30897.68",
+        //             "index_price": "30895.29",
+        //             "funding_rate": "0.0001",
+        //             "open_interest": "93.7128",
+        //             "next_funding_time": "2021-07-21T16:00:00.000Z",
+        //             "indicative_funding_rate": "0.0001",
+        //             "premium_index": "0.000047541807127312",
+        //             "avg_premium_index": "0.000087063368020112",
+        //             "interest_rate": "0.0001",
+        //             "timestamp": "2021-07-21T09:48:37.235Z"
+        //         }
+        //     }
+        //
+        const marketIds = Object.keys (response);
+        const fundingRates = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = this.safeString (marketIds, i);
+            const rawFundingRate = this.safeValue (response, marketId);
+            const marketInner = this.market (marketId);
+            const symbol = marketInner['symbol'];
+            const fundingRate = this.parseFundingRate (rawFundingRate, marketInner);
+            fundingRates[symbol] = fundingRate;
+        }
+        return this.filterByArray (fundingRates, 'symbol', symbols);
+    }
+
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchFundingRateHistory
+         * @see https://api.hitbtc.com/#funding-history
+         * @description fetches historical funding rate prices
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000) as FundingRateHistory[];
+        }
+        let market = undefined;
+        let request = {
             // all arguments are optional
             // 'symbols': Comma separated list of symbol codes,
             // 'sort': 'DESC' or 'ASC'
@@ -2411,6 +2680,7 @@ export default class hitbtc extends Exchange {
             // 'limit': 100,
             // 'offset': 0,
         };
+        [ request, params ] = this.handleUntilOption ('till', request, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -2459,10 +2729,10 @@ export default class hitbtc extends Exchange {
             }
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchPositions
@@ -2522,7 +2792,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < response.length; i++) {
             result.push (this.parsePosition (response[i]));
         }
-        return result;
+        return result as Position[];
     }
 
     async fetchPosition (symbol: string, params = {}) {
@@ -2587,7 +2857,7 @@ export default class hitbtc extends Exchange {
         return this.parsePosition (response, market);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined) {
         //
         //     [
         //         {
@@ -2669,7 +2939,74 @@ export default class hitbtc extends Exchange {
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //     {
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
+        //     }
+        //
+        const datetime = this.safeString (interest, 'timestamp');
+        const value = this.safeNumber (interest, 'open_interest');
+        return this.safeOpenInterest ({
+            'symbol': market['symbol'],
+            'openInterestAmount': undefined,
+            'openInterestValue': value,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'info': interest,
+        }, market);
+    }
+
+    async fetchOpenInterest (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchOpenInterest
+         * @description Retrieves the open interest of a derivative trading pair
+         * @see https://api.hitbtc.com/#futures-info
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchOpenInterest() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetPublicFuturesInfoSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
+        //     }
+        //
+        return this.parseOpenInterest (response, market);
     }
 
     async fetchFundingRate (symbol: string, params = {}) {
@@ -2677,6 +3014,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://api.hitbtc.com/#futures-info
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2686,34 +3024,29 @@ export default class hitbtc extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
-        const request = {};
-        if (symbol !== undefined) {
-            symbol = market['symbol'];
-            request['symbols'] = market['id'];
-        }
-        const response = await this.publicGetPublicFuturesInfo (this.extend (request, params));
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetPublicFuturesInfoSymbol (this.extend (request, params));
         //
         //     {
-        //         "BTCUSDT_PERP": {
-        //             "contract_type": "perpetual",
-        //             "mark_price": "42307.43",
-        //             "index_price": "42303.27",
-        //             "funding_rate": "0.0001",
-        //             "open_interest": "30.9826",
-        //             "next_funding_time": "2022-03-22T16:00:00.000Z",
-        //             "indicative_funding_rate": "0.0001",
-        //             "premium_index": "0",
-        //             "avg_premium_index": "0.000029587712038098",
-        //             "interest_rate": "0.0001",
-        //             "timestamp": "2022-03-22T08:08:26.687Z"
-        //         }
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
         //     }
         //
-        const data = this.safeValue (response, market['id'], {});
-        return this.parseFundingRate (data, market);
+        return this.parseFundingRate (response, market);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market: Market = undefined) {
         //
         //     {
         //         "contract_type": "perpetual",
@@ -2765,8 +3098,8 @@ export default class hitbtc extends Exchange {
         const request = {
             'symbol': market['id'], // swap and margin
             'margin_balance': amount, // swap and margin
-            // 'leverage': '10', // swap only required
-            // 'strict_validate': false, // swap and margin
+            // "leverage": "10", // swap only required
+            // "strict_validate": false, // swap and margin
         };
         if (leverage !== undefined) {
             request['leverage'] = leverage;
@@ -2806,7 +3139,7 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    parseMarginModification (data, market = undefined) {
+    parseMarginModification (data, market: Market = undefined) {
         const currencies = this.safeValue (data, 'currencies', []);
         const currencyInfo = this.safeValue (currencies, 0);
         return {
@@ -2911,7 +3244,7 @@ export default class hitbtc extends Exchange {
         return this.safeNumber (response, 'leverage');
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#setLeverage
@@ -2921,10 +3254,10 @@ export default class hitbtc extends Exchange {
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} response from the exchange
          */
-        await this.loadMarkets ();
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
+        await this.loadMarkets ();
         if (params['margin_balance'] === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
         }
@@ -2946,7 +3279,7 @@ export default class hitbtc extends Exchange {
         return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#fetchDepositWithdrawFees
@@ -2986,7 +3319,7 @@ export default class hitbtc extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //         "full_name": "ConnectWealth",
@@ -3048,11 +3381,7 @@ export default class hitbtc extends Exchange {
         const isMargin = this.safeValue (params, 'margin', false);
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
-        if (marginMode !== undefined) {
-            if (marginMode !== 'isolated') {
-                throw new NotSupported (this.id + ' only isolated margin is supported');
-            }
-        } else {
+        if (marginMode === undefined) {
             if ((defaultType === 'margin') || (isMargin === true)) {
                 marginMode = 'isolated';
             }
