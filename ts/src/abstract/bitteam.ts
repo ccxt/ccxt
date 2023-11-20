@@ -12,6 +12,95 @@ interface Exchange {
     publicGetTradeApiAsset (params?: {}): Promise<implicitReturnType>;
     publicGetTradeApiCurrencies (params?: {}): Promise<implicitReturnType>;
     publicGetTradeApiLoginConfirmation (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiOrderbooksSymbol (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiOrders (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiPairName (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiPairs (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiPairsPrecisions (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiRates (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiStats (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiTradeId (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiTrades (params?: {}): Promise<implicitReturnType>;
+    publicPostTradeApiLoginOauth (params?: {}): Promise<implicitReturnType>;
+    publicPostTradeApiResetPassword (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiAddressWallets (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiCcxtBalance (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiCcxtOrderId (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiCcxtOrdersOfUser (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiCcxtTradesOfUser (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiDiscount (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiDiscounts (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiForgot2fa (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiGetOptions (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiGetSessionStatus (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiGetUserData (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiOrdersByUser (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiPhoneCheckValidation (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiRateWallbtc (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiSumsubCreate (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiSumsubData (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiSumsubObtain (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiSumsubStatus (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiTradesByUser (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiTransactionsByUser (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiTransactionsOfUser (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiTransactionId (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiUserApiKeys (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiUserStats (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiUserStatsAll (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiUserStatsRef (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeApiUserStatsRefTable (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiAccessCheck (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiAllOrdersCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiBeforeTransactionEmail (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiCcxtCancelAllOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiCcxtCancelorder (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiCcxtOrdercreate (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiConfirmEmail (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiDisable2fa (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiEnable2fa (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiLogout (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiOrderCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiOrderConditionalCreate (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiOrderCreate (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiP2pCreateTransaction (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiP2pGetBalance (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiP2pSetToken (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiPasswordChange (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiPayBuild (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiPhoneAdd (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiRefreshLogout (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiRefreshToken (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiRegisterWallbtc (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiSendEmail (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiSet2fa (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiSetOptions (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiUserApiKeysRedeem (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiUserApiKeysReset (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiUserApiKeysUpdate (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiUserFavouriteAddPair (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiUserFavouriteRemovePair (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiUserPayFeeBtt (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiWebhookDeposit (params?: {}): Promise<implicitReturnType>;
+    privateDeleteTradeApiDevAllOrdersCancel (params?: {}): Promise<implicitReturnType>;
+}
+abstract class Exchange extends _Exchange {}
+
+export default Exchange
+// -------------------------------------------------------------------------------
+
+// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:
+// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
+
+// -------------------------------------------------------------------------------
+
+import { implicitReturnType } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+
+interface Exchange {
+    publicGetTradeApiAsset (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiCurrencies (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiLoginConfirmation (params?: {}): Promise<implicitReturnType>;
     publicGetTradeApiPairs (params?: {}): Promise<implicitReturnType>;
     publicPostTradeApiLoginOauth (params?: {}): Promise<implicitReturnType>;
     privateGetTradeApiGetSessionStatus (params?: {}): Promise<implicitReturnType>;
