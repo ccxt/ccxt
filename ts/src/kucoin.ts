@@ -2223,16 +2223,18 @@ export default class kucoin extends Exchange {
                 throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
         }
-        let method = 'privateDeleteOrders';
+        let response;
         if (stop) {
-            method = 'privateDeleteStopOrderCancel';
+            response = await this.privateDeleteStopOrderCancel (this.extend (request, query));
         } else if (hf) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol parameter for hf orders');
             }
-            method = 'privateDeleteHfOrders';
+            response = await this.privateDeleteHfOrders (this.extend (request, query));
+        } else {
+            response = await this.privateDeleteOrders (this.extend (request, query));
         }
-        return await this[method] (this.extend (request, query));
+        return response;
     }
 
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
