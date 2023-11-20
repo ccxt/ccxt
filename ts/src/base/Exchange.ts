@@ -2632,7 +2632,7 @@ export default class Exchange {
         const baseVolume = this.safeString (ticker, 'baseVolume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = Precise.stringDiv (quoteVolume, baseVolume);
+            vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
         }
         if ((last !== undefined) && (close === undefined)) {
             close = last;
