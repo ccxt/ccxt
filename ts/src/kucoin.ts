@@ -4191,7 +4191,7 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    async repayCrossMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async repayCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
          * @name kucoin#repayCrossMargin
