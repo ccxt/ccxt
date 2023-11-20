@@ -23,6 +23,15 @@ class htx(ccxt.async_support.htx):
         return self.deep_extend(super(htx, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
+                'fetchTradesWs': False,
+                'fetchBalanceWs': False,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTickers': False,

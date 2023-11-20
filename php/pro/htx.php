@@ -20,6 +20,15 @@ class htx extends \ccxt\async\htx {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'cancelOrderWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelAllOrdersWs' => false,
+                'fetchTradesWs' => false,
+                'fetchBalanceWs' => false,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTickers' => false,

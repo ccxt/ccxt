@@ -15,6 +15,15 @@ export default class bitvavo extends bitvavoRest {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
+                'fetchTradesWs': false,
+                'fetchBalanceWs': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTicker': true,

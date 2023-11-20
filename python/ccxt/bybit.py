@@ -3270,7 +3270,9 @@ class bybit(Exchange, ImplicitAPI):
         result = self.fetch_orders(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
-            raise OrderNotFound('Order ' + str(id) + ' does not exist.')
+            isTrigger = self.safe_value_n(params, ['trigger', 'stop'], False)
+            extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)
@@ -3292,7 +3294,7 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.isLeverage]: *unified spot only* False then spot trading True then margin trading
         :param str [params.tpslMode]: *contract only* 'full' or 'partial'
         :param str [params.mmp]: *option only* market maker protection
-        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'up' or 'down'
+        :param str [params.triggerDirection]: *contract only* the direction for trigger orders, 'above' or 'below'
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param float [params.stopLossPrice]: The price at which a stop loss order is triggered at
         :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
@@ -3407,19 +3409,23 @@ class bybit(Exchange, ImplicitAPI):
         isStopLoss = stopLoss is not None
         isTakeProfit = takeProfit is not None
         isBuy = side == 'buy'
-        setTriggerDirection = not isBuy if (stopLossTriggerPrice or triggerPrice) else isBuy
-        defaultTriggerDirection = 2 if setTriggerDirection else 1
-        triggerDirection = self.safe_string(params, 'triggerDirection')
-        params = self.omit(params, 'triggerDirection')
-        selectedDirection = defaultTriggerDirection
-        if triggerDirection is not None:
-            isAsending = ((triggerDirection == 'up') or (triggerDirection == '1'))
-            selectedDirection = 1 if isAsending else 2
         if triggerPrice is not None:
-            request['triggerDirection'] = selectedDirection
+            triggerDirection = self.safe_string(params, 'triggerDirection')
+            params = self.omit(params, ['triggerPrice', 'stopPrice', 'triggerDirection'])
+            if market['spot']:
+                if triggerDirection is not None:
+                    raise NotSupported(self.id + ' createOrder() : trigger order does not support triggerDirection for spot markets yet')
+            else:
+                if triggerDirection is None:
+                    raise ArgumentsRequired(self.id + ' stop/trigger orders require a triggerDirection parameter, either "above" or "below" to determine the direction of the trigger.')
+                isAsending = ((triggerDirection == 'above') or (triggerDirection == '1'))
+                request['triggerDirection'] = 1 if isAsending else 2
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
         elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-            request['triggerDirection'] = selectedDirection
+            if isBuy:
+                request['triggerDirection'] = 1 if isStopLossTriggerOrder else 2
+            else:
+                request['triggerDirection'] = 2 if isStopLossTriggerOrder else 1
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
@@ -4123,8 +4129,8 @@ class bybit(Exchange, ImplicitAPI):
         if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
             return self.fetch_usdc_orders(symbol, since, limit, params)
         request['category'] = type
-        isStop = self.safe_value(params, 'stop', False)
-        params = self.omit(params, ['stop'])
+        isStop = self.safe_value_n(params, ['trigger', 'stop'], False)
+        params = self.omit(params, ['trigger', 'stop'])
         if isStop:
             if type == 'spot':
                 request['orderFilter'] = 'tpslOrder'

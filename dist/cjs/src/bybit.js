@@ -3431,7 +3431,9 @@ class bybit extends bybit$1 {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            throw new errors.OrderNotFound('Order ' + id.toString() + ' does not exist.');
+            const isTrigger = this.safeValueN(params, ['trigger', 'stop'], false);
+            const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            throw new errors.OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
         if (length > 1) {
             throw new errors.InvalidOrder(this.id + ' returned more than one order');
@@ -3457,7 +3459,7 @@ class bybit extends bybit$1 {
          * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [params.mmp] *option only* market maker protection
-         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'up' or 'down'
+         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -3589,21 +3591,30 @@ class bybit extends bybit$1 {
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
         const isBuy = side === 'buy';
-        const setTriggerDirection = (stopLossTriggerPrice || triggerPrice) ? !isBuy : isBuy;
-        const defaultTriggerDirection = setTriggerDirection ? 2 : 1;
-        const triggerDirection = this.safeString(params, 'triggerDirection');
-        params = this.omit(params, 'triggerDirection');
-        let selectedDirection = defaultTriggerDirection;
-        if (triggerDirection !== undefined) {
-            const isAsending = ((triggerDirection === 'up') || (triggerDirection === '1'));
-            selectedDirection = isAsending ? 1 : 2;
-        }
         if (triggerPrice !== undefined) {
-            request['triggerDirection'] = selectedDirection;
+            const triggerDirection = this.safeString(params, 'triggerDirection');
+            params = this.omit(params, ['triggerPrice', 'stopPrice', 'triggerDirection']);
+            if (market['spot']) {
+                if (triggerDirection !== undefined) {
+                    throw new errors.NotSupported(this.id + ' createOrder() : trigger order does not support triggerDirection for spot markets yet');
+                }
+            }
+            else {
+                if (triggerDirection === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' stop/trigger orders require a triggerDirection parameter, either "above" or "below" to determine the direction of the trigger.');
+                }
+                const isAsending = ((triggerDirection === 'above') || (triggerDirection === '1'));
+                request['triggerDirection'] = isAsending ? 1 : 2;
+            }
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            request['triggerDirection'] = selectedDirection;
+            if (isBuy) {
+                request['triggerDirection'] = isStopLossTriggerOrder ? 1 : 2;
+            }
+            else {
+                request['triggerDirection'] = isStopLossTriggerOrder ? 2 : 1;
+            }
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
@@ -4403,8 +4414,8 @@ class bybit extends bybit$1 {
             return await this.fetchUsdcOrders(symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeValue(params, 'stop', false);
-        params = this.omit(params, ['stop']);
+        const isStop = this.safeValueN(params, ['trigger', 'stop'], false);
+        params = this.omit(params, ['trigger', 'stop']);
         if (isStop) {
             if (type === 'spot') {
                 request['orderFilter'] = 'tpslOrder';

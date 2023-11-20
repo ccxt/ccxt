@@ -18,6 +18,15 @@ class bitvavo(ccxt.async_support.bitvavo):
         return self.deep_extend(super(bitvavo, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
+                'fetchTradesWs': False,
+                'fetchBalanceWs': False,
                 'watchOrderBook': True,
                 'watchTrades': True,
                 'watchTicker': True,
