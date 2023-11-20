@@ -947,16 +947,36 @@ export default class testMainClass extends baseMainTestClass {
                 const isString = (typeof sanitizedNewOutput === 'string') || (typeof sanitizedStoredOutput === 'string');
                 const isUndefined = (sanitizedNewOutput === undefined) || (sanitizedStoredOutput === undefined); // undefined is a perfetly valid value
                 if (isBoolean || isString || isUndefined)  {
-                    this.assertStaticError (newOutputString === storedOutputString, messageError, storedOutput, newOutput);
+                    if (this.lang === 'C#') {
+                        // tmp c# number comparsion
+                        let isNumber = false;
+                        try {
+                            exchange.parseToNumeric (sanitizedNewOutput);
+                            isNumber = true;
+                        } catch (e) {
+                            // if we can't parse it to number, then it's not a number
+                        }
+                        if (isNumber) {
+                            this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput);
+                            return undefined;
+                        } else {
+                            this.assertStaticError (newOutputString === storedOutputString, messageError, storedOutput, newOutput);
+                            return undefined;
+                        }
+                    } else {
+                        this.assertStaticError (newOutputString === storedOutputString, messageError, storedOutput, newOutput);
+                        return undefined;
+                    }
                 } else {
                     if (this.lang === "C#") { // tmp fix, stil failing with the "1.0" != "1" error
                         const stringifiedNewOutput = exchange.numberToString (sanitizedNewOutput);
                         const stringifiedStoredOutput = exchange.numberToString (sanitizedStoredOutput);
                         this.assertStaticError (stringifiedNewOutput.toString () === stringifiedStoredOutput.toString (), messageError, storedOutput, newOutput);
+                    } else {
+                        const numericNewOutput =  exchange.parseToNumeric (newOutputString);
+                        const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
+                        this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput);
                     }
-                    const numericNewOutput =  exchange.parseToNumeric (newOutputString);
-                    const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
-                    this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput);
                 }
             }
         }

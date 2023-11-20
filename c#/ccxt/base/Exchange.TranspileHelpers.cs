@@ -238,6 +238,10 @@ public partial class Exchange
             {
                 return Convert.ToDouble(a) == Convert.ToDouble(b);
             }
+            else if (a.GetType() == typeof(Single) || b.GetType() == typeof(Single))
+            {
+                return Convert.ToSingle(a) == Convert.ToSingle(b);
+            }
             // else if (a.GetType() == typeof(double))
             // {
             //     return (double)a == (double)b;
