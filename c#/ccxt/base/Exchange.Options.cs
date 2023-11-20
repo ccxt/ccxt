@@ -4,6 +4,7 @@ using list = List<object>;
 
 public partial class Exchange
 {
+    public object fetchResponse = null; // tmp for response tests
     public HttpClient client { get; set; }
     public string id { get; set; } = "Exchange";
 

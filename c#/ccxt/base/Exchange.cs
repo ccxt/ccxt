@@ -137,6 +137,12 @@ public partial class Exchange
 
     public async virtual Task<object> fetch(object url2, object method2, object headers2, object body2)
     {
+
+        if (fetchResponse != null)
+        {
+            return fetchResponse;
+        }
+
         var url = url2 as String;
         var method = method2 as String;
         var headers3 = headers2 as dict;
