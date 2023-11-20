@@ -2223,7 +2223,7 @@ export default class kucoin extends Exchange {
                 throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
         }
-        let response;
+        let response = undefined;
         if (stop) {
             response = await this.privateDeleteStopOrderCancel (this.extend (request, query));
         } else if (hf) {
@@ -2291,18 +2291,19 @@ export default class kucoin extends Exchange {
         if (until) {
             request['endAt'] = until;
         }
-        let method = 'privateGetOrders';
+        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
+        let response = undefined;
         if (stop) {
-            method = 'privateGetStopOrder';
+            response = await this.privateGetStopOrder (this.extend (request, query));
         } else if (hf) {
             if (lowercaseStatus === 'active') {
-                method = 'privateGetHfOrdersActive';
+                response = await this.privateGetHfOrdersActive (this.extend (request, query));
             } else if (lowercaseStatus === 'done') {
-                method = 'privateGetHfOrdersDone';
+                response = await this.privateGetHfOrdersDone (this.extend (request, query));
             }
+        } else {
+            response = await this.privateGetOrders (this.extend (request, query));
         }
-        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
-        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code": "200000",
