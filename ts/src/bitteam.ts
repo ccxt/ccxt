@@ -28,11 +28,11 @@ export default class bitteam extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelAllOrders': false, // todo
+                'cancelOrder': false, // todo
                 'cancelOrders': false,
                 'createDepositAddress': false,
-                'createOrder': false,
+                'createOrder': false, // todo
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -41,7 +41,7 @@ export default class bitteam extends Exchange {
                 'deposit': false,
                 'editOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': false, // todo
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -74,15 +74,15 @@ export default class bitteam extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': false, // todo
                 'fetchOHLCV': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true,
+                'fetchOrders': true, // todo: make a private method for another endpoint
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositions': false,
@@ -136,28 +136,86 @@ export default class bitteam extends Exchange {
                         'trade/api/currencies': 1,
                         'trade/api/login-confirmation': 1, // not unified
                         'trade/api/orderbooks/{symbol}': 1,
-                        'trade/api/orders': 1,
+                        'trade/api/orders': 1, // not unified
                         'trade/api/pair/{name}': 1,
                         'trade/api/pairs': 1,
                         'trade/api/pairs/precisions': 1, // not unified
                         'trade/api/rates': 1, // not unified
-                        'trade/api/stats': 1, // not unified
+                        'trade/api/stats': 1, // not unified returns 500000
                         'trade/api/trade/{id}': 1, // not unified
                         'trade/api/trades': 1,
-                        'trade/api/transaction/{id}': 1, // todo: ? looks like a private endpoint
                     },
                     'post': {
                         'trade/api/login-oauth': 1, // not unified
-                        'trade/api/reset-password': 1, // not unified
+                        'trade/api/reset-password': 1, // todo: ? looks like a private endpoint
                     },
                 },
                 'private': {
                     'get': {
-                        'trade/api/get-session-status': 1,
+                        'trade/api/address/wallets': 1, // not unified returns 401000
+                        'trade/api/ccxt/balance': 1, // todo
+                        'trade/api/ccxt/order/{id}': 1,
+                        'trade/api/ccxt/ordersOfUser': 1, // todo
+                        'trade/api/ccxt/tradesOfUser': 1, // todo
+                        'trade/api/discount': 1, // not unified returns 401000
+                        'trade/api/discounts': 1, // not unified returns 401000
+                        'trade/api/forgot-2fa': 1, // not unified returns 401000
+                        'trade/api/get-options': 1, // not unified returns 401000
+                        'trade/api/get-session-status': 1, // not unified returns 401000
+                        'trade/api/get-user-data': 1, // not unified returns 401000
+                        'trade/api/ordersByUser': 1, // not unified returns 401000
+                        'trade/api/phone/checkValidation': 1, // not unified returns 401000
+                        'trade/api/rate-wallbtc': 1, // not unified returns 401000
+                        'trade/api/sumsub/create': 1, // not unified returns 401000
+                        'trade/api/sumsub/data': 1, // not unified returns 401000
+                        'trade/api/sumsub/obtain': 1, // not unified returns 401000
+                        'trade/api/sumsub/status': 1, // not unified returns 401000
+                        'trade/api/tradesByUser': 1, // todo: check
+                        'trade/api/transactionsByUser': 1, // not unified returns 401000
+                        'trade/api/transactionsOfUser': 1, // todo
+                        'trade/api/transaction/{id}': 1, // not unified returns 401000
+                        'trade/api/user/api-keys': 1, // not unified returns 401000
+                        'trade/api/user/stats': 1, // not unified returns 401000
+                        'trade/api/user/stats/all': 1, // not unified returns 401000
+                        'trade/api/user/stats/ref': 1, // not unified returns 401000
+                        'trade/api/user/stats/ref/table': 1, // not unified returns 401000
                     },
                     'post': {
+                        'trade/api/access-check': 1, // not unified returns 401000
+                        'trade/api/all-orders/cancel': 1, // not unified returns 401000
+                        'trade/api/before-transaction-email': 1, // not unified returns 401000
+                        'trade/api/ccxt/cancel-all-order': 1, // todo
+                        'trade/api/ccxt/cancelorder': 1, // todo
+                        'trade/api/ccxt/ordercreate': 1, // todo
+                        'trade/api/confirm-email': 1, // not unified returns 401000
+                        'trade/api/disable-2fa': 1, // not unified returns 401000
+                        'trade/api/enable-2fa': 1, // not unified returns 401000
+                        'trade/api/logout': 1, // not unified returns 401000
+                        'trade/api/order/cancel': 1, // todo check
+                        'trade/api/order/conditional/create': 1, // todo check
+                        'trade/api/order/create': 1, // todo check
+                        'trade/api/p2p/create-transaction': 1, // not unified returns 401000
+                        'trade/api/p2p/get-balance': 1, // not unified returns 401000
+                        'trade/api/p2p/set-token': 1,  // todo check
+                        'trade/api/password-change': 1, // not unified returns 401000
+                        'trade/api/pay-build': 1, // not unified returns 401000
+                        'trade/api/phone/add': 1, // not unified returns 401000
+                        'trade/api/refresh-logout': 1, // not unified returns 401000
+                        'trade/api/refresh-token': 1, // not unified returns 401000
+                        'trade/api/register-wallbtc': 1, // not unified returns 401000
+                        'trade/api/send-email': 1, // not unified returns 401000
+                        'trade/api/set-2fa': 1, // not unified returns 401000
+                        'trade/api/set-options': 1, // not unified returns 401000
+                        'trade/api/user/api-keys/redeem': 1, // not unified
+                        'trade/api/user/api-keys/reset': 1, // not unified
+                        'trade/api/user/api-keys/update': 1, // not unified
+                        'trade/api/user/favourite/add-pair': 1, // not unified returns 401000
+                        'trade/api/user/favourite/remove-pair': 1, // not unified
+                        'trade/api/user/pay-fee-btt': 1, // not unified returns 401000
+                        'trade/api/webhook/deposit': 1, // not unified returns 401000
                     },
                     'delete': {
+                        'trade/api/dev/all-orders/cancel': 1, // todo: check
                     },
                 },
             },
@@ -660,6 +718,63 @@ export default class bitteam extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const orders = this.safeValue (result, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name bitteam#fetchOrder
+         * @description fetches information on an order
+         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrderId
+         * @param {int|string} id order id
+         * @param {string} symbol not used by bitteam fetchOrder ()
+         * @param {object} [params] extra parameters specific to the bitteam api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateGetTradeApiCcxtOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "id": 106494347,
+        //             "orderId": "13214332",
+        //             "userId": 15912,
+        //             "pair": "eth_usdt",
+        //             "pairId": 2,
+        //             "quantity": "0.00448598",
+        //             "price": "2015.644995",
+        //             "executedPrice": "2015.644995",
+        //             "fee": {
+        //                 "amount": "0",
+        //                 "symbol": "eth",
+        //                 "userId": 15912,
+        //                 "decimals": 18,
+        //                 "symbolId": 2,
+        //                 "discountAmount": "0",
+        //                 "discountSymbol": "btt",
+        //                 "discountDecimals": 18,
+        //                 "discountSymbolId": 5
+        //             },
+        //             "orderCid": null,
+        //             "executed": "0.00448598",
+        //             "expires": null,
+        //             "baseDecimals": 18,
+        //             "quoteDecimals": 6,
+        //             "timestamp": 1700470476,
+        //             "status": "executed",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "stopPrice": null,
+        //             "slippage": null
+        //         }
+        //     }
+        //
+        // todo: parse it
+        return response;
     }
 
     parseOrder (order, market: Market = undefined): Order {
@@ -1317,10 +1432,20 @@ export default class bitteam extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         const query = this.urlencode (request);
-        // if (api === 'private') {
-        // todo
-        // }
-        if (query.length !== 0) {
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            if (method === 'POST') {
+                body = this.json (request);
+            } else if (query.length !== 0) {
+                url += '?' + query;
+            }
+            const auth = this.apiKey + ':' + this.secret;
+            const auth64 = this.stringToBase64 (auth);
+            const signature = 'Basic ' + auth64;
+            headers = {
+                'Authorization': signature,
+            };
+        } else if (query.length !== 0) {
             url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
