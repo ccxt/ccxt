@@ -58,6 +58,7 @@ import binanceusdm from  './src/binanceusdm.js'
 import bingx from  './src/bingx.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
+import bitbay from  './src/bitbay.js'
 import bitbns from  './src/bitbns.js'
 import bitcoincom from  './src/bitcoincom.js'
 import bitfinex from  './src/bitfinex.js'
@@ -101,6 +102,7 @@ import digifinex from  './src/digifinex.js'
 import exmo from  './src/exmo.js'
 import fmfwio from  './src/fmfwio.js'
 import gate from  './src/gate.js'
+import gateio from  './src/gateio.js'
 import gemini from  './src/gemini.js'
 import hitbtc from  './src/hitbtc.js'
 import hitbtc3 from  './src/hitbtc3.js'
@@ -108,6 +110,7 @@ import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
 import huobijp from  './src/huobijp.js'
+import huobipro from  './src/huobipro.js'
 import idex from  './src/idex.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
@@ -127,6 +130,8 @@ import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
 import okcoin from  './src/okcoin.js'
+import okex from  './src/okex.js'
+import okex5 from  './src/okex5.js'
 import okx from  './src/okx.js'
 import p2b from  './src/p2b.js'
 import paymium from  './src/paymium.js'
@@ -180,12 +185,14 @@ import currencycomPro from  './src/pro/currencycom.js'
 import deribitPro from  './src/pro/deribit.js'
 import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
+import gateioPro from  './src/pro/gateio.js'
 import geminiPro from  './src/pro/gemini.js'
 import hitbtcPro from  './src/pro/hitbtc.js'
 import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
 import huobiPro from  './src/pro/huobi.js'
 import huobijpPro from  './src/pro/huobijp.js'
+import huobiproPro from  './src/pro/huobipro.js'
 import idexPro from  './src/pro/idex.js'
 import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
@@ -197,6 +204,7 @@ import mexcPro from  './src/pro/mexc.js'
 import mexc3Pro from  './src/pro/mexc3.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okcoinPro from  './src/pro/okcoin.js'
+import okexPro from  './src/pro/okex.js'
 import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
@@ -220,6 +228,7 @@ const exchanges = {
     'bingx':                  bingx,
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
+    'bitbay':                 bitbay,
     'bitbns':                 bitbns,
     'bitcoincom':             bitcoincom,
     'bitfinex':               bitfinex,
@@ -263,6 +272,7 @@ const exchanges = {
     'exmo':                   exmo,
     'fmfwio':                 fmfwio,
     'gate':                   gate,
+    'gateio':                 gateio,
     'gemini':                 gemini,
     'hitbtc':                 hitbtc,
     'hitbtc3':                hitbtc3,
@@ -270,6 +280,7 @@ const exchanges = {
     'htx':                    htx,
     'huobi':                  huobi,
     'huobijp':                huobijp,
+    'huobipro':               huobipro,
     'idex':                   idex,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
@@ -289,6 +300,8 @@ const exchanges = {
     'novadax':                novadax,
     'oceanex':                oceanex,
     'okcoin':                 okcoin,
+    'okex':                   okex,
+    'okex5':                  okex5,
     'okx':                    okx,
     'p2b':                    p2b,
     'paymium':                paymium,
@@ -342,12 +355,14 @@ const pro = {
     'deribit':                deribitPro,
     'exmo':                   exmoPro,
     'gate':                   gatePro,
+    'gateio':                 gateioPro,
     'gemini':                 geminiPro,
     'hitbtc':                 hitbtcPro,
     'hollaex':                hollaexPro,
     'htx':                    htxPro,
     'huobi':                  huobiPro,
     'huobijp':                huobijpPro,
+    'huobipro':               huobiproPro,
     'idex':                   idexPro,
     'independentreserve':     independentreservePro,
     'kraken':                 krakenPro,
@@ -359,6 +374,7 @@ const pro = {
     'mexc3':                  mexc3Pro,
     'ndax':                   ndaxPro,
     'okcoin':                 okcoinPro,
+    'okex':                   okexPro,
     'okx':                    okxPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
@@ -460,6 +476,7 @@ export {
     bingx,
     bit2c,
     bitbank,
+    bitbay,
     bitbns,
     bitcoincom,
     bitfinex,
@@ -503,6 +520,7 @@ export {
     exmo,
     fmfwio,
     gate,
+    gateio,
     gemini,
     hitbtc,
     hitbtc3,
@@ -510,6 +528,7 @@ export {
     htx,
     huobi,
     huobijp,
+    huobipro,
     idex,
     independentreserve,
     indodax,
@@ -529,6 +548,8 @@ export {
     novadax,
     oceanex,
     okcoin,
+    okex,
+    okex5,
     okx,
     p2b,
     paymium,
