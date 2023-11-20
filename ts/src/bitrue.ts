@@ -358,6 +358,14 @@ export default class bitrue extends Exchange {
                         '1M': '1month',
                     },
                 },
+                'accountsByType': {
+                    'spot': 'wallet',
+                    'future': 'contract',
+                    'swap': 'contract',
+                    'funding': 'wallet',
+                    'fund': 'wallet',
+                    'contract': 'contract',
+                },
             },
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
@@ -792,7 +800,7 @@ export default class bitrue extends Exchange {
         //         ],
         //     }
         //
-        // future / delivery
+        // swap / delivery
         //
         //     [
         //         {
@@ -829,16 +837,16 @@ export default class bitrue extends Exchange {
         if (side === undefined) {
             type = 'spot';
         } else {
-            type = 'future';
+            type = 'contract';
             isLinear = (side === 1);
             isInverse = (side === 0);
         }
-        const isFuture = (type !== 'spot');
+        const isContract = (type !== 'spot');
         let baseId = this.safeString (market, 'baseAsset');
         let quoteId = this.safeString (market, 'quoteAsset');
         let settleId = undefined;
         let settle = undefined;
-        if (isFuture) {
+        if (isContract) {
             const symbolSplit = id.split ('-');
             baseId = this.safeString (symbolSplit, 1);
             quoteId = this.safeString (symbolSplit, 2);
@@ -886,11 +894,11 @@ export default class bitrue extends Exchange {
             'type': type,
             'spot': (type === 'spot'),
             'margin': false,
-            'swap': isFuture,
-            'future': isFuture,
+            'swap': isContract,
+            'future': false,
             'option': false,
             'active': (status === 'TRADING'),
-            'contract': isFuture,
+            'contract': isContract,
             'linear': isLinear,
             'inverse': isInverse,
             'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
@@ -945,7 +953,7 @@ export default class bitrue extends Exchange {
         //         "canDeposit":false
         //     }
         //
-        // future
+        // swap
         //
         //     {
         //         "account":[
@@ -1122,7 +1130,7 @@ export default class bitrue extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOrderBook', market, params);
         let response = undefined;
-        if (market['future']) {
+        if (market['swap']) {
             const request = {
                 'contractName': market['id'],
             };
@@ -1130,7 +1138,7 @@ export default class bitrue extends Exchange {
                 if (limit > 100) {
                     limit = 100;
                 }
-                request['limit'] = limit; // default 100, max 1000, see https://www.bitrue.com/api-docs#order-book
+                request['limit'] = limit; // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
             if (this.isLinear (type, subType)) {
                 response = await this.fapiV1PublicGetDepth (this.extend (request, params));
@@ -1149,7 +1157,7 @@ export default class bitrue extends Exchange {
             }
             response = await this.spotV1PublicGetDepth (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' fetchOrderBook only support spot & future markets');
+            throw new NotSupported (this.id + ' fetchOrderBook only support spot & swap markets');
         }
         //
         // spot
@@ -1168,7 +1176,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        // future
+        // swap
         //
         //     {
         //         "asks": [[34916.5, 2582], [34916.6, 2193], [34916.7, 2629], [34916.8, 3478], [34916.9, 2718]],
@@ -1222,7 +1230,7 @@ export default class bitrue extends Exchange {
         const last = this.safeString2 (ticker, 'lastPrice', 'last');
         const timestamp = this.safeInteger (ticker, 'time');
         let percentage = undefined;
-        if (market['future']) {
+        if (market['swap']) {
             percentage = Precise.stringMul (this.safeString (ticker, 'rose'), '100');
         } else {
             percentage = this.safeString (ticker, 'priceChangePercent');
@@ -1271,7 +1279,7 @@ export default class bitrue extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTicker', market, params);
         let response = undefined;
         let data = undefined;
-        if (market['future']) {
+        if (market['swap']) {
             const request = {
                 'contractName': market['id'],
             };
@@ -1288,7 +1296,7 @@ export default class bitrue extends Exchange {
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
             data = this.safeValue (response, 0, {});
         } else {
-            throw new NotSupported (this.id + ' fetchTicker only support spot & future markets');
+            throw new NotSupported (this.id + ' fetchTicker only support spot & swap markets');
         }
         //
         // spot
@@ -1315,7 +1323,7 @@ export default class bitrue extends Exchange {
         //         count: '0'
         //     }]
         //
-        // future
+        // swap
         //
         //     {
         //         "high": "35296",
@@ -1355,7 +1363,7 @@ export default class bitrue extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOHLCV', market, params);
         let response = undefined;
         let data = undefined;
-        if (market['future']) {
+        if (market['swap']) {
             const timeframesFuture = this.safeValue (timeframes, 'future', {});
             const request = {
                 'contractName': market['id'],
@@ -1393,7 +1401,7 @@ export default class bitrue extends Exchange {
             response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
             data = this.safeValue (response, 'data', []);
         } else {
-            throw new NotSupported (this.id + ' fetchOHLCV only support spot & future markets');
+            throw new NotSupported (this.id + ' fetchOHLCV only support spot & swap markets');
         }
         //
         // spot
@@ -1414,7 +1422,7 @@ export default class bitrue extends Exchange {
         //           ]
         //       }
         //
-        // future
+        // swap
         //
         //     [
         //         {
@@ -1444,7 +1452,7 @@ export default class bitrue extends Exchange {
         //         "o":"23508.34"
         //      }
         //
-        // future
+        // swap
         //
         //     {
         //         "high": "35360.7",
@@ -1489,7 +1497,7 @@ export default class bitrue extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
         let response = undefined;
-        if (market['future']) {
+        if (market['swap']) {
             const request = {
                 'contractName': market['id'],
             };
@@ -1504,7 +1512,7 @@ export default class bitrue extends Exchange {
             };
             response = await this.spotV1PublicGetTickerBookTicker (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' fetchBidsAsks only support spot & future markets');
+            throw new NotSupported (this.id + ' fetchBidsAsks only support spot & swap markets');
         }
         //
         // spot
@@ -1517,7 +1525,7 @@ export default class bitrue extends Exchange {
         //         "askQty": "9.00000000"
         //     }
         //
-        // future
+        // swap
         //
         //     {
         //         "high": "35296",
@@ -1552,14 +1560,14 @@ export default class bitrue extends Exchange {
         let response = undefined;
         let data = undefined;
         const request = {};
+        let type = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             const market = this.market (first);
-            let type = undefined;
             [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
             let subType = undefined;
             [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
-            if (market['future']) {
+            if (market['swap']) {
                 request['contractName'] = market['id'];
                 if (this.isLinear (type, subType)) {
                     response = await this.fapiV1PublicGetTicker (this.extend (request, params));
@@ -1573,9 +1581,13 @@ export default class bitrue extends Exchange {
                 response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
                 data = response;
             } else {
-                throw new NotSupported (this.id + ' fetchTickers only support spot & future markets');
+                throw new NotSupported (this.id + ' fetchTickers only support spot & swap markets');
             }
         } else {
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+            if (type !== 'spot') {
+                throw new NotSupported (this.id + ' fetchTickers only support spot when symbols is not set');
+            }
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
             data = response;
         }
@@ -1604,7 +1616,7 @@ export default class bitrue extends Exchange {
         //         count: '0'
         //     }]
         //
-        // future
+        // swap
         //
         //     {
         //         "high": "35296",
@@ -1947,7 +1959,7 @@ export default class bitrue extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (market['future']) {
+        if (market['swap']) {
             request['contractName'] = market['id'];
             request['amount'] = this.parseNumber (amount);
             request['volume'] = this.parseNumber (amount);
@@ -1985,7 +1997,7 @@ export default class bitrue extends Exchange {
             response = await this.spotV1PrivatePostOrder (this.extend (request, params));
             data = response;
         } else {
-            throw new NotSupported (this.id + ' createOrder only support spot & future markets');
+            throw new NotSupported (this.id + ' createOrder only support spot & swap markets');
         }
         //
         // spot
@@ -1998,7 +2010,7 @@ export default class bitrue extends Exchange {
         //         "transactTime": 1507725176595
         //     }
         //
-        // future
+        // swap
         //
         //     {
         //         "code": "0",
@@ -2040,13 +2052,13 @@ export default class bitrue extends Exchange {
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
         } else {
-            if (market['future']) {
+            if (market['swap']) {
                 request['clientOrderId'] = origClientOrderId;
             } else {
                 request['origClientOrderId'] = origClientOrderId;
             }
         }
-        if (market['future']) {
+        if (market['swap']) {
             request['contractName'] = market['id'];
             if (this.isLinear (type, subType)) {
                 response = await this.fapiV2PrivateGetOrder (this.extend (request, params));
@@ -2060,7 +2072,7 @@ export default class bitrue extends Exchange {
             response = await this.spotV1PrivateGetOrder (this.extend (request, params));
             data = response;
         } else {
-            throw new NotSupported (this.id + ' fetchOrder only support spot & future markets');
+            throw new NotSupported (this.id + ' fetchOrder only support spot & swap markets');
         }
         //
         // spot
@@ -2084,7 +2096,7 @@ export default class bitrue extends Exchange {
         //         "isWorking": true
         //     }
         //
-        // future
+        // swap
         //
         //     {
         //         "code":0,
@@ -2193,7 +2205,7 @@ export default class bitrue extends Exchange {
         let response = undefined;
         let data = undefined;
         const request = {};
-        if (market['future']) {
+        if (market['swap']) {
             request['contractName'] = market['id'];
             if (this.isLinear (type, subType)) {
                 response = await this.fapiV2PrivateGetOpenOrders (this.extend (request, params));
@@ -2206,7 +2218,7 @@ export default class bitrue extends Exchange {
             response = await this.spotV1PrivateGetOpenOrders (this.extend (request, params));
             data = response;
         } else {
-            throw new NotSupported (this.id + ' fetchOpenOrders only support spot & future markets');
+            throw new NotSupported (this.id + ' fetchOpenOrders only support spot & swap markets');
         }
         //
         // spot
@@ -2232,7 +2244,7 @@ export default class bitrue extends Exchange {
         //         }
         //     ]
         //
-        // future
+        // swap
         //
         //      {
         //          "code": "0",
@@ -2287,13 +2299,13 @@ export default class bitrue extends Exchange {
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
         } else {
-            if (market['future']) {
+            if (market['swap']) {
                 request['clientOrderId'] = origClientOrderId;
             } else {
                 request['origClientOrderId'] = origClientOrderId;
             }
         }
-        if (market['future']) {
+        if (market['swap']) {
             request['contractName'] = market['id'];
             if (this.isLinear (type, subType)) {
                 response = await this.fapiV2PrivatePostCancel (this.extend (request, params));
@@ -2306,7 +2318,7 @@ export default class bitrue extends Exchange {
             response = await this.spotV1PrivateDeleteOrder (this.extend (request, params));
             data = response;
         } else {
-            throw new NotSupported (this.id + ' cancelOrder only support spot & future markets');
+            throw new NotSupported (this.id + ' cancelOrder only support spot & swap markets');
         }
         //
         // spot
@@ -2318,7 +2330,7 @@ export default class bitrue extends Exchange {
         //         "clientOrderId": "cancelMyOrder1"
         //     }
         //
-        // future
+        // swap
         //
         //     {
         //         "code": "0",
@@ -2351,7 +2363,7 @@ export default class bitrue extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
         let response = undefined;
         let data = undefined;
-        if (market['future']) {
+        if (market['swap']) {
             const request = {
                 'contractName': market['id'],
             };
@@ -2365,7 +2377,7 @@ export default class bitrue extends Exchange {
             throw new NotSupported (this.id + ' cancelAllOrders only support future markets');
         }
         //
-        // future
+        // swap
         //
         //      {
         //          'code': '0',
@@ -2408,7 +2420,7 @@ export default class bitrue extends Exchange {
             }
             request['limit'] = limit;
         }
-        if (market['future']) {
+        if (market['swap']) {
             request['contractName'] = market['id'];
             if (this.isLinear (type, subType)) {
                 response = await this.fapiV2PrivateGetMyTrades (this.extend (request, params));
@@ -2421,7 +2433,7 @@ export default class bitrue extends Exchange {
             response = await this.spotV2PrivateGetMyTrades (this.extend (request, params));
             data = response;
         } else {
-            throw new NotSupported (this.id + ' fetchMyTrades only support spot & future markets');
+            throw new NotSupported (this.id + ' fetchMyTrades only support spot & swap markets');
         }
         //
         // spot
@@ -2443,7 +2455,7 @@ export default class bitrue extends Exchange {
         //         }
         //     ]
         //
-        // future
+        // swap
         //
         //     {
         //         "code":"0",
@@ -2908,6 +2920,7 @@ export default class bitrue extends Exchange {
          * @param {int} [limit] the maximum number of transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @param {int} [params.until] the latest time in ms to fetch transfers for
+         * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
          * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
@@ -2964,17 +2977,18 @@ export default class bitrue extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
          * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const accountTypes = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
+        const toId = this.safeString (accountTypes, toAccount, toAccount);
         const request = {
             'coinSymbol': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
+            'transferType': fromId + '_to_' + toId,
         };
-        request['transferType'] = this.safeString2 (params, 'type', 'transferType');
-        params = this.omit (params, [ 'type', 'transferType' ]);
         const response = await this.fapiV2PrivatePostFuturesTransfer (this.extend (request, params));
         //
         //     {
@@ -3016,8 +3030,8 @@ export default class bitrue extends Exchange {
             'contractName': market['id'],
             'leverage': leverage,
         };
-        if (!market['future']) {
-            throw new NotSupported (this.id + ' setLeverage only support future markets');
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' setLeverage only support swap markets');
         }
         if (this.isLinear (type, subType)) {
             response = await this.fapiV2PrivatePostLevelEdit (this.extend (request, params));
@@ -3052,8 +3066,8 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['future']) {
-            throw new NotSupported (this.id + ' setMargin only support future markets');
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' setMargin only support swap markets');
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('setMargin', market, params);
