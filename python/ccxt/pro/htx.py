@@ -23,6 +23,15 @@ class htx(ccxt.async_support.htx):
         return self.deep_extend(super(htx, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
+                'fetchTradesWs': False,
+                'fetchBalanceWs': False,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTickers': False,
@@ -130,7 +139,7 @@ class htx(ccxt.async_support.htx):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -197,7 +206,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -313,7 +322,7 @@ class htx(ccxt.async_support.htx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -617,7 +626,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -666,8 +675,8 @@ class htx(ccxt.async_support.htx):
         orderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
         orderType = self.safe_string(params, 'orderType', orderType)
         params = self.omit(params, 'orderType')
-        marketCode = market['lowercaseId'] if (market is not None) else None
-        baseId = market['lowercaseBaseId'] if (market is not None) else None
+        marketCode = market['lowercaseId'].lower() if (market is not None) else None
+        baseId = market['baseId'] if (market is not None) else None
         prefix = orderType
         messageHash = prefix
         if subType == 'linear':
@@ -683,7 +692,7 @@ class htx(ccxt.async_support.htx):
         elif type == 'future':
             # inverse futures Example: BCH/USD:BCH-220408
             if baseId is not None:
-                channel = prefix + '.' + baseId
+                channel = prefix + '.' + baseId.lower()
                 messageHash = channel
             else:
                 channel = prefix + '.' + '*'
@@ -703,7 +712,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         type = None
@@ -897,7 +906,8 @@ class htx(ccxt.async_support.htx):
         # when we make a global subscription(for contracts only) our message hash can't have a symbol/currency attached
         # so we're removing it here
         genericMessageHash = messageHash.replace('.' + market['lowercaseId'], '')
-        genericMessageHash = genericMessageHash.replace('.' + market['lowercaseBaseId'], '')
+        lowerCaseBaseId = self.safe_string_lower(market, 'baseId')
+        genericMessageHash = genericMessageHash.replace('.' + lowerCaseBaseId, '')
         client.resolve(self.orders, genericMessageHash)
 
     def parse_ws_order(self, order, market=None):
@@ -1235,7 +1245,7 @@ class htx(ccxt.async_support.htx):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
@@ -1972,7 +1982,8 @@ class htx(ccxt.async_support.htx):
                 # since self is a global sub, our messageHash does not specify any symbol(ex: orders_cross:trade)
                 # so we must remove it
                 genericOrderHash = messageHash.replace('.' + market['lowercaseId'], '')
-                genericOrderHash = genericOrderHash.replace('.' + market['lowercaseBaseId'], '')
+                lowerCaseBaseId = self.safe_string_lower(market, 'baseId')
+                genericOrderHash = genericOrderHash.replace('.' + lowerCaseBaseId, '')
                 genericTradesHash = genericOrderHash + ':' + 'trade'
                 client.resolve(self.myTrades, genericTradesHash)
 

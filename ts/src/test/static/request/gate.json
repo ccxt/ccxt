@@ -215,6 +215,16 @@
                 "url": "https://api.gateio.ws/api/v4/wallet/withdrawals",
                 "input": []
             }
+        ],
+        "fetchLiquidations": [
+            {
+                "description": "Fetch Liquidations",
+                "method": "fetchLiquidations",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/liq_orders?contract=BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\async\abstract\p2b as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -45,11 +44,10 @@ class p2b extends Exchange {
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
@@ -61,6 +59,8 @@ class p2b extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => false,
                 'fetchLedgerEntry' => false,
                 'fetchLeverageTiers' => false,
@@ -236,7 +236,7 @@ class p2b extends Exchange {
              * retrieves data on all $markets for bigone
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$markets
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->publicGetMarkets ($params));
             //
@@ -269,73 +269,68 @@ class p2b extends Exchange {
             //    }
             //
             $markets = $this->safe_value($response, 'result', array());
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $marketId = $this->safe_string($market, 'name');
-                $baseId = $this->safe_value($market, 'stock');
-                $quoteId = $this->safe_value($market, 'money');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $precision = $this->safe_value($market, 'precision');
-                $limits = $this->safe_value($market, 'limits');
-                $maxAmount = $this->safe_string($limits, 'max_amount');
-                $maxPrice = $this->safe_string($limits, 'max_price');
-                $entry = $this->safe_market_structure(array(
-                    'id' => $marketId,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => true,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->safe_number($limits, 'step_size'),
-                        'price' => $this->safe_number($limits, 'tick_size'),
-                        'base' => $this->parse_precision($this->safe_string($precision, 'stock')),
-                        'quote' => $this->parse_precision($this->safe_string($precision, 'money')),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $this->safe_number($limits, 'min_amount'),
-                            'max' => Precise::string_eq($maxAmount, '0') ? null : $this->parse_number($maxAmount),
-                        ),
-                        'price' => array(
-                            'min' => $this->safe_string($limits, 'min_price'),
-                            'max' => Precise::string_eq($maxPrice, '0') ? null : $this->parse_number($maxPrice),
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                ));
-                $result[] = $entry;
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
+    }
+
+    public function parse_market($market): array {
+        $marketId = $this->safe_string($market, 'name');
+        $baseId = $this->safe_string($market, 'stock');
+        $quoteId = $this->safe_string($market, 'money');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $limits = $this->safe_value($market, 'limits');
+        $maxAmount = $this->safe_string($limits, 'max_amount');
+        $maxPrice = $this->safe_string($limits, 'max_price');
+        return array(
+            'id' => $marketId,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => true,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->safe_number($limits, 'step_size'),
+                'price' => $this->safe_number($limits, 'tick_size'),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($limits, 'min_amount'),
+                    'max' => $this->parse_number($this->omit_zero($maxAmount)),
+                ),
+                'price' => array(
+                    'min' => $this->safe_number($limits, 'min_price'),
+                    'max' => $this->parse_number($this->omit_zero($maxPrice)),
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
@@ -345,7 +340,7 @@ class p2b extends Exchange {
              * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the p2b api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetTickers ($params));
@@ -386,7 +381,7 @@ class p2b extends Exchange {
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the p2b api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -495,7 +490,7 @@ class p2b extends Exchange {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -548,7 +543,7 @@ class p2b extends Exchange {
              * @param {array} [$params] extra parameters specific to the p2b api endpoint
              *
              * @param {int} $params->lastId order id
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $lastId = $this->safe_integer($params, 'lastId');
@@ -736,7 +731,7 @@ class p2b extends Exchange {
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
              * @param {array} [$params] extra parameters specific to the p2b api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostAccountBalances ($params));
@@ -805,7 +800,7 @@ class p2b extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the p2b api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             if ($type === 'market') {
@@ -854,10 +849,12 @@ class p2b extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the p2b api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
-            $this->check_required_argument('cancelOrder', $symbol, 'symbol');
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -903,7 +900,7 @@ class p2b extends Exchange {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {int} [$params->offset] 0-10000, default=0
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders () requires the $symbol argument');
@@ -960,7 +957,7 @@ class p2b extends Exchange {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {int} [$params->offset] 0-10000, default=0
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->safe_market($symbol);
@@ -1013,12 +1010,14 @@ class p2b extends Exchange {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {int} [$params->offset] 0-10000, default=0
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');
-            $this->check_required_argument('fetchMyTrades', $symbol, 'symbol');
             if ($until === null) {
                 if ($since === null) {
                     $until = $this->milliseconds();
@@ -1087,7 +1086,7 @@ class p2b extends Exchange {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {int} [$params->offset] 0-10000, default=0
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $until = $this->safe_integer($params, 'until');

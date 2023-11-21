@@ -65,29 +65,6 @@ export default class cryptocom extends Exchange {
     parseDepositStatus(status: any): string;
     parseWithdrawalStatus(status: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    parseMarginLoan(info: any, currency?: Currency): {
-        id: number;
-        currency: string;
-        amount: any;
-        symbol: any;
-        timestamp: any;
-        datetime: any;
-        info: any;
-    };
-    parseBorrowInterest(info: any, market?: Market): {
-        symbol: any;
-        marginMode: any;
-        currency: string;
-        interest: number;
-        interestRate: number;
-        amountBorrowed: any;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
-    parseBorrowRates(info: any, codeKey: any): any[];
     customHandleMarginModeAndParams(methodName: any, params?: {}): any[];
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
         info: any;
