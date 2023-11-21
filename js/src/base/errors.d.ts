@@ -97,7 +97,7 @@ declare class InvalidNonce extends NetworkError {
 declare class RequestTimeout extends NetworkError {
     constructor(message: any);
 }
-declare class OperationFailed extends NetworkError {
+declare class OperationFailed extends BaseError {
     constructor(message: any);
 }
 declare const errors: {

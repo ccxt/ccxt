@@ -15,6 +15,15 @@ export default class htx extends htxRest {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
+                'fetchTradesWs': false,
+                'fetchBalanceWs': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTickers': false,
@@ -31,6 +40,7 @@ export default class htx extends htxRest {
                             'spot': {
                                 'public': 'wss://{hostname}/ws',
                                 'private': 'wss://{hostname}/ws/v2',
+                                'feed': 'wss://{hostname}/feed',
                             },
                             'future': {
                                 'linear': {
@@ -58,6 +68,7 @@ export default class htx extends htxRest {
                             'spot': {
                                 'public': 'wss://api-aws.huobi.pro/ws',
                                 'private': 'wss://api-aws.huobi.pro/ws/v2',
+                                'feed': 'wss://{hostname}/feed',
                             },
                             'future': {
                                 'linear': {
@@ -124,7 +135,7 @@ export default class htx extends htxRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -194,7 +205,7 @@ export default class htx extends htxRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -319,18 +330,18 @@ export default class htx extends htxRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
-        const allowedSpotLimits = [150];
-        const allowedSwapLimits = [20, 150];
-        limit = (limit === undefined) ? 150 : limit;
-        if (market['spot'] && !this.inArray(limit, allowedSpotLimits)) {
-            throw new ExchangeError(this.id + ' watchOrderBook spot market accepts limits of 150 only');
-        }
-        if (!market['spot'] && !this.inArray(limit, allowedSwapLimits)) {
+        const allowedLimits = [20, 150];
+        // 2) 5-level/20-level incremental MBP is a tick by tick feed,
+        // which means whenever there is an order book change at that level, it pushes an update;
+        // 150-levels/400-level incremental MBP feed is based on the gap
+        // between two snapshots at 100ms interval.
+        limit = (limit === undefined) ? 20 : limit;
+        if (!this.inArray(limit, allowedLimits)) {
             throw new ExchangeError(this.id + ' watchOrderBook swap market accepts limits of 20 and 150 only');
         }
         let messageHash = undefined;
@@ -340,7 +351,7 @@ export default class htx extends htxRest {
         else {
             messageHash = 'market.' + market['id'] + '.depth.size_' + limit.toString() + '.high_freq';
         }
-        const url = this.getUrlByMarketType(market['type'], market['linear']);
+        const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
         if (!market['spot']) {
             params = this.extend(params);
@@ -375,6 +386,7 @@ export default class htx extends htxRest {
         const symbol = this.safeString(subscription, 'symbol');
         const messageHash = this.safeString(subscription, 'messageHash');
         const id = this.safeString(message, 'id');
+        const lastTimestamp = this.safeInteger(subscription, 'lastTimestamp');
         try {
             const orderbook = this.orderbooks[symbol];
             const data = this.safeValue(message, 'data');
@@ -382,16 +394,15 @@ export default class htx extends htxRest {
             const firstMessage = this.safeValue(messages, 0, {});
             const snapshot = this.parseOrderBook(data, symbol);
             const tick = this.safeValue(firstMessage, 'tick');
-            const sequence = this.safeInteger(tick, 'seqNum');
+            const sequence = this.safeInteger(tick, 'prevSeqNum');
             const nonce = this.safeInteger(data, 'seqNum');
             snapshot['nonce'] = nonce;
-            const timestamp = this.safeInteger(message, 'ts');
-            snapshot['timestamp'] = timestamp;
-            snapshot['datetime'] = this.iso8601(timestamp);
+            const snapshotTimestamp = this.safeInteger(message, 'ts');
+            subscription['lastTimestamp'] = snapshotTimestamp;
             const snapshotLimit = this.safeInteger(subscription, 'limit');
             const snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
-            if ((sequence !== undefined) && (nonce < sequence)) {
+            if ((sequence === undefined) || (nonce < sequence)) {
                 const maxAttempts = this.handleOption('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger(subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached maxAttempts yet
@@ -399,9 +410,10 @@ export default class htx extends htxRest {
                     // safety guard
                     if (messageHash in client.subscriptions) {
                         numAttempts = this.sum(numAttempts, 1);
+                        const delayTime = this.sum(1000, lastTimestamp - snapshotTimestamp);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
+                        this.delay(delayTime, this.watchOrderBookSnapshot, client, message, subscription);
                     }
                 }
                 else {
@@ -413,8 +425,9 @@ export default class htx extends htxRest {
                 orderbook.reset(snapshot);
                 // unroll the accumulated deltas
                 for (let i = 0; i < messages.length; i++) {
-                    this.handleOrderBookMessage(client, messages[i], orderbook);
+                    this.handleOrderBookMessage(client, messages[i]);
                 }
+                orderbook.cache = [];
                 this.orderbooks[symbol] = orderbook;
                 client.resolve(orderbook, messageHash);
             }
@@ -425,29 +438,31 @@ export default class htx extends htxRest {
     }
     async watchOrderBookSnapshot(client, message, subscription) {
         const messageHash = this.safeString(subscription, 'messageHash');
+        const symbol = this.safeString(subscription, 'symbol');
+        const limit = this.safeInteger(subscription, 'limit');
+        const timestamp = this.safeInteger(message, 'ts');
+        const params = this.safeValue(subscription, 'params');
+        const attempts = this.safeInteger(subscription, 'numAttempts', 0);
+        const market = this.market(symbol);
+        const url = this.getUrlByMarketType(market['type'], market['linear'], false, true);
+        const requestId = this.requestId();
+        const request = {
+            'req': messageHash,
+            'id': requestId,
+        };
+        // this is a temporary subscription by a specific requestId
+        // it has a very short lifetime until the snapshot is received over ws
+        const snapshotSubscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'limit': limit,
+            'params': params,
+            'numAttempts': attempts,
+            'lastTimestamp': timestamp,
+            'method': this.handleOrderBookSnapshot,
+        };
         try {
-            const symbol = this.safeString(subscription, 'symbol');
-            const limit = this.safeInteger(subscription, 'limit');
-            const params = this.safeValue(subscription, 'params');
-            const attempts = this.safeInteger(subscription, 'numAttempts', 0);
-            const market = this.market(symbol);
-            const url = this.getUrlByMarketType(market['type'], market['linear']);
-            const requestId = this.requestId();
-            const request = {
-                'req': messageHash,
-                'id': requestId,
-            };
-            // this is a temporary subscription by a specific requestId
-            // it has a very short lifetime until the snapshot is received over ws
-            const snapshotSubscription = {
-                'id': requestId,
-                'messageHash': messageHash,
-                'symbol': symbol,
-                'limit': limit,
-                'params': params,
-                'numAttempts': attempts,
-                'method': this.handleOrderBookSnapshot,
-            };
             const orderbook = await this.watch(url, requestId, request, requestId, snapshotSubscription);
             return orderbook.limit();
         }
@@ -466,7 +481,7 @@ export default class htx extends htxRest {
             this.handleDelta(bookside, deltas[i]);
         }
     }
-    handleOrderBookMessage(client, message, orderbook) {
+    handleOrderBookMessage(client, message) {
         // spot markets
         //
         //     {
@@ -536,30 +551,34 @@ export default class htx extends htxRest {
         const ch = this.safeValue(message, 'ch');
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
-        const symbol = this.safeSymbol(marketId);
+        const market = this.safeMarket(marketId);
+        const symbol = market['symbol'];
+        const orderbook = this.orderbooks[symbol];
         const tick = this.safeValue(message, 'tick', {});
-        const seqNum = this.safeInteger2(tick, 'seqNum', 'version');
+        const seqNum = this.safeInteger(tick, 'seqNum');
         const prevSeqNum = this.safeInteger(tick, 'prevSeqNum');
         const event = this.safeString(tick, 'event');
+        const version = this.safeInteger(tick, 'version');
         const timestamp = this.safeInteger(message, 'ts');
         if (event === 'snapshot') {
             const snapshot = this.parseOrderBook(tick, symbol, timestamp);
             orderbook.reset(snapshot);
-            orderbook['nonce'] = seqNum;
+            orderbook['nonce'] = version;
         }
-        if (prevSeqNum !== undefined && prevSeqNum > orderbook['nonce']) {
+        if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
             throw new InvalidNonce(this.id + ' watchOrderBook() received a mesage out of order');
         }
-        if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
+        const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
+        const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);
+        if (spotConditon || nonSpotCondition) {
             const asks = this.safeValue(tick, 'asks', []);
             const bids = this.safeValue(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
-            orderbook['nonce'] = seqNum;
+            orderbook['nonce'] = spotConditon ? seqNum : version;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
-        return orderbook;
     }
     handleOrderBook(client, message) {
         //
@@ -607,9 +626,9 @@ export default class htx extends htxRest {
         //         "ts":1645023376098
         //     }
         //
-        const tick = this.safeValue(message, 'tick', {});
-        const event = this.safeString(tick, 'event');
         const messageHash = this.safeString(message, 'ch');
+        const tick = this.safeValue(message, 'tick');
+        const event = this.safeString(tick, 'event');
         const ch = this.safeValue(message, 'ch');
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
@@ -620,23 +639,22 @@ export default class htx extends htxRest {
             const sizeParts = size.split('_');
             const limit = this.safeInteger(sizeParts, 1);
             orderbook = this.orderBook({}, limit);
+            this.orderbooks[symbol] = orderbook;
         }
-        if (orderbook['nonce'] === undefined) {
+        if ((event === undefined) && (orderbook['nonce'] === undefined)) {
             orderbook.cache.push(message);
         }
-        if (event !== undefined || orderbook['nonce'] !== undefined) {
-            this.orderbooks[symbol] = this.handleOrderBookMessage(client, message, orderbook);
+        else {
+            this.handleOrderBookMessage(client, message);
             client.resolve(orderbook, messageHash);
         }
     }
     handleOrderBookSubscription(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
+        const market = this.market(symbol);
         const limit = this.safeInteger(subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
         this.orderbooks[symbol] = this.orderBook({}, limit);
-        if (this.markets[symbol]['spot'] === true) {
+        if (market['spot']) {
             this.spawn(this.watchOrderBookSnapshot, client, message, subscription);
         }
     }
@@ -649,7 +667,7 @@ export default class htx extends htxRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -704,8 +722,8 @@ export default class htx extends htxRest {
         let orderType = this.safeString(this.options, 'orderType', 'orders'); // orders or matchOrders
         orderType = this.safeString(params, 'orderType', orderType);
         params = this.omit(params, 'orderType');
-        const marketCode = (market !== undefined) ? market['lowercaseId'] : undefined;
-        const baseId = (market !== undefined) ? market['lowercaseBaseId'] : undefined;
+        const marketCode = (market !== undefined) ? market['lowercaseId'].toLowerCase() : undefined;
+        const baseId = (market !== undefined) ? market['baseId'] : undefined;
         const prefix = orderType;
         messageHash = prefix;
         if (subType === 'linear') {
@@ -724,7 +742,7 @@ export default class htx extends htxRest {
         else if (type === 'future') {
             // inverse futures Example: BCH/USD:BCH-220408
             if (baseId !== undefined) {
-                channel = prefix + '.' + baseId;
+                channel = prefix + '.' + baseId.toLowerCase();
                 messageHash = channel;
             }
             else {
@@ -752,7 +770,7 @@ export default class htx extends htxRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -958,7 +976,8 @@ export default class htx extends htxRest {
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here
         let genericMessageHash = messageHash.replace('.' + market['lowercaseId'], '');
-        genericMessageHash = genericMessageHash.replace('.' + market['lowercaseBaseId'], '');
+        const lowerCaseBaseId = this.safeStringLower(market, 'baseId');
+        genericMessageHash = genericMessageHash.replace('.' + lowerCaseBaseId, '');
         client.resolve(this.orders, genericMessageHash);
     }
     parseWsOrder(order, market = undefined) {
@@ -1317,7 +1336,7 @@ export default class htx extends htxRest {
          * @name huobi#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
@@ -2132,7 +2151,8 @@ export default class htx extends htxRest {
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 let genericOrderHash = messageHash.replace('.' + market['lowercaseId'], '');
-                genericOrderHash = genericOrderHash.replace('.' + market['lowercaseBaseId'], '');
+                const lowerCaseBaseId = this.safeStringLower(market, 'baseId');
+                genericOrderHash = genericOrderHash.replace('.' + lowerCaseBaseId, '');
                 const genericTradesHash = genericOrderHash + ':' + 'trade';
                 client.resolve(this.myTrades, genericTradesHash);
             }
@@ -2207,7 +2227,7 @@ export default class htx extends htxRest {
             'fee': fee,
         }, market);
     }
-    getUrlByMarketType(type, isLinear = true, isPrivate = false) {
+    getUrlByMarketType(type, isLinear = true, isPrivate = false, isFeed = false) {
         const api = this.safeString(this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         let hostnameURL = undefined;
@@ -2217,7 +2237,12 @@ export default class htx extends htxRest {
                 hostnameURL = this.urls['api']['ws'][api]['spot']['private'];
             }
             else {
-                hostnameURL = this.urls['api']['ws'][api]['spot']['public'];
+                if (isFeed) {
+                    hostnameURL = this.urls['api']['ws'][api]['spot']['feed'];
+                }
+                else {
+                    hostnameURL = this.urls['api']['ws'][api]['spot']['public'];
+                }
             }
             url = this.implodeParams(hostnameURL, hostname);
         }

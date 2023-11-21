@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency } from './base/types.js';
 /**
  * @class okx
  * @extends Exchange
@@ -9,52 +9,9 @@ export default class okx extends Exchange {
     handleMarketTypeAndParams(methodName: any, market?: any, params?: {}): any;
     convertToInstrumentType(type: any): string;
     convertExpireDate(date: any): string;
-    createExpiredOptionMarket(symbol: any): {
-        id: string;
-        symbol: string;
-        base: any;
-        quote: string;
-        settle: any;
-        baseId: any;
-        quoteId: string;
-        settleId: any;
-        active: boolean;
-        type: string;
-        linear: any;
-        inverse: any;
-        spot: boolean;
-        swap: boolean;
-        future: boolean;
-        option: boolean;
-        margin: boolean;
-        contract: boolean;
-        contractSize: number;
-        expiry: number;
-        expiryDatetime: string;
-        optionType: string;
-        strike: number;
-        precision: {
-            amount: any;
-            price: any;
-        };
-        limits: {
-            amount: {
-                min: any;
-                max: any;
-            };
-            price: {
-                min: any;
-                max: any;
-            };
-            cost: {
-                min: any;
-                max: any;
-            };
-        };
-        info: any;
-    };
+    createExpiredOptionMarket(symbol: any): MarketInterface;
     market(symbol: any): any;
-    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
+    safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): MarketInterface;
     fetchStatus(params?: {}): Promise<{
         updated: any;
         status: string;
@@ -66,31 +23,31 @@ export default class okx extends Exchange {
     fetchAccounts(params?: {}): Promise<any[]>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseMarket(market: any): Market;
-    fetchMarketsByType(type: any, params?: {}): Promise<Market[]>;
+    fetchMarketsByType(type: any, params?: {}): Promise<MarketInterface[]>;
     safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: any): Ticker;
+    parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickersByType(type: any, symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
-    parseTrade(trade: any, market?: any): Trade;
+    fetchTickersByType(type: any, symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseBalanceByType(type: any, response: any): Balances;
     parseTradingBalance(response: any): Balances;
     parseFundingBalance(response: any): Balances;
-    parseTradingFee(fee: any, market?: any): {
+    parseTradingFee(fee: any, market?: Market): {
         info: any;
-        symbol: any;
+        symbol: string;
         maker: number;
         taker: number;
     };
     fetchTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
-        symbol: any;
+        symbol: string;
         maker: number;
         taker: number;
     }>;
@@ -104,7 +61,7 @@ export default class okx extends Exchange {
     parseIds(ids: any): any;
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): Order;
+    parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -113,7 +70,7 @@ export default class okx extends Exchange {
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: any, currency?: any): {
+    parseLedgerEntry(item: any, currency?: Currency): {
         id: string;
         info: any;
         timestamp: number;
@@ -122,16 +79,16 @@ export default class okx extends Exchange {
         referenceId: string;
         referenceAccount: any;
         type: string;
-        currency: any;
-        symbol: any;
+        currency: string;
+        symbol: string;
         amount: number;
         before: any;
         after: number;
         status: string;
         fee: any;
     };
-    parseDepositAddress(depositAddress: any, currency?: any): {
-        currency: any;
+    parseDepositAddress(depositAddress: any, currency?: Currency): {
+        currency: string;
         address: string;
         tag: string;
         network: string;
@@ -145,28 +102,29 @@ export default class okx extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): Transaction;
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchLeverage(symbol: string, params?: {}): Promise<any>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
-    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
+    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: Market): import("./base/types.js").Position;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         info: any;
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: string;
         toAccount: string;
         status: string;
     }>;
-    parseTransfer(transfer: any, currency?: any): {
+    parseTransfer(transfer: any, currency?: Currency): {
         info: any;
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: string;
         toAccount: string;
@@ -178,7 +136,7 @@ export default class okx extends Exchange {
         id: string;
         timestamp: number;
         datetime: string;
-        currency: any;
+        currency: string;
         amount: number;
         fromAccount: string;
         toAccount: string;
@@ -191,9 +149,9 @@ export default class okx extends Exchange {
         body: any;
         headers: any;
     };
-    parseFundingRate(contract: any, market?: any): {
+    parseFundingRate(contract: any, market?: Market): {
         info: any;
-        symbol: any;
+        symbol: string;
         markPrice: any;
         indexPrice: any;
         interestRate: number;
@@ -212,7 +170,7 @@ export default class okx extends Exchange {
     };
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
-        symbol: any;
+        symbol: string;
         markPrice: any;
         indexPrice: any;
         interestRate: number;
@@ -240,18 +198,23 @@ export default class okx extends Exchange {
     setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     setPositionMode(hedged: any, symbol?: Str, params?: {}): Promise<any>;
     setMarginMode(marginMode: any, symbol?: Str, params?: {}): Promise<any>;
+<<<<<<< HEAD
     fetchBorrowRates(params?: {}): Promise<{}>;
 >>>>>>> 5a483c50bd8a5c4ae57e5d31a9de8caed1148cc1
     fetchBorrowRate(code: string, params?: {}): Promise<{
-        currency: any;
+=======
+    fetchCrossBorrowRates(params?: {}): Promise<any[]>;
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
+>>>>>>> 70395cb0413e73ff1da77986f9ac28605f10aa91
+        currency: string;
         rate: number;
         period: number;
         timestamp: number;
         datetime: string;
         info: any;
     }>;
-    parseBorrowRate(info: any, currency?: any): {
-        currency: any;
+    parseBorrowRate(info: any, currency?: Currency): {
+        currency: string;
         rate: number;
         period: number;
         timestamp: number;
@@ -266,41 +229,41 @@ export default class okx extends Exchange {
         info: any;
         type: string;
         amount: number;
-        code: any;
-        symbol: any;
+        code: string;
+        symbol: string;
         status: string;
     }>;
-    parseMarginModification(data: any, market?: any): {
+    parseMarginModification(data: any, market?: Market): {
         info: any;
         type: string;
         amount: number;
-        code: any;
-        symbol: any;
+        code: string;
+        symbol: string;
         status: string;
     };
     reduceMargin(symbol: string, amount: any, params?: {}): Promise<{
         info: any;
         type: string;
         amount: number;
-        code: any;
-        symbol: any;
+        code: string;
+        symbol: string;
         status: string;
     }>;
     addMargin(symbol: string, amount: any, params?: {}): Promise<{
         info: any;
         type: string;
         amount: number;
-        code: any;
-        symbol: any;
+        code: string;
+        symbol: string;
         status: string;
     }>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
-    parseMarketLeverageTiers(info: any, market?: any): any[];
+    parseMarketLeverageTiers(info: any, market?: Market): any[];
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: any, market?: any): {
+    parseBorrowInterest(info: any, market?: Market): {
         symbol: string;
         marginMode: string;
-        currency: any;
+        currency: string;
         interest: number;
         interestRate: number;
         amountBorrowed: number;
@@ -308,11 +271,27 @@ export default class okx extends Exchange {
         datetime: string;
         info: any;
     };
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    parseMarginLoan(info: any, currency?: any): {
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<{
         id: any;
-        currency: any;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
+        id: any;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    parseMarginLoan(info: any, currency?: Currency): {
+        id: any;
+        currency: string;
         amount: number;
         symbol: any;
         timestamp: any;
@@ -321,14 +300,14 @@ export default class okx extends Exchange {
     };
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OpenInterest[]>;
-    parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
+    parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     setSandboxMode(enable: any): void;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseSettlement(settlement: any, market: any): {
         info: any;
-        symbol: any;
+        symbol: string;
         price: number;
         timestamp: any;
         datetime: any;
@@ -336,8 +315,8 @@ export default class okx extends Exchange {
     parseSettlements(settlements: any, market: any): any[];
     fetchUnderlyingAssets(params?: {}): Promise<any>;
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
-    parseGreeks(greeks: any, market?: any): {
-        symbol: any;
+    parseGreeks(greeks: any, market?: Market): {
+        symbol: string;
         timestamp: number;
         datetime: string;
         delta: number;

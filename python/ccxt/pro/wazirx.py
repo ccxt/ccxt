@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -52,7 +51,7 @@ class wazirx(ccxt.async_support.wazirx):
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs.wazirx.com/#account-update
         :param dict [params]: extra parameters specific to the wazirx api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         token = await self.authenticate(params)
@@ -93,8 +92,8 @@ class wazirx(ccxt.async_support.wazirx):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
-            available = self.safe_number(balance, 'b')
-            locked = self.safe_number(balance, 'l')
+            available = self.safe_string(balance, 'b')
+            locked = self.safe_string(balance, 'l')
             account = self.account()
             account['free'] = available
             account['used'] = locked
@@ -169,7 +168,7 @@ class wazirx(ccxt.async_support.wazirx):
         :see: https://docs.wazirx.com/#all-market-tickers-stream
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the wazirx api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -184,13 +183,13 @@ class wazirx(ccxt.async_support.wazirx):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, subscribeHash)
 
-    async def watch_tickers(self, symbols: List[str] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :see: https://docs.wazirx.com/#all-market-tickers-stream
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the wazirx api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -287,7 +286,7 @@ class wazirx(ccxt.async_support.wazirx):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the wazirx api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -340,7 +339,7 @@ class wazirx(ccxt.async_support.wazirx):
             trades.append(parsedTrade)
         client.resolve(trades, messageHash)
 
-    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watch trades by user
         :see: https://docs.wazirx.com/#trade-update
@@ -348,7 +347,7 @@ class wazirx(ccxt.async_support.wazirx):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the wazirx api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         token = await self.authenticate(params)
@@ -459,7 +458,7 @@ class wazirx(ccxt.async_support.wazirx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the wazirx api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -521,7 +520,7 @@ class wazirx(ccxt.async_support.wazirx):
             self.orderbooks[symbol] = currentOrderBook
         client.resolve(self.orderbooks[symbol], messageHash)
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)

@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
@@ -17,6 +18,15 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'cancelAllOrdersWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelOrderWs' => false,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchBalanceWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'fetchTradesWs' => false,
                 'watchOHLCV' => false,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
@@ -156,7 +166,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $options = $this->safe_value($this->options, 'watchTicker');
             $method = $this->safe_string($options, 'method', 'ticker'); // or ticker_lite
@@ -173,7 +183,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
              * @param {string} symbol unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $method = $this->safe_string($this->options, 'watchTickerMethod', 'ticker'); // or ticker_lite
             $name = $this->safe_string_2($params, 'method', 'watchTickerMethod', $method);
@@ -192,7 +202,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $name = 'trade';
@@ -212,7 +222,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by krakenfutures watchOrderBook
              * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             $orderbook = Async\await($this->subscribe_public('book', array( $symbol ), $params));
             return $orderbook->limit ();
@@ -359,7 +369,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {int} [$since] not used by krakenfutures watchOrders
              * @param {int} [$limit] not used by krakenfutures watchOrders
              * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $name = 'open_orders';
@@ -385,7 +395,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $name = 'fills';
@@ -412,7 +422,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {int} [limit] not used by krakenfutures watchBalance
              * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
              * @param {string} [$params->account] can be either 'futures' or 'flex_futures'
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
              */
             Async\await($this->load_markets());
             $name = 'balances';
@@ -1281,10 +1291,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $key = $holdingKeys[$i];
                 $code = $this->safe_currency_code($key);
                 $newAccount = $this->account();
-                $amount = $this->safe_number($holding, $key);
-                $newAccount['free'] = $amount;
-                $newAccount['total'] = $amount;
-                $newAccount['used'] = 0;
+                $newAccount['total'] = $this->safe_string($holding, $key);
                 $holdingResult[$code] = $newAccount;
             }
             $this->balance['cash'] = $holdingResult;
@@ -1304,9 +1311,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $future = $this->safe_value($futures, $key);
                 $currencyId = $this->safe_string($future, 'unit');
                 $code = $this->safe_currency_code($currencyId);
-                $newAccount['free'] = $this->safe_number($future, 'available');
-                $newAccount['used'] = $this->safe_number($future, 'initial_margin');
-                $newAccount['total'] = $this->safe_number($future, 'balance');
+                $newAccount['free'] = $this->safe_string($future, 'available');
+                $newAccount['used'] = $this->safe_string($future, 'initial_margin');
+                $newAccount['total'] = $this->safe_string($future, 'balance');
                 $futuresResult[$symbol] = array();
                 $futuresResult[$symbol][$code] = $newAccount;
             }
@@ -1326,9 +1333,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $flexFuture = $this->safe_value($flexFutureCurrencies, $key);
                 $code = $this->safe_currency_code($key);
                 $newAccount = $this->account();
-                $newAccount['free'] = $this->safe_number($flexFuture, 'available');
-                $newAccount['used'] = $this->safe_number($flexFuture, 'collateral_value');
-                $newAccount['total'] = $this->safe_number($flexFuture, 'quantity');
+                $newAccount['free'] = $this->safe_string($flexFuture, 'available');
+                $newAccount['used'] = $this->safe_string($flexFuture, 'collateral_value');
+                $newAccount['total'] = $this->safe_string($flexFuture, 'quantity');
                 $flexFuturesResult[$code] = $newAccount;
             }
             $this->balance['flex'] = $flexFuturesResult;
@@ -1431,10 +1438,27 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ));
     }
 
+    public function handle_error_message(Client $client, $message) {
+        //
+        //    {
+        //        event => 'alert',
+        //        $message => 'Failed to subscribe to authenticated feed'
+        //    }
+        //
+        $errMsg = $this->safe_string($message, 'message');
+        try {
+            throw new ExchangeError($this->id . ' ' . $errMsg);
+        } catch (Exception $error) {
+            $client->reject ($error);
+        }
+    }
+
     public function handle_message($client, $message) {
         $event = $this->safe_string($message, 'event');
         if ($event === 'challenge') {
             $this->handle_authenticate($client, $message);
+        } elseif ($event === 'alert') {
+            return $this->handle_error_message($client, $message);
         } elseif ($event === 'pong') {
             $client->lastPong = $this->milliseconds();
         } elseif ($event === null) {

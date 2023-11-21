@@ -27,6 +27,7 @@ interface Exchange {
     publicGetMarketOpenOracle (params?: {}): Promise<implicitReturnType>;
     publicGetMarketExchangeRate (params?: {}): Promise<implicitReturnType>;
     publicGetMarketIndexComponents (params?: {}): Promise<implicitReturnType>;
+    publicGetPublicEconomicCalendar (params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTickers (params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTicker (params?: {}): Promise<implicitReturnType>;
     publicGetPublicBlockTrades (params?: {}): Promise<implicitReturnType>;
@@ -144,7 +145,6 @@ interface Exchange {
     privateGetAssetSubaccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountManagedSubaccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetUsersEntrustSubaccountList (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersPartnerIfRebate (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountInterestLimits (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
@@ -186,6 +186,8 @@ interface Exchange {
     privateGetFinanceSfpDcdOrders (params?: {}): Promise<implicitReturnType>;
     privateGetBrokerFdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
     privateGetBrokerFdIfRebate (params?: {}): Promise<implicitReturnType>;
+    privateGetAffiliateInviteeDetail (params?: {}): Promise<implicitReturnType>;
+    privateGetUsersPartnerIfRebate (params?: {}): Promise<implicitReturnType>;
     privatePostRfqCreateRfq (params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelRfq (params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelBatchRfqs (params?: {}): Promise<implicitReturnType>;

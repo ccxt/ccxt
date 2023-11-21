@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -18,6 +18,15 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         return self.deep_extend(super(poloniexfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchTicker': True,
@@ -114,7 +123,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         self.options['requestId'] = requestId
         return requestId
 
-    async def subscribe(self, name: str, isPrivate: bool, symbol: String = None, subscription=None, params={}):
+    async def subscribe(self, name: str, isPrivate: bool, symbol: Str = None, subscription=None, params={}):
         """
          * @ignore
         Connects to a websocket channel
@@ -217,7 +226,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :see: https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -232,7 +241,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'watchTrades')
@@ -252,7 +261,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :param int [limit]: not used by poloniexfutures watchOrderBook
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :param str [params.method]: the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'watchOrderBook')
@@ -270,7 +279,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         orderbook = await self.subscribe(name, False, symbol, subscription, params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://futures-docs.poloniex.com/#private-messages
@@ -279,7 +288,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :param str [params.method]: the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         options = self.safe_value(self.options, 'watchOrders')
@@ -298,7 +307,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://futures-docs.poloniex.com/#account-balance-events
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         name = '/contractAccount/wallet'

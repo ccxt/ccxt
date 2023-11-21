@@ -198,7 +198,8 @@ public partial class Exchange
         {
             if (result is string)
             {
-                parsedValue = Convert.ToInt64(float.Parse(result.ToString(), CultureInfo.InvariantCulture));
+                // parsedValue = Convert.ToInt64(float.Parse(result.ToString(), CultureInfo.InvariantCulture));
+                parsedValue = Convert.ToInt64(result); // check this out
 
             }
             else
@@ -254,7 +255,7 @@ public partial class Exchange
     }
 
 
-    public object safeFloatN(object obj, object keys, object defaultValue = null) => SafeFloatN(obj, new List<object> { keys }, defaultValue);
+    public object safeFloatN(object obj, object keys, object defaultValue = null) => SafeFloatN(obj, keys as List<object>, defaultValue);
     public static object SafeFloatN(object obj, List<object> keys, object defaultValue = null)
     {
         defaultValue ??= null;

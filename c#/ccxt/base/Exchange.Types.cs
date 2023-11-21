@@ -405,7 +405,7 @@ public partial class Exchange
             this.balances = new Dictionary<string, Balance>();
             foreach (var balance in balances)
             {
-                if (balance.Key != "info" && balance.Key != "free" && balance.Key != "used" && balance.Key != "total")
+                if (balance.Key != "info" && balance.Key != "free" && balance.Key != "used" && balance.Key != "total" && balance.Key != "timestamp" && balance.Key != "datetime")
                 {
                     this.balances.Add(balance.Key, new Balance(balance.Value));
                 }
@@ -913,6 +913,72 @@ public partial class Exchange
             markPrice = SafeFloat(greeks, "markPrice");
             lastPrice = SafeFloat(greeks, "lastPrice");
             underlyingPrice = SafeFloat(greeks, "underlyingPrice");
+        }
+    }
+
+
+    public struct MarketInterface
+    {
+
+        public Dictionary<string, object>? info;
+        public string? uppercaseId;
+        public string? lowercaseId;
+        public string? symbol;
+        public string? baseCurrency;
+        public string? quote;
+        public string? baseId;
+        public string? quoteId;
+        public bool? active;
+        public string? type;
+        public bool? spot;
+        public bool? margin;
+        public bool? swap;
+        public bool? future;
+        public bool? option;
+        public bool? contract;
+        public string settle;
+        public string settleId;
+        public double? contractSize;
+        public bool? linear;
+        public bool? inverse;
+        public bool? quanto;
+        public Int64? expiry;
+        public string? expiryDatetime;
+        public double? strike;
+        public string? optionType;
+        public double? taker;
+        public double? maker;
+
+        public MarketInterface(object market)
+        {
+            info = SafeValue(market, "info") != null ? (Dictionary<string, object>)SafeValue(market, "info") : null;
+            uppercaseId = SafeString(market, "uppercaseId");
+            lowercaseId = SafeString(market, "lowercaseId");
+            symbol = SafeString(market, "symbol");
+            baseCurrency = SafeString(market, "baseCurrency");
+            quote = SafeString(market, "quote");
+            baseId = SafeString(market, "baseId");
+            quoteId = SafeString(market, "quoteId");
+            active = SafeValue(market, "active") != null ? (bool)SafeValue(market, "active") : null;
+            type = SafeString(market, "type");
+            spot = SafeValue(market, "spot") != null ? (bool)SafeValue(market, "spot") : null;
+            margin = SafeValue(market, "margin") != null ? (bool)SafeValue(market, "margin") : null;
+            swap = SafeValue(market, "swap") != null ? (bool)SafeValue(market, "swap") : null;
+            future = SafeValue(market, "future") != null ? (bool)SafeValue(market, "future") : null;
+            option = SafeValue(market, "option") != null ? (bool)SafeValue(market, "option") : null;
+            contract = SafeValue(market, "contract") != null ? (bool)SafeValue(market, "contract") : null;
+            settle = SafeString(market, "settle");
+            settleId = SafeString(market, "settleId");
+            contractSize = SafeFloat(market, "contractSize");
+            linear = SafeValue(market, "linear") != null ? (bool)SafeValue(market, "linear") : null;
+            inverse = SafeValue(market, "inverse") != null ? (bool)SafeValue(market, "inverse") : null;
+            quanto = SafeValue(market, "quanto") != null ? (bool)SafeValue(market, "quanto") : null;
+            expiry = SafeInteger(market, "expiry");
+            expiryDatetime = SafeString(market, "expiryDatetime");
+            strike = SafeFloat(market, "strike");
+            optionType = SafeString(market, "optionType");
+            taker = SafeFloat(market, "taker");
+            maker = SafeFloat(market, "maker");
         }
     }
 }

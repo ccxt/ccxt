@@ -370,13 +370,12 @@ class Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
-                'fetchBorrowRates': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
+                'fetchCrossBorrowRate': undefined,
+                'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
@@ -391,6 +390,8 @@ class Exchange {
                 'fetchFundingRateHistory': undefined,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
+                'fetchIsolatedBorrowRate': undefined,
+                'fetchIsolatedBorrowRates': undefined,
                 'fetchL2OrderBook': true,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -413,7 +414,7 @@ class Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
-                'fetchPositionsBySymbol': undefined,
+                'fetchPositionsForSymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
@@ -1410,8 +1411,11 @@ class Exchange {
     parseOrder(order, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseOrder() is not supported yet');
     }
-    async fetchBorrowRates(params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchBorrowRates() is not supported yet');
+    async fetchCrossBorrowRates(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchCrossBorrowRates() is not supported yet');
+    }
+    async fetchIsolatedBorrowRates(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchIsolatedBorrowRates() is not supported yet');
     }
     parseMarketLeverageTiers(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseMarketLeverageTiers() is not supported yet');
@@ -1465,13 +1469,19 @@ class Exchange {
     parseToNumeric(number) {
         const stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true
+        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is false
-        if (stringVersion.indexOf('.') > 0) {
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        if (stringVersion.indexOf('.') >= 0) {
             return parseFloat(stringVersion);
         }
         return parseInt(stringVersion);
+    }
+    isRoundNumber(value) {
+        // this method is similar to isInteger, but this is more loyal and does not check for types.
+        // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
+        const res = this.parseToNumeric((value % 1));
+        return res === 0;
     }
     afterConstruct() {
         this.createNetworksByIdObject();
@@ -1659,7 +1669,7 @@ class Exchange {
             else {
                 this.markets_by_id[value['id']] = [value];
             }
-            const market = this.deepExtend(this.safeMarket(), {
+            const market = this.deepExtend(this.safeMarketStructure(), {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
@@ -2299,17 +2309,17 @@ class Exchange {
         return result;
     }
     safeTicker(ticker, market = undefined) {
-        let open = this.safeValue(ticker, 'open');
-        let close = this.safeValue(ticker, 'close');
-        let last = this.safeValue(ticker, 'last');
-        let change = this.safeValue(ticker, 'change');
-        let percentage = this.safeValue(ticker, 'percentage');
-        let average = this.safeValue(ticker, 'average');
-        let vwap = this.safeValue(ticker, 'vwap');
+        let open = this.omitZero(this.safeString(ticker, 'open'));
+        let close = this.omitZero(this.safeString(ticker, 'close'));
+        let last = this.omitZero(this.safeString(ticker, 'last'));
+        let change = this.omitZero(this.safeString(ticker, 'change'));
+        let percentage = this.omitZero(this.safeString(ticker, 'percentage'));
+        let average = this.omitZero(this.safeString(ticker, 'average'));
+        let vwap = this.omitZero(this.safeString(ticker, 'vwap'));
         const baseVolume = this.safeString(ticker, 'baseVolume');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = Precise["default"].stringDiv(quoteVolume, baseVolume);
+            vwap = Precise["default"].stringDiv(this.omitZero(quoteVolume), baseVolume);
         }
         if ((last !== undefined) && (close === undefined)) {
             close = last;
@@ -2337,23 +2347,44 @@ class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend(ticker, {
-            'bid': this.omitZero(this.safeNumber(ticker, 'bid')),
+            'bid': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'bid'))),
             'bidVolume': this.safeNumber(ticker, 'bidVolume'),
-            'ask': this.omitZero(this.safeNumber(ticker, 'ask')),
+            'ask': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'ask'))),
             'askVolume': this.safeNumber(ticker, 'askVolume'),
-            'high': this.omitZero(this.safeNumber(ticker, 'high')),
-            'low': this.omitZero(this.safeNumber(ticker, 'low')),
-            'open': this.omitZero(this.parseNumber(open)),
-            'close': this.omitZero(this.parseNumber(close)),
-            'last': this.omitZero(this.parseNumber(last)),
+            'high': this.parseNumber(this.omitZero(this.safeString(ticker, 'high"'))),
+            'low': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'low'))),
+            'open': this.parseNumber(this.omitZero(this.parseNumber(open))),
+            'close': this.parseNumber(this.omitZero(this.parseNumber(close))),
+            'last': this.parseNumber(this.omitZero(this.parseNumber(last))),
             'change': this.parseNumber(change),
             'percentage': this.parseNumber(percentage),
-            'average': this.omitZero(this.parseNumber(average)),
-            'vwap': this.omitZero(this.parseNumber(vwap)),
+            'average': this.parseNumber(average),
+            'vwap': this.parseNumber(vwap),
             'baseVolume': this.parseNumber(baseVolume),
             'quoteVolume': this.parseNumber(quoteVolume),
             'previousClose': this.safeNumber(ticker, 'previousClose'),
         });
+    }
+    async fetchBorrowRate(code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead');
+    }
+    async repayCrossMargin(code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' repayCrossMargin is not support yet');
+    }
+    async repayIsolatedMargin(symbol, code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' repayIsolatedMargin is not support yet');
+    }
+    async borrowCrossMargin(code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' borrowCrossMargin is not support yet');
+    }
+    async borrowIsolatedMargin(symbol, code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' borrowIsolatedMargin is not support yet');
+    }
+    async borrowMargin(code, amount, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead');
+    }
+    async repayMargin(code, amount, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let message = '';
@@ -2991,16 +3022,16 @@ class Exchange {
     async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         return this.watchPositions(symbols, since, limit, params);
     }
-    async fetchPositionsBySymbol(symbol, params = {}) {
+    async fetchPositionsForSymbol(symbol, params = {}) {
         /**
          * @method
-         * @name exchange#fetchPositionsBySymbol
-         * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
-         * @param {string} symbol unified market symbol of the market the position is held in
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
-        throw new errors.NotSupported(this.id + ' fetchPositionsBySymbol() is not supported yet');
+        throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
     async fetchPositions(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
@@ -3030,53 +3061,14 @@ class Exchange {
         return {
             'id': currencyId,
             'code': code,
+            'precision': undefined,
         };
     }
-    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const result = {
-            'id': marketId,
+    safeMarket(marketId, market = undefined, delimiter = undefined, marketType = undefined) {
+        const result = this.safeMarketStructure({
             'symbol': marketId,
-            'base': undefined,
-            'quote': undefined,
-            'baseId': undefined,
-            'quoteId': undefined,
-            'active': undefined,
-            'type': undefined,
-            'linear': undefined,
-            'inverse': undefined,
-            'spot': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'margin': false,
-            'contract': false,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'optionType': undefined,
-            'strike': undefined,
-            'settle': undefined,
-            'settleId': undefined,
-            'precision': {
-                'amount': undefined,
-                'price': undefined,
-            },
-            'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'info': undefined,
-        };
+            'marketId': marketId,
+        });
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
@@ -3085,13 +3077,17 @@ class Exchange {
                     return markets[0];
                 }
                 else {
-                    if ((marketType === undefined) && (market === undefined)) {
-                        throw new errors.ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                    if (marketType === undefined) {
+                        if (market === undefined) {
+                            throw new errors.ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                        }
+                        else {
+                            marketType = market['type'];
+                        }
                     }
-                    const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
                         const currentMarket = markets[i];
-                        if (currentMarket[inferredMarketType]) {
+                        if (currentMarket[marketType]) {
                             return currentMarket;
                         }
                     }
@@ -3210,15 +3206,27 @@ class Exchange {
             throw new errors.NotSupported(this.id + ' ' + key + ' does not have a value in mapping');
         }
     }
-    async fetchBorrowRate(code, params = {}) {
+    async fetchCrossBorrowRate(code, params = {}) {
         await this.loadMarkets();
         if (!this.has['fetchBorrowRates']) {
-            throw new errors.NotSupported(this.id + ' fetchBorrowRate() is not supported yet');
+            throw new errors.NotSupported(this.id + ' fetchCrossBorrowRate() is not supported yet');
         }
-        const borrowRates = await this.fetchBorrowRates(params);
+        const borrowRates = await this.fetchCrossBorrowRates(params);
         const rate = this.safeValue(borrowRates, code);
         if (rate === undefined) {
-            throw new errors.ExchangeError(this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+            throw new errors.ExchangeError(this.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code);
+        }
+        return rate;
+    }
+    async fetchIsolatedBorrowRate(symbol, params = {}) {
+        await this.loadMarkets();
+        if (!this.has['fetchBorrowRates']) {
+            throw new errors.NotSupported(this.id + ' fetchIsolatedBorrowRate() is not supported yet');
+        }
+        const borrowRates = await this.fetchIsolatedBorrowRates(params);
+        const rate = this.safeValue(borrowRates, symbol);
+        if (rate === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
         return rate;
     }
@@ -3456,7 +3464,7 @@ class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         throw new errors.NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -3524,21 +3532,19 @@ class Exchange {
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            }
-            else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                const defaultType = this.safeString2(this.options, 'defaultType', 'defaultSubType', 'spot');
-                for (let i = 0; i < markets.length; i++) {
-                    const market = markets[i];
-                    if (market[defaultType]) {
-                        return market;
-                    }
+        if (symbol in this.markets) {
+            return this.markets[symbol];
+        }
+        else if (symbol in this.markets_by_id) {
+            const markets = this.markets_by_id[symbol];
+            const defaultType = this.safeString2(this.options, 'defaultType', 'defaultSubType', 'spot');
+            for (let i = 0; i < markets.length; i++) {
+                const market = markets[i];
+                if (market[defaultType]) {
+                    return market;
                 }
-                return markets[0];
             }
+            return markets[0];
         }
         throw new errors.BadSymbol(this.id + ' does not have market symbol ' + symbol);
     }
@@ -4112,15 +4118,6 @@ class Exchange {
             throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() cannot have a symbol argument for cross margin');
         }
     }
-    checkRequiredSymbol(methodName, symbol) {
-        /**
-         * @ignore
-         * @method
-         * @param {string} symbol unified symbol of the market
-         * @param {string} methodName name of the method that requires a symbol
-         */
-        this.checkRequiredArgument(methodName, symbol, 'symbol');
-    }
     parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
         /**
          * @ignore
@@ -4204,7 +4201,7 @@ class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -4240,7 +4237,7 @@ class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {object} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {
             return await this.fetchDepositsWithdrawals(code, since, limit, params);
@@ -4595,7 +4592,7 @@ class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
         const result = [];
         for (let i = 0; i < liquidations.length; i++) {

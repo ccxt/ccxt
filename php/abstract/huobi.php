@@ -664,6 +664,9 @@ abstract class huobi extends \ccxt\htx {
     public function contract_public_get_api_v1_contract_index($params = array()) {
         return $this->request('api/v1/contract_index', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contract_public_get_api_v1_contract_query_elements($params = array()) {
+        return $this->request('api/v1/contract_query_elements', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contract_public_get_api_v1_contract_price_limit($params = array()) {
         return $this->request('api/v1/contract_price_limit', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -747,6 +750,9 @@ abstract class huobi extends \ccxt\htx {
     }
     public function contract_public_get_swap_api_v1_swap_index($params = array()) {
         return $this->request('swap-api/v1/swap_index', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_public_get_swap_api_v1_swap_query_elements($params = array()) {
+        return $this->request('swap-api/v1/swap_query_elements', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contract_public_get_swap_api_v1_swap_price_limit($params = array()) {
         return $this->request('swap-api/v1/swap_price_limit', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -840,6 +846,9 @@ abstract class huobi extends \ccxt\htx {
     }
     public function contract_public_get_linear_swap_api_v1_swap_index($params = array()) {
         return $this->request('linear-swap-api/v1/swap_index', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contract_public_get_linear_swap_api_v1_swap_query_elements($params = array()) {
+        return $this->request('linear-swap-api/v1/swap_query_elements', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contract_public_get_linear_swap_api_v1_swap_price_limit($params = array()) {
         return $this->request('linear-swap-api/v1/swap_price_limit', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -2275,6 +2284,9 @@ abstract class huobi extends \ccxt\htx {
     public function contractPublicGetApiV1ContractIndex($params = array()) {
         return $this->request('api/v1/contract_index', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contractPublicGetApiV1ContractQueryElements($params = array()) {
+        return $this->request('api/v1/contract_query_elements', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contractPublicGetApiV1ContractPriceLimit($params = array()) {
         return $this->request('api/v1/contract_price_limit', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2358,6 +2370,9 @@ abstract class huobi extends \ccxt\htx {
     }
     public function contractPublicGetSwapApiV1SwapIndex($params = array()) {
         return $this->request('swap-api/v1/swap_index', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPublicGetSwapApiV1SwapQueryElements($params = array()) {
+        return $this->request('swap-api/v1/swap_query_elements', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contractPublicGetSwapApiV1SwapPriceLimit($params = array()) {
         return $this->request('swap-api/v1/swap_price_limit', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -2451,6 +2466,9 @@ abstract class huobi extends \ccxt\htx {
     }
     public function contractPublicGetLinearSwapApiV1SwapIndex($params = array()) {
         return $this->request('linear-swap-api/v1/swap_index', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractPublicGetLinearSwapApiV1SwapQueryElements($params = array()) {
+        return $this->request('linear-swap-api/v1/swap_query_elements', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function contractPublicGetLinearSwapApiV1SwapPriceLimit($params = array()) {
         return $this->request('linear-swap-api/v1/swap_price_limit', array('contract', 'public'), 'GET', $params, null, null, array("cost" => 1));

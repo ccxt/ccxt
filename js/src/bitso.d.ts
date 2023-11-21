@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitso.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class bitso
  * @extends Exchange
@@ -8,7 +8,7 @@ export default class bitso extends Exchange {
     describe(): any;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntryType(type: any): string;
-    parseLedgerEntry(item: any, currency?: any): {
+    parseLedgerEntry(item: any, currency?: Currency): {
         id: string;
         timestamp: number;
         datetime: string;
@@ -17,7 +17,7 @@ export default class bitso extends Exchange {
         referenceId: string;
         referenceAccount: string;
         type: string;
-        currency: any;
+        currency: string;
         amount: number;
         before: number;
         after: number;
@@ -29,11 +29,11 @@ export default class bitso extends Exchange {
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    parseTicker(ticker: any, market?: any): Ticker;
+    parseTicker(ticker: any, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): OHLCV;
-    parseTrade(trade: any, market?: any): Trade;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
+    parseTrade(trade: any, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Trade[]>;
@@ -42,6 +42,7 @@ export default class bitso extends Exchange {
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<any[]>;
     parseOrderStatus(status: any): string;
+<<<<<<< HEAD
     parseOrder(order: any, market?: any): Order;
 <<<<<<< HEAD
     fetchOpenOrders(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
@@ -76,6 +77,9 @@ export default class bitso extends Exchange {
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
 >>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
 =======
+=======
+    parseOrder(order: any, market?: Market): Order;
+>>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -90,7 +94,7 @@ export default class bitso extends Exchange {
         info: any;
     }>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
 <<<<<<< HEAD
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
@@ -139,8 +143,12 @@ export default class bitso extends Exchange {
 =======
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     safeNetwork(networkId: any): string;
+<<<<<<< HEAD
     parseTransaction(transaction: any, currency?: any): Transaction;
 >>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
+=======
+    parseTransaction(transaction: any, currency?: Currency): Transaction;
+>>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
     parseTransactionStatus(status: any): string;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

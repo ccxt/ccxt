@@ -1,5 +1,5 @@
 import wazirxRest from '../wazirx.js';
-import { Int, OHLCV, Str } from '../base/types.js';
+import { Int, OHLCV, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class wazirx extends wazirxRest {
     describe(): any;
@@ -7,7 +7,7 @@ export default class wazirx extends wazirxRest {
     handleBalance(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     parseWSTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

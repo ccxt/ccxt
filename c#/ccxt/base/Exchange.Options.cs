@@ -5,6 +5,7 @@ using list = List<object>;
 public partial class Exchange
 {
     public HttpClient httpClient { get; set; }
+    public object fetchResponse = null; // tmp for response tests
     public string id { get; set; } = "Exchange";
 
     public bool alias { get; set; } = false;
@@ -95,7 +96,26 @@ public partial class Exchange
     public object last_request_headers { get; set; }
     public object last_json_response { get; set; }
     public object last_http_response { get; set; }
-    public object last_request_body { get; set; }
+
+    private object lastReqBody = null;
+    public object last_request_body
+    {
+        get
+        {
+            return lastReqBody;
+        }
+        set
+        {
+            if (value is Dictionary<string, object> && ((dict)value).Keys.Count == 0)
+            {
+                lastReqBody = null;
+            }
+            else
+            {
+                lastReqBody = value;
+            }
+        }
+    }
     public object last_request_url { get; set; }
 
     public object name { get; set; }
@@ -402,5 +422,6 @@ public partial class Exchange
         this.httpsProxy = SafeString(extendedProperties, "httpsProxy");
         this.httpProxy = SafeString(extendedProperties, "httpProxy");
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
+        this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
     }
 }

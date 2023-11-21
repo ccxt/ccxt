@@ -137,6 +137,12 @@ public partial class Exchange
 
     public async virtual Task<object> fetch(object url2, object method2, object headers2, object body2)
     {
+
+        if (fetchResponse != null)
+        {
+            return fetchResponse;
+        }
+
         var url = url2 as String;
         var method = method2 as String;
         var headers3 = headers2 as dict;
@@ -147,7 +153,8 @@ public partial class Exchange
             this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.stringifyObject(body) + "\n");
 
         // add headers
-        httpClient.DefaultRequestHeaders.Accept.Clear();
+        client.DefaultRequestHeaders.Accept.Clear();
+        client.DefaultRequestHeaders.Clear();
         var headersList = new List<string>(headers.Keys);
 
         var contentType = "";
@@ -174,46 +181,60 @@ public partial class Exchange
         var result = "";
         HttpResponseMessage response = null;
         object responseBody = null;
+        try
+        {
 
-        if (method == "GET")
-        {
-            response = await this.httpClient.GetAsync(url);
-            result = await response.Content.ReadAsStringAsync();
-        }
-        else
-        {
-            contentType = contentType == "" ? "application/json" : contentType;
+            if (method == "GET")
+            {
+                response = await this.client.GetAsync(url);
+                result = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                contentType = contentType == "" ? "application/json" : contentType;
 #if NET7_0_OR_GREATER
             var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
 #else
-            var contentTypeHeader = contentType;
+                var contentTypeHeader = contentType;
 #endif
-            var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
-            if (method == "POST")
-            {
-                response = await this.httpClient.PostAsync(url, stringContent);
-            }
-            else if (method == "DELETE")
-            {
-                response = await this.httpClient.DeleteAsync(url);
-            }
-            else if (method == "PUT")
-            {
-                response = await this.httpClient.PutAsync(url, stringContent);
-            }
-            else if (method == "PATCH")
-            {
-                // workaround for the lack of putAsync
-                // https://github.com/RicoSuter/NSwag/issues/107
-                var methodInner = new HttpMethod("PATCH");
-                var request = new HttpRequestMessage(methodInner, url)
+                var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
+                if (method == "POST")
                 {
-                    Content = stringContent
-                };
+                    response = await this.client.PostAsync(url, stringContent);
+                }
+                else if (method == "DELETE")
+                {
+                    response = await this.client.DeleteAsync(url);
+                }
+                else if (method == "PUT")
+                {
+                    response = await this.client.PutAsync(url, stringContent);
+                }
+                else if (method == "PATCH")
+                {
+                    // workaround for the lack of putAsync
+                    // https://github.com/RicoSuter/NSwag/issues/107
+                    var methodInner = new HttpMethod("PATCH");
+                    var request = new HttpRequestMessage(methodInner, url)
+                    {
+                        Content = stringContent
+                    };
 
-                response = await httpClient.SendAsync(request);
+                    response = await client.SendAsync(request);
+                }
+                result = await response.Content.ReadAsStringAsync();
             }
-            result = await response.Content.ReadAsStringAsync();
+
+        }
+        catch (Exception e)
+        {
+            if (e is HttpRequestException || e is WebException || e is HttpListenerException) // add more exceptions here
+            {
+                var errorMessage = this.id + ' ' + method + ' ' + url + ' ' + e.Message;
+                throw new NetworkError(errorMessage);
+
+            }
+            throw e;
         }
 
         this.httpClient.DefaultRequestHeaders.Clear();
@@ -290,7 +311,8 @@ public partial class Exchange
             var cost = endpointInfo["cost"] != null ? endpointInfo["cost"] : 1;
 
             // return await this.fetch2(path, api, method, new dict(), new dict(), (dict)parameters, new dict { { "cost", cost } });
-            var res = await this.fetch2(path, api, method, parameters, new dict(), new dict(), new dict { { "cost", cost } });
+            // var res = await this.fetch2(path, api, method, parameters, new dict(), new dict(), new dict { { "cost", cost } });
+            var res = await this.fetch2(path, api, method, parameters, new dict(), null, new dict { { "cost", cost } }); // body null here, does it make a difference?
             return res;
 
         }

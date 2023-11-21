@@ -923,6 +923,7 @@ class NewTranspiler {
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
+            [ /object mockedExchange =/g, 'var mockedExchange =' ],
             [ /public virtual object initOfflineExchange/g, 'public virtual Exchange initOfflineExchange' ],
             [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
             [ /object exchange =/g, 'Exchange exchange =' ],

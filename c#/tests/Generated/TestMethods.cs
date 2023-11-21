@@ -8,32 +8,52 @@ public partial class testMainClass : BaseTest
 {
     public virtual void parseCliArgs()
     {
+        this.responseTests = getCliArgValue("--responseTests");
+        this.idTests = getCliArgValue("--idTests");
+        this.requestTests = getCliArgValue("--requestTests");
         this.info = getCliArgValue("--info");
         this.verbose = getCliArgValue("--verbose");
         this.debug = getCliArgValue("--debug");
         this.privateTest = getCliArgValue("--private");
         this.privateTestOnly = getCliArgValue("--privateOnly");
         this.sandbox = getCliArgValue("--sandbox");
+        this.loadKeys = getCliArgValue("--loadKeys");
     }
 
-    public async virtual Task init(object exchangeId, object symbol)
+    public async virtual Task<object> init(object exchangeId, object symbol)
     {
         this.parseCliArgs();
+        if (isTrue(this.responseTests))
+        {
+            await this.runStaticResponseTests(exchangeId, symbol);
+            return;
+        }
+        if (isTrue(this.requestTests))
+        {
+            await this.runStaticRequestTests(exchangeId, symbol); // symbol here is the testname
+            return;
+        }
+        if (isTrue(this.idTests))
+        {
+            await this.runBrokerIdTests();
+            return null;
+        }
         object symbolStr = ((bool) isTrue(!isEqual(symbol, null))) ? symbol : "all";
-        object testingString = add(add(add(add(add(add("\nTesting [", ext), "] Exchange: "), exchangeId), " Symbol:"), symbolStr), "\n");
-        Console.WriteLine(testingString);
+        dump("\nTESTING ", this.ext, new Dictionary<string, object>() {
+            { "exchange", exchangeId },
+            { "symbol", symbolStr },
+        }, "\n");
         object exchangeArgs = new Dictionary<string, object>() {
             { "verbose", this.verbose },
             { "debug", this.debug },
-            { "httpsAgent", httpsAgent },
             { "enableRateLimit", true },
-            { "timeout", 20000 },
+            { "timeout", 30000 },
         };
         Exchange exchange = initExchange(exchangeId, exchangeArgs);
         await this.importFiles(exchange);
         this.expandSettings(exchange, symbol);
         await this.startTest(exchange, symbol);
-        await close(exchange);
+        return null;  // c# requirement
     }
 
     public async virtual Task importFiles(Exchange exchange)
@@ -48,8 +68,8 @@ public partial class testMainClass : BaseTest
     public virtual void expandSettings(Exchange exchange, object symbol)
     {
         object exchangeId = exchange.id;
-        object keysGlobal = add(rootDir, "keys.json");
-        object keysLocal = add(rootDir, "keys.local.json");
+        object keysGlobal = add(this.rootDir, "keys.json");
+        object keysLocal = add(this.rootDir, "keys.local.json");
         object keysGlobalExists = ioFileExists(keysGlobal);
         object keysLocalExists = ioFileExists(keysLocal);
         object globalSettings = ((bool) isTrue(keysGlobalExists)) ? ioFileRead(keysGlobal) : new Dictionary<string, object>() {};
@@ -76,12 +96,6 @@ public partial class testMainClass : BaseTest
                     setExchangeProp(exchange, key, finalValue);
                 }
             }
-            // support simple proxy
-            object proxy = getExchangeProp(exchange, "httpProxy");
-            if (isTrue(proxy))
-            {
-                addProxy(exchange, proxy);
-            }
         }
         // credentials
         object reqCreds = getExchangeProp(exchange, add("re", "quiredCredentials")); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
@@ -94,7 +108,7 @@ public partial class testMainClass : BaseTest
             {
                 object fullKey = add(add(exchangeId, "_"), credential);
                 object credentialEnvName = ((string)fullKey).ToUpper(); // example: KRAKEN_APIKEY
-                object credentialValue = ((bool) isTrue((inOp(envVars, credentialEnvName)))) ? getValue(envVars, credentialEnvName) : null;
+                object credentialValue = ((bool) isTrue((inOp(this.envVars, credentialEnvName)))) ? getValue(this.envVars, credentialEnvName) : null;
                 if (isTrue(credentialValue))
                 {
                     setExchangeProp(exchange, credential, credentialValue);
@@ -102,22 +116,16 @@ public partial class testMainClass : BaseTest
             }
         }
         // skipped tests
-        object skippedFile = add(rootDir, "skip-tests.json");
+        object skippedFile = add(this.rootDirForSkips, "skip-tests.json");
         object skippedSettings = ioFileRead(skippedFile);
         object skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, new Dictionary<string, object>() {});
         // others
-        object skipReason = exchange.safeValue(skippedSettingsForExchange, "skip");
-        if (isTrue(!isEqual(skipReason, null)))
+        object timeout = exchange.safeValue(skippedSettingsForExchange, "timeout");
+        if (isTrue(!isEqual(timeout, null)))
         {
-            dump("[SKIPPED] exchange", exchangeId, skipReason);
-            exitScript();
+            exchange.timeout = exchange.parseToInt(timeout);
         }
-        if (isTrue(exchange.alias))
-        {
-            dump("[SKIPPED] Alias exchange. ", "exchange", exchangeId, "symbol", symbol);
-            exitScript();
-        }
-        //
+        exchange.httpsProxy = exchange.safeString(skippedSettingsForExchange, "httpsProxy");
         this.skippedMethods = exchange.safeValue(skippedSettingsForExchange, "skipMethods", new Dictionary<string, object>() {});
         this.checkedPublicTests = new Dictionary<string, object>() {};
     }
@@ -126,7 +134,8 @@ public partial class testMainClass : BaseTest
     {
         // has to be transpilable
         object res = "";
-        object missingSpace = subtract(subtract(size, ((string)message).Length), 0); // - 0 is added just to trick transpile to treat the .length as a string for php
+        object messageLength = ((string)message).Length; // avoid php transpilation issue
+        object missingSpace = subtract(subtract(size, messageLength), 0); // - 0 is added just to trick transpile to treat the .length as a string for php
         if (isTrue(isGreaterThan(missingSpace, 0)))
         {
             for (object i = 0; isLessThan(i, missingSpace); postFixIncrement(ref i))
@@ -139,23 +148,28 @@ public partial class testMainClass : BaseTest
 
     public async virtual Task<object> testMethod(object methodName, Exchange exchange, object args, object isPublic)
     {
+        object isLoadMarkets = (isEqual(methodName, "loadMarkets"));
         object methodNameInTest = getTestName(methodName);
-        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in exchange)
+        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (isTrue(isTrue(!isTrue(isPublic) && isTrue((inOp(this.checkedPublicTests, methodNameInTest)))) && isTrue((!isEqual(methodName, "fetchCurrencies")))))
         {
             return null;
         }
         object skipMessage = null;
-        object isFetchOhlcvEmulated = (isTrue(isEqual(methodName, "fetchOHLCV")) && isTrue(isEqual(getValue(exchange.has, "fetchOHLCV"), "emulated"))); // todo: remove emulation from base
-        if (isTrue(isTrue(isTrue((!isEqual(methodName, "loadMarkets"))) && isTrue((!isTrue((inOp(exchange.has, methodName))) || !isTrue(getValue(exchange.has, methodName))))) || isTrue(isFetchOhlcvEmulated)))
+        if (isTrue(!isTrue(isLoadMarkets) && isTrue((!isTrue((inOp(exchange.has, methodName))) || !isTrue(getValue(exchange.has, methodName))))))
         {
             skipMessage = "[INFO:UNSUPPORTED_TEST]"; // keep it aligned with the longest message
-        } else if (isTrue(inOp(this.skippedMethods, methodName)))
+        } else if (isTrue(isTrue((inOp(this.skippedMethods, methodName))) && isTrue((((getValue(this.skippedMethods, methodName)).GetType() == typeof(string))))))
         {
             skipMessage = "[INFO:SKIPPED_TEST]";
         } else if (!isTrue((inOp(this.testFiles, methodNameInTest))))
         {
             skipMessage = "[INFO:UNIMPLEMENTED_TEST]";
+        }
+        // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
+        if (isTrue(isLoadMarkets))
+        {
+            await exchange.loadMarkets(true);
         }
         if (isTrue(skipMessage))
         {
@@ -165,47 +179,99 @@ public partial class testMainClass : BaseTest
             }
             return null;
         }
-        object argsStringified = add(add("(", String.Join(",", ((List<object>)args).ToArray())), ")");
         if (isTrue(this.info))
         {
+            object argsStringified = add(add("(", String.Join(",", ((List<object>)args).ToArray())), ")");
             dump(this.addPadding("[INFO:TESTING]", 25), exchange.id, methodNameInTest, argsStringified);
         }
-        object result = null;
-        try
+        object skippedProperties = exchange.safeValue(this.skippedMethods, methodName, new Dictionary<string, object>() {});
+        await callMethod(this.testFiles, methodNameInTest, exchange, skippedProperties, args);
+        // if it was passed successfully, add to the list of successfull tests
+        if (isTrue(isPublic))
         {
-            result = await callMethod(this.testFiles, methodNameInTest, exchange, args);
-            if (isTrue(isPublic))
-            {
-                ((Dictionary<string, object>)this.checkedPublicTests)[(string)methodNameInTest] = true;
-            }
-        } catch(Exception e)
-        {
-            object isAuthError = (e is AuthenticationError);
-            if (!isTrue((isTrue(isPublic) && isTrue(isAuthError))))
-            {
-                dump("ERROR:", exceptionMessage(e), " | Exception from: ", exchange.id, methodNameInTest, argsStringified);
-                throw e;
-            }
+            ((Dictionary<string, object>)this.checkedPublicTests)[(string)methodNameInTest] = true;
         }
-        return result;
+        return null;
     }
 
-    public async virtual Task<object> testSafe(object methodName, Exchange exchange, object args, object isPublic)
+    public async virtual Task<object> testSafe(object methodName, Exchange exchange, object args = null, object isPublic = null)
     {
-        try
+        // `testSafe` method does not throw an exception, instead mutes it.
+        // The reason we mute the thrown exceptions here is because if this test is part
+        // of "runPublicTests", then we don't want to stop the whole test if any single
+        // test-method fails. For example, if "fetchOrderBook" public test fails, we still
+        // want to run "fetchTickers" and other methods. However, independently this fact,
+        // from those test-methods we still echo-out (console.log/print...) the exception
+        // messages with specific formatted message "[TEST_FAILURE] ..." and that output is
+        // then regex-parsed by run-tests.js, so the exceptions are still printed out to
+        // console from there. So, even if some public tests fail, the script will continue
+        // doing other things (testing other spot/swap or private tests ...)
+        args ??= new List<object>();
+        isPublic ??= false;
+        object maxRetries = 3;
+        object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
+        for (object i = 0; isLessThan(i, maxRetries); postFixIncrement(ref i))
         {
-            await this.testMethod(methodName, exchange, args, isPublic);
-            return true;
-        } catch(Exception e)
-        {
-            return false;
+            try
+            {
+                await this.testMethod(methodName, exchange, args, isPublic);
+                return true;
+            } catch(Exception e)
+            {
+                object isAuthError = (e is AuthenticationError);
+                object isNotSupported = (e is NotSupported);
+                object isNetworkError = (e is NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
+                object isExchangeNotAvailable = (e is ExchangeNotAvailable);
+                object isOnMaintenance = (e is OnMaintenance);
+                object tempFailure = isTrue(isNetworkError) && isTrue((!isTrue(isExchangeNotAvailable) || isTrue(isOnMaintenance))); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
+                if (isTrue(tempFailure))
+                {
+                    // if last retry was gone with same `tempFailure` error, then let's eventually return false
+                    if (isTrue(isEqual(i, subtract(maxRetries, 1))))
+                    {
+                        dump("[TEST_WARNING]", "Method could not be tested due to a repeated Network/Availability issues", " | ", exchange.id, methodName, argsStringified);
+                    } else
+                    {
+                        // wait and retry again
+                        await exchange.sleep(multiply(i, 1000)); // increase wait seconds on every retry
+                        continue;
+                    }
+                } else if (isTrue(e is OnMaintenance))
+                {
+                    // in case of maintenance, skip exchange (don't fail the test)
+                    dump("[TEST_WARNING] Exchange is on maintenance", exchange.id);
+                } else if (isTrue(isTrue(isPublic) && isTrue(isAuthError)))
+                {
+                    // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
+                    if (isTrue(isEqual(methodName, "loadMarkets")))
+                    {
+                        dump("[TEST_WARNING]", "Exchange can not be tested, because of authentication problems during loadMarkets", exceptionMessage(e), exchange.id, methodName, argsStringified);
+                    }
+                    if (isTrue(this.info))
+                    {
+                        dump("[TEST_WARNING]", "Authentication problem for public method", exceptionMessage(e), exchange.id, methodName, argsStringified);
+                    }
+                } else
+                {
+                    // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
+                    if (isTrue(isNotSupported))
+                    {
+                        dump("[NOT_SUPPORTED]", exchange.id, methodName, argsStringified);
+                        return true;  // why consider not supported as a failed test?
+                    } else
+                    {
+                        dump("[TEST_FAILURE]", exceptionMessage(e), exchange.id, methodName, argsStringified);
+                    }
+                }
+                return false;
+            }
         }
+        return true;
     }
 
     public async virtual Task runPublicTests(Exchange exchange, object symbol)
     {
         object tests = new Dictionary<string, object>() {
-            { "loadMarkets", new List<object>() {} },
             { "fetchCurrencies", new List<object>() {} },
             { "fetchTicker", new List<object>() {symbol} },
             { "fetchTickers", new List<object>() {symbol} },
@@ -243,24 +309,38 @@ public partial class testMainClass : BaseTest
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        await promiseAll(promises);
+        object results = await promiseAll(promises);
+        // now count which test-methods retuned `false` from "testSafe" and dump that info below
         if (isTrue(this.info))
         {
-            dump(this.addPadding("[INFO:PUBLIC_TESTS_DONE]", 25), exchange.id);
+            object errors = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(testNames)); postFixIncrement(ref i))
+            {
+                if (!isTrue(getValue(results, i)))
+                {
+                    ((List<object>)errors).Add(getValue(testNames, i));
+                }
+            }
+            // we don't throw exception for public-tests, see comments under 'testSafe' method
+            object errorsInMessage = "";
+            if (isTrue(errors))
+            {
+                object failedMsg = String.Join(", ", ((List<object>)errors).ToArray());
+                errorsInMessage = add(" | Failed methods : ", failedMsg);
+            }
+            object messageContent = add(add("[INFO:PUBLIC_TESTS_END] ", getValue(market, "type")), errorsInMessage);
+            object messageWithPadding = this.addPadding(messageContent, 25);
+            dump(messageWithPadding, exchange.id);
         }
     }
 
-    public async virtual Task loadExchange(Exchange exchange)
+    public async virtual Task<object> loadExchange(Exchange exchange)
     {
-        await exchange.loadMarkets();
-        assert(((exchange.markets).GetType() == typeof(Dictionary<string, object>)), ".markets is not an object");
-        assert((exchange.symbols.GetType().IsGenericType && exchange.symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))), ".symbols is not an array");
-        object symbolsLength = getArrayLength(exchange.symbols);
-        object marketKeys = new List<object>(((Dictionary<string,object>)exchange.markets).Keys);
-        object marketKeysLength = getArrayLength(marketKeys);
-        assert(isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
-        assert(isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
-        assert(isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
+        object result = await this.testSafe("loadMarkets", exchange, new List<object>() {}, true);
+        if (!isTrue(result))
+        {
+            return false;
+        }
         object symbols = new List<object>() {"BTC/CNY", "BTC/USD", "BTC/USDT", "BTC/EUR", "BTC/ETH", "ETH/BTC", "BTC/JPY", "ETH/EUR", "ETH/JPY", "ETH/CNY", "ETH/USD", "LTC/CNY", "DASH/BTC", "DOGE/BTC", "BTC/AUD", "BTC/PLN", "USD/SLL", "BTC/RUB", "BTC/UAH", "LTC/BTC", "EUR/USD"};
         object resultSymbols = new List<object>() {};
         object exchangeSpecificSymbols = exchange.symbols;
@@ -286,6 +366,7 @@ public partial class testMainClass : BaseTest
             }
         }
         dump("Exchange loaded", exchangeSymbolsLength, "symbols", resultMsg);
+        return true;
     }
 
     public virtual object getTestSymbol(Exchange exchange, object isSpot, object symbols)
@@ -483,67 +564,49 @@ public partial class testMainClass : BaseTest
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
         object tests = new Dictionary<string, object>() {
-            { "signIn", new List<object>() {exchange} },
-            { "fetchBalance", new List<object>() {exchange} },
-            { "fetchAccounts", new List<object>() {exchange} },
-            { "fetchTransactionFees", new List<object>() {exchange} },
-            { "fetchTradingFees", new List<object>() {exchange} },
-            { "fetchStatus", new List<object>() {exchange} },
-            { "fetchOrders", new List<object>() {exchange, symbol} },
-            { "fetchOpenOrders", new List<object>() {exchange, symbol} },
-            { "fetchClosedOrders", new List<object>() {exchange, symbol} },
-            { "fetchMyTrades", new List<object>() {exchange, symbol} },
-            { "fetchLeverageTiers", new List<object>() {exchange, symbol} },
-            { "fetchLedger", new List<object>() {exchange, code} },
-            { "fetchTransactions", new List<object>() {exchange, code} },
-            { "fetchDeposits", new List<object>() {exchange, code} },
-            { "fetchWithdrawals", new List<object>() {exchange, code} },
-            { "fetchBorrowRates", new List<object>() {exchange, code} },
-            { "fetchBorrowRate", new List<object>() {exchange, code} },
-            { "fetchBorrowInterest", new List<object>() {exchange, code, symbol} },
-            { "addMargin", new List<object>() {exchange, symbol} },
-            { "reduceMargin", new List<object>() {exchange, symbol} },
-            { "setMargin", new List<object>() {exchange, symbol} },
-            { "setMarginMode", new List<object>() {exchange, symbol} },
-            { "setLeverage", new List<object>() {exchange, symbol} },
-            { "cancelAllOrders", new List<object>() {exchange, symbol} },
-            { "cancelOrder", new List<object>() {exchange, symbol} },
-            { "cancelOrders", new List<object>() {exchange, symbol} },
-            { "fetchCanceledOrders", new List<object>() {exchange, symbol} },
-            { "fetchClosedOrder", new List<object>() {exchange, symbol} },
-            { "fetchOpenOrder", new List<object>() {exchange, symbol} },
-            { "fetchOrder", new List<object>() {exchange, symbol} },
-            { "fetchOrderTrades", new List<object>() {exchange, symbol} },
-            { "fetchPosition", new List<object>() {exchange, symbol} },
-            { "fetchDeposit", new List<object>() {exchange, code} },
-            { "createDepositAddress", new List<object>() {exchange, code} },
-            { "fetchDepositAddress", new List<object>() {exchange, code} },
-            { "fetchDepositAddresses", new List<object>() {exchange, code} },
-            { "fetchDepositAddressesByNetwork", new List<object>() {exchange, code} },
-            { "editOrder", new List<object>() {exchange, symbol} },
-            { "fetchBorrowRateHistory", new List<object>() {exchange, symbol} },
-            { "fetchBorrowRatesPerSymbol", new List<object>() {exchange, symbol} },
-            { "fetchLedgerEntry", new List<object>() {exchange, code} },
-            { "fetchWithdrawal", new List<object>() {exchange, code} },
-            { "transfer", new List<object>() {exchange, code} },
-            { "withdraw", new List<object>() {exchange, code} },
+            { "signIn", new List<object>() {} },
+            { "fetchBalance", new List<object>() {} },
+            { "fetchAccounts", new List<object>() {} },
+            { "fetchTransactionFees", new List<object>() {} },
+            { "fetchTradingFees", new List<object>() {} },
+            { "fetchStatus", new List<object>() {} },
+            { "fetchOrders", new List<object>() {symbol} },
+            { "fetchOpenOrders", new List<object>() {symbol} },
+            { "fetchClosedOrders", new List<object>() {symbol} },
+            { "fetchMyTrades", new List<object>() {symbol} },
+            { "fetchLeverageTiers", new List<object>() {new List<object>() {symbol}} },
+            { "fetchLedger", new List<object>() {code} },
+            { "fetchTransactions", new List<object>() {code} },
+            { "fetchDeposits", new List<object>() {code} },
+            { "fetchWithdrawals", new List<object>() {code} },
+            { "fetchBorrowInterest", new List<object>() {code, symbol} },
+            { "cancelAllOrders", new List<object>() {symbol} },
+            { "fetchCanceledOrders", new List<object>() {symbol} },
+            { "fetchPosition", new List<object>() {symbol} },
+            { "fetchDeposit", new List<object>() {code} },
+            { "createDepositAddress", new List<object>() {code} },
+            { "fetchDepositAddress", new List<object>() {code} },
+            { "fetchDepositAddresses", new List<object>() {code} },
+            { "fetchDepositAddressesByNetwork", new List<object>() {code} },
+            { "fetchBorrowRateHistory", new List<object>() {code} },
+            { "fetchLedgerEntry", new List<object>() {code} },
         };
         object market = exchange.market(symbol);
         object isSpot = getValue(market, "spot");
         if (isTrue(isSpot))
         {
-            ((Dictionary<string, object>)tests)["fetchCurrencies"] = new List<object>() {exchange, symbol};
+            ((Dictionary<string, object>)tests)["fetchCurrencies"] = new List<object>() {};
         } else
         {
             // derivatives only
-            ((Dictionary<string, object>)tests)["fetchPositions"] = new List<object>() {exchange, new List<object>() {symbol}};
-            ((Dictionary<string, object>)tests)["fetchPosition"] = new List<object>() {exchange, symbol};
-            ((Dictionary<string, object>)tests)["fetchPositionRisk"] = new List<object>() {exchange, symbol};
-            ((Dictionary<string, object>)tests)["setPositionMode"] = new List<object>() {exchange, symbol};
-            ((Dictionary<string, object>)tests)["setMarginMode"] = new List<object>() {exchange, symbol};
-            ((Dictionary<string, object>)tests)["fetchOpenInterestHistory"] = new List<object>() {exchange, symbol};
-            ((Dictionary<string, object>)tests)["fetchFundingRateHistory"] = new List<object>() {exchange, symbol};
-            ((Dictionary<string, object>)tests)["fetchFundingHistory"] = new List<object>() {exchange, symbol};
+            ((Dictionary<string, object>)tests)["fetchPositions"] = new List<object>() {symbol}; // this test fetches all positions for 1 symbol
+            ((Dictionary<string, object>)tests)["fetchPosition"] = new List<object>() {symbol};
+            ((Dictionary<string, object>)tests)["fetchPositionRisk"] = new List<object>() {symbol};
+            ((Dictionary<string, object>)tests)["setPositionMode"] = new List<object>() {symbol};
+            ((Dictionary<string, object>)tests)["setMarginMode"] = new List<object>() {symbol};
+            ((Dictionary<string, object>)tests)["fetchOpenInterestHistory"] = new List<object>() {symbol};
+            ((Dictionary<string, object>)tests)["fetchFundingRateHistory"] = new List<object>() {symbol};
+            ((Dictionary<string, object>)tests)["fetchFundingHistory"] = new List<object>() {symbol};
         }
         object combinedPublicPrivateTests = exchange.deepExtend(this.publicTests, tests);
         object testNames = new List<object>(((Dictionary<string,object>)combinedPublicPrivateTests).Keys);
@@ -565,9 +628,11 @@ public partial class testMainClass : BaseTest
                 ((List<object>)errors).Add(testName);
             }
         }
-        if (isTrue(isGreaterThan(getArrayLength(errors), 0)))
+        object errorsCnt = getArrayLength(errors); // PHP transpile count($errors)
+        if (isTrue(isGreaterThan(errorsCnt, 0)))
         {
-            throw new Exception ((string)add(add(add("Failed private tests [", getValue(market, "type")), "]: "), String.Join(", ", ((List<object>)errors).ToArray()))) ;
+            // throw new Exception ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
+            dump("[TEST_FAILURE]", add(add(add("Failed private tests [", getValue(market, "type")), "]: "), String.Join(", ", ((List<object>)errors).ToArray())));
         } else
         {
             if (isTrue(this.info))
@@ -579,7 +644,7 @@ public partial class testMainClass : BaseTest
 
     public async virtual Task startTest(Exchange exchange, object symbol)
     {
-        // we don't need to test aliases
+        // we do not need to test aliases
         if (isTrue(exchange.alias))
         {
             return;
@@ -588,7 +653,773 @@ public partial class testMainClass : BaseTest
         {
             exchange.setSandboxMode(true);
         }
-        await this.loadExchange(exchange);
-        await this.testExchange(exchange, symbol);
+        try
+        {
+            object result = await this.loadExchange(exchange);
+            if (!isTrue(result))
+            {
+                await close(exchange);
+                return;
+            }
+            await this.testExchange(exchange, symbol);
+            await close(exchange);
+        } catch(Exception e)
+        {
+            await close(exchange);
+            throw e;
+        }
+    }
+
+    public virtual void assertStaticError(object cond, object message, object calculatedOutput, object storedOutput)
+    {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of static tests functions------------------------------------------
+        //  -----------------------------------------------------------------------------
+        object calculatedString = jsonStringify(calculatedOutput);
+        object outputString = jsonStringify(storedOutput);
+        object errorMessage = add(add(add(add(message, " expected "), outputString), " received: "), calculatedString);
+        assert(cond, errorMessage);
+    }
+
+    public virtual object loadMarketsFromFile(object id)
+    {
+        // load markets from file
+        // to make this test as fast as possible
+        // and basically independent from the exchange
+        // so we can run it offline
+        object filename = add(add(add(this.rootDir, "./ts/src/test/static/markets/"), id), ".json");
+        object content = ioFileRead(filename);
+        return content;
+    }
+
+    public virtual object loadCurrenciesFromFile(object id)
+    {
+        object filename = add(add(add(this.rootDir, "./ts/src/test/static/currencies/"), id), ".json");
+        object content = ioFileRead(filename);
+        return content;
+    }
+
+    public virtual object loadStaticData(object folder, object targetExchange = null)
+    {
+        object result = new Dictionary<string, object>() {};
+        if (isTrue(targetExchange))
+        {
+            // read a single exchange
+            ((Dictionary<string, object>)result)[(string)targetExchange] = ioFileRead(add(add(folder, targetExchange), ".json"));
+            return result;
+        }
+        object files = ioDirRead(folder);
+        for (object i = 0; isLessThan(i, getArrayLength(files)); postFixIncrement(ref i))
+        {
+            object file = getValue(files, i);
+            object exchangeName = ((string)file).Replace((string)".json", (string)"");
+            object content = ioFileRead(add(folder, file));
+            ((Dictionary<string, object>)result)[(string)exchangeName] = content;
+        }
+        return result;
+    }
+
+    public virtual object removeHostnamefromUrl(object url)
+    {
+        if (isTrue(isEqual(url, null)))
+        {
+            return null;
+        }
+        object urlParts = ((string)url).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        object res = "";
+        for (object i = 0; isLessThan(i, getArrayLength(urlParts)); postFixIncrement(ref i))
+        {
+            if (isTrue(isGreaterThan(i, 2)))
+            {
+                object current = getValue(urlParts, i);
+                if (isTrue(isGreaterThan(getIndexOf(current, "?"), -1)))
+                {
+                    // handle urls like this: /v1/account/accounts?AccessK
+                    object currentParts = ((string)current).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
+                    res = add(res, "/");
+                    res = add(res, getValue(currentParts, 0));
+                    break;
+                }
+                res = add(res, "/");
+                res = add(res, current);
+            }
+        }
+        return res;
+    }
+
+    public virtual object urlencodedToDict(object url)
+    {
+        object result = new Dictionary<string, object>() {};
+        object parts = ((string)url).Split(new [] {((string)"&")}, StringSplitOptions.None).ToList<object>();
+        for (object i = 0; isLessThan(i, getArrayLength(parts)); postFixIncrement(ref i))
+        {
+            object part = getValue(parts, i);
+            object keyValue = ((string)part).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
+            object keysLength = getArrayLength(keyValue);
+            if (isTrue(!isEqual(keysLength, 2)))
+            {
+                continue;
+            }
+            object key = getValue(keyValue, 0);
+            object value = getValue(keyValue, 1);
+            if (isTrue(isTrue((!isEqual(value, null))) && isTrue((isTrue((((string)value).StartsWith("["))) || isTrue((((string)value).StartsWith("{")))))))
+            {
+                // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
+                value = jsonParse(value);
+            }
+            ((Dictionary<string, object>)result)[(string)key] = value;
+        }
+        return result;
+    }
+
+    public virtual object assertNewAndStoredOutput(Exchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null)
+    {
+        strictTypeCheck ??= true;
+        if (isTrue(isTrue(isNullValue(newOutput)) && isTrue(isNullValue(storedOutput))))
+        {
+            return;
+        }
+        if (isTrue(!isTrue(newOutput) && !isTrue(storedOutput)))
+        {
+            return;
+        }
+        if (isTrue(isTrue((((storedOutput).GetType() == typeof(Dictionary<string, object>)))) && isTrue((((newOutput).GetType() == typeof(Dictionary<string, object>))))))
+        {
+            object storedOutputKeys = new List<object>(((Dictionary<string,object>)storedOutput).Keys);
+            object newOutputKeys = new List<object>(((Dictionary<string,object>)newOutput).Keys);
+            object storedKeysLength = getArrayLength(storedOutputKeys);
+            object newKeysLength = getArrayLength(newOutputKeys);
+            this.assertStaticError(isEqual(storedKeysLength, newKeysLength), "output length mismatch", storedOutput, newOutput);
+            // iterate over the keys
+            for (object i = 0; isLessThan(i, getArrayLength(storedOutputKeys)); postFixIncrement(ref i))
+            {
+                object key = getValue(storedOutputKeys, i);
+                if (isTrue(exchange.inArray(key, skipKeys)))
+                {
+                    continue;
+                }
+                if (!isTrue((exchange.inArray(key, newOutputKeys))))
+                {
+                    this.assertStaticError(false, add("output key missing: ", key), storedOutput, newOutput);
+                }
+                object storedValue = getValue(storedOutput, key);
+                object newValue = getValue(newOutput, key);
+                this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck);
+            }
+        } else if (isTrue(isTrue((storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && isTrue(((newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            object storedArrayLength = getArrayLength(storedOutput);
+            object newArrayLength = getArrayLength(newOutput);
+            this.assertStaticError(isEqual(storedArrayLength, newArrayLength), "output length mismatch", storedOutput, newOutput);
+            for (object i = 0; isLessThan(i, getArrayLength(storedOutput)); postFixIncrement(ref i))
+            {
+                object storedItem = getValue(storedOutput, i);
+                object newItem = getValue(newOutput, i);
+                this.assertNewAndStoredOutput(exchange, skipKeys, newItem, storedItem, strictTypeCheck);
+            }
+        } else
+        {
+            // built-in types like strings, numbers, booleans
+            object sanitizedNewOutput = ((bool) isTrue((!isTrue(newOutput)))) ? null : newOutput; // we store undefined as nulls in the json file so we need to convert it back
+            object sanitizedStoredOutput = ((bool) isTrue((!isTrue(storedOutput)))) ? null : storedOutput;
+            object newOutputString = ((bool) isTrue(sanitizedNewOutput)) ? ((object)sanitizedNewOutput).ToString() : "undefined";
+            object storedOutputString = ((bool) isTrue(sanitizedStoredOutput)) ? ((object)sanitizedStoredOutput).ToString() : "undefined";
+            object messageError = add(add(add("output value mismatch:", newOutputString), " != "), storedOutputString);
+            if (isTrue(strictTypeCheck))
+            {
+                // upon building the request we want strict type check to make sure all the types are correct
+                // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
+                this.assertStaticError(isEqual(sanitizedNewOutput, sanitizedStoredOutput), messageError, storedOutput, newOutput);
+            } else
+            {
+                object isBoolean = isTrue((((sanitizedNewOutput).GetType() == typeof(bool)))) || isTrue((((sanitizedStoredOutput).GetType() == typeof(bool))));
+                object isString = isTrue((((sanitizedNewOutput).GetType() == typeof(string)))) || isTrue((((sanitizedStoredOutput).GetType() == typeof(string))));
+                object isUndefined = isTrue((isEqual(sanitizedNewOutput, null))) || isTrue((isEqual(sanitizedStoredOutput, null))); // undefined is a perfetly valid value
+                if (isTrue(isTrue(isTrue(isBoolean) || isTrue(isString)) || isTrue(isUndefined)))
+                {
+                    this.assertStaticError(isEqual(newOutputString, storedOutputString), messageError, storedOutput, newOutput);
+                } else
+                {
+                    object numericNewOutput = exchange.parseToNumeric(newOutputString);
+                    object numericStoredOutput = exchange.parseToNumeric(storedOutputString);
+                    this.assertStaticError(isEqual(numericNewOutput, numericStoredOutput), messageError, storedOutput, newOutput);
+                }
+            }
+        }
+        return null;  // c# requ
+    }
+
+    public virtual void assertStaticRequestOutput(Exchange exchange, object type, object skipKeys, object storedUrl, object requestUrl, object storedOutput, object newOutput)
+    {
+        if (isTrue(!isEqual(storedUrl, requestUrl)))
+        {
+            // remove the host part from the url
+            object firstPath = this.removeHostnamefromUrl(storedUrl);
+            object secondPath = this.removeHostnamefromUrl(requestUrl);
+            this.assertStaticError(isEqual(firstPath, secondPath), "url mismatch", firstPath, secondPath);
+        }
+        // body (aka storedOutput and newOutput) is not defined and information is in the url
+        // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        if (isTrue(isTrue((isEqual(storedOutput, null))) && isTrue((isEqual(newOutput, null)))))
+        {
+            if (isTrue(isTrue((!isEqual(storedUrl, null))) && isTrue((!isEqual(requestUrl, null)))))
+            {
+                object storedUrlParts = ((string)storedUrl).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
+                object newUrlParts = ((string)requestUrl).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
+                object storedUrlQuery = exchange.safeValue(storedUrlParts, 1);
+                object newUrlQuery = exchange.safeValue(newUrlParts, 1);
+                if (isTrue(isTrue((isEqual(storedUrlQuery, null))) && isTrue((isEqual(newUrlQuery, null)))))
+                {
+                    // might be a get request without any query parameters
+                    // example: https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return;
+                }
+                object storedUrlParams = this.urlencodedToDict(storedUrlQuery);
+                object newUrlParams = this.urlencodedToDict(newUrlQuery);
+                this.assertNewAndStoredOutput(exchange, skipKeys, newUrlParams, storedUrlParams);
+                return;
+            }
+        }
+        if (isTrue(isEqual(type, "json")))
+        {
+            if (isTrue(((storedOutput).GetType() == typeof(string))))
+            {
+                storedOutput = jsonParse(storedOutput);
+            }
+            if (isTrue(((newOutput).GetType() == typeof(string))))
+            {
+                newOutput = jsonParse(newOutput);
+            }
+        } else if (isTrue(isEqual(type, "urlencoded")))
+        {
+            storedOutput = this.urlencodedToDict(storedOutput);
+            newOutput = this.urlencodedToDict(newOutput);
+        }
+        this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
+    }
+
+    public virtual void assertStaticResponseOutput(Exchange exchange, object skipKeys, object computedResult, object storedResult)
+    {
+        this.assertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false);
+    }
+
+    public virtual object sanitizeDataInput(object input)
+    {
+        // remove nulls and replace with unefined instead
+        if (isTrue(isEqual(input, null)))
+        {
+            return null;
+        }
+        object newInput = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(input)); postFixIncrement(ref i))
+        {
+            object current = getValue(input, i);
+            if (isTrue(isNullValue(current)))
+            {
+                ((List<object>)newInput).Add(null);
+            } else
+            {
+                ((List<object>)newInput).Add(current);
+            }
+        }
+        return newInput;
+    }
+
+    public async virtual Task testMethodStatically(Exchange exchange, object method, object data, object type, object skipKeys)
+    {
+        object output = null;
+        object requestUrl = null;
+        try
+        {
+            await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+        } catch(Exception e)
+        {
+            if (!isTrue((e is NetworkError)))
+            {
+                throw e;
+            }
+            output = exchange.last_request_body;
+            requestUrl = exchange.last_request_url;
+        }
+        try
+        {
+            object callOutput = exchange.safeValue(data, "output");
+            this.assertStaticRequestOutput(exchange, type, skipKeys, getValue(data, "url"), requestUrl, callOutput, output);
+        } catch(Exception e)
+        {
+            this.requestTestsFailed = true;
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            dump(errorMessage);
+        }
+    }
+
+    public async virtual Task testResponseStatically(Exchange exchange, object method, object skipKeys, object data)
+    {
+        object expectedResult = exchange.safeValue(data, "parsedResponse");
+        object mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        try
+        {
+            object unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+            this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+        } catch(Exception e)
+        {
+            this.requestTestsFailed = true;
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            dump(errorMessage);
+        }
+        setFetchResponse(exchange, null); // reset state
+    }
+
+    public virtual Exchange initOfflineExchange(object exchangeName)
+    {
+        object markets = this.loadMarketsFromFile(exchangeName);
+        object currencies = this.loadCurrenciesFromFile(exchangeName);
+        Exchange exchange = initExchange(exchangeName, new Dictionary<string, object>() {
+            { "markets", markets },
+            { "enableRateLimit", false },
+            { "rateLimit", 1 },
+            { "httpsProxy", "http://fake:8080" },
+            { "apiKey", "key" },
+            { "secret", "secretsecret" },
+            { "password", "password" },
+            { "uid", "uid" },
+            { "accounts", new List<object>() {new Dictionary<string, object>() {
+    { "id", "myAccount" },
+}} },
+            { "options", new Dictionary<string, object>() {
+                { "enableUnifiedAccount", true },
+                { "enableUnifiedMargin", false },
+                { "accessToken", "token" },
+                { "expires", 999999999999999 },
+                { "leverageBrackets", new Dictionary<string, object>() {} },
+            } },
+        });
+        exchange.currencies = currencies; // not working in python if assigned  in the config dict
+        return exchange;
+    }
+
+    public async virtual Task testExchangeRequestStatically(object exchangeName, object exchangeData, object testName = null)
+    {
+        // instantiate the exchange and make sure that we sink the requests to avoid an actual request
+        Exchange exchange = this.initOfflineExchange(exchangeName);
+        object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
+        object methodsNames = new List<object>(((Dictionary<string,object>)methods).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(methodsNames)); postFixIncrement(ref i))
+        {
+            object method = getValue(methodsNames, i);
+            object results = getValue(methods, method);
+            for (object j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
+            {
+                object result = getValue(results, j);
+                object description = exchange.safeValue(result, "description");
+                if (isTrue(isTrue((!isEqual(testName, null))) && isTrue((!isEqual(testName, description)))))
+                {
+                    continue;
+                }
+                object type = exchange.safeString(exchangeData, "outputType");
+                object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
+                await this.testMethodStatically(exchange, method, result, type, skipKeys);
+            }
+        }
+        await close(exchange);
+    }
+
+    public async virtual Task testExchangeResponseStatically(object exchangeName, object exchangeData, object testName = null)
+    {
+        Exchange exchange = this.initOfflineExchange(exchangeName);
+        object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
+        object options = exchange.safeValue(exchangeData, "options", new Dictionary<string, object>() {});
+        exchange.options = exchange.deepExtend(exchange.options, options); // custom options to be used in the tests
+        object methodsNames = new List<object>(((Dictionary<string,object>)methods).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(methodsNames)); postFixIncrement(ref i))
+        {
+            object method = getValue(methodsNames, i);
+            object results = getValue(methods, method);
+            for (object j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
+            {
+                object result = getValue(results, j);
+                object description = exchange.safeValue(result, "description");
+                if (isTrue(isTrue((!isEqual(testName, null))) && isTrue((!isEqual(testName, description)))))
+                {
+                    continue;
+                }
+                object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
+                await this.testResponseStatically(exchange, method, skipKeys, result);
+            }
+        }
+        await close(exchange);
+    }
+
+    public virtual object getNumberOfTestsFromExchange(Exchange exchange, object exchangeData)
+    {
+        object sum = 0;
+        object methods = getValue(exchangeData, "methods");
+        object methodsNames = new List<object>(((Dictionary<string,object>)methods).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(methodsNames)); postFixIncrement(ref i))
+        {
+            object method = getValue(methodsNames, i);
+            object results = getValue(methods, method);
+            object resultsLength = getArrayLength(results);
+            sum = exchange.sum(sum, resultsLength);
+        }
+        return sum;
+    }
+
+    public async virtual Task runStaticRequestTests(object targetExchange = null, object testName = null)
+    {
+        await this.runStaticTests("request", targetExchange, testName);
+    }
+
+    public async virtual Task runStaticTests(object type, object targetExchange = null, object testName = null)
+    {
+        object folder = add(add(add(this.rootDir, "./ts/src/test/static/"), type), "/");
+        object staticData = this.loadStaticData(folder, targetExchange);
+        object exchanges = new List<object>(((Dictionary<string,object>)staticData).Keys);
+        Exchange exchange = initExchange("Exchange", new Dictionary<string, object>() {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
+        object promises = new List<object>() {};
+        object sum = 0;
+        if (isTrue(targetExchange))
+        {
+            dump(add("Exchange to test: ", targetExchange));
+        }
+        if (isTrue(testName))
+        {
+            dump(add("Testing only: ", testName));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(exchanges)); postFixIncrement(ref i))
+        {
+            object exchangeName = getValue(exchanges, i);
+            object exchangeData = getValue(staticData, exchangeName);
+            object numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData);
+            sum = exchange.sum(sum, numberOfTests);
+            if (isTrue(isEqual(type, "request")))
+            {
+                ((List<object>)promises).Add(this.testExchangeRequestStatically(exchangeName, exchangeData, testName));
+            } else
+            {
+                ((List<object>)promises).Add(this.testExchangeResponseStatically(exchangeName, exchangeData, testName));
+            }
+        }
+        await promiseAll(promises);
+        if (isTrue(isTrue(this.requestTestsFailed) || isTrue(this.responseTestsFailed)))
+        {
+            exitScript(1);
+        } else
+        {
+            object successMessage = add(add(add(add(add(add("[", this.lang), "][TEST_SUCCESS] "), ((object)sum).ToString()), " static "), type), " tests passed.");
+            dump(successMessage);
+            exitScript(0);
+        }
+    }
+
+    public async virtual Task runStaticResponseTests(object exchangeName = null, object test = null)
+    {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of mockResponses tests functions------------------------------------
+        //  -----------------------------------------------------------------------------
+        await this.runStaticTests("response", exchangeName, test);
+    }
+
+    public async virtual Task runBrokerIdTests()
+    {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of brokerId tests functions-----------------------------------------
+        //  -----------------------------------------------------------------------------
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHuobi(), this.testWoo(), this.testBitmart(), this.testCoinex()};
+        await promiseAll(promises);
+        object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
+        dump(successMessage);
+        exitScript(0);
+    }
+
+    public async virtual Task<object> testBinance()
+    {
+        Exchange exchange = this.initOfflineExchange("binance");
+        object spotId = "x-R4BD3S82";
+        object spotOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object clientOrderId = getValue(spotOrderRequest, "newClientOrderId");
+        assert(((string)clientOrderId).StartsWith(((object)spotId).ToString()), "spot clientOrderId does not start with spotId");
+        object swapId = "x-xcKtGhcu";
+        object swapOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object swapInverseOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapInverseOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object clientOrderIdSpot = getValue(swapOrderRequest, "newClientOrderId");
+        assert(((string)clientOrderIdSpot).StartsWith(((object)swapId).ToString()), "swap clientOrderId does not start with swapId");
+        object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
+        assert(((string)clientOrderIdInverse).StartsWith(((object)swapId).ToString()), "swap clientOrderIdInverse does not start with swapId");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testOkx()
+    {
+        Exchange exchange = this.initOfflineExchange("okx");
+        object id = "e847386590ce4dBC";
+        object spotOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            spotOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderId = getValue(getValue(spotOrderRequest, 0), "clOrdId"); // returns order inside array
+        assert(((string)clientOrderId).StartsWith(((object)id).ToString()), "spot clientOrderId does not start with id");
+        assert(isEqual(getValue(getValue(spotOrderRequest, 0), "tag"), id), "id different from spot tag");
+        object swapOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderIdSpot = getValue(getValue(swapOrderRequest, 0), "clOrdId");
+        assert(((string)clientOrderIdSpot).StartsWith(((object)id).ToString()), "swap clientOrderId does not start with id");
+        assert(isEqual(getValue(getValue(swapOrderRequest, 0), "tag"), id), "id different from swap tag");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testCryptocom()
+    {
+        Exchange exchange = this.initOfflineExchange("cryptocom");
+        object id = "CCXT";
+        await exchange.loadMarkets();
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        assert(isEqual(getValue(getValue(request, "params"), "broker_id"), id), "id different from  broker_id");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testBybit()
+    {
+        Exchange exchange = this.initOfflineExchange("bybit");
+        object reqHeaders = null;
+        object id = "CCXT";
+        assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "Referer"), id), "id not in headers");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testKucoin()
+    {
+        Exchange exchange = this.initOfflineExchange("kucoin");
+        object reqHeaders = null;
+        assert(isEqual(getValue(getValue(getValue(exchange.options, "partner"), "spot"), "id"), "ccxt"), "id not in options");
+        assert(isEqual(getValue(getValue(getValue(exchange.options, "partner"), "spot"), "key"), "9e58cc35-5b5e-4133-92ec-166e3f077cb8"), "key not in options");
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        object id = "ccxt";
+        assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), "id not in headers");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testKucoinfutures()
+    {
+        Exchange exchange = this.initOfflineExchange("kucoinfutures");
+        object reqHeaders = null;
+        object id = "ccxtfutures";
+        assert(isEqual(getValue(getValue(getValue(exchange.options, "partner"), "future"), "id"), id), "id not in options");
+        assert(isEqual(getValue(getValue(getValue(exchange.options, "partner"), "future"), "key"), "1b327198-f30c-4f14-a0ac-918871282f15"), "key not in options");
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), "id not in headers");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testBitget()
+    {
+        Exchange exchange = this.initOfflineExchange("bitget");
+        object reqHeaders = null;
+        object id = "p4sve";
+        assert(isEqual(getValue(exchange.options, "broker"), id), "id not in options");
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), "id not in headers");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testMexc()
+    {
+        Exchange exchange = this.initOfflineExchange("mexc");
+        object reqHeaders = null;
+        object id = "CCXT";
+        assert(isEqual(getValue(exchange.options, "broker"), id), "id not in options");
+        await exchange.loadMarkets();
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "source"), id), "id not in headers");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testHuobi()
+    {
+        Exchange exchange = this.initOfflineExchange("huobi");
+        // spot test
+        object id = "AA03022abc";
+        object spotOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            spotOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderId = getValue(spotOrderRequest, "client-order-id");
+        assert(((string)clientOrderId).StartsWith(((object)id).ToString()), "spot clientOrderId does not start with id");
+        // swap test
+        object swapOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object swapInverseOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapInverseOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderIdSpot = getValue(swapOrderRequest, "channel_code");
+        assert(((string)clientOrderIdSpot).StartsWith(((object)id).ToString()), "swap channel_code does not start with id");
+        object clientOrderIdInverse = getValue(swapInverseOrderRequest, "channel_code");
+        assert(((string)clientOrderIdInverse).StartsWith(((object)id).ToString()), "swap inverse channel_code does not start with id");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testWoo()
+    {
+        Exchange exchange = this.initOfflineExchange("woo");
+        // spot test
+        object id = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
+        object spotOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
+        object brokerId = getValue(spotOrderRequest, "broker_id");
+        assert(((string)brokerId).StartsWith(((object)id).ToString()), "broker_id does not start with id");
+        // swap test
+        object stopOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "stopPrice", 30000 },
+            });
+        } catch(Exception e)
+        {
+            stopOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderIdSpot = getValue(stopOrderRequest, "brokerId");
+        assert(((string)clientOrderIdSpot).StartsWith(((object)id).ToString()), "brokerId does not start with id");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task<object> testBitmart()
+    {
+        Exchange exchange = this.initOfflineExchange("bitmart");
+        object reqHeaders = null;
+        object id = "CCXTxBitmart000";
+        assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
+        await exchange.loadMarkets();
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "X-BM-BROKER-ID"), id), "id not in headers");
+        await close(exchange);
+        return true;
+    }
+
+    public async virtual Task testCoinex()
+    {
+        Exchange exchange = this.initOfflineExchange("coinex");
+        object id = "x-167673045";
+        assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
+        object spotOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            spotOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderId = getValue(spotOrderRequest, "client_id");
+        assert(((string)clientOrderId).StartsWith(((object)id).ToString()), "clientOrderId does not start with id");
+        await close(exchange);
     }
 }

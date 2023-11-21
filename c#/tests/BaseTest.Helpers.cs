@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 
 using System.Globalization;
 using System.Reflection;
+using System.Text.RegularExpressions;
 namespace Tests;
 using dict = Dictionary<string, object>;
 
@@ -26,10 +27,14 @@ public partial class testMainClass : BaseTest
     public bool verbose = Tests.verbose;
     public bool debug = Tests.debug;
     public static string httpsAgent = "";
-    public static string ext = ".cs";
+    public string ext = ".cs";
     public bool loadKeys = false;
 
     public bool staticTestsFailed = false;
+    public bool responseTests = false;
+    public bool responseTestsFailed = false;
+    public bool requestTests = false;
+    public bool requestTestsFailed = false;
     public bool staticTests = false;
     public bool idTests = false;
 
@@ -163,8 +168,29 @@ public partial class testMainClass : BaseTest
 
     public async Task<object> callExchangeMethodDynamically(object exchange, object methodName, params object[] args)
     {
-        var res = exchange.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(exchange, args);
-        return await ((Task<object>)res);
+        // args ??= new object[] { };
+        // if (args.Length == 0)
+        // {
+        //     args = new object[] { null };
+        // }
+        var realArgs = (args.Length == 0) ? new List<object> { } : args[0] as List<object>;
+        var method = exchange.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        var parameters = method.GetParameters();
+        var newArgs = new object[parameters.Length];
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            if (i < realArgs.Count)
+            {
+                newArgs[i] = realArgs[i];
+            }
+            else
+            {
+                newArgs[i] = null;
+            }
+        }
+        var res = method.Invoke(exchange, newArgs);
+        var awaittedResult = await ((Task<object>)res);
+        return awaittedResult;
     }
 
     public static void addProxy(object exchange, object proxy)
@@ -222,6 +248,42 @@ public partial class testMainClass : BaseTest
     {
         var e = exc as Exception;
         return e.Message;
+    }
+
+    public Exchange setFetchResponse(object exchange2, object response)
+    {
+        var exchange = exchange2 as Exchange;
+
+        exchange.fetchResponse = response;
+        return exchange;
+
+    }
+
+    public bool isNullValue(object value)
+    {
+        return value == null;
+    }
+
+    public object convertAscii(object input)
+    {
+        // tmp fix the issue inside ascii-encoded json values
+        // "[{\"symbol\":\"BTC-USDT\",\"type\":\"LIMIT\",\"side\":\"BUY\",\"quantity\":0.0002,\"price\":25000.0},{\"symbol\":\"BTC-USDT\",\"type\":\"LIMIT\",\"side\":\"BUY\",\"quantity\":0.0002,\"price\":27000.0}]"
+        // "[{\"symbol\":\"BTC-USDT\",\"type\":\"LIMIT\",\"side\":\"BUY\",\"quantity\":0.0002,\"price\":25000},{\"symbol\":\"BTC-USDT\",\"type\":\"LIMIT\",\"side\":\"BUY\",\"quantity\":0.0002,\"price\":27000}]"
+        // as you can see the numeric values might be 25 or 25.0
+        // so we need to convert them to the same format
+        // this is done when the message is a regular json-string or url-encoded string
+        var decodedString = System.Web.HttpUtility.UrlDecode(input as string);
+        // decodedString = decodedString.Replace(".0}", "}");
+        // decodedString = decodedString.Replace(".0,", ",");
+        // string pattern = @"(?<=\.\d*)0+(?!\d)|(?<=\d)\.0+$";
+        // string pattern = @"(?<=\.\d*[1-9])0+|(?<=[0-9])\.0+$";
+        // string pattern = @"(?<=\d)\.0+$|(\.\d*?[1-9])0+$";
+        string pattern = @"(?<=\.[0-9]*[1-9])0+\b|(?<=\d)\.0+\b";
+
+
+        string result1 = Regex.Replace(decodedString, pattern, "");
+        return result1;
+
     }
 
     public partial class SharedMethods

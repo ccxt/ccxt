@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\BadRequest;
+use ccxt\NetworkError;
 use React\Async;
 
 class bingx extends \ccxt\async\bingx {
@@ -306,11 +307,12 @@ class bingx extends \ccxt\async\bingx {
         //        "h" => "28915.4",
         //        "l" => "28896.1",
         //        "v" => "27.6919",
-        //        "T" => 1690907580000
+        //        "T" => 1696687499999,
+        //        "t" => 1696687440000
         //    }
         //
         return array(
-            $this->safe_integer($ohlcv, 'T'),
+            $this->safe_integer($ohlcv, 't'), // needs to be opening-time (t) instead of closing-time (T), to be compatible with fetchOHLCV
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
@@ -489,7 +491,7 @@ class bingx extends \ccxt\async\bingx {
              * @param {int} [$since] the earliest time in ms to $trades orders for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -613,15 +615,20 @@ class bingx extends \ccxt\async\bingx {
             // swap
             // Ping
             //
-            if ($message === 'Ping') {
-                Async\await($client->send ('Pong'));
-            } else {
-                $ping = $this->safe_string($message, 'ping');
-                $time = $this->safe_string($message, 'time');
-                Async\await($client->send (array(
-                    'pong' => $ping,
-                    'time' => $time,
-                )));
+            try {
+                if ($message === 'Ping') {
+                    Async\await($client->send ('Pong'));
+                } else {
+                    $ping = $this->safe_string($message, 'ping');
+                    $time = $this->safe_string($message, 'time');
+                    Async\await($client->send (array(
+                        'pong' => $ping,
+                        'time' => $time,
+                    )));
+                }
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' pong failed with $error ' . $this->json($e));
+                $client->reset ($error);
             }
         }) ();
     }

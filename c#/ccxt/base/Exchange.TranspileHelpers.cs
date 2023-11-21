@@ -132,12 +132,13 @@ public partial class Exchange
 
     public object parseJson(object json)
     {
-        var jsonString = json.ToString();
-        if (jsonString.StartsWith("[".ToString()))
-        {
-            return JsonConvert.DeserializeObject<List<dict>>(jsonString);
-        }
-        return JsonConvert.DeserializeObject<dict>((string)json);
+        // var jsonString = json.ToString();
+        // if (jsonString.StartsWith("[".ToString()))
+        // {
+        //     return JsonConvert.DeserializeObject<List<dict>>(jsonString);
+        // }
+        // return JsonConvert.DeserializeObject<dict>((string)json);
+        return JsonHelper.Deserialize((string)json);
     }
 
     public static bool isTrue(object value)
@@ -225,8 +226,11 @@ public partial class Exchange
             // {
             //     return false;
             // }
-
-            if (a.GetType() == typeof(Int64) || b.GetType() == typeof(Int64))
+            if (IsInteger(a) && IsInteger(b))
+            {
+                return Convert.ToInt64(a) == Convert.ToInt64(b);
+            }
+            if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64))
             {
                 return Convert.ToInt64(a) == Convert.ToInt64(b);
             }
@@ -241,6 +245,14 @@ public partial class Exchange
             else if (a.GetType() == typeof(double) || b.GetType() == typeof(double))
             {
                 return Convert.ToDouble(a) == Convert.ToDouble(b);
+            }
+            else if (a.GetType() == typeof(decimal) || b.GetType() == typeof(decimal))
+            {
+                return Convert.ToDecimal(a) == Convert.ToDecimal(b);
+            }
+            else if (a.GetType() == typeof(Single) || b.GetType() == typeof(Single))
+            {
+                return Convert.ToSingle(a) == Convert.ToSingle(b);
             }
             // else if (a.GetType() == typeof(double))
             // {
@@ -463,6 +475,11 @@ public partial class Exchange
         {
             return null;
         }
+
+        if (a is Int64 && b is Int64)
+        {
+            return (Int64)a * (Int64)b;
+        }
         var first = Convert.ToDouble(a);
         var second = Convert.ToDouble(b);
 
@@ -507,9 +524,31 @@ public partial class Exchange
         }
     }
 
-    public static bool IsInteger(double number)
+    public static bool IsInteger(object value)
     {
-        return number == Math.Truncate(number);
+        if (value == null)
+        {
+            return false;
+        }
+
+        Type type = value.GetType();
+
+        // Check for integral types
+        if (type == typeof(int) || type == typeof(long) || type == typeof(short) || type == typeof(byte) || type == typeof(sbyte) || type == typeof(uint) || type == typeof(ulong) || type == typeof(ushort))
+        {
+            return true;
+        }
+
+        // Check for floating-point types and verify if they can be converted to an integer without losing precision
+        if (type == typeof(float) || type == typeof(double) || type == typeof(decimal))
+        {
+            decimal decimalValue = Convert.ToDecimal(value);
+            return decimalValue == Math.Floor(decimalValue);
+        }
+
+        // Add any additional type checks if necessary
+
+        return false;
     }
 
     public static object mathMin(object a, object b)
@@ -611,7 +650,8 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = float.Parse((string)a, CultureInfo.InvariantCulture.NumberFormat);
+            // parsedValue = float.Parse((string)a, CultureInfo.InvariantCulture.NumberFormat);
+            parsedValue = (Convert.ToDouble(a, CultureInfo.InvariantCulture.NumberFormat));
         }
         catch (Exception e)
         {

@@ -17,8 +17,9 @@ namespace ccxt
 
         public long baseNumber { get; set; } = 10;
 
-        public Precise(object number2, int dec = Int32.MinValue)
+        public Precise(object number2, object dec2 = null)
         {
+            var dec = (dec2 != null) ? Convert.ToInt32(dec2) : Int32.MinValue;
             var number = number2.ToString();
             if (dec == Int32.MinValue)
             {
@@ -54,7 +55,7 @@ namespace ccxt
         public Precise div(Precise other, object precision2 = null)
         {
             precision2 = precision2 ?? 18;
-            var precision = (int)precision2;
+            var precision = Convert.ToInt32(precision2);
             var distance = precision - Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals);
             BigInteger numerator = 0;
             if (distance == 0)
