@@ -3007,7 +3007,7 @@ export default class okx extends Exchange {
          * @param {string[]|string} ids order ids
          * @returns {string[]} list of order ids
          */
-        if (typeof ids === 'string') {
+        if ((ids !== undefined) && typeof ids === 'string') {
             return ids.split (',');
         } else {
             return ids;
