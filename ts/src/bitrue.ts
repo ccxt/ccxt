@@ -1125,10 +1125,6 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrderBook', market, params);
         let response = undefined;
         if (market['swap']) {
             const request = {
@@ -1140,9 +1136,9 @@ export default class bitrue extends Exchange {
                 }
                 request['limit'] = limit; // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
-            if (this.isLinear (type, subType)) {
+            if (market['linear']) {
                 response = await this.fapiV1PublicGetDepth (this.extend (request, params));
-            } else if (this.isInverse (type, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV1PublicGetDepth (this.extend (request, params));
             }
         } else if (market['spot']) {
@@ -1273,19 +1269,15 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTicker', market, params);
         let response = undefined;
         let data = undefined;
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
             };
-            if (this.isLinear (type, subType)) {
+            if (market['linear']) {
                 response = await this.fapiV1PublicGetTicker (this.extend (request, params));
-            } else if (this.isInverse (type, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV1PublicGetTicker (this.extend (request, params));
             }
             data = response;
@@ -1357,10 +1349,6 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframes = this.safeValue (this.options, 'timeframes', {});
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOHLCV', market, params);
         let response = undefined;
         let data = undefined;
         if (market['swap']) {
@@ -1376,9 +1364,9 @@ export default class bitrue extends Exchange {
                 }
                 request['limit'] = limit;
             }
-            if (this.isLinear (type, subType)) {
+            if (market['linear']) {
                 response = await this.fapiV1PublicGetKlines (this.extend (request, params));
-            } else if (this.isInverse (type, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV1PublicGetKlines (this.extend (request, params));
             }
             data = response;
@@ -1487,23 +1475,16 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        let market = undefined;
-        if (symbols !== undefined) {
-            const first = this.safeString (symbols, 0);
-            market = this.market (first);
-        }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
+        const first = this.safeString (symbols, 0);
+        const market = this.market (first);
         let response = undefined;
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
             };
-            if (this.isLinear (type, subType)) {
+            if (market['linear']) {
                 response = await this.fapiV1PublicGetTicker (this.extend (request, params));
-            } else if (this.isInverse (type, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV1PublicGetTicker (this.extend (request, params));
             }
         } else if (market['spot']) {
@@ -1564,14 +1545,11 @@ export default class bitrue extends Exchange {
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             const market = this.market (first);
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
             if (market['swap']) {
                 request['contractName'] = market['id'];
-                if (this.isLinear (type, subType)) {
+                if (market['linear']) {
                     response = await this.fapiV1PublicGetTicker (this.extend (request, params));
-                } else if (this.isInverse (type, subType)) {
+                } else if (market['inverse']) {
                     response = await this.dapiV1PublicGetTicker (this.extend (request, params));
                 }
                 response['symbol'] = market['id'];
@@ -1927,9 +1905,12 @@ export default class bitrue extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
-         * @param {decimal|undefined} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration
+         * @param {decimal} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration, default is 5
+         * @param {string} [params.timeInForce] 'fok', 'ioc' or 'po'
+         * @param {bool} [params.postOnly] default false
+         * @param {bool} [params.reduceOnly] default false
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {decimal} [params.icebergQty]
          * @param {long} [params.recvWindow]
@@ -1937,10 +1918,6 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('createOrder', market, params);
         let response = undefined;
         let data = undefined;
         const uppercaseType = type.toUpperCase ();
@@ -1960,23 +1937,31 @@ export default class bitrue extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (market['swap']) {
-            request['contractName'] = market['id'];
-            request['amount'] = this.parseNumber (amount);
-            request['volume'] = this.parseNumber (amount);
-            request['positionType'] = 1;
-            request['open'] = 'OPEN';
-            const leverage = this.safeNumber (params, 'leverage');
-            if (leverage === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a leverage argument');
+            const isMarket = uppercaseType === 'MARKET';
+            const timeInForce = this.safeStringLower (params, 'timeInForce');
+            const postOnly = this.isPostOnly (isMarket, undefined, params);
+            if (postOnly) {
+                request['type'] = 'POST_ONLY';
+            } else if (timeInForce === 'fok') {
+                request['type'] = 'FOK';
+            } else if (timeInForce === 'ioc') {
+                request['type'] = 'IOC';
             }
-            request['leverage'] = leverage;
-            params = this.omit (params, 'leverage');
-            if (this.isLinear (marketType, subType)) {
+            request['contractName'] = market['id'];
+            request['amount'] = this.parseToNumeric (amount);
+            request['volume'] = this.parseToNumeric (amount);
+            request['positionType'] = 1;
+            const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+            request['open'] = reduceOnly ? 'CLOSE' : 'OPEN';
+            const leverage = this.safeNumber (params, 'leverage', 5);
+            request['leverage'] = this.parseToNumeric (leverage);
+            params = this.omit (params, [ 'leverage', 'reduceOnly', 'reduce_only', 'timeInForce' ]);
+            if (market['linear']) {
                 response = await this.fapiV2PrivatePostOrder (this.extend (request, params));
-            } else if (this.isInverse (marketType, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostOrder (this.extend (request, params));
             }
-            data = this.safeValue (response, 'data', '{}');
+            data = this.safeValue (response, 'data', {});
         } else if (market['spot']) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -2042,10 +2027,6 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
         let response = undefined;
         let data = undefined;
         const request = {};
@@ -2060,9 +2041,9 @@ export default class bitrue extends Exchange {
         }
         if (market['swap']) {
             request['contractName'] = market['id'];
-            if (this.isLinear (type, subType)) {
+            if (market['linear']) {
                 response = await this.fapiV2PrivateGetOrder (this.extend (request, params));
-            } else if (this.isInverse (type, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetOrder (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', {});
@@ -2198,18 +2179,14 @@ export default class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
         let response = undefined;
         let data = undefined;
         const request = {};
         if (market['swap']) {
             request['contractName'] = market['id'];
-            if (this.isLinear (type, subType)) {
+            if (market['linear']) {
                 response = await this.fapiV2PrivateGetOpenOrders (this.extend (request, params));
-            } else if (this.isInverse (type, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetOpenOrders (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', []);
@@ -2289,10 +2266,6 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
         let response = undefined;
         let data = undefined;
         const request = {};
@@ -2307,9 +2280,9 @@ export default class bitrue extends Exchange {
         }
         if (market['swap']) {
             request['contractName'] = market['id'];
-            if (this.isLinear (type, subType)) {
+            if (market['linear']) {
                 response = await this.fapiV2PrivatePostCancel (this.extend (request, params));
-            } else if (this.isInverse (type, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostCancel (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', {});
@@ -2357,19 +2330,15 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
         let response = undefined;
         let data = undefined;
         if (market['swap']) {
             const request = {
                 'contractName': market['id'],
             };
-            if (this.isLinear (type, subType)) {
+            if (market['linear']) {
                 response = await this.fapiV2PrivatePostAllOpenOrders (this.extend (request, params));
-            } else if (this.isInverse (type, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostAllOpenOrders (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', []);
@@ -2404,10 +2373,6 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
         let response = undefined;
         let data = undefined;
         const request = {};
@@ -2422,9 +2387,9 @@ export default class bitrue extends Exchange {
         }
         if (market['swap']) {
             request['contractName'] = market['id'];
-            if (this.isLinear (type, subType)) {
+            if (market['linear']) {
                 response = await this.fapiV2PrivateGetMyTrades (this.extend (request, params));
-            } else if (this.isInverse (type, subType)) {
+            } else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetMyTrades (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', []);
@@ -3021,10 +2986,6 @@ export default class bitrue extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('setLeverage', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('setLeverage', market, params);
         let response = undefined;
         const request = {
             'contractName': market['id'],
@@ -3033,9 +2994,9 @@ export default class bitrue extends Exchange {
         if (!market['swap']) {
             throw new NotSupported (this.id + ' setLeverage only support swap markets');
         }
-        if (this.isLinear (type, subType)) {
+        if (market['linear']) {
             response = await this.fapiV2PrivatePostLevelEdit (this.extend (request, params));
-        } else if (this.isInverse (type, subType)) {
+        } else if (market['inverse']) {
             response = await this.dapiV2PrivatePostLevelEdit (this.extend (request, params));
         }
         return response;
@@ -3069,18 +3030,14 @@ export default class bitrue extends Exchange {
         if (!market['swap']) {
             throw new NotSupported (this.id + ' setMargin only support swap markets');
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('setMargin', market, params);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('setMargin', market, params);
         let response = undefined;
         const request = {
             'contractName': market['id'],
-            'amount': this.parseNumber (amount),
+            'amount': this.parseToNumeric (amount),
         };
-        if (this.isLinear (type, subType)) {
+        if (market['linear']) {
             response = await this.fapiV2PrivatePostPositionMargin (this.extend (request, params));
-        } else if (this.isInverse (type, subType)) {
+        } else if (market['inverse']) {
             response = await this.dapiV2PrivatePostPositionMargin (this.extend (request, params));
         }
         //
