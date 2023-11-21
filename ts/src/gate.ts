@@ -5350,7 +5350,18 @@ export default class gate extends Exchange {
         return this.parsePositions (response, symbols);
     }
 
-    async fetchPositionsForSymbol (symbol, params = {}) {
+    async fetchPositionsForSymbol (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchPositionsForSymbol
+         * @description fetch all open positions for specific symbol
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = {};
