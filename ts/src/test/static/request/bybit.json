@@ -367,14 +367,6 @@
                 "input": [
                   "BTC/USD:BTC"
                 ]
-            },
-            {
-                "description": "linear future",
-                "method": "fetchPositionsForSymbol",
-                "url": "https://api.bybit.com/v5/position/list?symbol=BTC-01DEC23&category=linear",
-                "input": [
-                  "BTC/USDC:USDC-231201"
-                ]
             }
         ],
         "fetchBalance": [
