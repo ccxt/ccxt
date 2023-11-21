@@ -78,7 +78,7 @@ export default class bybit extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
-                'fetchPositionsBySymbol': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
                 'fetchTicker': true,
@@ -6901,10 +6901,10 @@ export default class bybit extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    async fetchPosition (symbol: string, params = {}) {
+    async fetchPositionHelper (symbol: string, params = {}) {
         /**
          * @method
-         * @name bybit#fetchPosition
+         * @name bybit#fetchPositionHelper
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the bybit api endpoint
@@ -7085,15 +7085,37 @@ export default class bybit extends Exchange {
         //         "time": 1658904877942
         //     }
         //
+        return response;
+    }
+
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const response = await this.fetchPositionHelper (symbol, params);
         const result = this.safeValue (response, 'result', {});
         const positions = this.safeValue2 (result, 'list', 'dataList', []);
         const timestamp = this.safeInteger (response, 'time');
         const first = this.safeValue (positions, 0, {});
+        const market = this.market (symbol);
         const position = this.parsePosition (first, market);
         return this.extend (position, {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    async fetchPositionsForSymbol (symbol, params = {}) {
+        const response = await this.fetchPositionHelper (symbol, params);
+        const result = this.safeValue (response, 'result', {});
+        const rawPositions = this.safeValue (result, 'list', []);
+        const market = this.market (symbol);
+        return this.parsePositions (rawPositions, [ market['symbol'] ], params);
     }
 
     async fetchUnifiedPositions (symbols: string[] = undefined, params = {}) {
@@ -7366,62 +7388,6 @@ export default class bybit extends Exchange {
         } else {
             return await this.fetchDerivativesPositions (symbols, params);
         }
-    }
-
-    async fetchPositionsBySymbol (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['linear'] || !market['swap']) {
-            throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not yet supported for ' + symbol + ' market. Coming soon...');
-        }
-        const request = {
-            'category': 'linear',
-            'symbol': market['id'],
-        };
-        const response = await this.privateGetV5PositionList (this.extend (request, params));
-        //
-        //    {
-        //        "retCode": "0",
-        //        "retMsg": "OK",
-        //        "result": {
-        //            "nextPageCursor": "TRXUSDT%2C1675882472423",
-        //            "category": "linear",
-        //            "list": [
-        //                {
-        //                    "symbol": "TRXUSDT",
-        //                    "leverage": "10",
-        //                    "updatedTime": "1675882472423",
-        //                    "side": "None",
-        //                    "bustPrice": "",
-        //                    "avgPrice": "0",
-        //                    "liqPrice": "",
-        //                    "riskLimitValue": "100000",
-        //                    "takeProfit": "",
-        //                    "positionValue": "",
-        //                    "tpslMode": "Full",
-        //                    "riskId": "311",
-        //                    "trailingStop": "",
-        //                    "unrealisedPnl": "",
-        //                    "markPrice": "0.06652",
-        //                    "size": "0",
-        //                    "positionStatus": "Normal",
-        //                    "stopLoss": "",
-        //                    "cumRealisedPnl": "-0.05016976",
-        //                    "positionMM": "0",
-        //                    "createdTime": "1675882173271",
-        //                    "positionIdx": "0",
-        //                    "tradeMode": "0",
-        //                    "positionIM": "0"
-        //                }
-        //            ]
-        //        },
-        //        "retExtInfo": {},
-        //        "time": "1675883794087"
-        //    }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const rawPositions = this.safeValue (result, 'list', []);
-        return this.parsePositions (rawPositions, [ market['symbol'] ], params);
     }
 
     parsePosition (position, market = undefined) {
