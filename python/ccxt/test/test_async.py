@@ -173,7 +173,7 @@ def io_dir_read(path):
     return os.listdir(path)
 
 def convert_ascii (input):
-    return input # stub for c#
+    return input  # stub for c#
 
 async def call_method(testFiles, methodName, exchange, skippedProperties, args):
     return await getattr(testFiles[methodName], methodName)(
@@ -258,18 +258,19 @@ class testMainClass(baseMainTestClass):
         self.private_test = get_cli_arg_value('--private')
         self.private_test_only = get_cli_arg_value('--privateOnly')
         self.sandbox = get_cli_arg_value('--sandbox')
+        self.load_keys = get_cli_arg_value('--loadKeys')
 
     async def init(self, exchange_id, symbol):
         self.parse_cli_args()
         if self.response_tests:
             await self.run_static_response_tests(exchange_id, symbol)
-            return
+            return None
         if self.request_tests:
             await self.run_static_request_tests(exchange_id, symbol)  # symbol here is the testname
-            return
+            return None
         if self.id_tests:
             await self.run_broker_id_tests()
-            return
+            return None
         symbol_str = symbol if symbol is not None else 'all'
         dump('\nTESTING ', self.ext, {
             'exchange': exchange_id,
@@ -290,7 +291,7 @@ class testMainClass(baseMainTestClass):
         # exchange tests
         self.test_files = {}
         properties = list(exchange.has.keys())
-        properties.append("loadMarkets")
+        properties.append('loadMarkets')
         await set_test_files(self, properties)
 
     def expand_settings(self, exchange, symbol):
@@ -334,12 +335,12 @@ class testMainClass(baseMainTestClass):
         # others
         timeout = exchange.safe_value(skipped_settings_for_exchange, 'timeout')
         if timeout is not None:
-            exchange.timeout = timeout
+            exchange.timeout = exchange.parse_to_int(timeout)
         exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
 
-    def add_padding(self, message: str, size):
+    def add_padding(self, message, size):
         # has to be transpilable
         res = ''
         message_length = len(message)  # avoid php transpilation issue
@@ -354,7 +355,7 @@ class testMainClass(baseMainTestClass):
         method_name_in_test = get_test_name(method_name)
         # if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if not is_public and (method_name_in_test in self.checked_public_tests) and (method_name != 'fetchCurrencies'):
-            return
+            return None
         skip_message = None
         if not is_load_markets and (not (method_name in exchange.has) or not exchange.has[method_name]):
             skip_message = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
@@ -368,7 +369,7 @@ class testMainClass(baseMainTestClass):
         if skip_message:
             if self.info:
                 dump(self.add_padding(skip_message, 25), exchange.id, method_name_in_test)
-            return
+            return None
         if self.info:
             args_stringified = '(' + ','.join(args) + ')'
             dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, method_name_in_test, args_stringified)
@@ -377,6 +378,7 @@ class testMainClass(baseMainTestClass):
         # if it was passed successfully, add to the list of successfull tests
         if is_public:
             self.checked_public_tests[method_name_in_test] = True
+        return None
 
     async def test_safe(self, method_name, exchange, args=[], is_public=False):
         # `testSafe` method does not throw an exception, instead mutes it.
@@ -408,9 +410,7 @@ class testMainClass(baseMainTestClass):
                         dump('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, method_name, args_stringified)
                     else:
                         # wait and retry again
-                        await exchange.sleep(
-                            i * 1000
-                        )  # increase wait seconds on every retry
+                        await exchange.sleep(i * 1000)  # increase wait seconds on every retry
                         continue
                 elif isinstance(e, OnMaintenance):
                     # in case of maintenance, skip exchange (don't fail the test)
@@ -429,20 +429,21 @@ class testMainClass(baseMainTestClass):
                     else:
                         dump('[TEST_FAILURE]', exception_message(e), exchange.id, method_name, args_stringified)
                 return False
+        return True
 
     async def run_public_tests(self, exchange, symbol):
         tests = {
-            "fetchCurrencies": [],
-            "fetchTicker": [symbol],
-            "fetchTickers": [symbol],
-            "fetchOHLCV": [symbol],
-            "fetchTrades": [symbol],
-            "fetchOrderBook": [symbol],
-            "fetchL2OrderBook": [symbol],
-            "fetchOrderBooks": [],
-            "fetchBidsAsks": [],
-            "fetchStatus": [],
-            "fetchTime": [],
+            'fetchCurrencies': [],
+            'fetchTicker': [symbol],
+            'fetchTickers': [symbol],
+            'fetchOHLCV': [symbol],
+            'fetchTrades': [symbol],
+            'fetchOrderBook': [symbol],
+            'fetchL2OrderBook': [symbol],
+            'fetchOrderBooks': [],
+            'fetchBidsAsks': [],
+            'fetchStatus': [],
+            'fetchTime': [],
         }
         market = exchange.market(symbol)
         is_spot = market['spot']
@@ -481,7 +482,7 @@ class testMainClass(baseMainTestClass):
             dump(message_with_padding, exchange.id)
 
     async def load_exchange(self, exchange):
-        result = await self.test_safe("loadMarkets", exchange, [], True)
+        result = await self.test_safe('loadMarkets', exchange, [], True)
         if not result:
             return False
         symbols = ['BTC/CNY', 'BTC/USD', 'BTC/USDT', 'BTC/EUR', 'BTC/ETH', 'ETH/BTC', 'BTC/JPY', 'ETH/EUR', 'ETH/JPY', 'ETH/CNY', 'ETH/USD', 'LTC/CNY', 'DASH/BTC', 'DOGE/BTC', 'BTC/AUD', 'BTC/PLN', 'USD/SLL', 'BTC/RUB', 'BTC/UAH', 'LTC/BTC', 'EUR/USD']
@@ -508,7 +509,7 @@ class testMainClass(baseMainTestClass):
             s = symbols[i]
             market = exchange.safe_value(exchange.markets, s)
             if market is not None:
-                active = exchange.safe_value(market, "active")
+                active = exchange.safe_value(market, 'active')
                 if active or (active is None):
                     symbol = s
                     break
@@ -516,7 +517,7 @@ class testMainClass(baseMainTestClass):
 
     def get_exchange_code(self, exchange, codes=None):
         if codes is None:
-            codes = ["BTC", "ETH", "XRP", "LTC", "BCH", "EOS", "BNB", "BSV", "USDT"]
+            codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
         code = codes[0]
         for i in range(0, len(codes)):
             if codes[i] in exchange.currencies:
@@ -530,10 +531,10 @@ class testMainClass(baseMainTestClass):
         for i in range(0, len(keys)):
             key = keys[i]
             market = markets[key]
-            if spot and market["spot"]:
-                res[market["symbol"]] = market
-            elif not spot and not market["spot"]:
-                res[market["symbol"]] = market
+            if spot and market['spot']:
+                res[market['symbol']] = market
+            elif not spot and not market['spot']:
+                res[market['symbol']] = market
         return res
 
     def get_valid_symbol(self, exchange, spot=True):
@@ -567,7 +568,7 @@ class testMainClass(baseMainTestClass):
             if values_length > 0:
                 first = values[0]
                 if first is not None:
-                    symbol = first["symbol"]
+                    symbol = first['symbol']
         return symbol
 
     async def test_exchange(self, exchange, provided_symbol=None):
@@ -609,7 +610,7 @@ class testMainClass(baseMainTestClass):
 
     async def run_private_tests(self, exchange, symbol):
         if not exchange.check_required_credentials(False):
-            dump("[Skipping private tests]", "Keys not found")
+            dump('[Skipping private tests]', 'Keys not found')
             return
         code = self.get_exchange_code(exchange)
         # if (exchange.extendedTest) {
@@ -680,13 +681,13 @@ class testMainClass(baseMainTestClass):
             dump('[TEST_FAILURE]', 'Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
         else:
             if self.info:
-                dump(self.add_padding("[INFO:PRIVATE_TESTS_DONE]", 25), exchange.id)
+                dump(self.add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
 
     async def start_test(self, exchange, symbol):
         # we do not need to test aliases
         if exchange.alias:
             return
-        if self.sandbox or get_exchange_prop(exchange, "sandbox"):
+        if self.sandbox or get_exchange_prop(exchange, 'sandbox'):
             exchange.set_sandbox_mode(True)
         try:
             result = await self.load_exchange(exchange)
@@ -773,9 +774,9 @@ class testMainClass(baseMainTestClass):
 
     def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True):
         if is_null_value(new_output) and is_null_value(stored_output):
-            return
+            return True
         if not new_output and not stored_output:
-            return
+            return True
         if (isinstance(stored_output, dict)) and (isinstance(new_output, dict)):
             stored_output_keys = list(stored_output.keys())
             new_output_keys = list(new_output.keys())
@@ -807,7 +808,7 @@ class testMainClass(baseMainTestClass):
             new_output_string = str(sanitized_new_output) if sanitized_new_output else 'undefined'
             stored_output_string = str(sanitized_stored_output) if sanitized_stored_output else 'undefined'
             message_error = 'output value mismatch:' + new_output_string + ' != ' + stored_output_string
-            if strict_type_check:
+            if strict_type_check and (self.lang != 'C#'):
                 # upon building the request we want strict type check to make sure all the types are correct
                 # when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output)
@@ -816,11 +817,33 @@ class testMainClass(baseMainTestClass):
                 is_string = (isinstance(sanitized_new_output, str)) or (isinstance(sanitized_stored_output, str))
                 is_undefined = (sanitized_new_output is None) or (sanitized_stored_output is None)  # undefined is a perfetly valid value
                 if is_boolean or is_string or is_undefined:
-                    self.assert_static_error(new_output_string == stored_output_string, message_error, stored_output, new_output)
+                    if self.lang == 'C#':
+                        # tmp c# number comparsion
+                        is_number = False
+                        try:
+                            exchange.parse_to_numeric(sanitized_new_output)
+                            is_number = True
+                        except Exception as e:
+
+                        if is_number:
+                            self.assert_static_error(exchange.parse_to_numeric(sanitized_new_output) == exchange.parse_to_numeric(sanitized_stored_output), message_error, stored_output, new_output)
+                            return True
+                        else:
+                            self.assert_static_error(convert_ascii(new_output_string) == convert_ascii(stored_output_string), message_error, stored_output, new_output)
+                            return True
+                    else:
+                        self.assert_static_error(convert_ascii(new_output_string) == convert_ascii(stored_output_string), message_error, stored_output, new_output)
+                        return True
                 else:
-                    numeric_new_output = exchange.parse_to_numeric(new_output_string)
-                    numeric_stored_output = exchange.parse_to_numeric(stored_output_string)
-                    self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output)
+                    if self.lang == 'C#':
+                        stringified_new_output = exchange.number_to_string(sanitized_new_output)
+                        stringified_stored_output = exchange.number_to_string(sanitized_stored_output)
+                        self.assert_static_error(str(stringified_new_output) == str(stringified_stored_output), message_error, stored_output, new_output)
+                    else:
+                        numeric_new_output = exchange.parse_to_numeric(new_output_string)
+                        numeric_stored_output = exchange.parse_to_numeric(stored_output_string)
+                        self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output)
+        return True   # c# requ
 
     def assert_static_request_output(self, exchange, type, skip_keys, stored_url, request_url, stored_output, new_output):
         if stored_url != request_url:
@@ -844,12 +867,12 @@ class testMainClass(baseMainTestClass):
                 new_url_params = self.urlencoded_to_dict(new_url_query)
                 self.assert_new_and_stored_output(exchange, skip_keys, new_url_params, stored_url_params)
                 return
-        if type == 'json':
+        if type == 'json' and (stored_output is not None) and (new_output is not None):
             if isinstance(stored_output, str):
                 stored_output = json_parse(stored_output)
             if isinstance(new_output, str):
                 new_output = json_parse(new_output)
-        elif type == 'urlencoded':
+        elif type == 'urlencoded' and (stored_output is not None) and (new_output is not None):
             stored_output = self.urlencoded_to_dict(stored_output)
             new_output = self.urlencoded_to_dict(new_output)
         self.assert_new_and_stored_output(exchange, skip_keys, new_output, stored_output)
@@ -943,6 +966,7 @@ class testMainClass(baseMainTestClass):
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 await self.test_method_statically(exchange, method, result, type, skip_keys)
         await close(exchange)
+        return True   # in c# methods that will be used with promiseAll need to return something
 
     async def test_exchange_response_statically(self, exchange_name, exchange_data, test_name=None):
         exchange = self.init_offline_exchange(exchange_name)
@@ -961,6 +985,7 @@ class testMainClass(baseMainTestClass):
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 await self.test_response_statically(exchange, method, skip_keys, result)
         await close(exchange)
+        return True   # in c# methods that will be used with promiseAll need to return something
 
     def get_number_of_tests_from_exchange(self, exchange, exchange_data):
         sum = 0
@@ -1021,193 +1046,204 @@ class testMainClass(baseMainTestClass):
         exit_script(0)
 
     async def test_binance(self):
-        binance = self.init_offline_exchange('binance')
+        exchange = self.init_offline_exchange('binance')
         spot_id = 'x-R4BD3S82'
         spot_order_request = None
         try:
-            await binance.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = self.urlencoded_to_dict(binance.last_request_body)
+            spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_order_id = spot_order_request['newClientOrderId']
-        assert client_order_id.startswith(spot_id), 'spot clientOrderId does not start with spotId'
+        assert client_order_id.startswith(str(spot_id)), 'spot clientOrderId does not start with spotId'
         swap_id = 'x-xcKtGhcu'
         swap_order_request = None
         try:
-            await binance.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_order_request = self.urlencoded_to_dict(binance.last_request_body)
+            swap_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         swap_inverse_order_request = None
         try:
-            await binance.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_inverse_order_request = self.urlencoded_to_dict(binance.last_request_body)
+            swap_inverse_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         client_order_id_spot = swap_order_request['newClientOrderId']
-        assert client_order_id_spot.startswith(swap_id), 'swap clientOrderId does not start with swapId'
+        assert client_order_id_spot.startswith(str(swap_id)), 'swap clientOrderId does not start with swapId'
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
-        assert client_order_id_inverse.startswith(swap_id), 'swap clientOrderIdInverse does not start with swapId'
-        await close(binance)
+        assert client_order_id_inverse.startswith(str(swap_id)), 'swap clientOrderIdInverse does not start with swapId'
+        await close(exchange)
+        return True
 
     async def test_okx(self):
-        okx = self.init_offline_exchange('okx')
+        exchange = self.init_offline_exchange('okx')
         id = 'e847386590ce4dBC'
         spot_order_request = None
         try:
-            await okx.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = json_parse(okx.last_request_body)
+            spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request[0]['clOrdId']  # returns order inside array
-        assert client_order_id.startswith(id), 'spot clientOrderId does not start with id'
+        assert client_order_id.startswith(str(id)), 'spot clientOrderId does not start with id'
         assert spot_order_request[0]['tag'] == id, 'id different from spot tag'
         swap_order_request = None
         try:
-            await okx.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_order_request = json_parse(okx.last_request_body)
+            swap_order_request = json_parse(exchange.last_request_body)
         client_order_id_spot = swap_order_request[0]['clOrdId']
-        assert client_order_id_spot.startswith(id), 'swap clientOrderId does not start with id'
+        assert client_order_id_spot.startswith(str(id)), 'swap clientOrderId does not start with id'
         assert swap_order_request[0]['tag'] == id, 'id different from swap tag'
-        await close(okx)
+        await close(exchange)
+        return True
 
     async def test_cryptocom(self):
-        cryptocom = self.init_offline_exchange('cryptocom')
+        exchange = self.init_offline_exchange('cryptocom')
         id = 'CCXT'
-        await cryptocom.load_markets()
+        await exchange.load_markets()
         request = None
         try:
-            await cryptocom.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            request = json_parse(cryptocom.last_request_body)
+            request = json_parse(exchange.last_request_body)
         assert request['params']['broker_id'] == id, 'id different from  broker_id'
-        await close(cryptocom)
+        await close(exchange)
+        return True
 
     async def test_bybit(self):
-        bybit = self.init_offline_exchange('bybit')
+        exchange = self.init_offline_exchange('bybit')
         req_headers = None
         id = 'CCXT'
-        assert bybit.options['brokerId'] == id, 'id not in options'
+        assert exchange.options['brokerId'] == id, 'id not in options'
         try:
-            await bybit.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = bybit.last_request_headers
+            req_headers = exchange.last_request_headers
         assert req_headers['Referer'] == id, 'id not in headers'
-        await close(bybit)
+        await close(exchange)
+        return True
 
     async def test_kucoin(self):
-        kucoin = self.init_offline_exchange('kucoin')
+        exchange = self.init_offline_exchange('kucoin')
         req_headers = None
-        assert kucoin.options['partner']['spot']['id'] == 'ccxt', 'id not in options'
-        assert kucoin.options['partner']['spot']['key'] == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options'
+        assert exchange.options['partner']['spot']['id'] == 'ccxt', 'id not in options'
+        assert exchange.options['partner']['spot']['key'] == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options'
         try:
-            await kucoin.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = kucoin.last_request_headers
+            req_headers = exchange.last_request_headers
         id = 'ccxt'
         assert req_headers['KC-API-PARTNER'] == id, 'id not in headers'
-        await close(kucoin)
+        await close(exchange)
+        return True
 
     async def test_kucoinfutures(self):
-        kucoin = self.init_offline_exchange('kucoinfutures')
+        exchange = self.init_offline_exchange('kucoinfutures')
         req_headers = None
         id = 'ccxtfutures'
-        assert kucoin.options['partner']['future']['id'] == id, 'id not in options'
-        assert kucoin.options['partner']['future']['key'] == '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options'
+        assert exchange.options['partner']['future']['id'] == id, 'id not in options'
+        assert exchange.options['partner']['future']['key'] == '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options'
         try:
-            await kucoin.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = kucoin.last_request_headers
+            req_headers = exchange.last_request_headers
         assert req_headers['KC-API-PARTNER'] == id, 'id not in headers'
-        await close(kucoin)
+        await close(exchange)
+        return True
 
     async def test_bitget(self):
-        bitget = self.init_offline_exchange('bitget')
+        exchange = self.init_offline_exchange('bitget')
         req_headers = None
         id = 'p4sve'
-        assert bitget.options['broker'] == id, 'id not in options'
+        assert exchange.options['broker'] == id, 'id not in options'
         try:
-            await bitget.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = bitget.last_request_headers
+            req_headers = exchange.last_request_headers
         assert req_headers['X-CHANNEL-API-CODE'] == id, 'id not in headers'
-        await close(bitget)
+        await close(exchange)
+        return True
 
     async def test_mexc(self):
-        mexc = self.init_offline_exchange('mexc')
+        exchange = self.init_offline_exchange('mexc')
         req_headers = None
         id = 'CCXT'
-        assert mexc.options['broker'] == id, 'id not in options'
-        await mexc.load_markets()
+        assert exchange.options['broker'] == id, 'id not in options'
+        await exchange.load_markets()
         try:
-            await mexc.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = mexc.last_request_headers
+            req_headers = exchange.last_request_headers
         assert req_headers['source'] == id, 'id not in headers'
-        await close(mexc)
+        await close(exchange)
+        return True
 
     async def test_huobi(self):
-        huobi = self.init_offline_exchange('huobi')
+        exchange = self.init_offline_exchange('huobi')
         # spot test
         id = 'AA03022abc'
         spot_order_request = None
         try:
-            await huobi.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = json_parse(huobi.last_request_body)
+            spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request['client-order-id']
-        assert client_order_id.startswith(id), 'spot clientOrderId does not start with id'
+        assert client_order_id.startswith(str(id)), 'spot clientOrderId does not start with id'
         # swap test
         swap_order_request = None
         try:
-            await huobi.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_order_request = json_parse(huobi.last_request_body)
+            swap_order_request = json_parse(exchange.last_request_body)
         swap_inverse_order_request = None
         try:
-            await huobi.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            swap_inverse_order_request = json_parse(huobi.last_request_body)
+            swap_inverse_order_request = json_parse(exchange.last_request_body)
         client_order_id_spot = swap_order_request['channel_code']
-        assert client_order_id_spot.startswith(id), 'swap channel_code does not start with id'
+        assert client_order_id_spot.startswith(str(id)), 'swap channel_code does not start with id'
         client_order_id_inverse = swap_inverse_order_request['channel_code']
-        assert client_order_id_inverse.startswith(id), 'swap inverse channel_code does not start with id'
-        await close(huobi)
+        assert client_order_id_inverse.startswith(str(id)), 'swap inverse channel_code does not start with id'
+        await close(exchange)
+        return True
 
     async def test_woo(self):
-        woo = self.init_offline_exchange('woo')
+        exchange = self.init_offline_exchange('woo')
         # spot test
         id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
         spot_order_request = None
         try:
-            await woo.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spot_order_request = self.urlencoded_to_dict(woo.last_request_body)
+            spot_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         broker_id = spot_order_request['broker_id']
-        assert broker_id.startswith(id), 'broker_id does not start with id'
+        assert broker_id.startswith(str(id)), 'broker_id does not start with id'
         # swap test
         stop_order_request = None
         try:
-            await woo.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {
+            await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {
                 'stopPrice': 30000,
             })
         except Exception as e:
-            stop_order_request = json_parse(woo.last_request_body)
+            stop_order_request = json_parse(exchange.last_request_body)
         client_order_id_spot = stop_order_request['brokerId']
-        assert client_order_id_spot.startswith(id), 'brokerId does not start with id'
-        await close(woo)
+        assert client_order_id_spot.startswith(str(id)), 'brokerId does not start with id'
+        await close(exchange)
+        return True
 
     async def test_bitmart(self):
-        bitmart = self.init_offline_exchange('bitmart')
+        exchange = self.init_offline_exchange('bitmart')
         req_headers = None
         id = 'CCXTxBitmart000'
-        assert bitmart.options['brokerId'] == id, 'id not in options'
-        await bitmart.load_markets()
+        assert exchange.options['brokerId'] == id, 'id not in options'
+        await exchange.load_markets()
         try:
-            await bitmart.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = bitmart.last_request_headers
+            req_headers = exchange.last_request_headers
         assert req_headers['X-BM-BROKER-ID'] == id, 'id not in headers'
-        await close(bitmart)
+        await close(exchange)
+        return True
 
     async def test_coinex(self):
         exchange = self.init_offline_exchange('coinex')
@@ -1219,8 +1255,9 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             spot_order_request = json_parse(exchange.last_request_body)
         client_order_id = spot_order_request['client_id']
-        assert client_order_id.startswith(id), 'clientOrderId does not start with id'
+        assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
         await close(exchange)
+        return True
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

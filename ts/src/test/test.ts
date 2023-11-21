@@ -962,6 +962,7 @@ export default class testMainClass extends baseMainTestClass {
                             isNumber = true;
                         } catch (e) {
                             // if we can't parse it to number, then it's not a number
+                            isNumber = false;
                         }
                         if (isNumber) {
                             this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput);
