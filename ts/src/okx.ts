@@ -5119,7 +5119,7 @@ export default class okx extends Exchange {
          * @name okx#fetchPositions
          * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
          * @description fetch all open positions for specific symbol
-         * @param {string} symbol lunified market symbol
+         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.instType] MARGIN (if needed)
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
