@@ -1,8 +1,8 @@
 import Exchange from './abstract/bitteam.js';
-// import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidAddress, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied } from './base/errors.js';
+import { ArgumentsRequired } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade } from './base/types.js';
+import { Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
 
 /**
  * @class bitteam
@@ -31,7 +31,7 @@ export default class bitteam extends Exchange {
                 'cancelOrder': false, // todo
                 'cancelOrders': false,
                 'createDepositAddress': false,
-                'createOrder': false, // todo
+                'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -40,7 +40,7 @@ export default class bitteam extends Exchange {
                 'deposit': false,
                 'editOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false, // todo
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -81,14 +81,14 @@ export default class bitteam extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
-                'fetchOrders': true, // todo: make a private method for another endpoint
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': true,
+                'fetchTicker': true, // todo: check for another endpoint
                 'fetchTickers': false,
                 'fetchTime': false,
                 'fetchTrades': true,
@@ -152,7 +152,7 @@ export default class bitteam extends Exchange {
                 'private': {
                     'get': {
                         'trade/api/address/wallets': 1, // not unified returns 401000
-                        'trade/api/ccxt/balance': 1, // todo
+                        'trade/api/ccxt/balance': 1,
                         'trade/api/ccxt/order/{id}': 1,
                         'trade/api/ccxt/ordersOfUser': 1, // todo
                         'trade/api/ccxt/tradesOfUser': 1, // todo
@@ -375,7 +375,7 @@ export default class bitteam extends Exchange {
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const active = this.safeValue (market, 'active');
+        const active = this.safeValue (market, 'active'); // todo: exchange returns true for inactive markets
         const amountPrecision = this.safeInteger (market, 'baseStep');
         const pricePrecision = this.safeInteger (market, 'quoteStep');
         // const limits = this.safeValue (market, 'settings', {});
@@ -665,53 +665,112 @@ export default class bitteam extends Exchange {
         /**
          * @method
          * @name bitteam#fetchOrders
-         * @description fetches information on multiple orders
-         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtOrdersofuser
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve (default 10)
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
+         * @param {string} [params.type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
         // todo: check offset and order (ASC/DESC)
         // also filtration by symbol breaks pagination
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        let type = this.safeString (params, 'type') as any;
+        if (type === undefined) {
+            type = 'all';
+        } else {
+            params = this.omit (params, 'type');
+        }
+        const request = {
+            'type': type,
+        };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetTradeApiOrders (this.extend (request, params));
+        const response = await this.privateGetTradeApiCcxtOrdersOfUser (this.extend (request, params));
         //
         //     {
-        //         "ok":true,
-        //         "result":
-        //         {
-        //             "count": 43873,
+        //         "ok": true,
+        //         "result": {
+        //             "count": 3,
         //             "orders": [
         //                 {
-        //                     "id": 106361856,
-        //                     "orderId": "13191647",
-        //                     "userId": 15913,
+        //                     "id": 106733026,
+        //                     "orderId": null,
+        //                     "userId": 21639,
+        //                     "pair": "btc_usdt",
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "40",
+        //                     "executedPrice": "0",
+        //                     "fee": null,
+        //                     "orderCid": null,
+        //                     "executed": "0",
+        //                     "expires": null,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700594804,
+        //                     "status": "inactive",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:26:43.868Z",
+        //                     "updatedAt": "2023-11-21T19:26:43.868Z"
+        //                 },
+        //                 {
+        //                     "id": 106733308,
+        //                     "orderId": "13074362",
+        //                     "userId": 21639,
+        //                     "pair": "btc_usdt",
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "50000",
+        //                     "executedPrice": "37017.495008",
+        //                     "fee": {
+        //                         "amount": "0.00000002",
+        //                         "symbol": "btc",
+        //                         "userId": 21639,
+        //                         "decimals": 8,
+        //                         "symbolId": 11
+        //                     },
+        //                     "orderCid": null,
+        //                     "executed": "0.00001",
+        //                     "expires": null,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "timestamp": 1700594959,
+        //                     "status": "executed",
+        //                     "side": "buy",
+        //                     "type": "limit",
+        //                     "createdAt": "2023-11-21T19:29:19.946Z",
+        //                     "updatedAt": "2023-11-21T19:29:19.946Z"
+        //                 },
+        //                 {
+        //                     "id": 106734455,
+        //                     "orderId": "13248984",
+        //                     "userId": 21639,
         //                     "pair": "eth_usdt",
         //                     "pairId": 2,
-        //                     "quantity": 97110810000000000,
-        //                     "price": 1953044988,
-        //                     "executedPrice": 0,
+        //                     "quantity": "0.001",
+        //                     "price": "1750",
+        //                     "executedPrice": "0",
+        //                     "fee": null,
         //                     "orderCid": null,
-        //                     "executed": 0,
+        //                     "executed": "0",
         //                     "expires": null,
         //                     "baseDecimals": 18,
         //                     "quoteDecimals": 6,
-        //                     "timestamp": 1700394513,
-        //                     "status": "cancelled",
+        //                     "timestamp": 1700595523,
+        //                     "status": "accepted",
         //                     "side": "buy",
         //                     "type": "limit",
-        //                     "stopPrice": null,
-        //                     "slippage": null
+        //                     "createdAt": "2023-11-21T19:38:43.530Z",
+        //                     "updatedAt": "2023-11-21T19:38:43.530Z"
         //                 }
         //             ]
         //         }
@@ -783,32 +842,98 @@ export default class bitteam extends Exchange {
         return this.parseOrder (result, market);
     }
 
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitteam#createOrder
+         * @description create a trade order
+         * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtOrdercreate
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bitteam api endpoint
+         * @param {string} [params.clientOrderId] client order id (default undefined)
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pairId': market['numericId'].toString (),
+            'type': type,
+            'side': side,
+            'size': this.amountToPrecision (symbol, amount),
+        };
+        if (type === 'limit') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        // todo: check trigger orders
+        // todo: check clientOrderId
+        const response = await this.privatePostTradeApiCcxtOrdercreate (this.extend (request, params));
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "id": 106733308,
+        //             "userId": 21639,
+        //             "quantity": "0.00001",
+        //             "pair": "btc_usdt",
+        //             "side": "buy",
+        //             "price": "50000",
+        //             "executed": "0",
+        //             "executedPrice": "0",
+        //             "status": "created",
+        //             "baseDecimals": 8,
+        //             "quoteDecimals": 6,
+        //             "pairId": 22,
+        //             "type": "limit",
+        //             "stopPrice": null,
+        //             "slippage": null,
+        //             "timestamp": "1700594959"
+        //         }
+        //     }
+        //
+        const order = this.safeValue (response, 'result', {});
+        return this.parseOrder (order, market);
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
         // fetchOrders
         //     {
-        //         "id": 106361856,
-        //         "orderId": "13191647",
-        //         "userId": 15913,
-        //         "pair": "eth_usdt",
-        //         "pairId": 2,
-        //         "quantity": 97110810000000000,
-        //         "price": 1953044988,
-        //         "executedPrice": 0,
+        //         "id": 106733308,
+        //         "orderId": "13074362",
+        //         "userId": 21639,
+        //         "pair": "btc_usdt",
+        //         "pairId": 22,
+        //         "quantity": "0.00001",
+        //         "price": "50000",
+        //         "executedPrice": "37017.495008",
+        //         "fee": {
+        //             "amount": "0.00000002",
+        //             "symbol": "btc",
+        //             "userId": 21639,
+        //             "decimals": 8,
+        //             "symbolId": 11
+        //         },
         //         "orderCid": null,
-        //         "executed": 0,
+        //         "executed": "0.00001",
         //         "expires": null,
-        //         "baseDecimals": 18,
+        //         "baseDecimals": 8,
         //         "quoteDecimals": 6,
-        //         "timestamp": 1700394513,
-        //         "status": "cancelled",
+        //         "timestamp": 1700594959,
+        //         "status": "executed",
         //         "side": "buy",
         //         "type": "limit",
-        //         "stopPrice": null,
-        //         "slippage": null
-        //     }
+        //         "createdAt": "2023-11-21T19:29:19.946Z",
+        //         "updatedAt": "2023-11-21T19:29:19.946Z"
+        //     },
         //
-        //  fetchOrder
+        // fetchOrder
         //     {
         //         "id": 106494347,
         //         "orderId": "13214332",
@@ -842,6 +967,26 @@ export default class bitteam extends Exchange {
         //         "slippage": null
         //     }
         //
+        // createOrder
+        //     {
+        //         "id": 106733308,
+        //         "userId": 21639,
+        //         "quantity": "0.00001",
+        //         "pair": "btc_usdt",
+        //         "side": "buy",
+        //         "price": "50000",
+        //         "executed": "0",
+        //         "executedPrice": "0",
+        //         "status": "created",
+        //         "baseDecimals": 8,
+        //         "quoteDecimals": 6,
+        //         "pairId": 22,
+        //         "type": "limit",
+        //         "stopPrice": null,
+        //         "slippage": null,
+        //         "timestamp": "1700594959"
+        //     }
+        //
         const id = this.safeString (order, 'id'); // todo: check
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
@@ -850,24 +995,13 @@ export default class bitteam extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
-        // todo: check prices and amount calculation
-        let price = undefined;
-        let stopPrice = undefined;
-        let amount = undefined;
-        let filled = undefined;
-        let fee = undefined;
         const feeRaw = this.safeValue (order, 'fee');
-        // if fetchOrders
-        if (feeRaw === undefined) {
-            price = this.parseValueToPricision (order, 'price', 'quoteDecimals');
-            stopPrice = this.parseValueToPricision (order, 'stopPrice', 'quoteDecimals');
-            amount = this.parseValueToPricision (order, 'quantity', 'baseDecimals');
-            filled = this.parseValueToPricision (order, 'executed', 'baseDecimals');
-        } else {
-            price = this.safeString (order, 'price');
-            stopPrice = this.safeString (order, 'stopPrice');
-            amount = this.safeString (order, 'quantity');
-            filled = this.safeString (order, 'executed');
+        const price = this.safeString (order, 'price');
+        const stopPrice = this.safeString (order, 'stopPrice');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'executed');
+        let fee = undefined;
+        if (feeRaw !== undefined) {
             const feeCost = this.safeString (feeRaw, 'amount');
             const feeCurrencyId = this.safeString (feeRaw, 'symbol');
             fee = {
@@ -909,6 +1043,7 @@ export default class bitteam extends Exchange {
             'cancelled': 'canceled',
             'partiallyCancelled': 'canceled',
             'delete': 'rejected', // todo: check
+            'inactive': 'rejected',
             'executing': 'open', // todo: check
             'created': 'open', // todo: check
         };
@@ -1587,6 +1722,7 @@ export default class bitteam extends Exchange {
             const signature = 'Basic ' + auth64;
             headers = {
                 'Authorization': signature,
+                'Content-Type': 'application/json',
             };
         } else if (query.length !== 0) {
             url += '?' + query;
