@@ -2225,16 +2225,18 @@ export default class kucoin extends Exchange {
                 throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
         }
-        let method = 'privateDeleteOrders';
+        let response = undefined;
         if (stop) {
-            method = 'privateDeleteStopOrderCancel';
+            response = await this.privateDeleteStopOrderCancel (this.extend (request, query));
         } else if (hf) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol parameter for hf orders');
             }
-            method = 'privateDeleteHfOrders';
+            response = await this.privateDeleteHfOrders (this.extend (request, query));
+        } else {
+            response = await this.privateDeleteOrders (this.extend (request, query));
         }
-        return await this[method] (this.extend (request, query));
+        return response;
     }
 
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2291,18 +2293,19 @@ export default class kucoin extends Exchange {
         if (until) {
             request['endAt'] = until;
         }
-        let method = 'privateGetOrders';
+        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
+        let response = undefined;
         if (stop) {
-            method = 'privateGetStopOrder';
+            response = await this.privateGetStopOrder (this.extend (request, query));
         } else if (hf) {
             if (lowercaseStatus === 'active') {
-                method = 'privateGetHfOrdersActive';
+                response = await this.privateGetHfOrdersActive (this.extend (request, query));
             } else if (lowercaseStatus === 'done') {
-                method = 'privateGetHfOrdersDone';
+                response = await this.privateGetHfOrdersDone (this.extend (request, query));
             }
+        } else {
+            response = await this.privateGetOrders (this.extend (request, query));
         }
-        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
-        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code": "200000",
@@ -2450,19 +2453,19 @@ export default class kucoin extends Exchange {
             }
             request['symbol'] = market['id'];
         }
-        params = this.omit (params, [ 'stop', 'hf' ]);
-        let method = 'privateGetOrdersOrderId';
+        params = this.omit (params, [ 'stop', 'hf', 'clientOid', 'clientOrderId' ]);
+        let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (stop) {
-                method = 'privateGetStopOrderQueryOrderByClientOid';
                 if (symbol !== undefined) {
                     request['symbol'] = market['id'];
                 }
+                response = await this.privateGetStopOrderQueryOrderByClientOid (this.extend (request, params));
             } else if (hf) {
-                method = 'privateGetHfOrdersClientOrderClientOid';
+                response = await this.privateGetHfOrdersClientOrderClientOid (this.extend (request, params));
             } else {
-                method = 'privateGetOrderClientOrderClientOid';
+                response = await this.privateGetOrderClientOrderClientOid (this.extend (request, params));
             }
         } else {
             // a special case for undefined ids
@@ -2471,17 +2474,17 @@ export default class kucoin extends Exchange {
             if (id === undefined) {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
             }
-            if (stop) {
-                method = 'privateGetStopOrderOrderId';
-            } else if (hf) {
-                method = 'privateGetHfOrdersOrderId';
-            }
             request['orderId'] = id;
+            if (stop) {
+                response = await this.privateGetStopOrderOrderId (this.extend (request, params));
+            } else if (hf) {
+                response = await this.privateGetHfOrdersOrderId (this.extend (request, params));
+            } else {
+                response = await this.privateGetOrdersOrderId (this.extend (request, params));
+            }
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, params));
         let responseData = this.safeValue (response, 'data');
-        if (method === 'privateGetStopOrderQueryOrderByClientOid') {
+        if (Array.isArray (responseData)) {
             responseData = this.safeValue (responseData, 0);
         }
         return this.parseOrder (responseData, market);
@@ -2724,33 +2727,28 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = this.options['fetchMyTradesMethod'];
+        const method = this.options['fetchMyTradesMethod'];
         let parseResponseData = false;
+        let response = undefined;
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         if (hf) {
-            method = 'privateGetHfFills';
+            response = await this.privateGetHfFills (this.extend (request, params));
         } else if (method === 'private_get_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
                 request['startAt'] = since;
             }
+            response = await this.privateGetFills (this.extend (request, params));
         } else if (method === 'private_get_limit_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
             parseResponseData = true;
-        } else if (method === 'private_get_hist_orders') {
-            // despite that this endpoint is called `HistOrders`
-            // it returns historical trades instead of orders
-            // returns trades earlier than 2019-02-18T00:00:00Z only
-            if (since !== undefined) {
-                request['startAt'] = this.parseToInt (since / 1000);
-            }
+            response = await this.privateGetLimitFills (this.extend (request, params));
         } else {
             throw new ExchangeError (this.id + ' fetchMyTradesMethod() invalid method');
         }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "currentPage": 1,
@@ -3198,8 +3196,6 @@ export default class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchDeposits
-         * @see https://docs.kucoin.com/#get-deposit-list
-         * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
          * @description fetch all deposits made to an account
          * @see https://docs.kucoin.com/#get-deposit-list
          * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
@@ -3226,18 +3222,18 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = 'privateGetDeposits';
-        if (since !== undefined) {
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        let response = undefined;
+        if (since !== undefined && since < 1550448000000) {
             // if since is earlier than 2019-02-18T00:00:00Z
-            if (since < 1550448000000) {
-                request['startAt'] = this.parseToInt (since / 1000);
-                method = 'privateGetHistDeposits';
-            } else {
+            request['startAt'] = this.parseToInt (since / 1000);
+            response = await this.privateGetHistDeposits (this.extend (request, params));
+        } else {
+            if (since !== undefined) {
                 request['startAt'] = since;
             }
+            response = await this.privateGetDeposits (this.extend (request, params));
         }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
@@ -3310,18 +3306,18 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = 'privateGetWithdrawals';
-        if (since !== undefined) {
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        let response = undefined;
+        if (since !== undefined && since < 1550448000000) {
             // if since is earlier than 2019-02-18T00:00:00Z
-            if (since < 1550448000000) {
-                request['startAt'] = this.parseToInt (since / 1000);
-                method = 'privateGetHistWithdrawals';
-            } else {
+            request['startAt'] = this.parseToInt (since / 1000);
+            response = await this.privateGetHistWithdrawals (this.extend (request, params));
+        } else {
+            if (since !== undefined) {
                 request['startAt'] = since;
             }
+            response = await this.privateGetWithdrawals (this.extend (request, params));
         }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
@@ -3400,24 +3396,24 @@ export default class kucoin extends Exchange {
         const type = this.safeString (accountsByType, requestedType, requestedType);
         params = this.omit (params, 'type');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let method = 'privateGetAccounts';
+        let response = undefined;
         const request = {};
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
         const cross = (marginMode === 'cross') || (type === 'cross');
         if (isolated) {
-            method = 'privateGetIsolatedAccounts';
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
             }
+            response = await this.privateGetIsolatedAccounts (this.extend (request, query));
         } else if (cross) {
-            method = 'privateGetMarginAccount';
+            response = await this.privateGetMarginAccount (this.extend (request, query));
         } else {
             if (currency !== undefined) {
                 request['currency'] = currency['id'];
             }
             request['type'] = type;
+            response = await this.privateGetAccounts (this.extend (request, query));
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // Spot and Cross
         //
@@ -3960,42 +3956,36 @@ export default class kucoin extends Exchange {
             marginMode = 'cross'; // cross as default marginMode
         }
         const request = {};
-        let method = 'privateGetMarginBorrowOutstanding';
-        if (marginMode === 'isolated') {
-            if (code !== undefined) {
-                const currency = this.currency (code);
-                request['balanceCurrency'] = currency['id'];
-            }
-            method = 'privateGetIsolatedAccounts';
-        } else {
-            if (code !== undefined) {
-                const currency = this.currency (code);
-                request['currency'] = currency['id'];
-            }
+        let response = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['quoteCurrency'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
+        if (marginMode === 'isolated') {
+            response = await this.privateGetIsolatedAccounts (this.extend (request, params));
+        } else {
+            response = await this.privateGetMarginAccounts (this.extend (request, params));
+        }
         //
         // Cross
         //
         //     {
         //         "code": "200000",
         //         "data": {
-        //             "currentPage": 1,
-        //             "pageSize": 10,
-        //             "totalNum": 1,
-        //             "totalPage": 1,
-        //             "items": [
+        //             "totalAssetOfQuoteCurrency": "0",
+        //             "totalLiabilityOfQuoteCurrency": "0",
+        //             "debtRatio": "0",
+        //             "status": "EFFECTIVE",
+        //             "accounts": [
         //                 {
-        //                     "tradeId": "62e1e320ff219600013b44e2",
-        //                     "currency": "USDT",
-        //                     "principal": "100",
-        //                     "accruedInterest": "0.00016667",
-        //                     "liability": "100.00016667",
-        //                     "repaidSize": "0",
-        //                     "dailyIntRate": "0.00004",
-        //                     "term": 7,
-        //                     "createdAt": 1658970912000,
-        //                     "maturityTime": 1659575713000
+        //                     "currency": "1INCH",
+        //                     "total": "0",
+        //                     "available": "0",
+        //                     "hold": "0",
+        //                     "liability": "0",
+        //                     "maxBorrowSize": "0",
+        //                     "borrowEnabled": true,
+        //                     "transferInEnabled": true
         //                 }
         //             ]
         //         }
@@ -4010,34 +4000,38 @@ export default class kucoin extends Exchange {
         //             "liabilityConversionBalance": "0.01480001",
         //             "assets": [
         //                 {
-        //                     "symbol": "NKN-USDT",
-        //                     "status": "CLEAR",
+        //                     "symbol": "MANA-USDT",
         //                     "debtRatio": "0",
+        //                     "status": "BORROW",
         //                     "baseAsset": {
-        //                         "currency": "NKN",
-        //                         "totalBalance": "0",
-        //                         "holdBalance": "0",
-        //                         "availableBalance": "0",
-        //                         "liability": "0",
-        //                         "interest": "0",
-        //                         "borrowableAmount": "0"
+        //                         "currency": "MANA",
+        //                         "borrowEnabled": true,
+        //                         "repayEnabled": true,
+        //                         "transferEnabled": true,
+        //                         "borrowed": "0",
+        //                         "totalAsset": "0",
+        //                         "available": "0",
+        //                         "hold": "0",
+        //                         "maxBorrowSize": "1000"
         //                     },
         //                     "quoteAsset": {
         //                         "currency": "USDT",
-        //                         "totalBalance": "0",
-        //                         "holdBalance": "0",
-        //                         "availableBalance": "0",
-        //                         "liability": "0",
-        //                         "interest": "0",
-        //                         "borrowableAmount": "0"
+        //                         "borrowEnabled": true,
+        //                         "repayEnabled": true,
+        //                         "transferEnabled": true,
+        //                         "borrowed": "0",
+        //                         "totalAsset": "0",
+        //                         "available": "0",
+        //                         "hold": "0",
+        //                         "maxBorrowSize": "50000"
         //                     }
-        //                 },
+        //                 }
         //             ]
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const assets = (marginMode === 'isolated') ? this.safeValue (data, 'assets', []) : this.safeValue (data, 'items', []);
+        const assets = (marginMode === 'isolated') ? this.safeValue (data, 'assets', []) : this.safeValue (data, 'accounts', []);
         return this.parseBorrowInterests (assets, undefined);
     }
 
@@ -4046,43 +4040,45 @@ export default class kucoin extends Exchange {
         // Cross
         //
         //     {
-        //         "tradeId": "62e1e320ff219600013b44e2",
-        //         "currency": "USDT",
-        //         "principal": "100",
-        //         "accruedInterest": "0.00016667",
-        //         "liability": "100.00016667",
-        //         "repaidSize": "0",
-        //         "dailyIntRate": "0.00004",
-        //         "term": 7,
-        //         "createdAt": 1658970912000,
-        //         "maturityTime": 1659575713000
-        //     },
+        //         "currency": "1INCH",
+        //         "total": "0",
+        //         "available": "0",
+        //         "hold": "0",
+        //         "liability": "0",
+        //         "maxBorrowSize": "0",
+        //         "borrowEnabled": true,
+        //         "transferInEnabled": true
+        //     }
         //
         // Isolated
         //
         //     {
-        //         "symbol": "BTC-USDT",
-        //         "status": "CLEAR",
+        //         "symbol": "MANA-USDT",
         //         "debtRatio": "0",
+        //         "status": "BORROW",
         //         "baseAsset": {
-        //             "currency": "BTC",
-        //             "totalBalance": "0",
-        //             "holdBalance": "0",
-        //             "availableBalance": "0",
-        //             "liability": "0",
-        //             "interest": "0",
-        //             "borrowableAmount": "0.0592"
+        //             "currency": "MANA",
+        //             "borrowEnabled": true,
+        //             "repayEnabled": true,
+        //             "transferEnabled": true,
+        //             "borrowed": "0",
+        //             "totalAsset": "0",
+        //             "available": "0",
+        //             "hold": "0",
+        //             "maxBorrowSize": "1000"
         //         },
         //         "quoteAsset": {
         //             "currency": "USDT",
-        //             "totalBalance": "149.99991731",
-        //             "holdBalance": "0",
-        //             "availableBalance": "149.99991731",
-        //             "liability": "0",
-        //             "interest": "0",
-        //             "borrowableAmount": "1349"
+        //             "borrowEnabled": true,
+        //             "repayEnabled": true,
+        //             "transferEnabled": true,
+        //             "borrowed": "0",
+        //             "totalAsset": "0",
+        //             "available": "0",
+        //             "hold": "0",
+        //             "maxBorrowSize": "50000"
         //         }
-        //     },
+        //     }
         //
         const marketId = this.safeString (info, 'symbol');
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
@@ -4098,7 +4094,7 @@ export default class kucoin extends Exchange {
             interest = this.safeNumber (isolatedBase, 'interest');
             currencyId = this.safeString (isolatedBase, 'currency');
         } else {
-            amountBorrowed = this.safeNumber (info, 'principal');
+            amountBorrowed = this.safeNumber (info, 'liability');
             interest = this.safeNumber (info, 'accruedInterest');
             currencyId = this.safeString (info, 'currency');
         }
