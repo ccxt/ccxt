@@ -44,7 +44,8 @@ class coinex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
-                'borrowMargin' => true,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
@@ -97,7 +98,8 @@ class coinex extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
-                'repayMargin' => true,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
@@ -3282,16 +3284,19 @@ class coinex extends Exchange {
         $maintenanceMargin = $this->safe_string($position, 'mainten_margin_amount');
         $maintenanceMarginPercentage = $this->safe_string($position, 'mainten_margin');
         $collateral = $this->safe_string($position, 'margin_amount');
-        $leverage = $this->safe_number($position, 'leverage');
+        $leverage = $this->safe_string($position, 'leverage');
+        $notional = $this->safe_string($position, 'open_val');
+        $initialMargin = Precise::string_div($notional, $leverage);
+        $initialMarginPercentage = Precise::string_div('1', $leverage);
         return $this->safe_position(array(
             'info' => $position,
             'id' => $positionId,
             'symbol' => $symbol,
-            'notional' => null,
+            'notional' => $this->parse_number($notional),
             'marginMode' => $marginMode,
             'liquidationPrice' => $liquidationPrice,
-            'entryPrice' => $entryPrice,
-            'unrealizedPnl' => $unrealizedPnl,
+            'entryPrice' => $this->parse_number($entryPrice),
+            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
             'percentage' => null,
             'contracts' => $contracts,
             'contractSize' => $this->safe_number($market, 'contractSize'),
@@ -3302,15 +3307,15 @@ class coinex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => null,
-            'maintenanceMargin' => $maintenanceMargin,
-            'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
-            'collateral' => $collateral,
-            'initialMargin' => null,
-            'initialMarginPercentage' => null,
-            'leverage' => $leverage,
+            'maintenanceMargin' => $this->parse_number($maintenanceMargin),
+            'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
+            'collateral' => $this->parse_number($collateral),
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
+            'leverage' => $this->parse_number($leverage),
             'marginRatio' => null,
-            'stopLossPrice' => $this->safe_number($position, 'stop_loss_price'),
-            'takeProfitPrice' => $this->safe_number($position, 'take_profit_price'),
+            'stopLossPrice' => $this->omit_zero($this->safe_string($position, 'stop_loss_price')),
+            'takeProfitPrice' => $this->omit_zero($this->safe_string($position, 'take_profit_price')),
         ));
     }
 
@@ -4657,20 +4662,17 @@ class coinex extends Exchange {
         );
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
              * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+             * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {array} [$params] extra parameters specific to the coinex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $currency = $this->currency($code);
@@ -4698,21 +4700,18 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
              * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+             * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
-             * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {array} [$params] extra parameters specific to the coinex api endpoint
              * @param {string} [$params->loan_id] extra parameter that is not required
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $currency = $this->currency($code);
@@ -4721,10 +4720,6 @@ class coinex extends Exchange {
                 'coin_type' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $loanId = $this->safe_integer($params, 'loan_id');
-            if ($loanId !== null) {
-                $request['loan_id'] = $loanId;
-            }
             $response = Async\await($this->privatePostMarginFlat (array_merge($request, $params)));
             //
             //     {

@@ -23,6 +23,15 @@ class htx(ccxt.async_support.htx):
         return self.deep_extend(super(htx, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
+                'fetchTradesWs': False,
+                'fetchBalanceWs': False,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTickers': False,
@@ -666,8 +675,8 @@ class htx(ccxt.async_support.htx):
         orderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
         orderType = self.safe_string(params, 'orderType', orderType)
         params = self.omit(params, 'orderType')
-        marketCode = market['lowercaseId'] if (market is not None) else None
-        baseId = market['lowercaseBaseId'] if (market is not None) else None
+        marketCode = market['lowercaseId'].lower() if (market is not None) else None
+        baseId = market['baseId'] if (market is not None) else None
         prefix = orderType
         messageHash = prefix
         if subType == 'linear':
@@ -683,7 +692,7 @@ class htx(ccxt.async_support.htx):
         elif type == 'future':
             # inverse futures Example: BCH/USD:BCH-220408
             if baseId is not None:
-                channel = prefix + '.' + baseId
+                channel = prefix + '.' + baseId.lower()
                 messageHash = channel
             else:
                 channel = prefix + '.' + '*'
@@ -897,7 +906,8 @@ class htx(ccxt.async_support.htx):
         # when we make a global subscription(for contracts only) our message hash can't have a symbol/currency attached
         # so we're removing it here
         genericMessageHash = messageHash.replace('.' + market['lowercaseId'], '')
-        genericMessageHash = genericMessageHash.replace('.' + market['lowercaseBaseId'], '')
+        lowerCaseBaseId = self.safe_string_lower(market, 'baseId')
+        genericMessageHash = genericMessageHash.replace('.' + lowerCaseBaseId, '')
         client.resolve(self.orders, genericMessageHash)
 
     def parse_ws_order(self, order, market=None):
@@ -1972,7 +1982,8 @@ class htx(ccxt.async_support.htx):
                 # since self is a global sub, our messageHash does not specify any symbol(ex: orders_cross:trade)
                 # so we must remove it
                 genericOrderHash = messageHash.replace('.' + market['lowercaseId'], '')
-                genericOrderHash = genericOrderHash.replace('.' + market['lowercaseBaseId'], '')
+                lowerCaseBaseId = self.safe_string_lower(market, 'baseId')
+                genericOrderHash = genericOrderHash.replace('.' + lowerCaseBaseId, '')
                 genericTradesHash = genericOrderHash + ':' + 'trade'
                 client.resolve(self.myTrades, genericTradesHash)
 

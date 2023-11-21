@@ -239,10 +239,12 @@ export default class htx extends Exchange {
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OpenInterest[]>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
+    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
+    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
-        id: number;
+        id: string;
         currency: string;
         amount: any;
         symbol: any;

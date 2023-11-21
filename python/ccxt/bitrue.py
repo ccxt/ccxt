@@ -112,7 +112,7 @@ class bitrue(Exchange, ImplicitAPI):
                     'kline': 'https://www.bitrue.com/kline-api',
                 },
                 'www': 'https://www.bitrue.com',
-                'referral': 'https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000',
+                'referral': 'https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE',
                 'doc': [
                     'https://github.com/Bitrue-exchange/bitrue-official-api-docs',
                 ],

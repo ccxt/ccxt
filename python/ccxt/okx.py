@@ -138,7 +138,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': True,
-                'repayMargin': True,
+                'repayCrossMargin': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': True,
@@ -5998,13 +5998,12 @@ class okx(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def borrow_cross_margin(self, code: str, amount, params={}):
         """
-        create a loan to borrow margin
+        create a loan to borrow margin(need to be VIP 5 and above)
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: not used by okx.borrowMargin()
         :param dict [params]: extra parameters specific to the okx api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
@@ -6035,18 +6034,14 @@ class okx(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         loan = self.safe_value(data, 0)
-        transaction = self.parse_margin_loan(loan, currency)
-        return self.extend(transaction, {
-            'symbol': symbol,
-        })
+        return self.parse_margin_loan(loan, currency)
 
-    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: not used by okx.repayMargin()
         :param dict [params]: extra parameters specific to the okx api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
@@ -6077,10 +6072,7 @@ class okx(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         loan = self.safe_value(data, 0)
-        transaction = self.parse_margin_loan(loan, currency)
-        return self.extend(transaction, {
-            'symbol': symbol,
-        })
+        return self.parse_margin_loan(loan, currency)
 
     def parse_margin_loan(self, info, currency: Currency = None):
         #

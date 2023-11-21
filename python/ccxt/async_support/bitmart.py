@@ -48,7 +48,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'borrowMargin': True,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
@@ -110,7 +111,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
-                'repayMargin': True,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
                 'transfer': True,
@@ -146,15 +148,15 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v1/symbols/details': 5,
                         'spot/quotation/v3/tickers': 6,  # 10 times/2 sec = 5/s => 30/5 = 6
                         'spot/quotation/v3/ticker': 4,  # 15 times/2 sec = 7.5/s => 30/7.5 = 4
-                        'spot/quotation/v3/lite-klines': 4,  # 15 times/2 sec = 7.5/s => 30/7.5 = 4
-                        'spot/quotation/v3/klines': 6,  # 10 times/2 sec = 5/s => 30/5 = 6
+                        'spot/quotation/v3/lite-klines': 5,  # should be 4 but errors
+                        'spot/quotation/v3/klines': 7,  # should be 6 but errors
                         'spot/quotation/v3/books': 4,  # 15 times/2 sec = 7.5/s => 30/7.5 = 4
                         'spot/quotation/v3/trades': 4,  # 15 times/2 sec = 7.5/s => 30/7.5 = 4
                         'spot/v1/ticker': 5,
                         'spot/v2/ticker': 30,
                         'spot/v1/ticker_detail': 5,  # 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v1/steps': 30,
-                        'spot/v1/symbols/kline': 5,
+                        'spot/v1/symbols/kline': 6,  # should be 5 but errors
                         'spot/v1/symbols/book': 5,
                         'spot/v1/symbols/trades': 5,
                         # contract markets
@@ -163,7 +165,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/public/depth': 5,
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
-                        'contract/public/kline': 5,
+                        'contract/public/kline': 6,  # should be 5 but errors
                         'account/v1/currencies': 30,
                     },
                 },
@@ -3003,19 +3005,16 @@ class bitmart(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+        :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to repay
         :param str amount: the amount to repay
-        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitmart api endpoint
-        :param str [params.marginMode]: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -3024,7 +3023,6 @@ class bitmart(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        params = self.omit(params, 'marginMode')
         response = await self.privatePostSpotV1MarginIsolatedRepay(self.extend(request, params))
         #
         #     {
@@ -3043,19 +3041,16 @@ class bitmart(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+        :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to borrow
         :param str amount: the amount to borrow
-        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitmart api endpoint
-        :param str [params.marginMode]: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -3064,7 +3059,6 @@ class bitmart(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        params = self.omit(params, 'marginMode')
         response = await self.privatePostSpotV1MarginIsolatedBorrow(self.extend(request, params))
         #
         #     {

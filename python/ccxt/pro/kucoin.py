@@ -18,6 +18,13 @@ class kucoin(ccxt.async_support.kucoin):
         return self.deep_extend(super(kucoin, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchMyTrades': True,

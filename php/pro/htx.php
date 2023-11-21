@@ -20,6 +20,15 @@ class htx extends \ccxt\async\htx {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'cancelOrderWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelAllOrdersWs' => false,
+                'fetchTradesWs' => false,
+                'fetchBalanceWs' => false,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTickers' => false,
@@ -721,8 +730,8 @@ class htx extends \ccxt\async\htx {
         $orderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
         $orderType = $this->safe_string($params, 'orderType', $orderType);
         $params = $this->omit($params, 'orderType');
-        $marketCode = ($market !== null) ? $market['lowercaseId'] : null;
-        $baseId = ($market !== null) ? $market['lowercaseBaseId'] : null;
+        $marketCode = ($market !== null) ? strtolower($market['lowercaseId']) : null;
+        $baseId = ($market !== null) ? $market['baseId'] : null;
         $prefix = $orderType;
         $messageHash = $prefix;
         if ($subType === 'linear') {
@@ -739,7 +748,7 @@ class htx extends \ccxt\async\htx {
         } elseif ($type === 'future') {
             // inverse futures Example => BCH/USD:BCH-220408
             if ($baseId !== null) {
-                $channel = $prefix . '.' . $baseId;
+                $channel = $prefix . '.' . strtolower($baseId);
                 $messageHash = $channel;
             } else {
                 $channel = $prefix . '.' . '*';
@@ -968,7 +977,8 @@ class htx extends \ccxt\async\htx {
         // when we make a global subscription (for contracts only) our $message hash can't have a symbol/currency attached
         // so we're removing it here
         $genericMessageHash = str_replace('.' . $market['lowercaseId'], '', $messageHash);
-        $genericMessageHash = str_replace('.' . $market['lowercaseBaseId'], '', $genericMessageHash);
+        $lowerCaseBaseId = $this->safe_string_lower($market, 'baseId');
+        $genericMessageHash = str_replace('.' . $lowerCaseBaseId, '', $genericMessageHash);
         $client->resolve ($this->orders, $genericMessageHash);
     }
 
@@ -2138,7 +2148,8 @@ class htx extends \ccxt\async\htx {
                 // since this is a global sub, our $messageHash does not specify any $symbol (ex => orders_cross:$trade)
                 // so we must remove it
                 $genericOrderHash = str_replace('.' . $market['lowercaseId'], '', $messageHash);
-                $genericOrderHash = str_replace('.' . $market['lowercaseBaseId'], '', $genericOrderHash);
+                $lowerCaseBaseId = $this->safe_string_lower($market, 'baseId');
+                $genericOrderHash = str_replace('.' . $lowerCaseBaseId, '', $genericOrderHash);
                 $genericTradesHash = $genericOrderHash . ':' . 'trade';
                 $client->resolve ($this->myTrades, $genericTradesHash);
             }

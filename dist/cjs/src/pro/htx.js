@@ -12,6 +12,15 @@ class htx extends htx$1 {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
+                'fetchTradesWs': false,
+                'fetchBalanceWs': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTickers': false,
@@ -701,8 +710,8 @@ class htx extends htx$1 {
         let orderType = this.safeString(this.options, 'orderType', 'orders'); // orders or matchOrders
         orderType = this.safeString(params, 'orderType', orderType);
         params = this.omit(params, 'orderType');
-        const marketCode = (market !== undefined) ? market['lowercaseId'] : undefined;
-        const baseId = (market !== undefined) ? market['lowercaseBaseId'] : undefined;
+        const marketCode = (market !== undefined) ? market['lowercaseId'].toLowerCase() : undefined;
+        const baseId = (market !== undefined) ? market['baseId'] : undefined;
         const prefix = orderType;
         messageHash = prefix;
         if (subType === 'linear') {
@@ -721,7 +730,7 @@ class htx extends htx$1 {
         else if (type === 'future') {
             // inverse futures Example: BCH/USD:BCH-220408
             if (baseId !== undefined) {
-                channel = prefix + '.' + baseId;
+                channel = prefix + '.' + baseId.toLowerCase();
                 messageHash = channel;
             }
             else {
@@ -955,7 +964,8 @@ class htx extends htx$1 {
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here
         let genericMessageHash = messageHash.replace('.' + market['lowercaseId'], '');
-        genericMessageHash = genericMessageHash.replace('.' + market['lowercaseBaseId'], '');
+        const lowerCaseBaseId = this.safeStringLower(market, 'baseId');
+        genericMessageHash = genericMessageHash.replace('.' + lowerCaseBaseId, '');
         client.resolve(this.orders, genericMessageHash);
     }
     parseWsOrder(order, market = undefined) {
@@ -2129,7 +2139,8 @@ class htx extends htx$1 {
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 let genericOrderHash = messageHash.replace('.' + market['lowercaseId'], '');
-                genericOrderHash = genericOrderHash.replace('.' + market['lowercaseBaseId'], '');
+                const lowerCaseBaseId = this.safeStringLower(market, 'baseId');
+                genericOrderHash = genericOrderHash.replace('.' + lowerCaseBaseId, '');
                 const genericTradesHash = genericOrderHash + ':' + 'trade';
                 client.resolve(this.myTrades, genericTradesHash);
             }

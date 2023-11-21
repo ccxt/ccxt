@@ -44,7 +44,7 @@ class mexc(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': True,
-                'borrowMargin': True,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
@@ -116,7 +116,7 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
-                'repayMargin': True,
+                'repayMargin': False,
                 'setLeverage': True,
                 'setMarginMode': None,
                 'setPositionMode': True,
@@ -227,10 +227,6 @@ class mexc(Exchange, ImplicitAPI):
                             'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'capital/convert': 1,
-                            'margin/tradeMode': 1,
-                            'margin/order': 1,
-                            'margin/loan': 1,
-                            'margin/repay': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -2042,11 +2038,7 @@ class mexc(Exchange, ImplicitAPI):
     def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
         self.load_markets()
         request = self.create_spot_order_request(market, type, side, amount, price, marginMode, params)
-        response = None
-        if marginMode is not None:
-            response = self.spotPrivatePostMarginOrder(self.extend(request, params))
-        else:
-            response = self.spotPrivatePostOrder(self.extend(request, params))
+        response = self.spotPrivatePostOrder(self.extend(request, params))
         #
         # spot
         #
@@ -4717,75 +4709,6 @@ class mexc(Exchange, ImplicitAPI):
             'hedged': (positionMode == 1),
         }
 
-    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
-        """
-        create a loan to borrow margin
-        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#loan
-        :param str code: unified currency code of the currency to borrow
-        :param float amount: the amount to borrow
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
-        """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
-            'amount': self.currency_to_precision(code, amount),
-            'symbol': market['id'],
-        }
-        response = self.spotPrivatePostMarginLoan(self.extend(request, params))
-        #
-        #     {
-        #         "tranId": "762407666453712896"
-        #     }
-        #
-        transaction = self.parse_margin_loan(response, currency)
-        return self.extend(transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        })
-
-    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
-        """
-        repay borrowed margin and interest
-        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#repayment
-        :param str code: unified currency code of the currency to repay
-        :param float amount: the amount to repay
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the mexc3 api endpoint
-        :param str [params.borrowId]: transaction id '762407666453712896'
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
-        """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
-        self.load_markets()
-        id = self.safe_string_2(params, 'id', 'borrowId')
-        if id is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a borrowId argument in the params')
-        market = self.market(symbol)
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
-            'amount': self.currency_to_precision(code, amount),
-            'borrowId': id,
-            'symbol': market['id'],
-        }
-        response = self.spotPrivatePostMarginRepay(self.extend(request, params))
-        #
-        #     {
-        #         "tranId": "762407666453712896"
-        #     }
-        #
-        transaction = self.parse_margin_loan(response, currency)
-        return self.extend(transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        })
-
     def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch deposit and withdrawal fees
@@ -4964,22 +4887,6 @@ class mexc(Exchange, ImplicitAPI):
                 },
             }
         return self.assign_default_deposit_withdraw_fees(result)
-
-    def parse_margin_loan(self, info, currency: Currency = None):
-        #
-        #     {
-        #         "tranId": "762407666453712896"
-        #     }
-        #
-        return {
-            'id': self.safe_string(info, 'tranId'),
-            'currency': self.safe_currency_code(None, currency),
-            'amount': None,
-            'symbol': None,
-            'timestamp': None,
-            'datetime': None,
-            'info': info,
-        }
 
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """

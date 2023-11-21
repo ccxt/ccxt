@@ -54,7 +54,8 @@ class binance(Exchange, ImplicitAPI):
                 'future': True,
                 'option': True,
                 'addMargin': True,
-                'borrowMargin': True,
+                'borrowCrossMargin': True,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,  # contract only
@@ -141,7 +142,8 @@ class binance(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': True,
-                'repayMargin': True,
+                'repayCrossMargin': True,
+                'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': True,
@@ -8366,29 +8368,23 @@ class binance(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: unified market symbol, required for isolated margin
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        marginMode, query = self.handle_margin_mode_and_params('repayMargin', params)  # cross or isolated
-        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
+            'isIsolated': 'FALSE',
         }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            request['isIsolated'] = 'TRUE'
-        response = self.sapiPostMarginRepay(self.extend(request, query))
+        response = self.sapiPostMarginRepay(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,
@@ -8397,29 +8393,79 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-repay-margin
+        :param str symbol: unified market symbol, required for isolated margin
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param dict [params]: extra parameters specific to the binance api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        market = self.market(symbol)
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+            'isIsolated': 'TRUE',
+        }
+        response = self.sapiPostMarginRepay(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": 108988250265,
+        #         "clientTag":""
+        #     }
+        #
+        return self.parse_margin_loan(response, currency)
+
+    def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: unified market symbol, required for isolated margin
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        marginMode, query = self.handle_margin_mode_and_params('borrowMargin', params)  # cross or isolated
-        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
+            'isIsolated': 'FALSE',
         }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            request['isIsolated'] = 'TRUE'
-        response = self.sapiPostMarginLoan(self.extend(request, query))
+        response = self.sapiPostMarginLoan(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": 108988250265,
+        #         "clientTag":""
+        #     }
+        #
+        return self.parse_margin_loan(response, currency)
+
+    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        create a loan to borrow margin
+        :see: https://binance-docs.github.io/apidocs/spot/en/#margin-account-borrow-margin
+        :param str symbol: unified market symbol, required for isolated margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param dict [params]: extra parameters specific to the binance api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        market = self.market(symbol)
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+            'isIsolated': 'TRUE',
+        }
+        response = self.sapiPostMarginLoan(self.extend(request, params))
         #
         #     {
         #         "tranId": 108988250265,

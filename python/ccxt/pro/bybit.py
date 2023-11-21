@@ -22,6 +22,15 @@ class bybit(ccxt.async_support.bybit):
         return self.deep_extend(super(bybit, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
+                'fetchTradesWs': False,
+                'fetchBalanceWs': False,
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,

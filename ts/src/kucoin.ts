@@ -33,7 +33,8 @@ export default class kucoin extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'borrowMargin': true,
+                'borrowCrossMargin': true,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -94,7 +95,8 @@ export default class kucoin extends Exchange {
                 'fetchTransactionFee': true,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
-                'repayMargin': true,
+                'repayCrossMargin': true,
+                'repayIsolatedMargin': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -4109,41 +4111,25 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async borrowCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name kucoin#borrowMargin
+         * @name kucoin#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://docs.kucoin.com/#1-margin-borrowing
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the kucoin api endpoints
          * @param {string} [params.timeInForce] either IOC or FOK
-         * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
-        const isIsolated = marginMode === 'isolated';
-        params = this.omit (params, 'marginMode');
-        this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
             'size': this.currencyToPrecision (code, amount),
+            'timeInForce': 'FOK',
         };
-        const timeInForce = this.safeStringN (params, [ 'timeInForce', 'type', 'borrowStrategy' ], 'IOC');
-        if (isIsolated) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol parameter for isolated margin');
-            }
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
-            request['isIsolated'] = true;
-        }
-        params = this.omit (params, [ 'timeInForce', 'type', 'borrowStrategy' ]);
-        request['timeInForce'] = timeInForce;
         const response = await this.privatePostMarginBorrow (this.extend (request, params));
         //
         //     {
@@ -4161,37 +4147,101 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name kucoin#repayMargin
+         * @name kucoin#borrowIsolatedMargin
+         * @description create a loan to borrow margin
+         * @see https://docs.kucoin.com/#1-margin-borrowing
+         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {object} [params] extra parameters specific to the kucoin api endpoints
+         * @param {string} [params.timeInForce] either IOC or FOK
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'size': this.currencyToPrecision (code, amount),
+            'symbol': market['id'],
+            'timeInForce': 'FOK',
+            'isIsolated': true,
+        };
+        const response = await this.privatePostMarginBorrow (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": "200",
+        //         "msg": "success",
+        //         "retry": false,
+        //         "data": {
+        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //             "actualSize": 10
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseMarginLoan (data, currency);
+    }
+
+    async repayCrossMargin (code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name kucoin#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://docs.kucoin.com/#2-repayment
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kucoin api endpoints
-         * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
-        const isIsolated = marginMode === 'isolated';
-        params = this.omit (params, 'marginMode');
-        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
             'size': this.currencyToPrecision (code, amount),
         };
-        if (isIsolated) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol parameter for isolated margin');
-            }
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
-            request['isIsolated'] = true;
-        }
+        const response = await this.privatePostMarginRepay (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": "200",
+        //         "msg": "success",
+        //         "retry": false,
+        //         "data": {
+        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //             "actualSize": 10
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseMarginLoan (data, currency);
+    }
+
+    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name kucoin#repayIsolatedMargin
+         * @description repay borrowed margin and interest
+         * @see https://docs.kucoin.com/#2-repayment
+         * @param {string} symbol unified market symbol
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {object} [params] extra parameters specific to the kucoin api endpoints
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'size': this.currencyToPrecision (code, amount),
+            'symbol': market['id'],
+            'isIsolated': true,
+        };
         const response = await this.privatePostMarginRepay (this.extend (request, params));
         //
         //     {

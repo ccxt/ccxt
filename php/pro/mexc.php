@@ -16,6 +16,15 @@ class mexc extends \ccxt\async\mexc {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'cancelAllOrdersWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelOrderWs' => false,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchBalanceWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'fetchTradesWs' => false,
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
