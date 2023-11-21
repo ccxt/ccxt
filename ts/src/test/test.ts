@@ -903,10 +903,12 @@ export default class testMainClass extends baseMainTestClass {
 
     assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
-            return undefined; // c# requirement
+            return true;
+            // c# requirement
         }
         if (!newOutput && !storedOutput) {
-            return undefined; // c# requirement
+            return true;
+            // c# requirement
         }
         if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
             const storedOutputKeys = Object.keys (storedOutput);
@@ -963,14 +965,14 @@ export default class testMainClass extends baseMainTestClass {
                         }
                         if (isNumber) {
                             this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput);
-                            return undefined;
+                            return true;
                         } else {
                             this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput);
-                            return undefined;
+                            return true;
                         }
                     } else {
                         this.assertStaticError (convertAscii (newOutputString) === convertAscii (storedOutputString), messageError, storedOutput, newOutput);
-                        return undefined;
+                        return true;
                     }
                 } else {
                     if (this.lang === "C#") { // tmp fix, stil failing with the "1.0" != "1" error
@@ -985,7 +987,7 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
         }
-        return undefined; // c# requ
+        return true; // c# requ
     }
 
     assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
