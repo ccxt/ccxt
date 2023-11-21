@@ -2072,18 +2072,18 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#withdraw
          * @description make a withdrawal
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#withdraw-v2
+         * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {string} [params.chain] the chain to withdraw to
+         * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
          * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         this.checkAddress (address);
         const chain = this.safeString2 (params, 'chain', 'network');
-        params = this.omit (params, [ 'network' ]);
+        params = this.omit (params, 'network');
         if (chain === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter or a network parameter');
         }
@@ -2094,38 +2094,27 @@ export default class bitget extends Exchange {
             'coin': currency['code'],
             'address': address,
             'chain': networkId,
-            'amount': amount,
+            'size': amount,
+            'transferType': 'on_chain',
         };
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.privateSpotPostSpotV1WalletWithdrawalV2 (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "data": "888291686266343424"
-        //     }
+        const response = await this.privateSpotPostV2SpotWalletWithdrawal (this.extend (request, params));
         //
         //     {
         //          "code":"00000",
         //          "msg":"success",
         //          "requestTime":1696784219602,
-        //          "data":{
+        //          "data": {
         //              "orderId":"1094957867615789056",
-        //              "clientOrderId":"64f1e4ce842041d296b4517df1b5c2d7"
+        //              "clientOid":"64f1e4ce842041d296b4517df1b5c2d7"
         //          }
         //      }
         //
-        const data = this.safeValue (response, 'data');
-        let id = undefined;
-        if (typeof data === 'string') {
-            id = data;
-        } else if (data !== undefined) {
-            id = this.safeString (data, 'orderId');
-        }
+        const data = this.safeValue (response, 'data', {});
         const result = {
-            'id': id,
+            'id': this.safeString (data, 'orderId'),
             'info': response,
             'txid': undefined,
             'timestamp': undefined,
