@@ -3,7 +3,7 @@ import { AuthenticationError, DDoSProtection, ExchangeError, ExchangeNotAvailabl
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { CountedOrderBook, IndexedOrderBook, OrderBook as WsOrderBook } from './ws/OrderBook.js';
-import { Account, Balance, Balances, Currency, DepositAddressResponse, Dictionary, FundingHistory, FundingRateHistory, IndexType, Int, Liquidation, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderRequest, OrderSide, OpenInterest, OrderType, Position, Ticker, Trade, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface } from './types.js';
+import { Account, Balance, Balances, Currency, CurrencyInterface, DepositAddressResponse, Dictionary, FundingHistory, FundingRateHistory, Greeks, IndexType, Int, Liquidation, MarginMode, Market, MarketInterface, MinMax, Num, OHLCV, OHLCVC, Order, OrderBook, OrderRequest, OrderSide, OpenInterest, OrderType, Position, Str, Ticker, Tickers, Trade } from './types.js';
 export { Balance, Balances, Currency, DepositAddressResponse, Dictionary, FundingHistory, Fee, FundingRateHistory, Greeks, IndexType, Int, Liquidation, Market, MinMax, OHLCV, OHLCVC, Order, OrderBook, OrderSide, OrderType, Position, Ticker, Trade, Transaction } from './types.js';
 /**
  * @class Exchange
