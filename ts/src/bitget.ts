@@ -1314,10 +1314,10 @@ export default class bitget extends Exchange {
                 },
                 'fetchTrades': {
                     'spot': {
-                        'method': 'publicSpotGetSpotV1MarketFillsHistory', // or publicSpotGetSpotV1MarketFills
+                        'method': 'publicSpotGetV2SpotMarketFillsHistory', // or publicSpotGetV2SpotMarketFills
                     },
                     'swap': {
-                        'method': 'publicMixGetMixV1MarketFillsHistory', // or publicMixGetMixV1MarketFills
+                        'method': 'publicMixGetV2MixMarketFillsHistory', // or publicMixGetV2MixMarketFills
                     },
                 },
                 'accountsByType': {
@@ -2708,26 +2708,15 @@ export default class bitget extends Exchange {
 
     parseTrade (trade, market: Market = undefined): Trade {
         //
-        // spot
-        //
-        //     {
-        //         "symbol": "BTCUSDT_SPBL",
-        //         "tradeId": "1075200479040323585",
-        //         "side": "Sell",
-        //         "fillPrice": "29381.54",
-        //         "fillQuantity": "0.0056",
-        //         "fillTime": "1692073691000"
-        //     }
-        //
-        // swap (public trades)
+        // spot, swap and future: fetchTrades
         //
         //     {
         //         "tradeId": "1075199767891652609",
         //         "price": "29376.5",
         //         "size": "6.035",
         //         "side": "Buy",
-        //         "timestamp": "1692073521000",
-        //         "symbol": "BTCUSDT_UMCBL"
+        //         "ts": "1692073521000",
+        //         "symbol": "BTCUSDT"
         //     }
         //
         // spot: fetchMyTrades
@@ -2784,7 +2773,7 @@ export default class bitget extends Exchange {
         //
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeIntegerN (trade, [ 'fillTime', 'timestamp', 'ctime', 'cTime' ]);
+        const timestamp = this.safeIntegerN (trade, [ 'fillTime', 'timestamp', 'ctime', 'cTime', 'ts' ]);
         let fee = undefined;
         const feeAmount = this.safeString (trade, 'fees');
         if (feeAmount !== undefined) {
@@ -2817,74 +2806,63 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-market-trades
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-fills
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-recent-trades
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-recent-fills
+         * @see https://www.bitget.com/api-doc/spot/market/Get-Recent-Trades
+         * @see https://www.bitget.com/api-doc/spot/market/Get-Market-Trades
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Fills-History
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {int} [params.until] the latest time in ms to fetch deposits for
-         * @param {boolean} [params.paginate] *only applies to publicSpotGetMarketFillsHistory and publicMixGetMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
+         * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'tradeId', 'tradeId') as Trade[];
+            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'idLessThan', 'idLessThan') as Trade[];
         }
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2 (params, 'until', 'endTime');
-        if (since !== undefined) {
-            request['startTime'] = since;
-            if (until === undefined) {
-                const now = this.milliseconds ();
-                request['endTime'] = now;
-            }
-        }
-        if (until !== undefined) {
-            params = this.omit (params, 'until');
-            request['endTime'] = until;
-        }
         const options = this.safeValue (this.options, 'fetchTrades', {});
         let response = undefined;
         if (market['spot']) {
             const spotOptions = this.safeValue (options, 'spot', {});
-            const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetSpotV1MarketFillsHistory');
+            const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory');
             const spotMethod = this.safeString (params, 'method', defaultSpotMethod);
             params = this.omit (params, 'method');
-            if (spotMethod === 'publicSpotGetSpotV1MarketFillsHistory') {
-                response = await this.publicSpotGetSpotV1MarketFillsHistory (this.extend (request, params));
-            } else if (spotMethod === 'publicSpotGetSpotV1MarketFills') {
-                response = await this.publicSpotGetSpotV1MarketFills (this.extend (request, params));
+            if (spotMethod === 'publicSpotGetV2SpotMarketFillsHistory') {
+                [ request, params ] = this.handleUntilOption ('endTime', request, params);
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                response = await this.publicSpotGetV2SpotMarketFillsHistory (this.extend (request, params));
+            } else if (spotMethod === 'publicSpotGetV2SpotMarketFills') {
+                response = await this.publicSpotGetV2SpotMarketFills (this.extend (request, params));
             }
         } else {
             const swapOptions = this.safeValue (options, 'swap', {});
-            const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetMixV1MarketFillsHistory');
+            const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetV2MixMarketFillsHistory');
             const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
             params = this.omit (params, 'method');
-            if (swapMethod === 'publicMixGetMixV1MarketFillsHistory') {
-                response = await this.publicMixGetMixV1MarketFillsHistory (this.extend (request, params));
-                //
-                //     {
-                //         "tradeId": "1084459062491590657",
-                //         "price": "25874",
-                //         "size": "1.624",
-                //         "side": "Buy",
-                //         "timestamp": "1694281109000",
-                //         "symbol": "BTCUSDT_UMCBL",
-                //     }
-                //
-            } else if (swapMethod === 'publicMixGetMixV1MarketFills') {
-                response = await this.publicMixGetMixV1MarketFills (this.extend (request, params));
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            if (swapMethod === 'publicMixGetV2MixMarketFillsHistory') {
+                [ request, params ] = this.handleUntilOption ('endTime', request, params);
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                response = await this.publicMixGetV2MixMarketFillsHistory (this.extend (request, params));
+            } else if (swapMethod === 'publicMixGetV2MixMarketFills') {
+                response = await this.publicMixGetV2MixMarketFills (this.extend (request, params));
             }
         }
         //
@@ -2899,9 +2877,9 @@ export default class bitget extends Exchange {
         //                 "symbol": "BTCUSDT_SPBL",
         //                 "tradeId": "1075200479040323585",
         //                 "side": "Sell",
-        //                 "fillPrice": "29381.54",
-        //                 "fillQuantity": "0.0056",
-        //                 "fillTime": "1692073691000"
+        //                 "price": "29381.54",
+        //                 "size": "0.0056",
+        //                 "ts": "1692073691000"
         //             },
         //         ]
         //     }
@@ -2918,7 +2896,7 @@ export default class bitget extends Exchange {
         //                 "price": "29376.5",
         //                 "size": "6.035",
         //                 "side": "Buy",
-        //                 "timestamp": "1692073521000",
+        //                 "ts": "1692073521000",
         //                 "symbol": "BTCUSDT_UMCBL"
         //             },
         //         ]
