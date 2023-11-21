@@ -1883,7 +1883,7 @@ export default class bitrue extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let chainName = this.safeString (params, 'chainName');
+        let chainName = this.safeString2 (params, 'network', 'chainName');
         if (chainName === undefined) {
             const networks = this.safeValue (currency, 'networks', {});
             const optionsNetworks = this.safeValue (this.options, 'networks', {});
