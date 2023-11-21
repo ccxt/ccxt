@@ -16,6 +16,14 @@
                     1699457638000,
                     5
                 ]
+            },
+            {
+                "description": "Swap private trades",
+                "method": "fetchMyTrades",
+                "url": "https://fapi.bitrue.com/fapi/v2/myTrades?contractName=E-LTC-USDT",
+                "input": [
+                  "LTC/USDT:USDT"
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -51,6 +59,24 @@
                 "url": "https://www.bitrue.com/api/v1/allOrders?timestamp=1699458295562&recvWindow=5000&symbol=LTCUSDT&signature=3cefafed031707bcca221c14f25f4c5d2595cac27919cd8aed878aed4b40741a",
                 "input": [
                     "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Spot balance",
+                "method": "fetchBalance",
+                "url": "https://www.bitrue.com/api/v1/account?timestamp=1700559849348&recvWindow=5000&signature=e07b956abe71330a20470a6db83451040ba6fcd5315351899e64fb553ac6da89",
+                "input": []
+            },
+            {
+                "description": "Swap balance",
+                "method": "fetchBalance",
+                "url": "https://fapi.bitrue.com/fapi/v2/account?",
+                "input": [
+                  {
+                    "type": "swap"
+                  }
                 ]
             }
         ]

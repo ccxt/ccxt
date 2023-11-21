@@ -579,5 +579,61 @@
         "tierBased": false,
         "percentage": true,
         "feeSide": "get"
+      },
+      "LTC/USDT:USDT":  {
+        "id": "E-LTC-USDT",
+        "lowercaseId": "e-ltc-usdt",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "contract",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": false,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.00098,
+        "maker": 0.00098,
+        "contractSize": 0.1,
+        "precision": {
+          "price": 0.01
+        },
+        "limits": {
+          "leverage": {},
+          "amount": {
+            "max": 50
+          },
+          "price": {},
+          "cost": {
+            "min": 10
+          }
+        },
+        "info": {
+          "symbol": "E-LTC-USDT",
+          "pricePrecision": "2",
+          "side": "1",
+          "maxMarketVolume": "500",
+          "multiplier": "0.1000000000000000",
+          "minOrderVolume": "1",
+          "maxMarketMoney": "5000.0000000000000000",
+          "type": "E",
+          "maxLimitVolume": "1000000",
+          "maxValidOrder": "50",
+          "multiplierCoin": "LTC",
+          "minOrderMoney": "10.0000000000000000",
+          "maxLimitMoney": "10000000.0000000000000000",
+          "status": "1"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
       }
 }

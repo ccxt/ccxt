@@ -837,7 +837,7 @@ export default class bitrue extends Exchange {
         if (side === undefined) {
             type = 'spot';
         } else {
-            type = 'contract';
+            type = 'swap';
             isLinear = (side === 1);
             isInverse = (side === 0);
         }
@@ -1013,9 +1013,8 @@ export default class bitrue extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         let response = undefined;
