@@ -160,7 +160,6 @@ export default class bitget extends Exchange {
                         'get': {
                             'v2/public/annoucements': 1,
                             'v2/public/time': 1,
-                            'v2/common/trade-rate': 2,
                         },
                     },
                     'spot': {
@@ -727,6 +726,11 @@ export default class bitget extends Exchange {
                             'v2/earn/loan/borrow': 2,
                             'v2/earn/loan/repay': 2,
                             'v2/earn/loan/revise-pledge': 2,
+                        },
+                    },
+                    'common': {
+                        'get': {
+                            'v2/common/trade-rate': 2,
                         },
                     },
                 },
@@ -1359,7 +1363,7 @@ export default class bitget extends Exchange {
 
     handleProductTypeAndParams (market = undefined, params = {}) {
         let productType = this.safeString (params, 'productType');
-        if (productType === undefined) {
+        if ((productType === undefined) && (market !== undefined)) {
             const settle = market['settle'];
             if (settle === 'USDT') {
                 productType = 'USDT-FUTURES';
@@ -1374,6 +1378,9 @@ export default class bitget extends Exchange {
             } else {
                 productType = 'COIN-FUTURES';
             }
+        }
+        if (productType === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a productType param, one of "USDT-FUTURES", "USDC-FUTURES", "COIN-FUTURES", "SUSDT-FUTURES", "SUSDC-FUTURES" or "SCOIN-FUTURES"');
         }
         params = this.omit (params, 'productType');
         return [ productType, params ];
@@ -2914,9 +2921,10 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-single-symbol
+         * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
@@ -2924,24 +2932,26 @@ export default class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicSpotGetSpotV1PublicProduct (this.extend (request, params));
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFee', params);
+        if (market['spot']) {
+            if (marginMode !== undefined) {
+                request['businessType'] = 'margin';
+            } else {
+                request['businessType'] = 'spot';
+            }
+        } else {
+            request['businessType'] = 'contract';
+        }
+        const response = await this.privateCommonGetV2CommonTradeRate (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": "1646255374000",
+        //         "requestTime": 1700549524887,
         //         "data": {
-        //           "symbol": "ethusdt_SPBL",
-        //           "symbolName": null,
-        //           "baseCoin": "ETH",
-        //           "quoteCoin": "USDT",
-        //           "minTradeAmount": "0",
-        //           "maxTradeAmount": "0",
-        //           "takerFeeRate": "0.002",
-        //           "makerFeeRate": "0.002",
-        //           "priceScale": "2",
-        //           "quantityScale": "4",
-        //           "status": "online"
+        //             "makerFeeRate": "0.001",
+        //             "takerFeeRate": "0.001"
         //         }
         //     }
         //
@@ -2954,41 +2964,105 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-symbols
+         * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
+         * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.publicSpotGetSpotV1PublicProducts (params);
+        let response = undefined;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+        if (marketType === 'spot') {
+            response = await this.publicSpotGetV2SpotPublicSymbols (params);
+        } else if ((marketType === 'swap') || (marketType === 'future')) {
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
+            params['productType'] = productType;
+            response = await this.publicMixGetV2MixMarketContracts (params);
+        } else {
+            throw new NotSupported (this.id + ' does not support ' + marketType + ' market');
+        }
+        //
+        // spot
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": "1646255662391",
+        //         "requestTime": 1700102364653,
         //         "data": [
-        //           {
-        //             "symbol": "ALPHAUSDT_SPBL",
-        //             "symbolName": "ALPHAUSDT",
-        //             "baseCoin": "ALPHA",
-        //             "quoteCoin": "USDT",
-        //             "minTradeAmount": "2",
-        //             "maxTradeAmount": "0",
-        //             "takerFeeRate": "0.001",
-        //             "makerFeeRate": "0.001",
-        //             "priceScale": "4",
-        //             "quantityScale": "4",
-        //             "status": "online"
-        //           },
-        //           ...
+        //             {
+        //                 "symbol": "TRXUSDT",
+        //                 "baseCoin": "TRX",
+        //                 "quoteCoin": "USDT",
+        //                 "minTradeAmount": "0",
+        //                 "maxTradeAmount": "10000000000",
+        //                 "takerFeeRate": "0.002",
+        //                 "makerFeeRate": "0.002",
+        //                 "pricePrecision": "6",
+        //                 "quantityPrecision": "4",
+        //                 "quotePrecision": "6",
+        //                 "status": "online",
+        //                 "minTradeUSDT": "5",
+        //                 "buyLimitPriceRatio": "0.05",
+        //                 "sellLimitPriceRatio": "0.05"
+        //             },
+        //         ]
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700102364709,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "baseCoin": "BTC",
+        //                 "quoteCoin": "USDT",
+        //                 "buyLimitPriceRatio": "0.01",
+        //                 "sellLimitPriceRatio": "0.01",
+        //                 "feeRateUpRatio": "0.005",
+        //                 "makerFeeRate": "0.0002",
+        //                 "takerFeeRate": "0.0006",
+        //                 "openCostUpRatio": "0.01",
+        //                 "supportMarginCoins": ["USDT"],
+        //                 "minTradeNum": "0.001",
+        //                 "priceEndStep": "1",
+        //                 "volumePlace": "3",
+        //                 "pricePlace": "1",
+        //                 "sizeMultiplier": "0.001",
+        //                 "symbolType": "perpetual",
+        //                 "minTradeUSDT": "5",
+        //                 "maxSymbolOrderNum": "200",
+        //                 "maxProductOrderNum": "400",
+        //                 "maxPositionNum": "150",
+        //                 "symbolStatus": "normal",
+        //                 "offTime": "-1",
+        //                 "limitOpenTime": "-1",
+        //                 "deliveryTime": "",
+        //                 "deliveryStartTime": "",
+        //                 "deliveryPeriod": "",
+        //                 "launchTime": "",
+        //                 "fundInterval": "8",
+        //                 "minLever": "1",
+        //                 "maxLever": "125",
+        //                 "posLimit": "0.05",
+        //                 "maintainTime": ""
+        //             },
         //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
-            const feeInfo = data[i];
-            const fee = this.parseTradingFee (feeInfo);
-            const symbol = fee['symbol'];
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
+            const market = this.market (symbol);
+            const fee = this.parseTradingFee (entry, market);
             result[symbol] = fee;
         }
         return result;
