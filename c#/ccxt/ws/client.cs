@@ -16,6 +16,21 @@ public partial class Exchange
     public Dictionary<string, WebSocketClient> clients = new Dictionary<string, WebSocketClient>();
     public static ClientWebSocket ws = null;
 
+    public ccxt.OrderBook orderBook(object snapshot = null, object depth = null)
+    {
+        return new ccxt.OrderBook(snapshot, depth);
+    }
+
+    public ccxt.IndexedOrderBook indexedIndexedOrderBook(object snapshot = null, object depth = null)
+    {
+        return new ccxt.IndexedOrderBook(snapshot, depth);
+    }
+
+    public ccxt.CountedOrderBook countedOrderBook(object snapshot = null, object depth = null)
+    {
+        return new ccxt.CountedOrderBook(snapshot, depth);
+    }
+
     async public Task runWs()
     {
         try
