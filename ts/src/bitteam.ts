@@ -15,7 +15,7 @@ export default class bitteam extends Exchange {
             'name': 'BitTeam', // todo: check
             'countries': [ 'UK', 'RU' ], // todo: check
             'version': 'v1', // todo: check
-            'rateLimit': 1, // has no rate limiter
+            'rateLimit': 1, // todo: has no rate limiter
             'certified': false,
             'pro': false,
             'has': {
@@ -553,42 +553,43 @@ export default class bitteam extends Exchange {
                 'min': this.parseNumber (minWithdraw),
                 'max': this.parseNumber (maxWithdraw),
             };
+            const depositLimits = {
+                'min': this.parseNumber (minDeposit),
+                'max': undefined,
+            };
+            const amountLimits = {
+                'min': undefined,
+                'max': undefined,
+            };
             let fee = undefined;
-            // todo: fee is fixed?
             const withdrawCommissionFixed = this.safeValue (txLimits, 'withdrawCommissionFixed', {}) as any;
-            let networkFeesById = {};
+            let feesByNetworkId = {};
             const blockChain = this.safeString (currency, 'blockChain');
             // if only one blockChain
             if ((blockChain !== undefined) && (blockChain !== '')) {
                 fee = this.parseNumber (withdrawCommissionFixed);
-                networkFeesById[blockChain] = fee;
+                feesByNetworkId[blockChain] = fee;
             } else {
-                networkFeesById = withdrawCommissionFixed;
+                feesByNetworkId = withdrawCommissionFixed;
             }
-            const networkIds = Object.keys (networkFeesById);
+            const networkIds = Object.keys (feesByNetworkId);
             const networks = {};
             for (let j = 0; j < networkIds.length; j++) {
                 const networkId = networkIds[j];
                 const networkCode = this.networkIdToCode (networkId);
-                const networkFee = this.safeNumber (networkFeesById, networkId);
+                const networkFee = this.safeNumber (feesByNetworkId, networkId);
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
-                    'deposit': undefined, // todo: check
-                    'withdraw': undefined, // todo: check
+                    'deposit': true, // todo: check
+                    'withdraw': true, // todo: check
                     'active': active,
                     'fee': networkFee,
                     'precision': undefined, // todo: check
                     'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+                        'amount': amountLimits,
                         'withdraw': withdrawLimits,
-                        'deposit': {
-                            'min': this.parseNumber (minDeposit),
-                            'max': undefined,
-                        },
+                        'deposit': depositLimits,
                     },
                     'info': currency,
                 };
@@ -600,16 +601,14 @@ export default class bitteam extends Exchange {
                 'name': code,
                 'info': currency,
                 'active': active,
-                'deposit': undefined, // todo: check
-                'withdraw': undefined, // todo: check
+                'deposit': true, // todo: check
+                'withdraw': true, // todo: check
                 'fee': fee,
                 'precision': precision,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                    'amount': amountLimits,
                     'withdraw': withdrawLimits,
+                    'deposit': depositLimits,
                 },
                 'networks': networks,
             };
@@ -733,6 +732,10 @@ export default class bitteam extends Exchange {
         const request = {
             'id': id,
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const response = await this.privateGetTradeApiCcxtOrderId (this.extend (request, params));
         //
         //     {
@@ -771,8 +774,8 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        // todo: parse it
-        return response;
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result, market);
     }
 
     parseOrder (order, market: Market = undefined): Order {
@@ -800,6 +803,40 @@ export default class bitteam extends Exchange {
         //         "slippage": null
         //     }
         //
+        //  fetchOrder
+        //     {
+        //         "id": 106494347,
+        //         "orderId": "13214332",
+        //         "userId": 15912,
+        //         "pair": "eth_usdt",
+        //         "pairId": 2,
+        //         "quantity": "0.00448598",
+        //         "price": "2015.644995",
+        //         "executedPrice": "2015.644995",
+        //         "fee": {
+        //             "amount": "0",
+        //             "symbol": "eth",
+        //             "userId": 15912,
+        //             "decimals": 18,
+        //             "symbolId": 2,
+        //             "discountAmount": "0",
+        //             "discountSymbol": "btt",
+        //             "discountDecimals": 18,
+        //             "discountSymbolId": 5
+        //         },
+        //         "orderCid": null,
+        //         "executed": "0.00448598",
+        //         "expires": null,
+        //         "baseDecimals": 18,
+        //         "quoteDecimals": 6,
+        //         "timestamp": 1700470476,
+        //         "status": "executed",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "stopPrice": null,
+        //         "slippage": null
+        //     }
+        //
         const id = this.safeString (order, 'id'); // todo: check
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
@@ -809,10 +846,31 @@ export default class bitteam extends Exchange {
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
         // todo: check prices and amount calculation
-        const price = this.parseValueToPricision (order, 'price', 'quoteDecimals');
-        const stopPrice = this.parseValueToPricision (order, 'stopPrice', 'quoteDecimals');
-        const amount = this.parseValueToPricision (order, 'quantity', 'baseDecimals');
-        const filled = this.parseValueToPricision (order, 'executed', 'baseDecimals');
+        let price = undefined;
+        let stopPrice = undefined;
+        let amount = undefined;
+        let filled = undefined;
+        let fee = undefined;
+        const feeRaw = this.safeValue (order, 'fee');
+        // if fetchOrders
+        if (feeRaw === undefined) {
+            price = this.parseValueToPricision (order, 'price', 'quoteDecimals');
+            stopPrice = this.parseValueToPricision (order, 'stopPrice', 'quoteDecimals');
+            amount = this.parseValueToPricision (order, 'quantity', 'baseDecimals');
+            filled = this.parseValueToPricision (order, 'executed', 'baseDecimals');
+        } else {
+            price = this.safeString (order, 'price');
+            stopPrice = this.safeString (order, 'stopPrice');
+            amount = this.safeString (order, 'quantity');
+            filled = this.safeString (order, 'executed');
+            const feeCost = this.safeString (feeRaw, 'amount');
+            const feeCurrencyId = this.safeString (feeRaw, 'symbol');
+            fee = {
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'cost': feeCost,
+                'rate': undefined,
+            };
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -832,10 +890,10 @@ export default class bitteam extends Exchange {
             'cost': undefined,
             'filled': filled,
             'remaining': undefined,
-            'fee': undefined,
+            'fee': fee,
             'trades': undefined,
             'info': order,
-            'postOnly': undefined,
+            'postOnly': false,
         }, market);
     }
 
@@ -856,7 +914,7 @@ export default class bitteam extends Exchange {
         const statuses = {
             'market': 'market',
             'limit': 'limit',
-            'conditional': 'limit',
+            'conditional': 'limit', // todo: check
         };
         return this.safeString (statuses, status, status);
     }
