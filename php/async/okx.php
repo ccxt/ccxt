@@ -102,6 +102,7 @@ class okx extends Exchange {
                 'fetchPermissions' => null,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsForSymbol' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
@@ -5030,7 +5031,7 @@ class okx extends Exchange {
             if ($position === null) {
                 return null;
             }
-            return $this->parse_position($position);
+            return $this->parse_position($position, $market);
         }) ();
     }
 
@@ -5117,6 +5118,20 @@ class okx extends Exchange {
                 $result[] = $this->parse_position($positions[$i]);
             }
             return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+        }) ();
+    }
+
+    public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+             * fetch all open positions for specific $symbol
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->instType] MARGIN (if needed)
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             */
+            return Async\await($this->fetch_positions(array( $symbol ), $params));
         }) ();
     }
 

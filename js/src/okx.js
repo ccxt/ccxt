@@ -97,6 +97,7 @@ export default class okx extends Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': true,
@@ -5021,7 +5022,7 @@ export default class okx extends Exchange {
         if (position === undefined) {
             return undefined;
         }
-        return this.parsePosition(position);
+        return this.parsePosition(position, market);
     }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
@@ -5107,6 +5108,19 @@ export default class okx extends Exchange {
             result.push(this.parsePosition(positions[i]));
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
+    }
+    async fetchPositionsForSymbol(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchPositions
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+         * @description fetch all open positions for specific symbol
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.instType] MARGIN (if needed)
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        return await this.fetchPositions([symbol], params);
     }
     parsePosition(position, market = undefined) {
         //
