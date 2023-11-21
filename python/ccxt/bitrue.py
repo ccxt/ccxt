@@ -1776,7 +1776,7 @@ class bitrue(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        chainName = self.safe_string(params, 'chainName')
+        chainName = self.safe_string_2(params, 'network', 'chainName')
         if chainName is None:
             networks = self.safe_value(currency, 'networks', {})
             optionsNetworks = self.safe_value(self.options, 'networks', {})

@@ -1838,7 +1838,7 @@ class bitrue extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        $chainName = $this->safe_string($params, 'chainName');
+        $chainName = $this->safe_string_2($params, 'network', 'chainName');
         if ($chainName === null) {
             $networks = $this->safe_value($currency, 'networks', array());
             $optionsNetworks = $this->safe_value($this->options, 'networks', array());
