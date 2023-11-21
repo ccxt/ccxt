@@ -154,6 +154,7 @@ public partial class Exchange
 
         // add headers
         client.DefaultRequestHeaders.Accept.Clear();
+        client.DefaultRequestHeaders.Clear();
         var headersList = new List<string>(headers.Keys);
 
         var contentType = "";
