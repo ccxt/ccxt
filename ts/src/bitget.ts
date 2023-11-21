@@ -2362,8 +2362,8 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-depth
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-depth
+         * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
@@ -2379,9 +2379,12 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         if (market['spot']) {
-            response = await this.publicSpotGetSpotV1MarketDepth (this.extend (request, params));
+            response = await this.publicSpotGetV2SpotMarketOrderbook (this.extend (request, params));
         } else {
-            response = await this.publicMixGetMixV1MarketDepth (this.extend (request, params));
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            response = await this.publicMixGetV2MixMarketMergeDepth (this.extend (request, params));
         }
         //
         //     {
@@ -2395,9 +2398,9 @@ export default class bitget extends Exchange {
         //       }
         //     }
         //
-        const data = this.safeValue (response, 'data');
-        const timestamp = this.safeInteger (data, 'timestamp');
-        return this.parseOrderBook (data, symbol, timestamp);
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'ts');
+        return this.parseOrderBook (data, market['symbol'], timestamp);
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
