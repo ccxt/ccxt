@@ -84,7 +84,7 @@ public partial class Exchange
     {
         if (infix == null)
         {
-            infix = "-";
+            infix = " ";
         }
         // check this
         if (ts == null)
@@ -93,7 +93,7 @@ public partial class Exchange
         }
         var startdatetime = Convert.ToInt64(ts);
         var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
-        return date.ToString("yyyy" + infix + "MM" + infix + "dd HH:mm:ss");
+        return date.ToString("yyyy" + "-" + "MM" + "-" + "dd" + infix + "HH:mm:ss");
 
     }
 
