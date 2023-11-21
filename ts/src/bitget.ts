@@ -2020,9 +2020,16 @@ export default class bitget extends Exchange {
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] end time in milliseconds
+         * @param {string} [params.idLessThan] return records with id less than the provided value
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
+        }
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a `code` argument');
         }
@@ -2160,9 +2167,16 @@ export default class bitget extends Exchange {
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] end time in milliseconds
+         * @param {string} [params.idLessThan] return records with id less than the provided value
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', undefined, since, limit, params, 'idLessThan', 'idLessThan', undefined, 100) as Transaction[];
+        }
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a `code` argument');
         }
