@@ -2303,13 +2303,15 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-address
+         * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets ();
-        const networkCode = this.safeString (params, 'network');
+        const networkCode = this.safeString2 (params, 'chain', 'network');
+        params = this.omit (params, 'network');
         const networkId = this.networkCodeToId (networkCode, code);
         const currency = this.currency (code);
         const request = {
@@ -2318,17 +2320,18 @@ export default class bitget extends Exchange {
         if (networkId !== undefined) {
             request['chain'] = networkId;
         }
-        const response = await this.privateSpotGetSpotV1WalletDepositAddress (this.extend (request, params));
+        const response = await this.privateSpotGetV2SpotWalletDepositAddress (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
+        //         "requestTime": 1700532244807,
         //         "data": {
-        //             "address": "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
-        //             "chain": "BTC-Bitcoin",
         //             "coin": "BTC",
-        //             "tag": "",
-        //             "url": "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
+        //             "address": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+        //             "chain": "",
+        //             "tag": null,
+        //             "url": "https://blockchair.com/bitcoin/transaction/"
         //         }
         //     }
         //
@@ -2338,13 +2341,13 @@ export default class bitget extends Exchange {
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
-        //    {
-        //        "address": "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
-        //        "chain": "BTC-Bitcoin",
-        //        "coin": "BTC",
-        //        "tag": "",
-        //        "url": "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
-        //    }
+        //     {
+        //         "coin": "BTC",
+        //         "address": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+        //         "chain": "",
+        //         "tag": null,
+        //         "url": "https://blockchair.com/bitcoin/transaction/"
+        //     }
         //
         const currencyId = this.safeString (depositAddress, 'coin');
         const networkId = this.safeString (depositAddress, 'chain');
