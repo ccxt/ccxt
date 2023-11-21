@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, BorrowRate  } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, BorrowRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3733,7 +3733,12 @@ export default class htx extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'spot_private_get_v1_order_orders') {
+            response = await this.spotPrivateGetV1OrderOrders (this.extend (request, params));
+        } else {
+            response = await this.spotPrivateGetV1OrderHistory (this.extend (request, params));
+        }
         //
         // spot_private_get_v1_order_orders GET /v1/order/orders
         //

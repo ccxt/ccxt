@@ -973,7 +973,7 @@ export default class kuna extends Exchange {
         const request = {
             'pair': market['id'],
             'orderSide': (side === 'buy') ? 'Bid' : 'Ask',
-            'quantity': amount.toString (),
+            'quantity': this.numberToString (amount),
             'type': capitalizedType,
         };
         if (capitalizedType === 'Limit') {
