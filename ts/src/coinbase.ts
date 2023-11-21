@@ -1612,6 +1612,7 @@ export default class coinbase extends Exchange {
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -1619,8 +1620,10 @@ export default class coinbase extends Exchange {
             'limit': 100,
         };
         let response = undefined;
+        const isV3 = this.safeValue (params, 'v3', false);
+        params = this.omit (params, 'v3');
         const method = this.safeString (this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
-        if (method === 'v3PrivateGetBrokerageAccounts') {
+        if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
             response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
         } else {
             response = await this.v2PrivateGetAccounts (this.extend (request, params));
