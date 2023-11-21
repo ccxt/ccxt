@@ -111,7 +111,7 @@ class Client {
         if (!this.isOpen()) {
             const error = new errors.RequestTimeout('Connection to ' + this.url + ' failed due to a connection timeout');
             this.onError(error);
-            this.connection.close(1006);
+            this.connection.close(platform.isNode ? 1006 : 1000);
         }
     }
     setConnectionTimeout() {
@@ -207,6 +207,9 @@ class Client {
         if (!this.error) {
             // todo: exception types for server-side disconnects
             this.reset(new errors.NetworkError('connection closed by remote server, closing code ' + String(event.code)));
+        }
+        if (this.disconnected !== undefined) {
+            this.disconnected.resolve(true);
         }
         this.onCloseCallback(this, event);
     }

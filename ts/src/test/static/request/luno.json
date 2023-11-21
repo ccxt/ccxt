@@ -1,0 +1,6 @@
+{
+    "exchange": "luno",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {}
+}

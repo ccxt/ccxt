@@ -37,21 +37,20 @@ class tokocrypto extends tokocrypto$1 {
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': undefined,
-                'createStopLimitOrder': false,
-                'createStopMarketOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': undefined,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistories': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRates': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
@@ -64,6 +63,8 @@ class tokocrypto extends tokocrypto$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
                 'fetchLedger': undefined,
                 'fetchLeverage': false,
@@ -208,6 +209,7 @@ class tokocrypto extends tokocrypto$1 {
             'precisionMode': number.DECIMAL_PLACES,
             'options': {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
+                'createMarketBuyOrderRequiresPrice': true,
                 'defaultTimeInForce': 'GTC',
                 // 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -734,6 +736,7 @@ class tokocrypto extends tokocrypto$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {
@@ -787,13 +790,19 @@ class tokocrypto extends tokocrypto$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {
-            'symbol': market['baseId'] + market['quoteId'],
-        };
+        const request = {};
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        const response = await this.binanceGetDepth(this.extend(request, params));
+        let response = undefined;
+        if (market['quote'] === 'USDT') {
+            request['symbol'] = market['baseId'] + market['quoteId'];
+            response = await this.binanceGetDepth(this.extend(request, params));
+        }
+        else {
+            request['symbol'] = market['id'];
+            response = await this.publicGetOpenV1MarketDepth(this.extend(request, params));
+        }
         //
         // future
         //
@@ -812,9 +821,21 @@ class tokocrypto extends tokocrypto$1 {
         //             ["2493.71","12.054"],
         //         ]
         //     }
-        const timestamp = this.safeInteger(response, 'T');
-        const orderbook = this.parseOrderBook(response, symbol, timestamp);
-        orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
+        // type not 1
+        //     {
+        //         "code":0,
+        //         "msg":"Success",
+        //         "data":{
+        //            "lastUpdateId":3204783,
+        //            "bids":[],
+        //            "asks": []
+        //         },
+        //         "timestamp":1692262634599
+        //     }
+        const data = this.safeValue(response, 'data', response);
+        const timestamp = this.safeInteger2(response, 'T', 'timestamp');
+        const orderbook = this.parseOrderBook(data, symbol, timestamp);
+        orderbook['nonce'] = this.safeInteger(data, 'lastUpdateId');
         return orderbook;
     }
     parseTrade(trade, market = undefined) {
@@ -975,17 +996,25 @@ class tokocrypto extends tokocrypto$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': this.getMarketIdByType(market),
             // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit': 500,     // default = 500, maximum = 1000
         };
+        if (market['quote'] !== 'USDT') {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            const responseInner = this.publicGetOpenV1MarketTrades(this.extend(request, params));
+            const data = this.safeValue(responseInner, 'data', {});
+            return this.parseTrades(data, market, since, limit);
+        }
         const defaultMethod = 'binanceGetTrades';
         const method = this.safeString(this.options, 'fetchTradesMethod', defaultMethod);
         if ((method === 'binanceGetAggTrades') && (since !== undefined)) {
@@ -1041,48 +1070,48 @@ class tokocrypto extends tokocrypto$1 {
     parseTicker(ticker, market = undefined) {
         //
         //     {
-        //         symbol: 'ETHBTC',
-        //         priceChange: '0.00068700',
-        //         priceChangePercent: '2.075',
-        //         weightedAvgPrice: '0.03342681',
-        //         prevClosePrice: '0.03310300',
-        //         lastPrice: '0.03378900',
-        //         lastQty: '0.07700000',
-        //         bidPrice: '0.03378900',
-        //         bidQty: '7.16800000',
-        //         askPrice: '0.03379000',
-        //         askQty: '24.00000000',
-        //         openPrice: '0.03310200',
-        //         highPrice: '0.03388900',
-        //         lowPrice: '0.03306900',
-        //         volume: '205478.41000000',
-        //         quoteVolume: '6868.48826294',
-        //         openTime: 1601469986932,
-        //         closeTime: 1601556386932,
-        //         firstId: 196098772,
-        //         lastId: 196186315,
-        //         count: 87544
+        //         "symbol": "ETHBTC",
+        //         "priceChange": "0.00068700",
+        //         "priceChangePercent": "2.075",
+        //         "weightedAvgPrice": "0.03342681",
+        //         "prevClosePrice": "0.03310300",
+        //         "lastPrice": "0.03378900",
+        //         "lastQty": "0.07700000",
+        //         "bidPrice": "0.03378900",
+        //         "bidQty": "7.16800000",
+        //         "askPrice": "0.03379000",
+        //         "askQty": "24.00000000",
+        //         "openPrice": "0.03310200",
+        //         "highPrice": "0.03388900",
+        //         "lowPrice": "0.03306900",
+        //         "volume": "205478.41000000",
+        //         "quoteVolume": "6868.48826294",
+        //         "openTime": 1601469986932,
+        //         "closeTime": 1601556386932,
+        //         "firstId": 196098772,
+        //         "lastId": 196186315,
+        //         "count": 87544
         //     }
         //
         // coinm
         //     {
-        //         baseVolume: '214549.95171161',
-        //         closeTime: '1621965286847',
-        //         count: '1283779',
-        //         firstId: '152560106',
-        //         highPrice: '39938.3',
-        //         lastId: '153843955',
-        //         lastPrice: '37993.4',
-        //         lastQty: '1',
-        //         lowPrice: '36457.2',
-        //         openPrice: '37783.4',
-        //         openTime: '1621878840000',
-        //         pair: 'BTCUSD',
-        //         priceChange: '210.0',
-        //         priceChangePercent: '0.556',
-        //         symbol: 'BTCUSD_PERP',
-        //         volume: '81990451',
-        //         weightedAvgPrice: '38215.08713747'
+        //         "baseVolume": "214549.95171161",
+        //         "closeTime": "1621965286847",
+        //         "count": "1283779",
+        //         "firstId": "152560106",
+        //         "highPrice": "39938.3",
+        //         "lastId": "153843955",
+        //         "lastPrice": "37993.4",
+        //         "lastQty": "1",
+        //         "lowPrice": "36457.2",
+        //         "openPrice": "37783.4",
+        //         "openTime": "1621878840000",
+        //         "pair": "BTCUSD",
+        //         "priceChange": "210.0",
+        //         "priceChangePercent": "0.556",
+        //         "symbol": "BTCUSD_PERP",
+        //         "volume": "81990451",
+        //         "weightedAvgPrice": "38215.08713747"
         //     }
         //
         const timestamp = this.safeInteger(ticker, 'closeTime');
@@ -1138,6 +1167,12 @@ class tokocrypto extends tokocrypto$1 {
         const method = this.safeString(this.options, 'fetchTickersMethod', defaultMethod);
         const response = await this[method](params);
         return this.parseTickers(response, symbols);
+    }
+    getMarketIdByType(market) {
+        if (market['quote'] === 'USDT') {
+            return market['baseId'] + market['quoteId'];
+        }
+        return market['id'];
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1252,7 +1287,7 @@ class tokocrypto extends tokocrypto$1 {
             request['pair'] = market['id']; // Index price takes this argument instead of symbol
         }
         else {
-            request['symbol'] = market['baseId'] + market['quoteId'];
+            request['symbol'] = this.getMarketIdByType(market);
         }
         // const duration = this.parseTimeframe (timeframe);
         if (since !== undefined) {
@@ -1261,7 +1296,13 @@ class tokocrypto extends tokocrypto$1 {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.binanceGetKlines(this.extend(request, params));
+        let response = undefined;
+        if (market['quote'] === 'USDT') {
+            response = await this.binanceGetKlines(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetOpenV1MarketKlines(this.extend(request, params));
+        }
         //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
@@ -1269,7 +1310,8 @@ class tokocrypto extends tokocrypto$1 {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        const data = this.safeValue(response, 'data', response);
+        return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
     async fetchBalance(params = {}) {
         /**
@@ -1281,7 +1323,7 @@ class tokocrypto extends tokocrypto$1 {
          * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
@@ -1380,25 +1422,25 @@ class tokocrypto extends tokocrypto$1 {
         //     }
         // createOrder
         //     {
-        //         orderId: '145265071',
-        //         bOrderListId: '0',
-        //         clientId: '49c09c3c2cd54419a59c05441f517b3c',
-        //         bOrderId: '35247529',
-        //         symbol: 'USDT_BIDR',
-        //         symbolType: '1',
-        //         side: '0',
-        //         type: '1',
-        //         price: '11915',
-        //         origQty: '2',
-        //         origQuoteQty: '23830.00',
-        //         executedQty: '0.00000000',
-        //         executedPrice: '0',
-        //         executedQuoteQty: '0.00',
-        //         timeInForce: '1',
-        //         stopPrice: '0',
-        //         icebergQty: '0',
-        //         status: '0',
-        //         createTime: '1662711074372'
+        //         "orderId": "145265071",
+        //         "bOrderListId": "0",
+        //         "clientId": "49c09c3c2cd54419a59c05441f517b3c",
+        //         "bOrderId": "35247529",
+        //         "symbol": "USDT_BIDR",
+        //         "symbolType": "1",
+        //         "side": "0",
+        //         "type": "1",
+        //         "price": "11915",
+        //         "origQty": "2",
+        //         "origQuoteQty": "23830.00",
+        //         "executedQty": "0.00000000",
+        //         "executedPrice": "0",
+        //         "executedQuoteQty": "0.00",
+        //         "timeInForce": "1",
+        //         "stopPrice": "0",
+        //         "icebergQty": "0",
+        //         "status": "0",
+        //         "createTime": "1662711074372"
         //     }
         //
         // createOrder with { "newOrderRespType": "FULL" }
@@ -1461,14 +1503,13 @@ class tokocrypto extends tokocrypto$1 {
         const filled = this.safeString(order, 'executedQty', '0');
         const timestamp = this.safeInteger(order, 'createTime');
         const average = this.safeString(order, 'avgPrice');
-        const price = this.safeString(order, 'price');
+        const price = this.safeString2(order, 'price', 'executedPrice');
         const amount = this.safeString(order, 'origQty');
         // - Spot/Margin market: cummulativeQuoteQty
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-        let cost = this.safeString2(order, 'cummulativeQuoteQty', 'cumQuote');
-        cost = this.safeString(order, 'cumBase', cost);
+        const cost = this.safeStringN(order, ['cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase']);
         const id = this.safeString(order, 'orderId');
-        let type = this.safeStringLower(order, 'type');
+        const type = this.parseOrderType(this.safeStringLower(order, 'type'));
         let side = this.safeStringLower(order, 'side');
         if (side === '0') {
             side = 'buy';
@@ -1477,16 +1518,13 @@ class tokocrypto extends tokocrypto$1 {
             side = 'sell';
         }
         const fills = this.safeValue(order, 'fills', []);
-        const clientOrderId = this.safeString(order, 'clientOrderId');
+        const clientOrderId = this.safeString2(order, 'clientOrderId', 'clientId');
         let timeInForce = this.safeString(order, 'timeInForce');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
         const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
-        if (type === 'limit_maker') {
-            type = 'limit';
-        }
         const stopPriceString = this.safeString(order, 'stopPrice');
         const stopPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder({
@@ -1515,18 +1553,29 @@ class tokocrypto extends tokocrypto$1 {
             'trades': fills,
         }, market);
     }
+    parseOrderType(status) {
+        const statuses = {
+            '2': 'market',
+            '1': 'limit',
+            '4': 'limit',
+            '7': 'limit',
+        };
+        return this.safeString(statuses, status, status);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#createOrder
-         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @description create a trade order
+         * @see https://www.tokocrypto.com/apidocs/#new-order--signed
+         * @see https://www.tokocrypto.com/apidocs/#account-trade-list-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1606,20 +1655,20 @@ class tokocrypto extends tokocrypto$1 {
         //     LIMIT_MAKER          quantity, price
         //
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue(this.options, 'quoteOrderQty', true);
-            if (quoteOrderQty) {
-                const quoteOrderQtyInner = this.safeValue2(params, 'quoteOrderQty', 'cost');
-                const precision = market['precision']['price'];
-                if (quoteOrderQtyInner !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyInner, number.TRUNCATE, precision, this.precisionMode);
-                    params = this.omit(params, ['quoteOrderQty', 'cost']);
-                }
-                else if (price !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision(amount * price, number.TRUNCATE, precision, this.precisionMode);
-                }
-                else {
-                    quantityIsRequired = true;
-                }
+            const quoteOrderQtyInner = this.safeValue2(params, 'quoteOrderQty', 'cost');
+            if (this.options['createMarketBuyOrderRequiresPrice'] && (side === 'buy') && (price === undefined) && (quoteOrderQtyInner === undefined)) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+            }
+            const precision = market['precision']['price'];
+            if (quoteOrderQtyInner !== undefined) {
+                request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyInner, number.TRUNCATE, precision, this.precisionMode);
+                params = this.omit(params, ['quoteOrderQty', 'cost']);
+            }
+            else if (price !== undefined) {
+                const amountString = this.numberToString(amount);
+                const priceString = this.numberToString(price);
+                const quoteOrderQty = Precise["default"].stringMul(amountString, priceString);
+                request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQty, number.TRUNCATE, precision, this.precisionMode);
             }
             else {
                 quantityIsRequired = true;
@@ -1751,7 +1800,7 @@ class tokocrypto extends tokocrypto$1 {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

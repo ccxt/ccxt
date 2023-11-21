@@ -405,8 +405,8 @@ class bitfinex extends Exchange {
         $response = $this->privatePostAccountFees ($params);
         //
         // {
-        //     'withdraw' => {
-        //         'BTC' => '0.0004',
+        //     "withdraw" => {
+        //         "BTC" => "0.0004",
         //     }
         // }
         //
@@ -439,8 +439,8 @@ class bitfinex extends Exchange {
         $response = $this->privatePostAccountFees ($params);
         //
         //    {
-        //        'withdraw' => {
-        //            'BTC' => '0.0004',
+        //        "withdraw" => {
+        //            "BTC" => "0.0004",
         //            ...
         //        }
         //    }
@@ -449,7 +449,7 @@ class bitfinex extends Exchange {
         return $this->parse_deposit_withdraw_fees($withdraw, $codes);
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    '0.0004'
         //
@@ -477,41 +477,41 @@ class bitfinex extends Exchange {
         $response = $this->privatePostSummary ($params);
         //
         //     {
-        //          time => '2022-02-23T16:05:47.659000Z',
-        //          status => array( resid_hint => null, login_last => '2022-02-23T16:05:48Z' ),
-        //          is_locked => false,
-        //          leo_lev => '0',
-        //          leo_amount_avg => '0.0',
-        //          trade_vol_30d => array(
+        //          "time" => "2022-02-23T16:05:47.659000Z",
+        //          "status" => array( resid_hint => null, login_last => "2022-02-23T16:05:48Z" ),
+        //          "is_locked" => false,
+        //          "leo_lev" => "0",
+        //          "leo_amount_avg" => "0.0",
+        //          "trade_vol_30d" => array(
         //          {
-        //              curr => 'Total (USD)',
-        //              vol => '0.0',
-        //              vol_safe => '0.0',
-        //              vol_maker => '0.0',
-        //              vol_BFX => '0.0',
-        //              vol_BFX_safe => '0.0',
-        //              vol_BFX_maker => '0.0'
+        //              "curr" => "Total (USD)",
+        //              "vol" => "0.0",
+        //              "vol_safe" => "0.0",
+        //              "vol_maker" => "0.0",
+        //              "vol_BFX" => "0.0",
+        //              "vol_BFX_safe" => "0.0",
+        //              "vol_BFX_maker" => "0.0"
         //          }
         //          ),
-        //          fees_funding_30d => array(),
-        //          fees_funding_total_30d => '0',
-        //          fees_trading_30d => array(),
-        //          fees_trading_total_30d => '0',
-        //          rebates_trading_30d => array(),
-        //          rebates_trading_total_30d => '0',
-        //          maker_fee => '0.001',
-        //          taker_fee => '0.002',
-        //          maker_fee_2crypto => '0.001',
-        //          maker_fee_2stablecoin => '0.001',
-        //          maker_fee_2fiat => '0.001',
-        //          maker_fee_2deriv => '0.0002',
-        //          taker_fee_2crypto => '0.002',
-        //          taker_fee_2stablecoin => '0.002',
-        //          taker_fee_2fiat => '0.002',
-        //          taker_fee_2deriv => '0.00065',
-        //          deriv_maker_rebate => '0.0002',
-        //          deriv_taker_fee => '0.00065',
-        //          trade_last => null
+        //          "fees_funding_30d" => array(),
+        //          "fees_funding_total_30d" => "0",
+        //          "fees_trading_30d" => array(),
+        //          "fees_trading_total_30d" => "0",
+        //          "rebates_trading_30d" => array(),
+        //          "rebates_trading_total_30d" => "0",
+        //          "maker_fee" => "0.001",
+        //          "taker_fee" => "0.002",
+        //          "maker_fee_2crypto" => "0.001",
+        //          "maker_fee_2stablecoin" => "0.001",
+        //          "maker_fee_2fiat" => "0.001",
+        //          "maker_fee_2deriv" => "0.0002",
+        //          "taker_fee_2crypto" => "0.002",
+        //          "taker_fee_2stablecoin" => "0.002",
+        //          "taker_fee_2fiat" => "0.002",
+        //          "taker_fee_2deriv" => "0.00065",
+        //          "deriv_maker_rebate" => "0.0002",
+        //          "deriv_taker_fee" => "0.00065",
+        //          "trade_last" => null
         //     }
         //
         $result = array();
@@ -645,6 +645,7 @@ class bitfinex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -669,11 +670,11 @@ class bitfinex extends Exchange {
         return $this->decimal_to_precision($price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitfinex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
          */
         $this->load_markets();
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
@@ -685,18 +686,18 @@ class bitfinex extends Exchange {
         }
         $query = $this->omit($params, 'type');
         $response = $this->privatePostBalances ($query);
-        //    array( array( $type => 'deposit',
-        //        currency => 'btc',
-        //        amount => '0.00116721',
-        //        available => '0.00116721' ),
-        //      array( $type => 'exchange',
-        //        currency => 'ust',
-        //        amount => '0.0000002',
-        //        available => '0.0000002' ),
-        //      { $type => 'trading',
-        //        currency => 'btc',
-        //        amount => '0.0005',
-        //        available => '0.0005' } ),
+        //    array( array( $type => "deposit",
+        //        "currency" => "btc",
+        //        "amount" => "0.00116721",
+        //        "available" => "0.00116721" ),
+        //      array( $type => "exchange",
+        //        "currency" => "ust",
+        //        "amount" => "0.0000002",
+        //        "available" => "0.0000002" ),
+        //      { $type => "trading",
+        //        "currency" => "btc",
+        //        "amount" => "0.0005",
+        //        "available" => "0.0005" } ),
         $result = array( 'info' => $response );
         $isDerivative = $requestedType === 'derivatives';
         for ($i = 0; $i < count($response); $i++) {
@@ -756,8 +757,8 @@ class bitfinex extends Exchange {
         //
         //     array(
         //         {
-        //             status => 'success',
-        //             $message => '0.0001 Bitcoin transfered from Margin to Exchange'
+        //             "status" => "success",
+        //             "message" => "0.0001 Bitcoin transfered from Margin to Exchange"
         //         }
         //     )
         //
@@ -773,11 +774,11 @@ class bitfinex extends Exchange {
         ));
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         //     {
-        //         status => 'success',
-        //         message => '0.0001 Bitcoin transfered from Margin to Exchange'
+        //         "status" => "success",
+        //         "message" => "0.0001 Bitcoin transfered from Margin to Exchange"
         //     }
         //
         $timestamp = $this->milliseconds();
@@ -812,7 +813,7 @@ class bitfinex extends Exchange {
         return $currencyId;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -833,7 +834,7 @@ class bitfinex extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
@@ -849,10 +850,10 @@ class bitfinex extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -868,7 +869,7 @@ class bitfinex extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'pair');
         $market = $this->safe_market($marketId, $market);
@@ -898,7 +899,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public) v1
         //
@@ -909,14 +910,6 @@ class bitfinex extends Exchange {
         //          "amount":"261.38",
         //          "exchange":"bitfinex",
         //          "type":"sell"
-        //     }
-        //
-        //     {    "timestamp":1637258238,
-        //          "tid":894452800,
-        //          "price":"0.99958",
-        //          "amount":"261.90514",
-        //          "exchange":"bitfinex",
-        //          "type":"buy"
         //     }
         //
         // fetchMyTrades (private) v1
@@ -977,14 +970,14 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, $limit = 50, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, $limit = 50, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the bitfinex api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -996,6 +989,18 @@ class bitfinex extends Exchange {
             $request['timestamp'] = $this->parse_to_int($since / 1000);
         }
         $response = $this->publicGetTradesSymbol (array_merge($request, $params));
+        //
+        //    array(
+        //        array(
+        //            "timestamp" => "1694284565",
+        //            "tid" => "1415415034",
+        //            "price" => "25862.0",
+        //            "amount" => "0.00020685",
+        //            "exchange" => "bitfinex",
+        //            "type" => "buy"
+        //        ),
+        //    )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -1009,7 +1014,7 @@ class bitfinex extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1033,7 +1038,7 @@ class bitfinex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the bitfinex api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -1117,29 +1122,29 @@ class bitfinex extends Exchange {
         return $this->privatePostOrderCancelAll ($params);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {
-        //           $id => 57334010955,
-        //           cid => 1611584840966,
-        //           cid_date => null,
-        //           gid => null,
-        //           $symbol => 'ltcbtc',
-        //           $exchange => null,
-        //           price => '0.0042125',
-        //           avg_execution_price => '0.0042097',
-        //           $side => 'sell',
-        //           type => 'exchange market',
-        //           $timestamp => '1611584841.0',
-        //           is_live => false,
-        //           is_cancelled => false,
-        //           is_hidden => 0,
-        //           oco_order => 0,
-        //           was_forced => false,
-        //           original_amount => '0.205176',
-        //           remaining_amount => '0.0',
-        //           executed_amount => '0.205176',
-        //           src => 'web'
+        //           "id" => 57334010955,
+        //           "cid" => 1611584840966,
+        //           "cid_date" => null,
+        //           "gid" => null,
+        //           "symbol" => "ltcbtc",
+        //           "exchange" => null,
+        //           "price" => "0.0042125",
+        //           "avg_execution_price" => "0.0042097",
+        //           "side" => "sell",
+        //           "type" => "exchange $market",
+        //           "timestamp" => "1611584841.0",
+        //           "is_live" => false,
+        //           "is_cancelled" => false,
+        //           "is_hidden" => 0,
+        //           "oco_order" => 0,
+        //           "was_forced" => false,
+        //           "original_amount" => "0.205176",
+        //           "remaining_amount" => "0.0",
+        //           "executed_amount" => "0.205176",
+        //           "src" => "web"
         //     }
         //
         $side = $this->safe_string($order, 'side');
@@ -1189,7 +1194,7 @@ class bitfinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
          * @param {string} $symbol unified market $symbol
@@ -1212,7 +1217,7 @@ class bitfinex extends Exchange {
         return $orders;
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          * @param {string} $symbol unified market $symbol of the market $orders were made in
@@ -1251,7 +1256,7 @@ class bitfinex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1457539800000,
@@ -1272,7 +1277,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1362,7 +1367,7 @@ class bitfinex extends Exchange {
         );
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
          * @param {string} $code unified $currency $code for the $currency of the deposit/withdrawals
@@ -1409,7 +1414,7 @@ class bitfinex extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // crypto
         //
@@ -1479,6 +1484,7 @@ class bitfinex extends Exchange {
             'tagTo' => null,
             'updated' => $this->safe_timestamp($transaction, 'timestamp'),
             'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),

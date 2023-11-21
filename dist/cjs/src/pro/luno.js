@@ -40,7 +40,7 @@ class luno extends luno$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of    trades to fetch
          * @param {object} [params] extra parameters specific to the luno api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -64,17 +64,17 @@ class luno extends luno$1 {
     handleTrades(client, message, subscription) {
         //
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: {
-        //             order_id: 'BXHSYXAUMH8C2RW',
-        //             type: 'ASK',
-        //             price: '24081.09000000',
-        //             volume: '0.07780000'
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
         //         },
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         const rawTrades = this.safeValue(message, 'trade_updates', []);
@@ -175,17 +175,17 @@ class luno extends luno$1 {
         //
         //  update
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: {
-        //             order_id: 'BXHSYXAUMH8C2RW',
-        //             type: 'ASK',
-        //             price: '24081.09000000',
-        //             volume: '0.07780000'
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
         //         },
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         const symbol = subscription['symbol'];
@@ -244,33 +244,33 @@ class luno extends luno$1 {
         //
         //  create
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: {
-        //             order_id: 'BXHSYXAUMH8C2RW',
-        //             type: 'ASK',
-        //             price: '24081.09000000',
-        //             volume: '0.07780000'
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
         //         },
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //  delete
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: null,
-        //         delete_update: {
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": null,
+        //         "delete_update": {
         //             "order_id": "BXMC2CJ7HNB88U4"
         //         },
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //  trade
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [
+        //         "sequence": "110980825",
+        //         "trade_updates": [
         //             {
         //                 "base": "0.1",
         //                 "counter": "5232.00",
@@ -278,23 +278,23 @@ class luno extends luno$1 {
         //                 "taker_order_id": "BXMC2CJ7HNB88U5"
         //             }
         //         ],
-        //         create_update: null,
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "create_update": null,
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         const createUpdate = this.safeValue(message, 'create_update');
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         if (createUpdate !== undefined) {
-            const array = this.customParseBidAsk(createUpdate, 'price', 'volume', 'order_id');
+            const bidAskArray = this.customParseBidAsk(createUpdate, 'price', 'volume', 'order_id');
             const type = this.safeString(createUpdate, 'type');
             if (type === 'ASK') {
-                asksOrderSide.storeArray(array);
+                asksOrderSide.storeArray(bidAskArray);
             }
             else if (type === 'BID') {
-                bidsOrderSide.storeArray(array);
+                bidsOrderSide.storeArray(bidAskArray);
             }
         }
         const deleteUpdate = this.safeValue(message, 'delete_update');
