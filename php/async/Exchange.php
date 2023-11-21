@@ -2303,7 +2303,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
         /**
-         * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for ony-market purposes, because of less rate-limit consumption and speed
+         * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
          * @param {string} $symbol unified market $symbol
          * @param {array} $params extra parameters specific to the endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode

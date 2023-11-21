@@ -85,7 +85,7 @@ class kuna(Exchange, ImplicitAPI):
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
-                'fetchPositionsBySymbol': False,
+                'fetchPositionsForSymbol': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -936,7 +936,7 @@ class kuna(Exchange, ImplicitAPI):
         request = {
             'pair': market['id'],
             'orderSide': 'Bid' if (side == 'buy') else 'Ask',
-            'quantity': str(amount),
+            'quantity': self.number_to_string(amount),
             'type': capitalizedType,
         }
         if capitalizedType == 'Limit':
@@ -1740,7 +1740,8 @@ class kuna(Exchange, ImplicitAPI):
         url = None
         if isinstance(api, list):
             isGet = method == 'GET'
-            version, access = api
+            version = self.safe_string(api, 0)
+            access = self.safe_string(api, 1)
             if version == 'v3':
                 url = self.urls['api'][version] + '/' + version + '/' + self.implode_params(path, params)
                 if access == 'public':

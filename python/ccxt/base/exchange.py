@@ -3323,7 +3323,7 @@ class Exchange(object):
 
     def fetch_positions_for_symbol(self, symbol: str, params={}):
         """
-        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for ony-market purposes, because of less rate-limit consumption and speed
+        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode

@@ -3777,7 +3777,13 @@ export default class htx extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'spot_private_get_v1_order_orders') {
+            response = await this.spotPrivateGetV1OrderOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.spotPrivateGetV1OrderHistory(this.extend(request, params));
+        }
         //
         // spot_private_get_v1_order_orders GET /v1/order/orders
         //

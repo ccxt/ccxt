@@ -77,7 +77,7 @@ class p2b extends p2b$1 {
                 'fetchPermissions': false,
                 'fetchPosition': false,
                 'fetchPositions': false,
-                'fetchPositionsBySymbol': false,
+                'fetchPositionsForSymbol': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,

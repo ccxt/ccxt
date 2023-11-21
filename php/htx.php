@@ -3698,7 +3698,12 @@ class htx extends Exchange {
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = null;
+        if ($method === 'spot_private_get_v1_order_orders') {
+            $response = $this->spotPrivateGetV1OrderOrders (array_merge($request, $params));
+        } else {
+            $response = $this->spotPrivateGetV1OrderHistory (array_merge($request, $params));
+        }
         //
         // spot_private_get_v1_order_orders GET /v1/order/orders
         //

@@ -83,7 +83,7 @@ class p2b(Exchange, ImplicitAPI):
                 'fetchPermissions': False,
                 'fetchPosition': False,
                 'fetchPositions': False,
-                'fetchPositionsBySymbol': False,
+                'fetchPositionsForSymbol': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,

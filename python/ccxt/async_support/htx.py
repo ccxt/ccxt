@@ -3550,7 +3550,11 @@ class htx(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('end-time', request, params)
         if limit is not None:
             request['size'] = limit
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'spot_private_get_v1_order_orders':
+            response = await self.spotPrivateGetV1OrderOrders(self.extend(request, params))
+        else:
+            response = await self.spotPrivateGetV1OrderHistory(self.extend(request, params))
         #
         # spot_private_get_v1_order_orders GET /v1/order/orders
         #
