@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.59';
+$version = '4.1.60';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.59';
+    const VERSION = '4.1.60';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4116,14 +4116,14 @@ class Exchange {
         return $this->watchPositions ($symbols, $since, $limit, $params);
     }
 
-    public function fetch_positions_by_symbol(string $symbol, $params = array ()) {
+    public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
         /**
-         * specifically fetches positions for specific $symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
-         * @param {string} $symbol unified market $symbol of the market the position is held in
+         * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for ony-market purposes, because of less rate-limit consumption and speed
+         * @param {string} $symbol unified market $symbol
          * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
-        throw new NotSupported($this->id . ' fetchPositionsBySymbol() is not supported yet');
+        throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {

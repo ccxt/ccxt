@@ -241,6 +241,7 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -308,6 +309,7 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for coinbasepro
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -425,6 +427,7 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_accounts(self, params={}):
         """
         fetch all the accounts associated with a profile
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -487,6 +490,7 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -613,6 +617,7 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -830,6 +835,7 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -1270,6 +1276,8 @@ class coinbasepro(Exchange, ImplicitAPI):
     def deposit(self, code: str, amount, address, params={}):
         """
         Creates a new deposit address, by coinbasepro
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositpaymentmethod
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount
         :param str code: Unified CCXT currency code(e.g. `"USDT"`)
         :param float amount: The amount of currency to send in the deposit(e.g. `20`)
         :param str address: Not used by coinbasepro
@@ -1305,6 +1313,8 @@ class coinbasepro(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1558,6 +1568,8 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1569,6 +1581,8 @@ class coinbasepro(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1670,6 +1684,7 @@ class coinbasepro(Exchange, ImplicitAPI):
     def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`

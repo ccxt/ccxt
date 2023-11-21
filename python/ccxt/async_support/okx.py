@@ -117,6 +117,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchPermissions': None,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchPositionsForSymbol': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': True,
@@ -4726,7 +4727,7 @@ class okx(Exchange, ImplicitAPI):
         position = self.safe_value(data, 0)
         if position is None:
             return None
-        return self.parse_position(position)
+        return self.parse_position(position, market)
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
@@ -4806,6 +4807,17 @@ class okx(Exchange, ImplicitAPI):
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
+
+    async def fetch_positions_for_symbol(self, symbol: str, params={}):
+        """
+        :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+        fetch all open positions for specific symbol
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.instType]: MARGIN(if needed)
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        return await self.fetch_positions([symbol], params)
 
     def parse_position(self, position, market: Market = None):
         #

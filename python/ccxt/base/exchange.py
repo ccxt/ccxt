@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.59'
+__version__ = '4.1.60'
 
 # -----------------------------------------------------------------------------
 
@@ -3321,14 +3321,14 @@ class Exchange(object):
     def watch_position_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
         return self.watchPositions(symbols, since, limit, params)
 
-    def fetch_positions_by_symbol(self, symbol: str, params={}):
+    def fetch_positions_for_symbol(self, symbol: str, params={}):
         """
-        specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
-        :param str symbol: unified market symbol of the market the position is held in
+        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for ony-market purposes, because of less rate-limit consumption and speed
+        :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
-        raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
+        raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
 
     def fetch_positions(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')
