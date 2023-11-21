@@ -3194,8 +3194,6 @@ export default class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchDeposits
-         * @see https://docs.kucoin.com/#get-deposit-list
-         * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
          * @description fetch all deposits made to an account
          * @see https://docs.kucoin.com/#get-deposit-list
          * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
