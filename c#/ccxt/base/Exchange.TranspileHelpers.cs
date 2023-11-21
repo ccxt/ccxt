@@ -132,12 +132,13 @@ public partial class Exchange
 
     public object parseJson(object json)
     {
-        var jsonString = json.ToString();
-        if (jsonString.StartsWith("[".ToString()))
-        {
-            return JsonConvert.DeserializeObject<List<dict>>(jsonString);
-        }
-        return JsonConvert.DeserializeObject<dict>((string)json);
+        // var jsonString = json.ToString();
+        // if (jsonString.StartsWith("[".ToString()))
+        // {
+        //     return JsonConvert.DeserializeObject<List<dict>>(jsonString);
+        // }
+        // return JsonConvert.DeserializeObject<dict>((string)json);
+        return JsonHelper.Deserialize((string)json);
     }
 
     public static bool isTrue(object value)
