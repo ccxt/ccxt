@@ -463,6 +463,11 @@ public partial class Exchange
         {
             return null;
         }
+
+        if (a is Int64 && b is Int64)
+        {
+            return (Int64)a * (Int64)b;
+        }
         var first = Convert.ToDouble(a);
         var second = Convert.ToDouble(b);
 
