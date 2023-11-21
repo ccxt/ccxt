@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, String, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -52,7 +52,8 @@ class bitget(Exchange, ImplicitAPI):
                 'future': True,
                 'option': False,
                 'addMargin': True,
-                'borrowMargin': True,
+                'borrowCrossMargin': True,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -63,13 +64,12 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
-                'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': True,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -81,6 +81,8 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
+                'fetchIsolatedBorrowRate': True,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
@@ -115,7 +117,8 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
-                'repayMargin': True,
+                'repayCrossMargin': True,
+                'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
@@ -1773,7 +1776,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.marginMode]: for spot margin 'cross' or 'isolated', default is 'isolated'
         :param str [params.code]: required for cross spot margin
-        :returns dict: a `leverage tiers structure <https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure>`
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1795,7 +1798,8 @@ class bitget(Exchange, ImplicitAPI):
             response = await self.publicMarginGetMarginV1IsolatedPublicTierData(self.extend(request, params))
         elif marginMode == 'cross':
             code = self.safe_string(params, 'code')
-            self.check_required_argument('fetchMarketLeverageTiers', code, 'code')
+            if code is None:
+                raise ArgumentsRequired(self.id + ' fetchMarketLeverageTiers() requires a code argument')
             params = self.omit(params, 'code')
             currency = self.currency(code)
             request['coin'] = currency['code']
@@ -1861,7 +1865,7 @@ class bitget(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data', [])
         return self.parse_market_leverage_tiers(result, market)
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market: Market = None):
         #
         # swap and future
         #
@@ -1925,7 +1929,7 @@ class bitget(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    async def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
@@ -1937,7 +1941,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.pageSize]: pageSize default 20. Max 100
         :param int [params.until]: end tim in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -1992,7 +1996,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str tag:
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.chain]: the chain to withdraw to
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.check_address(address)
         chain = self.safe_string_2(params, 'chain', 'network')
@@ -2068,7 +2072,7 @@ class bitget(Exchange, ImplicitAPI):
             result['network'] = chain
         return result
 
-    async def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
@@ -2080,7 +2084,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.pageSize]: pageSize default 20. Max 100
         :param int [params.until]: end time in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -2125,7 +2129,7 @@ class bitget(Exchange, ImplicitAPI):
         rawTransactions = self.safe_value(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None) -> Transaction:
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "id": "925607360021839872",
@@ -2195,7 +2199,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         networkCode = self.safe_string(params, 'network')
@@ -2223,7 +2227,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #    {
         #        "address": "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
@@ -2252,7 +2256,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2282,7 +2286,7 @@ class bitget(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # spot
         #
@@ -2405,7 +2409,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-single-symbol-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2447,7 +2451,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         await self.load_markets()
@@ -2520,7 +2524,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_tickers(data, symbols)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # spot
         #
@@ -2637,7 +2641,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param int [params.until]: the latest time in ms to fetch deposits for
         :param boolean [params.paginate]: *only applies to publicSpotGetMarketFillsHistory and publicMixGetMarketFillsHistory* default False, when True will automatically paginate by calling self endpoint multiple times
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         paginate = False
@@ -2735,7 +2739,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-single-symbol
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2771,7 +2775,7 @@ class bitget(Exchange, ImplicitAPI):
         fetch the trading fees for multiple markets
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-symbols
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.publicSpotGetSpotV1PublicProducts(params)
@@ -2807,7 +2811,7 @@ class bitget(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def parse_trading_fee(self, data, market=None):
+    def parse_trading_fee(self, data, market: Market = None):
         marketId = self.safe_string(data, 'symbol')
         return {
             'info': data,
@@ -2816,7 +2820,7 @@ class bitget(Exchange, ImplicitAPI):
             'taker': self.safe_number(data, 'takerFeeRate'),
         }
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         # spot
         #
@@ -2953,7 +2957,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         await self.load_markets()
@@ -3165,7 +3169,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # spot
         #     {
@@ -3359,7 +3363,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param str [params.marginMode]: 'isolated' or 'cross' for spot margin trading
         :param str [params.loanType]: *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3550,7 +3554,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
         :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         ordersRequests = []
@@ -3639,7 +3643,7 @@ class bitget(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3716,7 +3720,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: String = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order
@@ -3729,9 +3733,10 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.marginMode]: 'isolated' or 'cross' for spot margin trading
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('cancelOrder', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         marketType = None
@@ -3834,7 +3839,7 @@ class bitget(Exchange, ImplicitAPI):
             order = resultList[0]
         return self.parse_order(order, market)
 
-    async def cancel_orders(self, ids, symbol: String = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order-in-batch-v2-single-instruments
@@ -3845,9 +3850,10 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.marginMode]: 'isolated' or 'cross' for spot margin trading
-        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('cancelOrders', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         type = None
@@ -3909,7 +3915,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    async def cancel_all_orders(self, symbol: String = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
@@ -3919,7 +3925,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.marginMode]: 'isolated' or 'cross' for spot margin trading
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         await self.load_markets()
@@ -3938,7 +3944,8 @@ class bitget(Exchange, ImplicitAPI):
         if marketType == 'spot':
             if marginMode is None:
                 raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets, only spot-margin')
-            self.check_required_symbol('cancelAllOrders', symbol)
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
             spotMarginRequest = {
                 'symbol': market['info']['symbolName'],  # regular id like LTCUSDT_SPBL does not work here
             }
@@ -3980,16 +3987,17 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_order(self, id: str, symbol: String = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-details
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-order-details
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchOrder', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
@@ -4062,7 +4070,7 @@ class bitget(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, data)
         return self.parse_order(first, market)
 
-    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
@@ -4076,7 +4084,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -4093,7 +4101,8 @@ class bitget(Exchange, ImplicitAPI):
         stop = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         if stop:
-            self.check_required_symbol('fetchOpenOrders', symbol)
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
             if marketType == 'spot':
                 if limit is not None:
                     request['pageSize'] = limit
@@ -4131,7 +4140,8 @@ class bitget(Exchange, ImplicitAPI):
                     request['productType'] = productType
                     response = await self.privateMixGetMixV1OrderMarginCoinCurrent(self.extend(request, params))
                 else:
-                    self.check_required_symbol('fetchOpenOrders', symbol)
+                    if symbol is None:
+                        raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
                     response = await self.privateMixGetMixV1OrderCurrent(self.extend(request, params))
         #
         #  spot
@@ -4278,7 +4288,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.add_pagination_cursor_to_result(data, result)
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
@@ -4292,10 +4302,11 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the max number of closed orders to return
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        self.check_required_symbol('fetchClosedOrders', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
@@ -4313,7 +4324,7 @@ class bitget(Exchange, ImplicitAPI):
                 result.append(entry)
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_canceled_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
@@ -4327,10 +4338,11 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the max number of canceled orders to return
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns dict: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
         await self.load_markets()
-        self.check_required_symbol('fetchCanceledOrders', symbol)
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchCanceledOrders', 'paginate')
@@ -4348,7 +4360,7 @@ class bitget(Exchange, ImplicitAPI):
                 result.append(entry)
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_canceled_and_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         marketType = None
@@ -4580,7 +4592,7 @@ class bitget(Exchange, ImplicitAPI):
                 data[dataLength - 1] = last
         return data
 
-    async def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-bills
         fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -4590,7 +4602,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param int [params.until]: end tim in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -4629,7 +4641,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_ledger(data, currency, since, limit)
 
-    def parse_ledger_entry(self, item, currency=None):
+    def parse_ledger_entry(self, item, currency: Currency = None):
         #
         #     {
         #       "billId": "881626974170554368",
@@ -4674,7 +4686,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
@@ -4685,11 +4697,12 @@ class bitget(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :param int [params.until]: the latest time in ms to fetch entries for
+        :param int [params.until]: *swap only* the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        self.check_required_symbol('fetchMyTrades', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         paginate = False
@@ -4722,8 +4735,6 @@ class bitget(Exchange, ImplicitAPI):
                     response = await self.privateMarginGetMarginV1CrossOrderFills(self.extend(request, params))
             else:
                 request, params = self.handle_until_option('before', request, params)
-                if since is not None:
-                    request['after'] = since
                 if limit is not None:
                     request['limit'] = limit
                 response = await self.privateSpotPostSpotV1TradeFills(self.extend(request, params))
@@ -4821,7 +4832,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.parse_trades(fills, market, since, limit)
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
@@ -4831,9 +4842,10 @@ class bitget(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
-        self.check_required_symbol('fetchOrderTrades', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
@@ -4880,7 +4892,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-symbol-position-v2
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -4929,7 +4941,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-history-position
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         await self.load_markets()
@@ -5031,7 +5043,7 @@ class bitget(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_position(self, position, market=None):
+    def parse_position(self, position, market: Market = None):
         #
         #     {
         #         "marginCoin": "USDT",
@@ -5161,18 +5173,19 @@ class bitget(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
-        self.check_required_symbol('fetchFundingRateHistory', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
@@ -5226,7 +5239,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-current-funding-rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -5250,7 +5263,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract, market=None):
+    def parse_funding_rate(self, contract, market: Market = None):
         #
         #     {
         #         "symbol": "BTCUSDT_UMCBL",
@@ -5279,7 +5292,7 @@ class bitget(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the funding history
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
@@ -5287,10 +5300,11 @@ class bitget(Exchange, ImplicitAPI):
         :param int [since]: the starting timestamp in milliseconds
         :param int [limit]: the number of entries to return
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of `funding history structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         await self.load_markets()
-        self.check_required_symbol('fetchFundingHistory', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
@@ -5332,7 +5346,7 @@ class bitget(Exchange, ImplicitAPI):
         result = self.safe_value(data, 'result', [])
         return self.parse_funding_histories(result, market, since, limit)
 
-    def parse_funding_history(self, contract, market=None):
+    def parse_funding_history(self, contract, market: Market = None):
         #
         #     {
         #         "id": "892962903462432768",
@@ -5402,7 +5416,7 @@ class bitget(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market=None):
+    def parse_margin_modification(self, data, market: Market = None):
         errorCode = self.safe_string(data, 'code')
         status = 'ok' if (errorCode == '00000') else 'failed'
         code = market['quote'] if (market['linear']) else market['base']
@@ -5422,7 +5436,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
         """
         if amount > 0:
             raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
@@ -5438,7 +5452,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         holdSide = self.safe_string(params, 'holdSide')
         if holdSide is None:
@@ -5451,7 +5465,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-single-account
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a `leverage structure <https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -5488,7 +5502,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_leverage(self, leverage, symbol: String = None, params={}):
+    async def set_leverage(self, leverage, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#change-leverage
@@ -5497,7 +5511,8 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: response from the exchange
         """
-        self.check_required_symbol('setLeverage', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -5508,7 +5523,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return await self.privateMixPostMixV1AccountSetLeverage(self.extend(request, params))
 
-    async def set_margin_mode(self, marginMode, symbol: String = None, params={}):
+    async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#change-margin-mode
@@ -5517,7 +5532,8 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :returns dict: response from the exchange
         """
-        self.check_required_symbol('setMarginMode', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         marginMode = marginMode.lower()
         if marginMode == 'isolated':
             marginMode = 'fixed'
@@ -5534,7 +5550,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return await self.privateMixPostMixV1AccountSetMarginMode(self.extend(request, params))
 
-    async def set_position_mode(self, hedged, symbol: String = None, params={}):
+    async def set_position_mode(self, hedged, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#change-hold-mode
@@ -5576,7 +5592,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -5601,7 +5617,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
 
-    async def fetch_transfers(self, code: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
@@ -5611,7 +5627,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -5669,7 +5685,7 @@ class bitget(Exchange, ImplicitAPI):
          *
          * EXCHANGE SPECIFIC PARAMS
         :param str [params.clientOid]: custom id
-        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -5697,7 +5713,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency=None):
+    def parse_transfer(self, transfer, currency: Currency = None):
         #
         # transfer
         #
@@ -5746,7 +5762,7 @@ class bitget(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(msg),
         }
 
-    def parse_deposit_withdraw_fee(self, fee, currency=None):
+    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         #
         # {
         #     "chains": [
@@ -5816,7 +5832,7 @@ class bitget(Exchange, ImplicitAPI):
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         response = await self.publicSpotGetSpotV1PublicCurrencies(params)
@@ -5830,7 +5846,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_open_interest(self, interest, market=None):
+    def parse_open_interest(self, interest, market: Market = None):
         #
         #     {
         #         "symbol": "BTCUSDT_UMCBL",
@@ -5851,17 +5867,14 @@ class bitget(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def borrow_margin(self, code: str, amount, symbol: String = None, params={}):
+    async def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
-        :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
         :param str code: unified currency code of the currency to borrow
         :param str amount: the amount to borrow
-        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :param str [params.marginMode]: 'isolated' or 'cross', symbol is required for 'isolated'
-        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -5869,33 +5882,7 @@ class bitget(Exchange, ImplicitAPI):
             'coin': currency['info']['coinName'],
             'borrowAmount': self.currency_to_precision(code, amount),
         }
-        response = None
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
-        if (symbol is not None) or (marginMode == 'isolated'):
-            self.check_required_symbol('borrowMargin', symbol)
-            market = self.market(symbol)
-            marketId = market['id']
-            parts = marketId.split('_')
-            marginMarketId = self.safe_string_upper(parts, 0)
-            request['symbol'] = marginMarketId
-            response = await self.privateMarginPostMarginV1IsolatedAccountBorrow(self.extend(request, params))
-        else:
-            response = await self.privateMarginPostMarginV1CrossAccountBorrow(self.extend(request, params))
-        #
-        # isolated
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1697250952516,
-        #         "data": {
-        #             "clientOid": null,
-        #             "symbol": "BTCUSDT",
-        #             "coin": "BTC",
-        #             "borrowAmount": "0.001"
-        #         }
-        #     }
+        response = await self.privateMarginPostMarginV1CrossAccountBorrow(self.extend(request, params))
         #
         # cross
         #
@@ -5913,37 +5900,69 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    async def repay_margin(self, code: str, amount, symbol: String = None, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        create a loan to borrow margin
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
+        :param str symbol: unified market symbol
+        :param str code: unified currency code of the currency to borrow
+        :param str amount: the amount to borrow
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        market = self.market(symbol)
+        marketId = market['id']
+        parts = marketId.split('_')
+        marginMarketId = self.safe_string_upper(parts, 0)
+        request = {
+            'coin': currency['info']['coinName'],
+            'borrowAmount': self.currency_to_precision(code, amount),
+            'symbol': marginMarketId,
+        }
+        response = await self.privateMarginPostMarginV1IsolatedAccountBorrow(self.extend(request, params))
+        #
+        # isolated
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697250952516,
+        #         "data": {
+        #             "clientOid": null,
+        #             "symbol": "BTCUSDT",
+        #             "coin": "BTC",
+        #             "borrowAmount": "0.001"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+        :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to repay
         :param str amount: the amount to repay
-        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :param str [params.marginMode]: 'isolated' or 'cross', symbol is required for 'isolated'
-        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
+        market = self.market(symbol)
+        marketId = market['id']
+        parts = marketId.split('_')
+        marginMarketId = self.safe_string_upper(parts, 0)
         request = {
             'coin': currency['info']['coinName'],
             'repayAmount': self.currency_to_precision(code, amount),
+            'symbol': marginMarketId,
         }
-        response = None
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
-        if (symbol is not None) or (marginMode == 'isolated'):
-            self.check_required_symbol('repayMargin', symbol)
-            market = self.market(symbol)
-            marketId = market['id']
-            parts = marketId.split('_')
-            marginMarketId = self.safe_string_upper(parts, 0)
-            request['symbol'] = marginMarketId
-            response = await self.privateMarginPostMarginV1IsolatedAccountRepay(self.extend(request, params))
-        else:
-            response = await self.privateMarginPostMarginV1CrossAccountRepay(self.extend(request, params))
+        response = await self.privateMarginPostMarginV1IsolatedAccountRepay(self.extend(request, params))
         #
         # isolated
         #
@@ -5959,6 +5978,27 @@ class bitget(Exchange, ImplicitAPI):
         #             "repayAmount": "0.00100001"
         #         }
         #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    async def repay_cross_margin(self, code: str, amount, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+        :param str code: unified currency code of the currency to repay
+        :param str amount: the amount to repay
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['info']['coinName'],
+            'repayAmount': self.currency_to_precision(code, amount),
+        }
+        response = await self.privateMarginPostMarginV1CrossAccountRepay(self.extend(request, params))
         #
         # cross
         #
@@ -5977,7 +6017,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def parse_margin_loan(self, info, currency=None):
+    def parse_margin_loan(self, info, currency: Currency = None):
         #
         # isolated: borrowMargin
         #
@@ -6030,7 +6070,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_my_liquidations(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the users liquidated positions
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-liquidation-records
@@ -6041,7 +6081,7 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters for the bitget api endpoint
         :param int [params.until]: timestamp in ms of the latest liquidation
         :param str [params.marginMode]: 'cross' or 'isolated' default value is 'cross'
-        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
         """
         await self.load_markets()
         market = None
@@ -6063,7 +6103,8 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMyLiquidations', params, 'cross')
         if marginMode == 'isolated':
-            self.check_required_symbol('fetchMyLiquidations', symbol)
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchMyLiquidations() requires a symbol argument')
             request['symbol'] = market['info']['symbolName']
             response = await self.privateMarginGetMarginV1IsolatedLiquidationList(self.extend(request, params))
         elif marginMode == 'cross':
@@ -6122,7 +6163,7 @@ class bitget(Exchange, ImplicitAPI):
         liquidations = self.safe_value(data, 'resultList', [])
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market=None):
+    def parse_liquidation(self, liquidation, market: Market = None):
         #
         # isolated
         #
@@ -6168,36 +6209,21 @@ class bitget(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    async def fetch_borrow_rate(self, code: str, params={}):
+    async def fetch_isolated_borrow_rate(self, symbol: str, params={}):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-margin-interest-rate-and-max-borrowable-amount
-        :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-margin-interest-rate-and-borrowable
-        :param str code: unified currency code
+        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.symbol]: required for isolated margin
-        :returns dict: a `borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
+        :returns dict: an `isolated borrow rate structure <https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure>`
         """
         await self.load_markets()
-        currency = self.currency(code)
-        market = None
-        symbol = self.safe_string(params, 'symbol')
-        params = self.omit(params, 'symbol')
-        if symbol is not None:
-            market = self.market(symbol)
-        request = {}
-        response = None
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowRate', params, 'cross')
-        if (symbol is not None) or (marginMode == 'isolated'):
-            self.check_required_symbol('fetchBorrowRate', symbol)
-            request['symbol'] = market['info']['symbolName']
-            response = await self.publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(self.extend(request, params))
-        elif marginMode == 'cross':
-            request['coin'] = currency['code']
-            response = await self.publicMarginGetMarginV1CrossPublicInterestRateAndLimit(self.extend(request, params))
-        #
-        # isolated
+        market = self.market(symbol)
+        request = {
+            'symbol': market['info']['symbolName'],
+        }
+        response = await self.publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -6239,42 +6265,13 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        # cross
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1698208150986,
-        #         "data": [
-        #             {
-        #                 "coin": "BTC",
-        #                 "leverage": "3",
-        #                 "transferInAble": True,
-        #                 "borrowAble": True,
-        #                 "dailyInterestRate": "0.00007",
-        #                 "yearlyInterestRate": "0.02555",
-        #                 "maxBorrowableAmount": "26",
-        #                 "vips": [
-        #                     {
-        #                         "level": "0",
-        #                         "dailyInterestRate": "0.00007",
-        #                         "yearlyInterestRate": "0.02555",
-        #                         "discountRate": "1"
-        #                     },
-        #                 ]
-        #             }
-        #         ]
-        #     }
-        #
         timestamp = self.safe_integer(response, 'requestTime')
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0, {})
         first['timestamp'] = timestamp
-        return self.parse_borrow_rate(first, currency)
+        return self.parse_isolated_borrow_rate(first, market)
 
-    def parse_borrow_rate(self, info, currency=None):
-        #
-        # isolated
+    def parse_isolated_borrow_rate(self, info, market: Market = None):
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -6309,7 +6306,71 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        # cross
+        marketId = self.safe_string(info, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        baseId = self.safe_string(info, 'baseCoin')
+        quoteId = self.safe_string(info, 'quoteCoin')
+        timestamp = self.safe_integer(info, 'timestamp')
+        return {
+            'symbol': symbol,
+            'base': self.safe_currency_code(baseId),
+            'baseRate': self.safe_number(info, 'baseDailyInterestRate'),
+            'quote': self.safe_currency_code(quoteId),
+            'quoteRate': self.safe_number(info, 'quoteDailyInterestRate'),
+            'period': 86400000,  # 1-Day
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
+    async def fetch_cross_borrow_rate(self, code: str, params={}):
+        """
+        fetch the rate of interest to borrow a currency for margin trading
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-margin-interest-rate-and-borrowable
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :param str [params.symbol]: required for isolated margin
+        :returns dict: a `borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['code'],
+        }
+        response = await self.publicMarginGetMarginV1CrossPublicInterestRateAndLimit(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1698208150986,
+        #         "data": [
+        #             {
+        #                 "coin": "BTC",
+        #                 "leverage": "3",
+        #                 "transferInAble": True,
+        #                 "borrowAble": True,
+        #                 "dailyInterestRate": "0.00007",
+        #                 "yearlyInterestRate": "0.02555",
+        #                 "maxBorrowableAmount": "26",
+        #                 "vips": [
+        #                     {
+        #                         "level": "0",
+        #                         "dailyInterestRate": "0.00007",
+        #                         "yearlyInterestRate": "0.02555",
+        #                         "discountRate": "1"
+        #                     },
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        timestamp = self.safe_integer(response, 'requestTime')
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0, {})
+        first['timestamp'] = timestamp
+        return self.parse_borrow_rate(first, currency)
+
+    def parse_borrow_rate(self, info, currency: Currency = None):
         #
         #     {
         #         "coin": "BTC",
@@ -6329,32 +6390,18 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        code = currency['code']
-        baseCoin = self.safe_string(info, 'baseCoin')
-        quoteCoin = self.safe_string(info, 'quoteCoin')
-        currencyId = None
-        interestRate = None
-        if baseCoin is not None:
-            if code == baseCoin:
-                currencyId = baseCoin
-                interestRate = self.safe_number(info, 'baseDailyInterestRate')
-            elif code == quoteCoin:
-                currencyId = quoteCoin
-                interestRate = self.safe_number(info, 'quoteDailyInterestRate')
-        else:
-            currencyId = self.safe_string(info, 'coin')
-            interestRate = self.safe_number(info, 'dailyInterestRate')
+        currencyId = self.safe_string(info, 'coin')
         timestamp = self.safe_integer(info, 'timestamp')
         return {
             'currency': self.safe_currency_code(currencyId, currency),
-            'rate': interestRate,
+            'rate': self.safe_number(info, 'dailyInterestRate'),
             'period': 86400000,  # 1-Day
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
         }
 
-    async def fetch_borrow_interest(self, code: String = None, symbol: String = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-interest-records
@@ -6364,7 +6411,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch borrow interest for
         :param int [limit]: the maximum number of structures to retrieve
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :returns dict[]: a list of `borrow interest structures <https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure>`
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
         """
         await self.load_markets()
         market = None
@@ -6385,7 +6432,8 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params, 'cross')
         if marginMode == 'isolated':
-            self.check_required_symbol('fetchBorrowInterest', symbol)
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
             request['symbol'] = market['info']['symbolName']
             response = await self.privateMarginGetMarginV1IsolatedInterestList(self.extend(request, params))
         elif marginMode == 'cross':
@@ -6443,7 +6491,7 @@ class bitget(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info, market=None):
+    def parse_borrow_interest(self, info, market: Market = None):
         #
         # isolated
         #

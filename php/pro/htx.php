@@ -20,6 +20,15 @@ class htx extends \ccxt\async\htx {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'cancelOrderWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelAllOrdersWs' => false,
+                'fetchTradesWs' => false,
+                'fetchBalanceWs' => false,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTickers' => false,
@@ -130,7 +139,7 @@ class htx extends \ccxt\async\htx {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -202,7 +211,7 @@ class htx extends \ccxt\async\htx {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -331,7 +340,7 @@ class htx extends \ccxt\async\htx {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -666,7 +675,7 @@ class htx extends \ccxt\async\htx {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -721,8 +730,8 @@ class htx extends \ccxt\async\htx {
         $orderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
         $orderType = $this->safe_string($params, 'orderType', $orderType);
         $params = $this->omit($params, 'orderType');
-        $marketCode = ($market !== null) ? $market['lowercaseId'] : null;
-        $baseId = ($market !== null) ? $market['lowercaseBaseId'] : null;
+        $marketCode = ($market !== null) ? strtolower($market['lowercaseId']) : null;
+        $baseId = ($market !== null) ? $market['baseId'] : null;
         $prefix = $orderType;
         $messageHash = $prefix;
         if ($subType === 'linear') {
@@ -739,7 +748,7 @@ class htx extends \ccxt\async\htx {
         } elseif ($type === 'future') {
             // inverse futures Example => BCH/USD:BCH-220408
             if ($baseId !== null) {
-                $channel = $prefix . '.' . $baseId;
+                $channel = $prefix . '.' . strtolower($baseId);
                 $messageHash = $channel;
             } else {
                 $channel = $prefix . '.' . '*';
@@ -764,7 +773,7 @@ class htx extends \ccxt\async\htx {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $type = null;
@@ -968,7 +977,8 @@ class htx extends \ccxt\async\htx {
         // when we make a global subscription (for contracts only) our $message hash can't have a symbol/currency attached
         // so we're removing it here
         $genericMessageHash = str_replace('.' . $market['lowercaseId'], '', $messageHash);
-        $genericMessageHash = str_replace('.' . $market['lowercaseBaseId'], '', $genericMessageHash);
+        $lowerCaseBaseId = $this->safe_string_lower($market, 'baseId');
+        $genericMessageHash = str_replace('.' . $lowerCaseBaseId, '', $genericMessageHash);
         $client->resolve ($this->orders, $genericMessageHash);
     }
 
@@ -1330,7 +1340,7 @@ class htx extends \ccxt\async\htx {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
@@ -2138,7 +2148,8 @@ class htx extends \ccxt\async\htx {
                 // since this is a global sub, our $messageHash does not specify any $symbol (ex => orders_cross:$trade)
                 // so we must remove it
                 $genericOrderHash = str_replace('.' . $market['lowercaseId'], '', $messageHash);
-                $genericOrderHash = str_replace('.' . $market['lowercaseBaseId'], '', $genericOrderHash);
+                $lowerCaseBaseId = $this->safe_string_lower($market, 'baseId');
+                $genericOrderHash = str_replace('.' . $lowerCaseBaseId, '', $genericOrderHash);
                 $genericTradesHash = $genericOrderHash . ':' . 'trade';
                 $client->resolve ($this->myTrades, $genericTradesHash);
             }

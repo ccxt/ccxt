@@ -199,18 +199,6 @@ abstract class mexc extends \ccxt\async\Exchange {
     public function spot_private_post_capital_convert($params = array()) {
         return $this->request('capital/convert', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
-    public function spot_private_post_margin_trademode($params = array()) {
-        return $this->request('margin/tradeMode', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function spot_private_post_margin_order($params = array()) {
-        return $this->request('margin/order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function spot_private_post_margin_loan($params = array()) {
-        return $this->request('margin/loan', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function spot_private_post_margin_repay($params = array()) {
-        return $this->request('margin/repay', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
     public function spot_private_post_mxdeduct_enable($params = array()) {
         return $this->request('mxDeduct/enable', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -717,18 +705,6 @@ abstract class mexc extends \ccxt\async\Exchange {
     }
     public function spotPrivatePostCapitalConvert($params = array()) {
         return $this->request('capital/convert', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function spotPrivatePostMarginTradeMode($params = array()) {
-        return $this->request('margin/tradeMode', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function spotPrivatePostMarginOrder($params = array()) {
-        return $this->request('margin/order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function spotPrivatePostMarginLoan($params = array()) {
-        return $this->request('margin/loan', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function spotPrivatePostMarginRepay($params = array()) {
-        return $this->request('margin/repay', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spotPrivatePostMxDeductEnable($params = array()) {
         return $this->request('mxDeduct/enable', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));

@@ -46,7 +46,7 @@ class luno extends \ccxt\async\luno {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of    $trades to fetch
              * @param {array} [$params] extra parameters specific to the luno api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->check_required_credentials());
             Async\await($this->load_markets());
@@ -146,7 +146,7 @@ class luno extends \ccxt\async\luno {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {arrayConstructor} [$params] extra parameters specific to the luno api endpoint
              * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->check_required_credentials());
             Async\await($this->load_markets());

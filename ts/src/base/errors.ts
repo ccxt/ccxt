@@ -246,7 +246,7 @@ class RequestTimeout extends NetworkError {
         this.name = 'RequestTimeout';
     }
 }
-class OperationFailed extends NetworkError {
+class OperationFailed extends BaseError {
     constructor (message) {
         super (message);
         this.name = 'OperationFailed';

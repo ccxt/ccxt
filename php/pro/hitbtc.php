@@ -6,6 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
+use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use React\Async;
 
@@ -23,6 +25,10 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'watchOrders' => true,
                 'watchOHLCV' => true,
                 'watchMyTrades' => false,
+                'createOrderWs' => true,
+                'cancelOrderWs' => true,
+                'fetchOpenOrdersWs' => true,
+                'cancelAllOrdersWs' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -153,6 +159,27 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'method' => $name,
                 'params' => $params,
                 'id' => $this->nonce(),
+            );
+            return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
+        }) ();
+    }
+
+    public function trade_request(string $name, $params = array ()) {
+        return Async\async(function () use ($name, $params) {
+            /**
+             * @ignore
+             * @param {string} $name websocket endpoint $name
+             * @param {string} [symbol] unified CCXT symbol
+             * @param {array} [$params] extra parameters specific to the hitbtc api
+             */
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['private'];
+            $messageHash = $this->nonce();
+            $subscribe = array(
+                'method' => $name,
+                'params' => $params,
+                'id' => $messageHash,
             );
             return Async\await($this->watch($url, $messageHash, $subscribe, $messageHash));
         }) ();
@@ -470,7 +497,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -909,13 +936,21 @@ class hitbtc extends \ccxt\async\hitbtc {
         //    }
         //
         $timestamp = $this->safe_string($order, 'created_at');
-        $marketId = $this->safe_symbol($order, 'symbol');
+        $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $tradeId = $this->safe_string($order, 'trade_id');
         $trades = null;
         if ($tradeId !== null) {
             $trade = $this->parse_ws_order_trade($order, $market);
             $trades = array( $trade );
+        }
+        $rawStatus = $this->safe_string($order, 'status');
+        $report_type = $this->safe_string($order, 'report_type');
+        $parsedStatus = null;
+        if ($report_type === 'canceled') {
+            $parsedStatus = $this->parse_order_status($report_type);
+        } else {
+            $parsedStatus = $this->parse_order_status($rawStatus);
         }
         return $this->safe_order(array(
             'info' => $order,
@@ -935,7 +970,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             'filled' => null,
             'remaining' => null,
             'cost' => null,
-            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
+            'status' => $parsedStatus,
             'average' => null,
             'trades' => $trades,
             'fee' => null,
@@ -972,6 +1007,148 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
+    public function create_order_ws(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @see https://api.hitbtc.com/#create-new-spot-order
+             * @see https://api.hitbtc.com/#create-margin-order
+             * @see https://api.hitbtc.com/#create-futures-order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
+             * @param {bool} [$params->margin] true for creating a margin order
+             * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+             * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
+             * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = null;
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+            list($request, $params) = $this->createOrderRequest ($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
+            $request = array_merge($request, $params);
+            if ($marketType === 'swap') {
+                return Async\await($this->trade_request('futures_new_order', $request));
+            } elseif (($marketType === 'margin') || ($marginMode !== null)) {
+                return Async\await($this->trade_request('margin_new_order', $request));
+            } else {
+                return Async\await($this->trade_request('spot_new_order', $request));
+            }
+        }) ();
+    }
+
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * @see https://api.hitbtc.com/#cancel-spot-order-2
+             * @see https://api.hitbtc.com/#cancel-futures-order-2
+             * @see https://api.hitbtc.com/#cancel-margin-order-2
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
+             * @param {bool} [$params->margin] true for canceling a margin order
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array(
+                'client_order_id' => $id,
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('cancelOrderWs', $market, $params);
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrderWs', $params);
+            $request = array_merge($request, $query);
+            if ($marketType === 'swap') {
+                return Async\await($this->trade_request('futures_cancel_order', $request));
+            } elseif (($marketType === 'margin') || ($marginMode !== null)) {
+                return Async\await($this->trade_request('margin_cancel_order', $request));
+            } else {
+                return Async\await($this->trade_request('spot_cancel_order', $request));
+            }
+        }) ();
+    }
+
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://api.hitbtc.com/#cancel-spot-orders
+             * @see https://api.hitbtc.com/#cancel-futures-order-3
+             * cancel all open orders
+             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
+             * @param {bool} [$params->margin] true for canceling margin orders
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrdersWs', $market, $params);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrdersWs', $params);
+            if ($marketType === 'swap') {
+                return Async\await($this->trade_request('futures_cancel_orders', $params));
+            } elseif (($marketType === 'margin') || ($marginMode !== null)) {
+                throw new NotSupported($this->id . ' cancelAllOrdersWs is not supported for margin orders');
+            } else {
+                return Async\await($this->trade_request('spot_cancel_orders', $params));
+            }
+        }) ();
+    }
+
+    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://api.hitbtc.com/#get-active-futures-orders-2
+             * @see https://api.hitbtc.com/#get-margin-orders
+             * @see https://api.hitbtc.com/#get-active-spot-orders
+             * fetch all unfilled currently open orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch open orders for
+             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
+             * @param {bool} [$params->margin] true for fetching open margin orders
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrdersWs', $market, $params);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrdersWs', $params);
+            if ($marketType === 'swap') {
+                return Async\await($this->trade_request('futures_get_orders', $request));
+            } elseif (($marketType === 'margin') || ($marginMode !== null)) {
+                return Async\await($this->trade_request('margin_get_orders', $request));
+            } else {
+                return Async\await($this->trade_request('spot_get_orders', $request));
+            }
+        }) ();
+    }
+
     public function handle_balance(Client $client, $message) {
         //
         //    {
@@ -1002,7 +1179,52 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
+    public function handle_order_request(Client $client, $message) {
+        //
+        // createOrderWs, cancelOrderWs
+        //
+        //    {
+        //        "jsonrpc" => "2.0",
+        //        "result" => array(
+        //            "id" => 1130310696965,
+        //            "client_order_id" => "OPC2oyHSkEBqIpPtniLqeW-597hUL3Yo",
+        //            "symbol" => "ADAUSDT",
+        //            "side" => "buy",
+        //            "status" => "new",
+        //            "type" => "limit",
+        //            "time_in_force" => "GTC",
+        //            "quantity" => "4",
+        //            "quantity_cumulative" => "0",
+        //            "price" => "0.3300000",
+        //            "post_only" => false,
+        //            "created_at" => "2023-11-17T14:58:15.903Z",
+        //            "updated_at" => "2023-11-17T14:58:15.903Z",
+        //            "original_client_order_id" => "d6b645556af740b1bd1683400fd9cbce",       // spot_replace_order only
+        //            "report_type" => "new"
+        //            "margin_mode" => "isolated",                                            // margin and future only
+        //            "reduce_only" => false,                                                 // margin and future only
+        //        ),
+        //        "id" => 1700233093414
+        //    }
+        //
+        $messageHash = $this->safe_integer($message, 'id');
+        $result = $this->safe_value($message, 'result', array());
+        if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
+            $parsedOrders = array();
+            for ($i = 0; $i < count($result); $i++) {
+                $parsedOrder = $this->parse_ws_order($result[$i]);
+                $parsedOrders[] = $parsedOrder;
+            }
+            $client->resolve ($parsedOrders, $messageHash);
+        } else {
+            $parsedOrder = $this->parse_ws_order($result);
+            $client->resolve ($parsedOrder, $messageHash);
+        }
+        return $message;
+    }
+
     public function handle_message(Client $client, $message) {
+        $this->handle_error($client, $message);
         $channel = $this->safe_string_2($message, 'ch', 'method');
         if ($channel !== null) {
             $splitChannel = explode('/', $channel);
@@ -1026,9 +1248,21 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $method($client, $message);
             }
         } else {
-            $success = $this->safe_value($message, 'result');
-            if (($success === true) && !(is_array($message) && array_key_exists('id', $message))) {
+            $result = $this->safe_value($message, 'result');
+            $clientOrderId = $this->safe_string($result, 'client_order_id');
+            if ($clientOrderId !== null) {
+                $this->handle_order_request($client, $message);
+            }
+            if (($result === true) && !(is_array($message) && array_key_exists('id', $message))) {
                 $this->handle_authenticate($client, $message);
+            }
+            if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
+                // to do improve this, not very reliable right now
+                $first = $this->safe_value($result, 0, array());
+                $arrayLength = count($result);
+                if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id', $first))) {
+                    $this->handle_order_request($client, $message);
+                }
             }
         }
     }
@@ -1053,5 +1287,30 @@ class hitbtc extends \ccxt\async\hitbtc {
             }
         }
         return $message;
+    }
+
+    public function handle_error(Client $client, $message) {
+        //
+        //    {
+        //        jsonrpc => '2.0',
+        //        $error => array(
+        //          $code => 20001,
+        //          $message => 'Insufficient funds',
+        //          $description => 'Check that the funds are sufficient, given commissions'
+        //        ),
+        //        id => 1700228604325
+        //    }
+        //
+        $error = $this->safe_value($message, 'error');
+        if ($error !== null) {
+            $code = $this->safe_value($error, 'code');
+            $errorMessage = $this->safe_string($error, 'message');
+            $description = $this->safe_string($error, 'description');
+            $feedback = $this->id . ' ' . $description;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+            throw new ExchangeError($feedback); // unknown $message
+        }
+        return null;
     }
 }
