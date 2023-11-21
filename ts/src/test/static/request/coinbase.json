@@ -30,6 +30,12 @@
                 ]
             },
             {
+                "description": "fetch balance v3",
+                "method": "fetchBalance",
+                "url": "https://api.coinbase.com/api/v3/brokerage/accounts?limit=100",
+                "input": []
+            },
+            {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
                 "url": "https://api.coinbase.com/v2/accounts?limit=100&type=swap",
