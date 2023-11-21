@@ -2120,14 +2120,16 @@ class kucoin(Exchange, ImplicitAPI):
             request['tradeType'] = self.options['marginModes'][marginMode]
             if marginMode == 'isolated' and stop:
                 raise BadRequest(self.id + ' cancelAllOrders does not support isolated margin for stop orders')
-        method = 'privateDeleteOrders'
+        response = None
         if stop:
-            method = 'privateDeleteStopOrderCancel'
+            response = self.privateDeleteStopOrderCancel(self.extend(request, query))
         elif hf:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol parameter for hf orders')
-            method = 'privateDeleteHfOrders'
-        return getattr(self, method)(self.extend(request, query))
+            response = self.privateDeleteHfOrders(self.extend(request, query))
+        else:
+            response = self.privateDeleteOrders(self.extend(request, query))
+        return response
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -2176,16 +2178,17 @@ class kucoin(Exchange, ImplicitAPI):
             request['pageSize'] = limit
         if until:
             request['endAt'] = until
-        method = 'privateGetOrders'
+        request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, 'TRADE')
+        response = None
         if stop:
-            method = 'privateGetStopOrder'
+            response = self.privateGetStopOrder(self.extend(request, query))
         elif hf:
             if lowercaseStatus == 'active':
-                method = 'privateGetHfOrdersActive'
+                response = self.privateGetHfOrdersActive(self.extend(request, query))
             elif lowercaseStatus == 'done':
-                method = 'privateGetHfOrdersDone'
-        request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, 'TRADE')
-        response = getattr(self, method)(self.extend(request, query))
+                response = self.privateGetHfOrdersDone(self.extend(request, query))
+        else:
+            response = self.privateGetOrders(self.extend(request, query))
         #
         #     {
         #         "code": "200000",
@@ -2319,33 +2322,33 @@ class kucoin(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol parameter for hf orders')
             request['symbol'] = market['id']
-        params = self.omit(params, ['stop', 'hf'])
-        method = 'privateGetOrdersOrderId'
+        params = self.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId'])
+        response = None
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
             if stop:
-                method = 'privateGetStopOrderQueryOrderByClientOid'
                 if symbol is not None:
                     request['symbol'] = market['id']
+                response = self.privateGetStopOrderQueryOrderByClientOid(self.extend(request, params))
             elif hf:
-                method = 'privateGetHfOrdersClientOrderClientOid'
+                response = self.privateGetHfOrdersClientOrderClientOid(self.extend(request, params))
             else:
-                method = 'privateGetOrderClientOrderClientOid'
+                response = self.privateGetOrderClientOrderClientOid(self.extend(request, params))
         else:
             # a special case for None ids
             # otherwise a wrong endpoint for all orders will be triggered
             # https://github.com/ccxt/ccxt/issues/7234
             if id is None:
                 raise InvalidOrder(self.id + ' fetchOrder() requires an order id')
-            if stop:
-                method = 'privateGetStopOrderOrderId'
-            elif hf:
-                method = 'privateGetHfOrdersOrderId'
             request['orderId'] = id
-        params = self.omit(params, ['clientOid', 'clientOrderId'])
-        response = getattr(self, method)(self.extend(request, params))
+            if stop:
+                response = self.privateGetStopOrderOrderId(self.extend(request, params))
+            elif hf:
+                response = self.privateGetHfOrdersOrderId(self.extend(request, params))
+            else:
+                response = self.privateGetOrdersOrderId(self.extend(request, params))
         responseData = self.safe_value(response, 'data')
-        if method == 'privateGetStopOrderQueryOrderByClientOid':
+        if isinstance(responseData, list):
             responseData = self.safe_value(responseData, 0)
         return self.parse_order(responseData, market)
 
@@ -2572,28 +2575,24 @@ class kucoin(Exchange, ImplicitAPI):
             request['pageSize'] = limit
         method = self.options['fetchMyTradesMethod']
         parseResponseData = False
+        response = None
+        request, params = self.handle_until_option('endAt', request, params)
         if hf:
-            method = 'privateGetHfFills'
+            response = self.privateGetHfFills(self.extend(request, params))
         elif method == 'private_get_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
             if since is not None:
                 # only returns trades up to one week after the since param
                 request['startAt'] = since
+            response = self.privateGetFills(self.extend(request, params))
         elif method == 'private_get_limit_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
             # takes no params
             # only returns first 1000 trades(not only "in the last 24 hours" in the docs)
             parseResponseData = True
-        elif method == 'private_get_hist_orders':
-            # despite that self endpoint is called `HistOrders`
-            # it returns historical trades instead of orders
-            # returns trades earlier than 2019-02-18T00:00:00Z only
-            if since is not None:
-                request['startAt'] = self.parse_to_int(since / 1000)
+            response = self.privateGetLimitFills(self.extend(request, params))
         else:
             raise ExchangeError(self.id + ' fetchMyTradesMethod() invalid method')
-        request, params = self.handle_until_option('endAt', request, params)
-        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "currentPage": 1,
@@ -3008,8 +3007,6 @@ class kucoin(Exchange, ImplicitAPI):
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        :see: https://docs.kucoin.com/#get-deposit-list
-        :see: https://docs.kucoin.com/#get-v1-historical-deposits-list
         fetch all deposits made to an account
         :see: https://docs.kucoin.com/#get-deposit-list
         :see: https://docs.kucoin.com/#get-v1-historical-deposits-list
@@ -3033,16 +3030,16 @@ class kucoin(Exchange, ImplicitAPI):
             request['currency'] = currency['id']
         if limit is not None:
             request['pageSize'] = limit
-        method = 'privateGetDeposits'
-        if since is not None:
-            # if since is earlier than 2019-02-18T00:00:00Z
-            if since < 1550448000000:
-                request['startAt'] = self.parse_to_int(since / 1000)
-                method = 'privateGetHistDeposits'
-            else:
-                request['startAt'] = since
         request, params = self.handle_until_option('endAt', request, params)
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if since is not None and since < 1550448000000:
+            # if since is earlier than 2019-02-18T00:00:00Z
+            request['startAt'] = self.parse_to_int(since / 1000)
+            response = self.privateGetHistDeposits(self.extend(request, params))
+        else:
+            if since is not None:
+                request['startAt'] = since
+            response = self.privateGetDeposits(self.extend(request, params))
         #
         #     {
         #         "code": "200000",
@@ -3109,16 +3106,16 @@ class kucoin(Exchange, ImplicitAPI):
             request['currency'] = currency['id']
         if limit is not None:
             request['pageSize'] = limit
-        method = 'privateGetWithdrawals'
-        if since is not None:
-            # if since is earlier than 2019-02-18T00:00:00Z
-            if since < 1550448000000:
-                request['startAt'] = self.parse_to_int(since / 1000)
-                method = 'privateGetHistWithdrawals'
-            else:
-                request['startAt'] = since
         request, params = self.handle_until_option('endAt', request, params)
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if since is not None and since < 1550448000000:
+            # if since is earlier than 2019-02-18T00:00:00Z
+            request['startAt'] = self.parse_to_int(since / 1000)
+            response = self.privateGetHistWithdrawals(self.extend(request, params))
+        else:
+            if since is not None:
+                request['startAt'] = since
+            response = self.privateGetWithdrawals(self.extend(request, params))
         #
         #     {
         #         "code": "200000",
@@ -3192,21 +3189,21 @@ class kucoin(Exchange, ImplicitAPI):
         type = self.safe_string(accountsByType, requestedType, requestedType)
         params = self.omit(params, 'type')
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
-        method = 'privateGetAccounts'
+        response = None
         request = {}
         isolated = (marginMode == 'isolated') or (type == 'isolated')
         cross = (marginMode == 'cross') or (type == 'cross')
         if isolated:
-            method = 'privateGetIsolatedAccounts'
             if currency is not None:
                 request['balanceCurrency'] = currency['id']
+            response = self.privateGetIsolatedAccounts(self.extend(request, query))
         elif cross:
-            method = 'privateGetMarginAccount'
+            response = self.privateGetMarginAccount(self.extend(request, query))
         else:
             if currency is not None:
                 request['currency'] = currency['id']
             request['type'] = type
-        response = getattr(self, method)(self.extend(request, query))
+            response = self.privateGetAccounts(self.extend(request, query))
         #
         # Spot and Cross
         #
@@ -3711,39 +3708,34 @@ class kucoin(Exchange, ImplicitAPI):
         if marginMode is None:
             marginMode = 'cross'  # cross marginMode
         request = {}
-        method = 'privateGetMarginBorrowOutstanding'
+        response = None
+        if code is not None:
+            currency = self.currency(code)
+            request['quoteCurrency'] = currency['id']
         if marginMode == 'isolated':
-            if code is not None:
-                currency = self.currency(code)
-                request['balanceCurrency'] = currency['id']
-            method = 'privateGetIsolatedAccounts'
+            response = self.privateGetIsolatedAccounts(self.extend(request, params))
         else:
-            if code is not None:
-                currency = self.currency(code)
-                request['currency'] = currency['id']
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privateGetMarginAccounts(self.extend(request, params))
         #
         # Cross
         #
         #     {
         #         "code": "200000",
         #         "data": {
-        #             "currentPage": 1,
-        #             "pageSize": 10,
-        #             "totalNum": 1,
-        #             "totalPage": 1,
-        #             "items": [
+        #             "totalAssetOfQuoteCurrency": "0",
+        #             "totalLiabilityOfQuoteCurrency": "0",
+        #             "debtRatio": "0",
+        #             "status": "EFFECTIVE",
+        #             "accounts": [
         #                 {
-        #                     "tradeId": "62e1e320ff219600013b44e2",
-        #                     "currency": "USDT",
-        #                     "principal": "100",
-        #                     "accruedInterest": "0.00016667",
-        #                     "liability": "100.00016667",
-        #                     "repaidSize": "0",
-        #                     "dailyIntRate": "0.00004",
-        #                     "term": 7,
-        #                     "createdAt": 1658970912000,
-        #                     "maturityTime": 1659575713000
+        #                     "currency": "1INCH",
+        #                     "total": "0",
+        #                     "available": "0",
+        #                     "hold": "0",
+        #                     "liability": "0",
+        #                     "maxBorrowSize": "0",
+        #                     "borrowEnabled": True,
+        #                     "transferInEnabled": True
         #                 }
         #             ]
         #         }
@@ -3758,34 +3750,38 @@ class kucoin(Exchange, ImplicitAPI):
         #             "liabilityConversionBalance": "0.01480001",
         #             "assets": [
         #                 {
-        #                     "symbol": "NKN-USDT",
-        #                     "status": "CLEAR",
+        #                     "symbol": "MANA-USDT",
         #                     "debtRatio": "0",
+        #                     "status": "BORROW",
         #                     "baseAsset": {
-        #                         "currency": "NKN",
-        #                         "totalBalance": "0",
-        #                         "holdBalance": "0",
-        #                         "availableBalance": "0",
-        #                         "liability": "0",
-        #                         "interest": "0",
-        #                         "borrowableAmount": "0"
+        #                         "currency": "MANA",
+        #                         "borrowEnabled": True,
+        #                         "repayEnabled": True,
+        #                         "transferEnabled": True,
+        #                         "borrowed": "0",
+        #                         "totalAsset": "0",
+        #                         "available": "0",
+        #                         "hold": "0",
+        #                         "maxBorrowSize": "1000"
         #                     },
         #                     "quoteAsset": {
         #                         "currency": "USDT",
-        #                         "totalBalance": "0",
-        #                         "holdBalance": "0",
-        #                         "availableBalance": "0",
-        #                         "liability": "0",
-        #                         "interest": "0",
-        #                         "borrowableAmount": "0"
+        #                         "borrowEnabled": True,
+        #                         "repayEnabled": True,
+        #                         "transferEnabled": True,
+        #                         "borrowed": "0",
+        #                         "totalAsset": "0",
+        #                         "available": "0",
+        #                         "hold": "0",
+        #                         "maxBorrowSize": "50000"
         #                     }
-        #                 },
+        #                 }
         #             ]
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        assets = self.safe_value(data, 'assets', []) if (marginMode == 'isolated') else self.safe_value(data, 'items', [])
+        assets = self.safe_value(data, 'assets', []) if (marginMode == 'isolated') else self.safe_value(data, 'accounts', [])
         return self.parse_borrow_interests(assets, None)
 
     def parse_borrow_interest(self, info, market: Market = None):
@@ -3793,43 +3789,45 @@ class kucoin(Exchange, ImplicitAPI):
         # Cross
         #
         #     {
-        #         "tradeId": "62e1e320ff219600013b44e2",
-        #         "currency": "USDT",
-        #         "principal": "100",
-        #         "accruedInterest": "0.00016667",
-        #         "liability": "100.00016667",
-        #         "repaidSize": "0",
-        #         "dailyIntRate": "0.00004",
-        #         "term": 7,
-        #         "createdAt": 1658970912000,
-        #         "maturityTime": 1659575713000
-        #     },
+        #         "currency": "1INCH",
+        #         "total": "0",
+        #         "available": "0",
+        #         "hold": "0",
+        #         "liability": "0",
+        #         "maxBorrowSize": "0",
+        #         "borrowEnabled": True,
+        #         "transferInEnabled": True
+        #     }
         #
         # Isolated
         #
         #     {
-        #         "symbol": "BTC-USDT",
-        #         "status": "CLEAR",
+        #         "symbol": "MANA-USDT",
         #         "debtRatio": "0",
+        #         "status": "BORROW",
         #         "baseAsset": {
-        #             "currency": "BTC",
-        #             "totalBalance": "0",
-        #             "holdBalance": "0",
-        #             "availableBalance": "0",
-        #             "liability": "0",
-        #             "interest": "0",
-        #             "borrowableAmount": "0.0592"
+        #             "currency": "MANA",
+        #             "borrowEnabled": True,
+        #             "repayEnabled": True,
+        #             "transferEnabled": True,
+        #             "borrowed": "0",
+        #             "totalAsset": "0",
+        #             "available": "0",
+        #             "hold": "0",
+        #             "maxBorrowSize": "1000"
         #         },
         #         "quoteAsset": {
         #             "currency": "USDT",
-        #             "totalBalance": "149.99991731",
-        #             "holdBalance": "0",
-        #             "availableBalance": "149.99991731",
-        #             "liability": "0",
-        #             "interest": "0",
-        #             "borrowableAmount": "1349"
+        #             "borrowEnabled": True,
+        #             "repayEnabled": True,
+        #             "transferEnabled": True,
+        #             "borrowed": "0",
+        #             "totalAsset": "0",
+        #             "available": "0",
+        #             "hold": "0",
+        #             "maxBorrowSize": "50000"
         #         }
-        #     },
+        #     }
         #
         marketId = self.safe_string(info, 'symbol')
         marginMode = 'cross' if (marketId is None) else 'isolated'
@@ -3845,7 +3843,7 @@ class kucoin(Exchange, ImplicitAPI):
             interest = self.safe_number(isolatedBase, 'interest')
             currencyId = self.safe_string(isolatedBase, 'currency')
         else:
-            amountBorrowed = self.safe_number(info, 'principal')
+            amountBorrowed = self.safe_number(info, 'liability')
             interest = self.safe_number(info, 'accruedInterest')
             currencyId = self.safe_string(info, 'currency')
         return {

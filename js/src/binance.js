@@ -260,6 +260,7 @@ export default class binance extends Exchange {
                         'margin/capital-flow': 10,
                         'margin/delist-schedule': 10,
                         'margin/available-inventory': 0.3334,
+                        'margin/leverageBracket': 0.1,
                         'loan/vip/loanable/data': 40,
                         'loan/vip/collateral/data': 40,
                         'loan/vip/request/data': 2.6668,

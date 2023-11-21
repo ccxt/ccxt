@@ -279,6 +279,7 @@ class binance(Exchange, ImplicitAPI):
                         'margin/capital-flow': 10,  # Weight(IP): 100 => cost = 0.1 * 100 = 10
                         'margin/delist-schedule': 10,  # Weight(IP): 100 => cost = 0.1 * 100 = 10
                         'margin/available-inventory': 0.3334,  # Weight(UID): 50 => cost = 0.006667 * 50 = 0.3334
+                        'margin/leverageBracket': 0.1,  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'loan/vip/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/request/data': 2.6668,  # Weight(UID): 400 => cost = 0.006667 * 400 = 2.6668
