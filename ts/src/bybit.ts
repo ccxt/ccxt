@@ -5673,7 +5673,7 @@ export default class bybit extends Exchange {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         let symbol = undefined;
-        if (Array.isArray (symbols)) {
+        if ((symbols !== undefined) && Array.isArray (symbols)) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
