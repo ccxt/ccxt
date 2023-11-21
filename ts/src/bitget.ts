@@ -2398,7 +2398,7 @@ export default class bitget extends Exchange {
         //       "data": {
         //         "asks": [ [ "39102", "11.026" ] ],
         //         "bids": [ [ '39100.5', "1.773" ] ],
-        //         "timestamp": "1645854610294"
+        //         "ts": "1645854610294"
         //       }
         //     }
         //
@@ -2409,118 +2409,100 @@ export default class bitget extends Exchange {
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         //
-        // spot
+        // spot: fetchTicker, fetchTickers
+        //
+        //     {
+        //         "open": "37202.46",
+        //         "symbol": "BTCUSDT",
+        //         "high24h": "37744.75",
+        //         "low24h": "36666",
+        //         "lastPr": "37583.69",
+        //         "quoteVolume": "519127705.303",
+        //         "baseVolume": "13907.0386",
+        //         "usdtVolume": "519127705.302908",
+        //         "ts": "1700532903261",
+        //         "bidPr": "37583.68",
+        //         "askPr": "37583.69",
+        //         "bidSz": "0.0007",
+        //         "askSz": "0.0829",
+        //         "openUtc": "37449.4",
+        //         "changeUtc24h": "0.00359",
+        //         "change24h": "0.00321"
+        //     }
+        //
+        // swap and future: fetchTicker
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "high24h": "40252.43",
-        //         "low24h": "38548.54",
-        //         "close": "39102.16",
-        //         "quoteVol": "67295596.1458",
-        //         "baseVol": "1723.4152",
-        //         "usdtVol": "67295596.14578",
-        //         "ts": "1645856170030",
-        //         "buyOne": "39096.16",
-        //         "sellOne": "39103.99"
+        //         "lastPr": "37577.2",
+        //         "askPr": "37577.3",
+        //         "bidPr": "37577.2",
+        //         "bidSz": "3.679",
+        //         "askSz": "0.02",
+        //         "high24h": "37765",
+        //         "low24h": "36628.9",
+        //         "ts": "1700533070359",
+        //         "change24h": "0.00288",
+        //         "baseVolume": "108606.181",
+        //         "quoteVolume": "4051316303.9608",
+        //         "usdtVolume": "4051316303.9608",
+        //         "openUtc": "37451.5",
+        //         "changeUtc24h": "0.00336",
+        //         "indexPrice": "37574.489253",
+        //         "fundingRate": "0.0001",
+        //         "holdingAmount": "53464.529",
+        //         "deliveryStartTime": null,
+        //         "deliveryTime": null,
+        //         "deliveryStatus": "",
+        //         "open24h": "37235.7"
         //     }
         //
-        // swap
+        // swap and future: fetchTickers
         //
         //     {
-        //         "symbol": "BTCUSDT_UMCBL",
-        //         "last": "39086",
-        //         "bestAsk": "39087",
-        //         "bestBid": "39086",
-        //         "high24h": "40312",
-        //         "low24h": "38524.5",
-        //         "timestamp": "1645856591864",
-        //         "priceChangePercent": "-0.00861",
-        //         "baseVolume": "142251.757",
-        //         "quoteVolume": "5552388715.9215",
-        //         "usdtVolume": "5552388715.9215"
+        //         "open": "14.9776",
+        //         "symbol": "LINKUSDT",
+        //         "high24h": "15.3942",
+        //         "low24h": "14.3457",
+        //         "lastPr": "14.3748",
+        //         "quoteVolume": "7008612.4299",
+        //         "baseVolume": "469908.8523",
+        //         "usdtVolume": "7008612.42986561",
+        //         "ts": "1700533772309",
+        //         "bidPr": "14.375",
+        //         "askPr": "14.3769",
+        //         "bidSz": "50.004",
+        //         "askSz": "0.7647",
+        //         "openUtc": "14.478",
+        //         "changeUtc24h": "-0.00713",
+        //         "change24h": "-0.04978"
         //     }
-        // spot tickers
-        //    {
-        //        "symbol":"LINKUSDT",
-        //        "high24h":"5.2816",
-        //        "low24h":"5.0828",
-        //        "close":"5.24",
-        //        "quoteVol":"1427864.6815",
-        //        "baseVol":"276089.9017",
-        //        "usdtVol":"1427864.68148328",
-        //        "ts":"1686653354407",
-        //        "buyOne":"5.239",
-        //        "sellOne":"5.2404",
-        //        "+":"95.187",
-        //        "askSz":"947.6127",
-        //        "openUtc0":"5.1599",
-        //        "changeUtc":"0.01552",
-        //        "change":"0.02594"
-        //    }
-        // swap tickers
-        //    {
-        //        "symbol":"BTCUSDT_UMCBL",
-        //        "last":"26139",
-        //        "bestAsk":"26139",
-        //        "bestBid":"26138.5",
-        //        "bidSz":"4.62",
-        //        "askSz":"11.142",
-        //        "high24h":"26260",
-        //        "low24h":"25637",
-        //        "timestamp":"1686653988192",
-        //        "priceChangePercent":"0.01283",
-        //        "baseVolume":"130207.098",
-        //        "quoteVolume":"3378775678.441",
-        //        "usdtVolume":"3378775678.441",
-        //        "openUtc":"25889",
-        //        "chgUtc":"0.00966",
-        //        "indexPrice":"26159.375846",
-        //        "fundingRate":"0.000062",
-        //        "holdingAmount":"74551.735"
-        //    }
         //
-        let marketId = this.safeString (ticker, 'symbol');
-        if ((market === undefined) && (marketId !== undefined) && (marketId.indexOf ('_') === -1)) {
-            // fetchTickers fix:
-            // spot symbol are different from the "request id"
-            // so we need to convert it to the exchange-specific id
-            // otherwise we will not be able to find the market
-            marketId = marketId + '_SPBL';
-        }
+        const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const high = this.safeString (ticker, 'high24h');
-        const low = this.safeString (ticker, 'low24h');
-        const close = this.safeString2 (ticker, 'close', 'last');
-        const quoteVolume = this.safeString2 (ticker, 'quoteVol', 'quoteVolume');
-        const baseVolume = this.safeString2 (ticker, 'baseVol', 'baseVolume');
-        const timestamp = this.safeInteger2 (ticker, 'ts', 'timestamp');
-        const bidVolume = this.safeString (ticker, 'bidSz');
-        const askVolume = this.safeString (ticker, 'askSz');
-        const datetime = this.iso8601 (timestamp);
-        const bid = this.safeString2 (ticker, 'buyOne', 'bestBid');
-        const ask = this.safeString2 (ticker, 'sellOne', 'bestAsk');
-        const percentage = Precise.stringMul (this.safeStringN (ticker, [ 'priceChangePercent', 'changeUtc', 'change', 'chgUtc' ]), '100');
-        const open = this.safeString2 (ticker, 'openUtc0', 'openUtc');
+        const close = this.safeString (ticker, 'lastPr');
+        const timestamp = this.safeInteger (ticker, 'ts');
+        const change = this.safeString (ticker, 'change24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'bidVolume': bidVolume,
-            'ask': ask,
-            'askVolume': askVolume,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low24h'),
+            'bid': this.safeString (ticker, 'bidPr'),
+            'bidVolume': this.safeString (ticker, 'bidSz'),
+            'ask': this.safeString (ticker, 'askPr'),
+            'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
-            'open': open,
+            'open': this.safeString2 (ticker, 'open', 'open24h'),
             'close': close,
-            'last': undefined,
+            'last': close,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': percentage,
+            'change': change,
+            'percentage': Precise.stringMul (change, '100'),
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
         }, market);
     }
@@ -2530,8 +2512,8 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-single-ticker
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-single-symbol-ticker
+         * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -2542,33 +2524,79 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        const extended = this.extend (request, params);
         if (market['spot']) {
-            response = await this.publicSpotGetSpotV1MarketTicker (extended);
+            response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
-            response = await this.publicMixGetMixV1MarketTicker (extended);
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            response = await this.publicMixGetV2MixMarketTicker (this.extend (request, params));
         }
+        //
+        // spot
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": "1645856138576",
-        //         "data": {
-        //             "symbol": "BTCUSDT",
-        //             "high24h": "40252.43",
-        //             "low24h": "38548.54",
-        //             "close": "39104.65",
-        //             "quoteVol": "67221762.2184",
-        //             "baseVol": "1721.527",
-        //             "usdtVol": "67221762.218361",
-        //             "ts": "1645856138031",
-        //             "buyOne": "39102.55",
-        //             "sellOne": "39110.56"
-        //         }
+        //         "requestTime": 1700532903782,
+        //         "data": [
+        //             {
+        //                 "open": "37202.46",
+        //                 "symbol": "BTCUSDT",
+        //                 "high24h": "37744.75",
+        //                 "low24h": "36666",
+        //                 "lastPr": "37583.69",
+        //                 "quoteVolume": "519127705.303",
+        //                 "baseVolume": "13907.0386",
+        //                 "usdtVolume": "519127705.302908",
+        //                 "ts": "1700532903261",
+        //                 "bidPr": "37583.68",
+        //                 "askPr": "37583.69",
+        //                 "bidSz": "0.0007",
+        //                 "askSz": "0.0829",
+        //                 "openUtc": "37449.4",
+        //                 "changeUtc24h": "0.00359",
+        //                 "change24h": "0.00321"
+        //             }
+        //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
-        return this.parseTicker (data, market);
+        // swap and future
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700533070357,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "lastPr": "37577.2",
+        //                 "askPr": "37577.3",
+        //                 "bidPr": "37577.2",
+        //                 "bidSz": "3.679",
+        //                 "askSz": "0.02",
+        //                 "high24h": "37765",
+        //                 "low24h": "36628.9",
+        //                 "ts": "1700533070359",
+        //                 "change24h": "0.00288",
+        //                 "baseVolume": "108606.181",
+        //                 "quoteVolume": "4051316303.9608",
+        //                 "usdtVolume": "4051316303.9608",
+        //                 "openUtc": "37451.5",
+        //                 "changeUtc24h": "0.00336",
+        //                 "indexPrice": "37574.489253",
+        //                 "fundingRate": "0.0001",
+        //                 "holdingAmount": "53464.529",
+        //                 "deliveryStartTime": null,
+        //                 "deliveryTime": null,
+        //                 "deliveryStatus": "",
+        //                 "open24h": "37235.7"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTicker (data[0], market);
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -2576,85 +2604,91 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
+         * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
+         * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
-        let type = undefined;
         let market = undefined;
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request = {};
-        if (type !== 'spot') {
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params);
-            let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
-            if (sandboxMode) {
-                productType = 'S' + productType;
-            }
-            request['productType'] = productType;
-        }
-        const extended = this.extend (request, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.publicSpotGetSpotV1MarketTickers (extended);
+            if (symbols !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            response = await this.publicSpotGetV2SpotMarketTickers (this.extend (request, params));
         } else {
-            response = await this.publicMixGetMixV1MarketTickers (extended);
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            response = await this.publicMixGetV2MixMarketTickers (this.extend (request, params));
         }
         //
         // spot
         //
         //     {
-        //         "code":"00000",
-        //         "msg":"success",
-        //         "requestTime":1653237548496,
-        //         "data":[
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700532903782,
+        //         "data": [
         //             {
-        //                 "symbol":"LINKUSDT",
-        //                 "high24h":"7.2634",
-        //                 "low24h":"7.1697",
-        //                 "close":"7.2444",
-        //                 "quoteVol":"330424.2366",
-        //                 "baseVol":"46401.3116",
-        //                 "usdtVol":"330424.2365573",
-        //                 "ts":"1653237548026",
-        //                 "buyOne":"7.2382",
-        //                 "sellOne":"7.2513"
-        //             },
+        //                 "open": "37202.46",
+        //                 "symbol": "BTCUSDT",
+        //                 "high24h": "37744.75",
+        //                 "low24h": "36666",
+        //                 "lastPr": "37583.69",
+        //                 "quoteVolume": "519127705.303",
+        //                 "baseVolume": "13907.0386",
+        //                 "usdtVolume": "519127705.302908",
+        //                 "ts": "1700532903261",
+        //                 "bidPr": "37583.68",
+        //                 "askPr": "37583.69",
+        //                 "bidSz": "0.0007",
+        //                 "askSz": "0.0829",
+        //                 "openUtc": "37449.4",
+        //                 "changeUtc24h": "0.00359",
+        //                 "change24h": "0.00321"
+        //             }
         //         ]
         //     }
         //
-        // swap
+        // swap and future
         //
         //     {
-        //         "code":"00000",
-        //         "msg":"success",
-        //         "requestTime":1653237819762,
-        //         "data":[
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700533773477,
+        //         "data": [
         //             {
-        //                 "symbol":"BTCUSDT_UMCBL",
-        //                 "last":"29891.5",
-        //                 "bestAsk":"29891.5",
-        //                 "bestBid":"29889.5",
-        //                 "high24h":"29941.5",
-        //                 "low24h":"29737.5",
-        //                 "timestamp":"1653237819761",
-        //                 "priceChangePercent":"0.00163",
-        //                 "baseVolume":"127937.56",
-        //                 "quoteVolume":"3806276573.6285",
-        //                 "usdtVolume":"3806276573.6285"
+        //                 "open": "14.9776",
+        //                 "symbol": "LINKUSDT",
+        //                 "high24h": "15.3942",
+        //                 "low24h": "14.3457",
+        //                 "lastPr": "14.3748",
+        //                 "quoteVolume": "7008612.4299",
+        //                 "baseVolume": "469908.8523",
+        //                 "usdtVolume": "7008612.42986561",
+        //                 "ts": "1700533772309",
+        //                 "bidPr": "14.375",
+        //                 "askPr": "14.3769",
+        //                 "bidSz": "50.004",
+        //                 "askSz": "0.7647",
+        //                 "openUtc": "14.478",
+        //                 "changeUtc24h": "-0.00713",
+        //                 "change24h": "-0.04978"
         //             },
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
 
