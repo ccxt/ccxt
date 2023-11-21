@@ -153,8 +153,8 @@ public partial class Exchange
             this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.stringifyObject(body) + "\n");
 
         // add headers
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Clear();
         var headersList = new List<string>(headers.Keys);
 
         var contentType = "";
@@ -186,7 +186,7 @@ public partial class Exchange
 
             if (method == "GET")
             {
-                response = await this.client.GetAsync(url);
+                response = await this.httpClient.GetAsync(url);
                 result = await response.Content.ReadAsStringAsync();
             }
             else
@@ -200,15 +200,15 @@ public partial class Exchange
                 var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
                 if (method == "POST")
                 {
-                    response = await this.client.PostAsync(url, stringContent);
+                    response = await this.httpClient.PostAsync(url, stringContent);
                 }
                 else if (method == "DELETE")
                 {
-                    response = await this.client.DeleteAsync(url);
+                    response = await this.httpClient.DeleteAsync(url);
                 }
                 else if (method == "PUT")
                 {
-                    response = await this.client.PutAsync(url, stringContent);
+                    response = await this.httpClient.PutAsync(url, stringContent);
                 }
                 else if (method == "PATCH")
                 {
@@ -220,7 +220,7 @@ public partial class Exchange
                         Content = stringContent
                     };
 
-                    response = await client.SendAsync(request);
+                    response = await httpClient.SendAsync(request);
                 }
                 result = await response.Content.ReadAsStringAsync();
             }

@@ -605,7 +605,9 @@ class NewTranspiler {
         // WS fixes
         if (ws) {
             // content = content.replace(/Dictionary<string, object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients');
-            // content = content.replace(/Dictionary<string, object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
+            content = content.replace(/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions');
+            content = content.replace(/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
+            content = content.replace(/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients');
             content = content.replace(/(orderbook)(\.reset.+)/gm, '($1 as ccxt.OrderBook)$2');
             content = content.replace(/(\w+)(\.cache)/gm, '($1 as ccxt.OrderBook)$2');
             content = content.replace(/(\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2');
