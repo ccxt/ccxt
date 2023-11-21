@@ -38,8 +38,9 @@ export default class htx extends htxRest {
                     'ws': {
                         'api': {
                             'spot': {
-                                'public': 'wss://{hostname}/feed',
+                                'public': 'wss://{hostname}/ws',
                                 'private': 'wss://{hostname}/ws/v2',
+                                'feed': 'wss://{hostname}/feed',
                             },
                             'future': {
                                 'linear': {
@@ -67,6 +68,7 @@ export default class htx extends htxRest {
                             'spot': {
                                 'public': 'wss://api-aws.huobi.pro/ws',
                                 'private': 'wss://api-aws.huobi.pro/ws/v2',
+                                'feed': 'wss://{hostname}/feed',
                             },
                             'future': {
                                 'linear': {
@@ -356,7 +358,7 @@ export default class htx extends htxRest {
         } else {
             messageHash = 'market.' + market['id'] + '.depth.size_' + limit.toString () + '.high_freq';
         }
-        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
         if (!market['spot']) {
             params = this.extend (params);
@@ -448,7 +450,7 @@ export default class htx extends htxRest {
         const params = this.safeValue (subscription, 'params');
         const attempts = this.safeInteger (subscription, 'numAttempts', 0);
         const market = this.market (symbol);
-        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         const requestId = this.requestId ();
         const request = {
             'req': messageHash,
@@ -2223,7 +2225,7 @@ export default class htx extends htxRest {
         }, market);
     }
 
-    getUrlByMarketType (type, isLinear = true, isPrivate = false) {
+    getUrlByMarketType (type, isLinear = true, isPrivate = false, isFeed = false) {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         let hostnameURL = undefined;
@@ -2232,7 +2234,11 @@ export default class htx extends htxRest {
             if (isPrivate) {
                 hostnameURL = this.urls['api']['ws'][api]['spot']['private'];
             } else {
-                hostnameURL = this.urls['api']['ws'][api]['spot']['public'];
+                if (isFeed) {
+                    hostnameURL = this.urls['api']['ws'][api]['spot']['feed'];
+                } else {
+                    hostnameURL = this.urls['api']['ws'][api]['spot']['public'];
+                }
             }
             url = this.implodeParams (hostnameURL, hostname);
         } else {
