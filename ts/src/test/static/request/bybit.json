@@ -351,6 +351,24 @@
                 "input": []
             }
         ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "linear swap",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.bybit.com/v5/position/list?symbol=BTCUSDT&category=linear",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.bybit.com/v5/position/list?symbol=BTCUSD&category=inverse",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch default balance",

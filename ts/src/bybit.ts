@@ -83,6 +83,7 @@ export default class bybit extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
@@ -5513,16 +5514,7 @@ export default class bybit extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    async fetchPosition (symbol: string, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchPosition
-         * @description fetch data on a single open contract trade position
-         * @see https://bybit-exchange.github.io/docs/v5/position
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} [params] extra parameters specific to the bybit api endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
+    async fetchPositionHelper (symbol: string, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
         }
@@ -5584,14 +5576,46 @@ export default class bybit extends Exchange {
         //         "time": 1672280219169
         //     }
         //
+        return response;
+    }
+
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchPosition
+         * @description fetch position for a symbol
+         * @see https://bybit-exchange.github.io/docs/v5/position
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const response = await this.fetchPositionHelper (symbol, params);
         const result = this.safeValue (response, 'result', {});
         const positions = this.safeValue2 (result, 'list', 'dataList', []);
         const timestamp = this.safeInteger (response, 'time');
         const first = this.safeValue (positions, 0, {});
+        const market = this.market (symbol);
         const position = this.parsePosition (first, market);
         position['timestamp'] = timestamp;
         position['datetime'] = this.iso8601 (timestamp);
         return position;
+    }
+
+    async fetchPositionsForSymbol (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchPositionsForSymbol
+         * @description fetch all open positions for specific symbol
+         * @see https://bybit-exchange.github.io/docs/v5/position
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const response = await this.fetchPositionHelper (symbol, params);
+        const result = this.safeValue (response, 'result', {});
+        const rawPositions = this.safeValue (result, 'list', []);
+        const market = this.market (symbol);
+        return this.parsePositions (rawPositions, [ market['symbol'] ], params);
     }
 
     async fetchUsdcPositions (symbols: Strings = undefined, params = {}) {
