@@ -23,6 +23,15 @@ class htx(ccxt.async_support.htx):
         return self.deep_extend(super(htx, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
+                'fetchTradesWs': False,
+                'fetchBalanceWs': False,
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTickers': False,
@@ -39,6 +48,7 @@ class htx(ccxt.async_support.htx):
                             'spot': {
                                 'public': 'wss://{hostname}/ws',
                                 'private': 'wss://{hostname}/ws/v2',
+                                'feed': 'wss://{hostname}/feed',
                             },
                             'future': {
                                 'linear': {
@@ -66,6 +76,7 @@ class htx(ccxt.async_support.htx):
                             'spot': {
                                 'public': 'wss://api-aws.huobi.pro/ws',
                                 'private': 'wss://api-aws.huobi.pro/ws/v2',
+                                'feed': 'wss://{hostname}/feed',
                             },
                             'future': {
                                 'linear': {
@@ -130,7 +141,7 @@ class htx(ccxt.async_support.htx):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -197,7 +208,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -313,24 +324,25 @@ class htx(ccxt.async_support.htx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        allowedSpotLimits = [150]
-        allowedSwapLimits = [20, 150]
-        limit = 150 if (limit is None) else limit
-        if market['spot'] and not self.in_array(limit, allowedSpotLimits):
-            raise ExchangeError(self.id + ' watchOrderBook spot market accepts limits of 150 only')
-        if not market['spot'] and not self.in_array(limit, allowedSwapLimits):
+        allowedLimits = [20, 150]
+        # 2) 5-level/20-level incremental MBP is a tick by tick feed,
+        # which means whenever there is an order book change at that level, it pushes an update
+        # 150-levels/400-level incremental MBP feed is based on the gap
+        # between two snapshots at 100ms interval.
+        limit = 20 if (limit is None) else limit
+        if not self.in_array(limit, allowedLimits):
             raise ExchangeError(self.id + ' watchOrderBook swap market accepts limits of 20 and 150 only')
         messageHash = None
         if market['spot']:
             messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
         else:
             messageHash = 'market.' + market['id'] + '.depth.size_' + str(limit) + '.high_freq'
-        url = self.get_url_by_market_type(market['type'], market['linear'])
+        url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         method = self.handle_order_book_subscription
         if not market['spot']:
             params = self.extend(params)
@@ -364,6 +376,7 @@ class htx(ccxt.async_support.htx):
         symbol = self.safe_string(subscription, 'symbol')
         messageHash = self.safe_string(subscription, 'messageHash')
         id = self.safe_string(message, 'id')
+        lastTimestamp = self.safe_integer(subscription, 'lastTimestamp')
         try:
             orderbook = self.orderbooks[symbol]
             data = self.safe_value(message, 'data')
@@ -371,16 +384,15 @@ class htx(ccxt.async_support.htx):
             firstMessage = self.safe_value(messages, 0, {})
             snapshot = self.parse_order_book(data, symbol)
             tick = self.safe_value(firstMessage, 'tick')
-            sequence = self.safe_integer(tick, 'seqNum')
+            sequence = self.safe_integer(tick, 'prevSeqNum')
             nonce = self.safe_integer(data, 'seqNum')
             snapshot['nonce'] = nonce
-            timestamp = self.safe_integer(message, 'ts')
-            snapshot['timestamp'] = timestamp
-            snapshot['datetime'] = self.iso8601(timestamp)
+            snapshotTimestamp = self.safe_integer(message, 'ts')
+            subscription['lastTimestamp'] = snapshotTimestamp
             snapshotLimit = self.safe_integer(subscription, 'limit')
             snapshotOrderBook = self.order_book(snapshot, snapshotLimit)
             client.resolve(snapshotOrderBook, id)
-            if (sequence is not None) and (nonce < sequence):
+            if (sequence is None) or (nonce < sequence):
                 maxAttempts = self.handle_option('watchOrderBook', 'maxRetries', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to synchronize if we have not reached maxAttempts yet
@@ -388,9 +400,10 @@ class htx(ccxt.async_support.htx):
                     # safety guard
                     if messageHash in client.subscriptions:
                         numAttempts = self.sum(numAttempts, 1)
+                        delayTime = self.sum(1000, lastTimestamp - snapshotTimestamp)
                         subscription['numAttempts'] = numAttempts
                         client.subscriptions[messageHash] = subscription
-                        self.spawn(self.watch_order_book_snapshot, client, message, subscription)
+                        self.delay(delayTime, self.watch_order_book_snapshot, client, message, subscription)
                 else:
                     # raise upon failing to synchronize in maxAttempts
                     raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
@@ -398,7 +411,8 @@ class htx(ccxt.async_support.htx):
                 orderbook.reset(snapshot)
                 # unroll the accumulated deltas
                 for i in range(0, len(messages)):
-                    self.handle_order_book_message(client, messages[i], orderbook)
+                    self.handle_order_book_message(client, messages[i])
+                orderbook.cache = []
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:
@@ -406,29 +420,31 @@ class htx(ccxt.async_support.htx):
 
     async def watch_order_book_snapshot(self, client, message, subscription):
         messageHash = self.safe_string(subscription, 'messageHash')
+        symbol = self.safe_string(subscription, 'symbol')
+        limit = self.safe_integer(subscription, 'limit')
+        timestamp = self.safe_integer(message, 'ts')
+        params = self.safe_value(subscription, 'params')
+        attempts = self.safe_integer(subscription, 'numAttempts', 0)
+        market = self.market(symbol)
+        url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
+        requestId = self.request_id()
+        request = {
+            'req': messageHash,
+            'id': requestId,
+        }
+        # self is a temporary subscription by a specific requestId
+        # it has a very short lifetime until the snapshot is received over ws
+        snapshotSubscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'limit': limit,
+            'params': params,
+            'numAttempts': attempts,
+            'lastTimestamp': timestamp,
+            'method': self.handle_order_book_snapshot,
+        }
         try:
-            symbol = self.safe_string(subscription, 'symbol')
-            limit = self.safe_integer(subscription, 'limit')
-            params = self.safe_value(subscription, 'params')
-            attempts = self.safe_integer(subscription, 'numAttempts', 0)
-            market = self.market(symbol)
-            url = self.get_url_by_market_type(market['type'], market['linear'])
-            requestId = self.request_id()
-            request = {
-                'req': messageHash,
-                'id': requestId,
-            }
-            # self is a temporary subscription by a specific requestId
-            # it has a very short lifetime until the snapshot is received over ws
-            snapshotSubscription = {
-                'id': requestId,
-                'messageHash': messageHash,
-                'symbol': symbol,
-                'limit': limit,
-                'params': params,
-                'numAttempts': attempts,
-                'method': self.handle_order_book_snapshot,
-            }
             orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
             return orderbook.limit()
         except Exception as e:
@@ -444,7 +460,7 @@ class htx(ccxt.async_support.htx):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client: Client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message):
         # spot markets
         #
         #     {
@@ -514,27 +530,31 @@ class htx(ccxt.async_support.htx):
         ch = self.safe_value(message, 'ch')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
-        symbol = self.safe_symbol(marketId)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        orderbook = self.orderbooks[symbol]
         tick = self.safe_value(message, 'tick', {})
-        seqNum = self.safe_integer_2(tick, 'seqNum', 'version')
+        seqNum = self.safe_integer(tick, 'seqNum')
         prevSeqNum = self.safe_integer(tick, 'prevSeqNum')
         event = self.safe_string(tick, 'event')
+        version = self.safe_integer(tick, 'version')
         timestamp = self.safe_integer(message, 'ts')
         if event == 'snapshot':
             snapshot = self.parse_order_book(tick, symbol, timestamp)
             orderbook.reset(snapshot)
-            orderbook['nonce'] = seqNum
-        if prevSeqNum is not None and prevSeqNum > orderbook['nonce']:
+            orderbook['nonce'] = version
+        if (prevSeqNum is not None) and prevSeqNum > orderbook['nonce']:
             raise InvalidNonce(self.id + ' watchOrderBook() received a mesage out of order')
-        if (prevSeqNum is None or prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce']):
+        spotConditon = market['spot'] and (prevSeqNum == orderbook['nonce'])
+        nonSpotCondition = market['contract'] and (version - 1 == orderbook['nonce'])
+        if spotConditon or nonSpotCondition:
             asks = self.safe_value(tick, 'asks', [])
             bids = self.safe_value(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
-            orderbook['nonce'] = seqNum
+            orderbook['nonce'] = seqNum if spotConditon else version
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
-        return orderbook
 
     def handle_order_book(self, client: Client, message):
         #
@@ -582,9 +602,9 @@ class htx(ccxt.async_support.htx):
         #         "ts":1645023376098
         #     }
         #
-        tick = self.safe_value(message, 'tick', {})
-        event = self.safe_string(tick, 'event')
         messageHash = self.safe_string(message, 'ch')
+        tick = self.safe_value(message, 'tick')
+        event = self.safe_string(tick, 'event')
         ch = self.safe_value(message, 'ch')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
@@ -595,19 +615,19 @@ class htx(ccxt.async_support.htx):
             sizeParts = size.split('_')
             limit = self.safe_integer(sizeParts, 1)
             orderbook = self.order_book({}, limit)
-        if orderbook['nonce'] is None:
+            self.orderbooks[symbol] = orderbook
+        if (event is None) and (orderbook['nonce'] is None):
             orderbook.cache.append(message)
-        if event is not None or orderbook['nonce'] is not None:
-            self.orderbooks[symbol] = self.handle_order_book_message(client, message, orderbook)
+        else:
+            self.handle_order_book_message(client, message)
             client.resolve(orderbook, messageHash)
 
     def handle_order_book_subscription(self, client: Client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
+        market = self.market(symbol)
         limit = self.safe_integer(subscription, 'limit')
-        if symbol in self.orderbooks:
-            del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
-        if self.markets[symbol]['spot'] is True:
+        if market['spot']:
             self.spawn(self.watch_order_book_snapshot, client, message, subscription)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -617,7 +637,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -666,8 +686,8 @@ class htx(ccxt.async_support.htx):
         orderType = self.safe_string(self.options, 'orderType', 'orders')  # orders or matchOrders
         orderType = self.safe_string(params, 'orderType', orderType)
         params = self.omit(params, 'orderType')
-        marketCode = market['lowercaseId'] if (market is not None) else None
-        baseId = market['lowercaseBaseId'] if (market is not None) else None
+        marketCode = market['lowercaseId'].lower() if (market is not None) else None
+        baseId = market['baseId'] if (market is not None) else None
         prefix = orderType
         messageHash = prefix
         if subType == 'linear':
@@ -683,7 +703,7 @@ class htx(ccxt.async_support.htx):
         elif type == 'future':
             # inverse futures Example: BCH/USD:BCH-220408
             if baseId is not None:
-                channel = prefix + '.' + baseId
+                channel = prefix + '.' + baseId.lower()
                 messageHash = channel
             else:
                 channel = prefix + '.' + '*'
@@ -703,7 +723,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         type = None
@@ -897,7 +917,8 @@ class htx(ccxt.async_support.htx):
         # when we make a global subscription(for contracts only) our message hash can't have a symbol/currency attached
         # so we're removing it here
         genericMessageHash = messageHash.replace('.' + market['lowercaseId'], '')
-        genericMessageHash = genericMessageHash.replace('.' + market['lowercaseBaseId'], '')
+        lowerCaseBaseId = self.safe_string_lower(market, 'baseId')
+        genericMessageHash = genericMessageHash.replace('.' + lowerCaseBaseId, '')
         client.resolve(self.orders, genericMessageHash)
 
     def parse_ws_order(self, order, market=None):
@@ -1235,7 +1256,7 @@ class htx(ccxt.async_support.htx):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the huobi api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
@@ -1972,7 +1993,8 @@ class htx(ccxt.async_support.htx):
                 # since self is a global sub, our messageHash does not specify any symbol(ex: orders_cross:trade)
                 # so we must remove it
                 genericOrderHash = messageHash.replace('.' + market['lowercaseId'], '')
-                genericOrderHash = genericOrderHash.replace('.' + market['lowercaseBaseId'], '')
+                lowerCaseBaseId = self.safe_string_lower(market, 'baseId')
+                genericOrderHash = genericOrderHash.replace('.' + lowerCaseBaseId, '')
                 genericTradesHash = genericOrderHash + ':' + 'trade'
                 client.resolve(self.myTrades, genericTradesHash)
 
@@ -2042,7 +2064,7 @@ class htx(ccxt.async_support.htx):
             'fee': fee,
         }, market)
 
-    def get_url_by_market_type(self, type, isLinear=True, isPrivate=False):
+    def get_url_by_market_type(self, type, isLinear=True, isPrivate=False, isFeed=False):
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         hostnameURL = None
@@ -2051,7 +2073,10 @@ class htx(ccxt.async_support.htx):
             if isPrivate:
                 hostnameURL = self.urls['api']['ws'][api]['spot']['private']
             else:
-                hostnameURL = self.urls['api']['ws'][api]['spot']['public']
+                if isFeed:
+                    hostnameURL = self.urls['api']['ws'][api]['spot']['feed']
+                else:
+                    hostnameURL = self.urls['api']['ws'][api]['spot']['public']
             url = self.implode_params(hostnameURL, hostname)
         else:
             baseUrl = self.urls['api']['ws'][api][type]

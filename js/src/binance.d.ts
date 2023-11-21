@@ -20,7 +20,7 @@ export default class binance extends Exchange {
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseMarket(market: any): Market;
-    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    parseBalanceHelper(entry: any): import("./base/types.js").Account;
     parseBalance(response: any, type?: any, marginMode?: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -318,7 +318,7 @@ export default class binance extends Exchange {
     };
     reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    fetchBorrowRate(code: string, params?: {}): Promise<{
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
         currency: string;
         rate: number;
         period: number;
@@ -358,7 +358,7 @@ export default class binance extends Exchange {
         datetime: string;
         info: any;
     };
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
         id: number;
         currency: string;
         amount: any;
@@ -367,7 +367,25 @@ export default class binance extends Exchange {
         datetime: any;
         info: any;
     }>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+        id: number;
+        currency: string;
+        amount: any;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<{
+        id: number;
+        currency: string;
+        amount: any;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
         id: number;
         currency: string;
         amount: any;

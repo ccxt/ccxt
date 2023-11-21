@@ -736,8 +736,6 @@ class testMainClass extends baseMainTestClass {
                 'fetchTransactions' => [$code],
                 'fetchDeposits' => [$code],
                 'fetchWithdrawals' => [$code],
-                'fetchBorrowRates' => [],
-                'fetchBorrowRate' => [$code],
                 'fetchBorrowInterest' => [$code, $symbol],
                 'cancelAllOrders' => [$symbol],
                 'fetchCanceledOrders' => [$symbol],
@@ -748,7 +746,6 @@ class testMainClass extends baseMainTestClass {
                 'fetchDepositAddresses' => [$code],
                 'fetchDepositAddressesByNetwork' => [$code],
                 'fetchBorrowRateHistory' => [$code],
-                'fetchBorrowRatesPerSymbol' => [],
                 'fetchLedgerEntry' => [$code],
             );
             $market = $exchange->market($symbol);

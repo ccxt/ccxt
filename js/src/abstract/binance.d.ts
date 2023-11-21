@@ -52,6 +52,7 @@ interface Exchange {
     sapiGetMarginCapitalFlow(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginDelistSchedule(params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAvailableInventory(params?: {}): Promise<implicitReturnType>;
+    sapiGetMarginLeverageBracket(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipLoanableData(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralData(params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRequestData(params?: {}): Promise<implicitReturnType>;

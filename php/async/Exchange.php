@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.56';
+$version = '4.1.60';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.56';
+    const VERSION = '4.1.60';
 
     public $browser;
     public $marketsLoading = null;
@@ -613,8 +613,12 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseOrder() is not supported yet');
     }
 
-    public function fetch_borrow_rates($params = array ()) {
-        throw new NotSupported($this->id . ' fetchBorrowRates() is not supported yet');
+    public function fetch_cross_borrow_rates($params = array ()) {
+        throw new NotSupported($this->id . ' fetchCrossBorrowRates() is not supported yet');
+    }
+
+    public function fetch_isolated_borrow_rates($params = array ()) {
+        throw new NotSupported($this->id . ' fetchIsolatedBorrowRates() is not supported yet');
     }
 
     public function parse_market_leverage_tiers($info, ?array $market = null) {
@@ -1522,17 +1526,17 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_ticker(array $ticker, ?array $market = null) {
-        $open = $this->safe_value($ticker, 'open');
-        $close = $this->safe_value($ticker, 'close');
-        $last = $this->safe_value($ticker, 'last');
-        $change = $this->safe_value($ticker, 'change');
-        $percentage = $this->safe_value($ticker, 'percentage');
-        $average = $this->safe_value($ticker, 'average');
-        $vwap = $this->safe_value($ticker, 'vwap');
+        $open = $this->omit_zero($this->safe_string($ticker, 'open'));
+        $close = $this->omit_zero($this->safe_string($ticker, 'close'));
+        $last = $this->omit_zero($this->safe_string($ticker, 'last'));
+        $change = $this->omit_zero($this->safe_string($ticker, 'change'));
+        $percentage = $this->omit_zero($this->safe_string($ticker, 'percentage'));
+        $average = $this->omit_zero($this->safe_string($ticker, 'average'));
+        $vwap = $this->omit_zero($this->safe_string($ticker, 'vwap'));
         $baseVolume = $this->safe_string($ticker, 'baseVolume');
         $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         if ($vwap === null) {
-            $vwap = Precise::string_div($quoteVolume, $baseVolume);
+            $vwap = Precise::string_div($this->omit_zero($quoteVolume), $baseVolume);
         }
         if (($last !== null) && ($close === null)) {
             $close = $last;
@@ -1559,23 +1563,51 @@ class Exchange extends \ccxt\Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return array_merge($ticker, array(
-            'ask' => $this->omit_zero($this->safe_number($ticker, 'ask')),
+            'ask' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'ask'))),
             'askVolume' => $this->safe_number($ticker, 'askVolume'),
-            'average' => $this->omit_zero($this->parse_number($average)),
+            'average' => $this->parse_number($average),
             'baseVolume' => $this->parse_number($baseVolume),
-            'bid' => $this->omit_zero($this->safe_number($ticker, 'bid')),
+            'bid' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'bid'))),
             'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
             'change' => $this->parse_number($change),
-            'close' => $this->omit_zero($this->parse_number($close)),
-            'high' => $this->omit_zero($this->safe_number($ticker, 'high')),
-            'last' => $this->omit_zero($this->parse_number($last)),
-            'low' => $this->omit_zero($this->safe_number($ticker, 'low')),
-            'open' => $this->omit_zero($this->parse_number($open)),
+            'close' => $this->parse_number($this->omit_zero($this->parse_number($close))),
+            'high' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'high"'))),
+            'last' => $this->parse_number($this->omit_zero($this->parse_number($last))),
+            'low' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'low'))),
+            'open' => $this->parse_number($this->omit_zero($this->parse_number($open))),
             'percentage' => $this->parse_number($percentage),
             'previousClose' => $this->safe_number($ticker, 'previousClose'),
             'quoteVolume' => $this->parse_number($quoteVolume),
-            'vwap' => $this->omit_zero($this->parse_number($vwap)),
+            'vwap' => $this->parse_number($vwap),
         ));
+    }
+
+    public function fetch_borrow_rate(string $code, $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead');
+    }
+
+    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' repayCrossMargin is not support yet');
+    }
+
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' repayIsolatedMargin is not support yet');
+    }
+
+    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' borrowCrossMargin is not support yet');
+    }
+
+    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        throw new NotSupported($this->id . ' borrowIsolatedMargin is not support yet');
+    }
+
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead');
+    }
+
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2269,14 +2301,14 @@ class Exchange extends \ccxt\Exchange {
         return $this->watchPositions ($symbols, $since, $limit, $params);
     }
 
-    public function fetch_positions_by_symbol(string $symbol, $params = array ()) {
+    public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
         /**
-         * specifically fetches positions for specific $symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
-         * @param {string} $symbol unified market $symbol of the market the position is held in
+         * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} $symbol unified market $symbol
          * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
-        throw new NotSupported($this->id . ' fetchPositionsBySymbol() is not supported yet');
+        throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
@@ -2485,16 +2517,31 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function fetch_borrow_rate(string $code, $params = array ()) {
+    public function fetch_cross_borrow_rate(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             Async\await($this->load_markets());
             if (!$this->has['fetchBorrowRates']) {
-                throw new NotSupported($this->id . ' fetchBorrowRate() is not supported yet');
+                throw new NotSupported($this->id . ' fetchCrossBorrowRate() is not supported yet');
             }
-            $borrowRates = Async\await($this->fetch_borrow_rates($params));
+            $borrowRates = Async\await($this->fetchCrossBorrowRates ($params));
             $rate = $this->safe_value($borrowRates, $code);
             if ($rate === null) {
-                throw new ExchangeError($this->id . ' fetchBorrowRate() could not find the borrow $rate for currency $code ' . $code);
+                throw new ExchangeError($this->id . ' fetchCrossBorrowRate() could not find the borrow $rate for currency $code ' . $code);
+            }
+            return $rate;
+        }) ();
+    }
+
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            if (!$this->has['fetchBorrowRates']) {
+                throw new NotSupported($this->id . ' fetchIsolatedBorrowRate() is not supported yet');
+            }
+            $borrowRates = Async\await($this->fetchIsolatedBorrowRates ($params));
+            $rate = $this->safe_value($borrowRates, $symbol);
+            if ($rate === null) {
+                throw new ExchangeError($this->id . ' fetchIsolatedBorrowRate() could not find the borrow $rate for market $symbol ' . $symbol);
             }
             return $rate;
         }) ();
@@ -2530,7 +2577,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
+    public function handle_market_type_and_params(string $methodName, ?array $market = null, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
         $methodOptions = $this->safe_value($this->options, $methodName);
         $methodType = $defaultType;
@@ -2772,7 +2819,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -3497,15 +3544,6 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function check_required_symbol(string $methodName, string $symbol) {
-        /**
-         * @ignore
-         * @param {string} $symbol unified $symbol of the market
-         * @param {string} $methodName name of the method that requires a $symbol
-         */
-        $this->check_required_argument($methodName, $symbol, 'symbol');
-    }
-
     public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
         /**
          * @ignore
@@ -3591,7 +3629,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {array} $market ccxt $market
          * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [$limit] limits the number of items in the response
-         * @return {array[]} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structures}
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
          */
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
@@ -3629,7 +3667,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             if ($this->has['fetchDepositsWithdrawals']) {
                 return Async\await($this->fetchDepositsWithdrawals ($code, $since, $limit, $params));
@@ -4000,7 +4038,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {array} $market ccxt $market
          * @param {int} [$since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [$limit] limits the number of items in the response
-         * @return {array[]} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
          */
         $result = array();
         for ($i = 0; $i < count($liquidations); $i++) {

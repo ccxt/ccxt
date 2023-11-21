@@ -2168,7 +2168,9 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         await this.loadAccounts ();
         const market = this.market (symbol);
@@ -2926,7 +2928,9 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         if ((leverage < 1) || (leverage > 100)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 100');
         }
@@ -2957,7 +2961,9 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setMarginMode', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
         marginMode = marginMode.toLowerCase ();
         if (marginMode === 'cross') {
             marginMode = 'crossed';
