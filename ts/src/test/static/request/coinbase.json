@@ -30,10 +30,14 @@
                 ]
             },
             {
-                "description": "fetch balance v3",
+                "description": "fetch spot balance v3",
                 "method": "fetchBalance",
                 "url": "https://api.coinbase.com/api/v3/brokerage/accounts?limit=100",
-                "input": []
+                "input": [
+                  {
+                    "v3": true
+                  }
+                ]
             },
             {
                 "description": "Fetch swap Balance",
