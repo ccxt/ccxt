@@ -198,7 +198,8 @@ public partial class Exchange
         {
             if (result is string)
             {
-                parsedValue = Convert.ToInt64(float.Parse(result.ToString(), CultureInfo.InvariantCulture));
+                // parsedValue = Convert.ToInt64(float.Parse(result.ToString(), CultureInfo.InvariantCulture));
+                parsedValue = Convert.ToInt64(result); // check this out
 
             }
             else

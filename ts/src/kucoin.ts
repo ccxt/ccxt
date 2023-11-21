@@ -2722,33 +2722,29 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = this.options['fetchMyTradesMethod'];
+        const method = this.options['fetchMyTradesMethod'];
         let parseResponseData = false;
+        let response = undefined;
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         if (hf) {
-            method = 'privateGetHfFills';
+            response = await this.privateGetHfFills (this.extend (request, params));
         } else if (method === 'private_get_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
                 request['startAt'] = since;
             }
+            response = await this.privateGetFills (this.extend (request, params));
         } else if (method === 'private_get_limit_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
             parseResponseData = true;
-        } else if (method === 'private_get_hist_orders') {
-            // despite that this endpoint is called `HistOrders`
-            // it returns historical trades instead of orders
-            // returns trades earlier than 2019-02-18T00:00:00Z only
-            if (since !== undefined) {
-                request['startAt'] = this.parseToInt (since / 1000);
-            }
+            response = await this.privateGetLimitFills (this.extend (request, params));
         } else {
             throw new ExchangeError (this.id + ' fetchMyTradesMethod() invalid method');
         }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        const response = await this[method] (this.extend (request, params));
+        // const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "currentPage": 1,
