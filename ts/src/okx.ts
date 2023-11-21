@@ -5113,7 +5113,7 @@ export default class okx extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    async fetchPositionsForSymbol (symbol, params = {}) {
+    async fetchPositionsForSymbol (symbol: string, params = {}) {
         /**
          * @method
          * @name okx#fetchPositions
