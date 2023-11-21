@@ -5604,9 +5604,9 @@ export default class bybit extends Exchange {
         /**
          * @method
          * @name bybit#fetchPositionsForSymbol
-         * @description fetch all open positions
+         * @description fetch all open positions for specific symbol
          * @see https://bybit-exchange.github.io/docs/v5/position
-         * @param {string[]} symbols list of unified market symbols
+         * @param {string[]} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the api endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
