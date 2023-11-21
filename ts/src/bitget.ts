@@ -2154,23 +2154,15 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+         * @see https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {string} [params.pageNo] pageNo default 1
-         * @param {string} [params.pageSize] pageSize default 20. Max 100
-         * @param {int} [params.until] end time in ms
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] end time in milliseconds
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchWithdrawals', code, since, limit, params);
-        }
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a `code` argument');
         }
@@ -2185,35 +2177,42 @@ export default class bitget extends Exchange {
         };
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['limit'] = limit;
         }
-        const response = await this.privateSpotGetSpotV1WalletWithdrawalList (this.extend (request, params));
+        const response = await this.privateSpotGetV2SpotWalletWithdrawalRecords (this.extend (request, params));
         //
-        //      {
-        //          "code": "00000",
-        //          "msg": "success",
-        //          "requestTime": 0,
-        //          "data": [{
-        //              "id": "925607360021839872",
-        //              "txId": "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
-        //              "coin": "USDT",
-        //              "type": "deposit",
-        //              "amount": "19.44800000",
-        //              "status": "success",
-        //              "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
-        //              "fee": null,
-        //              "chain": "TRC20",
-        //              "confirm": null,
-        //              "cTime": "1656407912259",
-        //              "uTime": "1656407940148"
-        //          }]
-        //      }
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700528340608,
+        //         "data": [
+        //             {
+        //                 "orderId": "1083832260799930368",
+        //                 "tradeId": "35bf0e588a42b25c71a9d45abe7308cabdeec6b7b423910b9bd4743d3a9a9efa",
+        //                 "clientOid": "123",
+        //                 "coin": "BTC",
+        //                 "type": "withdraw",
+        //                 "size": "0.00030000",
+        //                 "fee": "-1.0000000",
+        //                 "status": "success",
+        //                 "toAddress": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+        //                 "dest": "on_chain",
+        //                 "chain": "BTC",
+        //                 "confirm": "100",
+        //                 "fromAddress": null,
+        //                 "cTime": "1694131668281",
+        //                 "uTime": "1694131680247"
+        //             }
+        //         ]
+        //     }
         //
         const rawTransactions = this.safeValue (response, 'data', []);
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits
         //
         //     {
         //         "orderId": "1083832260799930368",
@@ -2225,6 +2224,26 @@ export default class bitget extends Exchange {
         //         "toAddress": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
         //         "dest": "on_chain",
         //         "chain": "BTC",
+        //         "fromAddress": null,
+        //         "cTime": "1694131668281",
+        //         "uTime": "1694131680247"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "orderId": "1083832260799930368",
+        //         "tradeId": "35bf0e588a42b25c71a9d45abe7308cabdeec6b7b423910b9bd4743d3a9a9efa",
+        //         "clientOid": "123",
+        //         "coin": "BTC",
+        //         "type": "withdraw",
+        //         "size": "0.00030000",
+        //         "fee": "-1.0000000",
+        //         "status": "success",
+        //         "toAddress": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+        //         "dest": "on_chain",
+        //         "chain": "BTC",
+        //         "confirm": "100",
         //         "fromAddress": null,
         //         "cTime": "1694131668281",
         //         "uTime": "1694131680247"
