@@ -49,12 +49,11 @@ class kuna(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
@@ -65,6 +64,8 @@ class kuna(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchIsolatedPositions': False,
                 'fetchL3OrderBook': True,
                 'fetchLeverage': False,
@@ -84,7 +85,7 @@ class kuna(Exchange, ImplicitAPI):
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
-                'fetchPositionsBySymbol': False,
+                'fetchPositionsForSymbol': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -611,7 +612,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: 5, 10, 20, 50, 100, 500, or 1000(default)
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -694,7 +695,7 @@ class kuna(Exchange, ImplicitAPI):
         :see: https://docs.kuna.io/docs/get-market-info-by-tickers
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         if symbols is None:
@@ -734,7 +735,7 @@ class kuna(Exchange, ImplicitAPI):
         :see: https://docs.kuna.io/docs/get-market-info-by-tickers
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -773,7 +774,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: an `order book structure <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/#/?id=order-book-structure>`
         """
         return self.fetch_order_book(symbol, limit, params)
 
@@ -785,7 +786,7 @@ class kuna(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: between 1 and 100, 25 by default
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -894,7 +895,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         response = self.v4PrivateGetPrivateGetBalance(params)
@@ -925,7 +926,7 @@ class kuna(Exchange, ImplicitAPI):
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.id]: id must be a UUID format, if you do not specify id, it will be generated automatically.
         :param float [params.quoteQuantity]: the max quantity of the quote asset to use for selling/buying
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -935,7 +936,7 @@ class kuna(Exchange, ImplicitAPI):
         request = {
             'pair': market['id'],
             'orderSide': 'Bid' if (side == 'buy') else 'Ask',
-            'quantity': str(amount),
+            'quantity': self.number_to_string(amount),
             'type': capitalizedType,
         }
         if capitalizedType == 'Limit':
@@ -971,7 +972,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -999,7 +1000,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str ids: order ids
         :param str symbol: not used by kuna cancelOrder
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1117,7 +1118,7 @@ class kuna(Exchange, ImplicitAPI):
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param boolean [params.withTrades]: default is True, specify if the response should include trades associated with the order
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1174,7 +1175,7 @@ class kuna(Exchange, ImplicitAPI):
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.sort]: asc(oldest-on-top) or desc(newest-on-top)
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         until = self.safe_integer(params, 'until')
@@ -1228,7 +1229,7 @@ class kuna(Exchange, ImplicitAPI):
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.sort]: asc(oldest-on-top) or desc(newest-on-top)
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
@@ -1245,7 +1246,7 @@ class kuna(Exchange, ImplicitAPI):
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.sort]: asc(oldest-on-top) or desc(newest-on-top)
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         if status == 'open':
@@ -1303,7 +1304,7 @@ class kuna(Exchange, ImplicitAPI):
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.orderId]: UUID of an order, to receive trades for self order only
         :param str [params.sort]: asc(oldest-on-top) or desc(newest-on-top)
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -1348,7 +1349,7 @@ class kuna(Exchange, ImplicitAPI):
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.id]: id must be a uuid format, if you do not specify id, it will be generated automatically
         :param boolean [params.withdrawAll]: self field says that the amount should also include a fee
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.check_address(address)
         chain = self.safe_string_2(params, 'chain', 'network')
@@ -1397,7 +1398,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str [params.sortOrder]: asc(oldest-on-top), or desc(newest-on-top, default)
         :param int [params.skip]: 0 - ... Select the number of transactions to skip
         :param str [params.address]:
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         until = self.safe_integer(params, 'until')
@@ -1449,7 +1450,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str id: withdrawal id
         :param str code: not used by kuna.fetchWithdrawal
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {
@@ -1486,7 +1487,7 @@ class kuna(Exchange, ImplicitAPI):
         :see: https://docs.kuna.io/docs/generate-a-constant-crypto-address-for-deposit
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1512,7 +1513,7 @@ class kuna(Exchange, ImplicitAPI):
         :see: https://docs.kuna.io/docs/find-crypto-address-for-deposit
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1578,7 +1579,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str [params.sortOrder]: asc(oldest-on-top), or desc(newest-on-top, default)
         :param int [params.skip]: 0 - ... Select the number of transactions to skip
         :param str [params.address]:
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         until = self.safe_integer(params, 'until')
@@ -1630,7 +1631,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str id: deposit id
         :param str code: filter by currency code
         :param dict [params]: extra parameters specific to the kuna api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -1739,7 +1740,8 @@ class kuna(Exchange, ImplicitAPI):
         url = None
         if isinstance(api, list):
             isGet = method == 'GET'
-            version, access = api
+            version = self.safe_string(api, 0)
+            access = self.safe_string(api, 1)
             if version == 'v3':
                 url = self.urls['api'][version] + '/' + version + '/' + self.implode_params(path, params)
                 if access == 'public':

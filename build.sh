@@ -57,7 +57,7 @@ function run_tests {
 
 build_and_test_all () {
   npm run force-build
-  if [ "$IS_TRAVIS" == "TRUE" ]; then
+  if [ "$IS_TRAVIS" = "TRUE" ]; then
     merged_pull_request="$(git show --format="%s" -s HEAD | sed -nE 's/Merge pull request #([0-9]{5}).+$/\1/p')"
     echo "DEBUG: $merged_pull_request" # for debugging
     if [ -n "$merged_pull_request" ]; then
@@ -89,7 +89,7 @@ build_and_test_all () {
 
 ### CHECK IF THIS IS A PR ###
 # for appveyor, when PR is from fork, APPVEYOR_REPO_BRANCH is "master" and "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" is branch name. if PR is from same repo, only APPVEYOR_REPO_BRANCH is set (and it is branch name)
-if { [ "$IS_TRAVIS" == "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; } || { [ "$IS_TRAVIS" != "TRUE" ] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]; }; then
+if { [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; } || { [ "$IS_TRAVIS" != "TRUE" ] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]; }; then
   echo "$msgPrefix This is a master commit (not a PR), will build everything"
   build_and_test_all
 fi

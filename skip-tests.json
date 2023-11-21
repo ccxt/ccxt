@@ -554,6 +554,11 @@
             "fetchL2OrderBook": "same"
         }
     },
+    "btcturk": {
+        "skipMethods": {
+            "fetchOrderBook": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263287870#L2201"
+        }
+    },
     "bybit": {
         "skipWs": "temporarily skipped because of RL issues. after proxy merge, turn it back on",
         "skipMethods": {
@@ -949,7 +954,6 @@
         "skipWs": true
     },
     "htx": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "limits":"messed",

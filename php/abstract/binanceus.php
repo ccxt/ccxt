@@ -160,6 +160,9 @@ abstract class binanceus extends \ccxt\binance {
     public function sapi_get_margin_available_inventory($params = array()) {
         return $this->request('margin/available-inventory', 'sapi', 'GET', $params, null, null, array("cost" => 0.3334));
     }
+    public function sapi_get_margin_leveragebracket($params = array()) {
+        return $this->request('margin/leverageBracket', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_get_loan_vip_loanable_data($params = array()) {
         return $this->request('loan/vip/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));
     }
@@ -2133,6 +2136,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function sapiGetMarginAvailableInventory($params = array()) {
         return $this->request('margin/available-inventory', 'sapi', 'GET', $params, null, null, array("cost" => 0.3334));
+    }
+    public function sapiGetMarginLeverageBracket($params = array()) {
+        return $this->request('margin/leverageBracket', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
     public function sapiGetLoanVipLoanableData($params = array()) {
         return $this->request('loan/vip/loanable/data', 'sapi', 'GET', $params, null, null, array("cost" => 40));

@@ -110,7 +110,7 @@ export default class kucoin extends Exchange {
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    parseBalanceHelper(entry: any): import("./base/types.js").Account;
     fetchBalance(params?: {}): Promise<Balances>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
@@ -176,7 +176,7 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<{
         id: string;
         currency: string;
         amount: number;
@@ -185,7 +185,25 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     }>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+        id: string;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
+        id: string;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
         id: string;
         currency: string;
         amount: number;

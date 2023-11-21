@@ -50,7 +50,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'borrowMargin': True,
+                'borrowCrossMargin': True,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
@@ -64,11 +65,11 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
@@ -80,6 +81,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,
@@ -109,7 +112,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchTransactionFee': True,
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
-                'repayMargin': True,
+                'repayCrossMargin': True,
+                'repayIsolatedMargin': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -863,7 +867,7 @@ class kucoin(Exchange, ImplicitAPI):
         the latest known information on the availability of the exchange API
         :see: https://docs.kucoin.com/#service-status
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `status structure <https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         response = await self.publicGetStatus(params)
         #
@@ -1179,7 +1183,7 @@ class kucoin(Exchange, ImplicitAPI):
         fetch all the accounts associated with a profile
         :see: https://docs.kucoin.com/#list-accounts
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a dictionary of `account structures <https://github.com/ccxt/ccxt/wiki/Manual#account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
         response = await self.privateGetAccounts(params)
         #
@@ -1228,7 +1232,7 @@ class kucoin(Exchange, ImplicitAPI):
         :see: https://docs.kucoin.com/#get-withdrawal-quotas
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1256,7 +1260,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the kucoin api endpoint
         :param str [params.network]: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
-        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1446,7 +1450,7 @@ class kucoin(Exchange, ImplicitAPI):
         :see: https://docs.kucoin.com/#get-all-tickers
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1497,7 +1501,7 @@ class kucoin(Exchange, ImplicitAPI):
         :see: https://docs.kucoin.com/#get-24hr-stats
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1610,7 +1614,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the kucoin api endpoint
         :param str [params.network]: the blockchain network name
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1635,7 +1639,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the kucoin api endpoint
         :param str [params.network]: the blockchain network name
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1685,7 +1689,7 @@ class kucoin(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: an array of `address structures <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an array of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1725,7 +1729,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1831,7 +1835,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param bool [params.autoBorrow]: False,  # The system will first borrow you funds at the optimal interest rate and then place an order for you
         :param bool [params.hf]: False,  # True for hf order
         :param bool [params.test]: set to True to test an order, no order will be created but the request will be validated
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1879,7 +1883,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]:  Extra parameters specific to the exchange API endpoint
         :param bool [params.hf]: False,  # True for hf orders
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         ordersRequests = []
@@ -2016,7 +2020,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
         :param dict [params]: extra parameters specific to the gate api endpoint
         :param str [params.clientOrderId]: client order id, defaults to id if not passed
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2117,14 +2121,16 @@ class kucoin(Exchange, ImplicitAPI):
             request['tradeType'] = self.options['marginModes'][marginMode]
             if marginMode == 'isolated' and stop:
                 raise BadRequest(self.id + ' cancelAllOrders does not support isolated margin for stop orders')
-        method = 'privateDeleteOrders'
+        response = None
         if stop:
-            method = 'privateDeleteStopOrderCancel'
+            response = await self.privateDeleteStopOrderCancel(self.extend(request, query))
         elif hf:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol parameter for hf orders')
-            method = 'privateDeleteHfOrders'
-        return await getattr(self, method)(self.extend(request, query))
+            response = await self.privateDeleteHfOrders(self.extend(request, query))
+        else:
+            response = await self.privateDeleteOrders(self.extend(request, query))
+        return response
 
     async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -2147,7 +2153,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.orderIds]: *stop orders only* comma seperated order ID list
         :param bool [params.stop]: True if fetching a stop order
         :param bool [params.hf]: False,  # True for hf order
-        :returns: An `array of order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns: An `array of order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         lowercaseStatus = status.lower()
@@ -2173,16 +2179,17 @@ class kucoin(Exchange, ImplicitAPI):
             request['pageSize'] = limit
         if until:
             request['endAt'] = until
-        method = 'privateGetOrders'
+        request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, 'TRADE')
+        response = None
         if stop:
-            method = 'privateGetStopOrder'
+            response = await self.privateGetStopOrder(self.extend(request, query))
         elif hf:
             if lowercaseStatus == 'active':
-                method = 'privateGetHfOrdersActive'
+                response = await self.privateGetHfOrdersActive(self.extend(request, query))
             elif lowercaseStatus == 'done':
-                method = 'privateGetHfOrdersDone'
-        request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, 'TRADE')
-        response = await getattr(self, method)(self.extend(request, query))
+                response = await self.privateGetHfOrdersDone(self.extend(request, query))
+        else:
+            response = await self.privateGetOrders(self.extend(request, query))
         #
         #     {
         #         "code": "200000",
@@ -2248,7 +2255,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param bool [params.stop]: True if fetching a stop order
         :param bool [params.hf]: False,  # True for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -2278,7 +2285,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param bool [params.stop]: True if fetching a stop order
         :param bool [params.hf]: False,  # True for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -2302,7 +2309,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param bool [params.stop]: True if fetching a stop order
         :param bool [params.hf]: False,  # True for hf order
         :param bool [params.clientOid]: unique order id created by users to identify their orders
-        :returns: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -2316,33 +2323,33 @@ class kucoin(Exchange, ImplicitAPI):
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol parameter for hf orders')
             request['symbol'] = market['id']
-        params = self.omit(params, ['stop', 'hf'])
-        method = 'privateGetOrdersOrderId'
+        params = self.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId'])
+        response = None
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
             if stop:
-                method = 'privateGetStopOrderQueryOrderByClientOid'
                 if symbol is not None:
                     request['symbol'] = market['id']
+                response = await self.privateGetStopOrderQueryOrderByClientOid(self.extend(request, params))
             elif hf:
-                method = 'privateGetHfOrdersClientOrderClientOid'
+                response = await self.privateGetHfOrdersClientOrderClientOid(self.extend(request, params))
             else:
-                method = 'privateGetOrderClientOrderClientOid'
+                response = await self.privateGetOrderClientOrderClientOid(self.extend(request, params))
         else:
             # a special case for None ids
             # otherwise a wrong endpoint for all orders will be triggered
             # https://github.com/ccxt/ccxt/issues/7234
             if id is None:
                 raise InvalidOrder(self.id + ' fetchOrder() requires an order id')
-            if stop:
-                method = 'privateGetStopOrderOrderId'
-            elif hf:
-                method = 'privateGetHfOrdersOrderId'
             request['orderId'] = id
-        params = self.omit(params, ['clientOid', 'clientOrderId'])
-        response = await getattr(self, method)(self.extend(request, params))
+            if stop:
+                response = await self.privateGetStopOrderOrderId(self.extend(request, params))
+            elif hf:
+                response = await self.privateGetHfOrdersOrderId(self.extend(request, params))
+            else:
+                response = await self.privateGetOrdersOrderId(self.extend(request, params))
         responseData = self.safe_value(response, 'data')
-        if method == 'privateGetStopOrderQueryOrderByClientOid':
+        if isinstance(responseData, list):
             responseData = self.safe_value(responseData, 0)
         return self.parse_order(responseData, market)
 
@@ -2531,7 +2538,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         request = {
             'orderId': id,
@@ -2550,7 +2557,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch entries for
         :param bool [params.hf]: False,  # True for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -2569,28 +2576,24 @@ class kucoin(Exchange, ImplicitAPI):
             request['pageSize'] = limit
         method = self.options['fetchMyTradesMethod']
         parseResponseData = False
+        response = None
+        request, params = self.handle_until_option('endAt', request, params)
         if hf:
-            method = 'privateGetHfFills'
+            response = await self.privateGetHfFills(self.extend(request, params))
         elif method == 'private_get_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
             if since is not None:
                 # only returns trades up to one week after the since param
                 request['startAt'] = since
+            response = await self.privateGetFills(self.extend(request, params))
         elif method == 'private_get_limit_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
             # takes no params
             # only returns first 1000 trades(not only "in the last 24 hours" in the docs)
             parseResponseData = True
-        elif method == 'private_get_hist_orders':
-            # despite that self endpoint is called `HistOrders`
-            # it returns historical trades instead of orders
-            # returns trades earlier than 2019-02-18T00:00:00Z only
-            if since is not None:
-                request['startAt'] = self.parse_to_int(since / 1000)
+            response = await self.privateGetLimitFills(self.extend(request, params))
         else:
             raise ExchangeError(self.id + ' fetchMyTradesMethod() invalid method')
-        request, params = self.handle_until_option('endAt', request, params)
-        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "currentPage": 1,
@@ -2647,7 +2650,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2810,7 +2813,7 @@ class kucoin(Exchange, ImplicitAPI):
         :see: https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2851,7 +2854,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
@@ -3005,8 +3008,6 @@ class kucoin(Exchange, ImplicitAPI):
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        :see: https://docs.kucoin.com/#get-deposit-list
-        :see: https://docs.kucoin.com/#get-v1-historical-deposits-list
         fetch all deposits made to an account
         :see: https://docs.kucoin.com/#get-deposit-list
         :see: https://docs.kucoin.com/#get-v1-historical-deposits-list
@@ -3016,7 +3017,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the kucoin api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -3030,16 +3031,16 @@ class kucoin(Exchange, ImplicitAPI):
             request['currency'] = currency['id']
         if limit is not None:
             request['pageSize'] = limit
-        method = 'privateGetDeposits'
-        if since is not None:
-            # if since is earlier than 2019-02-18T00:00:00Z
-            if since < 1550448000000:
-                request['startAt'] = self.parse_to_int(since / 1000)
-                method = 'privateGetHistDeposits'
-            else:
-                request['startAt'] = since
         request, params = self.handle_until_option('endAt', request, params)
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if since is not None and since < 1550448000000:
+            # if since is earlier than 2019-02-18T00:00:00Z
+            request['startAt'] = self.parse_to_int(since / 1000)
+            response = await self.privateGetHistDeposits(self.extend(request, params))
+        else:
+            if since is not None:
+                request['startAt'] = since
+            response = await self.privateGetDeposits(self.extend(request, params))
         #
         #     {
         #         "code": "200000",
@@ -3092,7 +3093,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the kucoin api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -3106,16 +3107,16 @@ class kucoin(Exchange, ImplicitAPI):
             request['currency'] = currency['id']
         if limit is not None:
             request['pageSize'] = limit
-        method = 'privateGetWithdrawals'
-        if since is not None:
-            # if since is earlier than 2019-02-18T00:00:00Z
-            if since < 1550448000000:
-                request['startAt'] = self.parse_to_int(since / 1000)
-                method = 'privateGetHistWithdrawals'
-            else:
-                request['startAt'] = since
         request, params = self.handle_until_option('endAt', request, params)
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if since is not None and since < 1550448000000:
+            # if since is earlier than 2019-02-18T00:00:00Z
+            request['startAt'] = self.parse_to_int(since / 1000)
+            response = await self.privateGetHistWithdrawals(self.extend(request, params))
+        else:
+            if since is not None:
+                request['startAt'] = since
+            response = await self.privateGetWithdrawals(self.extend(request, params))
         #
         #     {
         #         "code": "200000",
@@ -3176,7 +3177,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the kucoin api endpoint
         :param dict [params.marginMode]: 'cross' or 'isolated', margin type for fetching margin balance
         :param dict [params.type]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         code = self.safe_string(params, 'code')
@@ -3189,21 +3190,21 @@ class kucoin(Exchange, ImplicitAPI):
         type = self.safe_string(accountsByType, requestedType, requestedType)
         params = self.omit(params, 'type')
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
-        method = 'privateGetAccounts'
+        response = None
         request = {}
         isolated = (marginMode == 'isolated') or (type == 'isolated')
         cross = (marginMode == 'cross') or (type == 'cross')
         if isolated:
-            method = 'privateGetIsolatedAccounts'
             if currency is not None:
                 request['balanceCurrency'] = currency['id']
+            response = await self.privateGetIsolatedAccounts(self.extend(request, query))
         elif cross:
-            method = 'privateGetMarginAccount'
+            response = await self.privateGetMarginAccount(self.extend(request, query))
         else:
             if currency is not None:
                 request['currency'] = currency['id']
             request['type'] = type
-        response = await getattr(self, method)(self.extend(request, query))
+            response = await self.privateGetAccounts(self.extend(request, query))
         #
         # Spot and Cross
         #
@@ -3310,7 +3311,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -3578,7 +3579,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the kucoin api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
         await self.load_accounts()
@@ -3700,7 +3701,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of structures to retrieve
         :param dict [params]: extra parameters specific to the kucoin api endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' default is 'cross'
-        :returns dict[]: a list of `borrow interest structures <https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure>`
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
         """
         await self.load_markets()
         marginMode = None
@@ -3708,39 +3709,34 @@ class kucoin(Exchange, ImplicitAPI):
         if marginMode is None:
             marginMode = 'cross'  # cross marginMode
         request = {}
-        method = 'privateGetMarginBorrowOutstanding'
+        response = None
+        if code is not None:
+            currency = self.currency(code)
+            request['quoteCurrency'] = currency['id']
         if marginMode == 'isolated':
-            if code is not None:
-                currency = self.currency(code)
-                request['balanceCurrency'] = currency['id']
-            method = 'privateGetIsolatedAccounts'
+            response = await self.privateGetIsolatedAccounts(self.extend(request, params))
         else:
-            if code is not None:
-                currency = self.currency(code)
-                request['currency'] = currency['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetMarginAccounts(self.extend(request, params))
         #
         # Cross
         #
         #     {
         #         "code": "200000",
         #         "data": {
-        #             "currentPage": 1,
-        #             "pageSize": 10,
-        #             "totalNum": 1,
-        #             "totalPage": 1,
-        #             "items": [
+        #             "totalAssetOfQuoteCurrency": "0",
+        #             "totalLiabilityOfQuoteCurrency": "0",
+        #             "debtRatio": "0",
+        #             "status": "EFFECTIVE",
+        #             "accounts": [
         #                 {
-        #                     "tradeId": "62e1e320ff219600013b44e2",
-        #                     "currency": "USDT",
-        #                     "principal": "100",
-        #                     "accruedInterest": "0.00016667",
-        #                     "liability": "100.00016667",
-        #                     "repaidSize": "0",
-        #                     "dailyIntRate": "0.00004",
-        #                     "term": 7,
-        #                     "createdAt": 1658970912000,
-        #                     "maturityTime": 1659575713000
+        #                     "currency": "1INCH",
+        #                     "total": "0",
+        #                     "available": "0",
+        #                     "hold": "0",
+        #                     "liability": "0",
+        #                     "maxBorrowSize": "0",
+        #                     "borrowEnabled": True,
+        #                     "transferInEnabled": True
         #                 }
         #             ]
         #         }
@@ -3755,34 +3751,38 @@ class kucoin(Exchange, ImplicitAPI):
         #             "liabilityConversionBalance": "0.01480001",
         #             "assets": [
         #                 {
-        #                     "symbol": "NKN-USDT",
-        #                     "status": "CLEAR",
+        #                     "symbol": "MANA-USDT",
         #                     "debtRatio": "0",
+        #                     "status": "BORROW",
         #                     "baseAsset": {
-        #                         "currency": "NKN",
-        #                         "totalBalance": "0",
-        #                         "holdBalance": "0",
-        #                         "availableBalance": "0",
-        #                         "liability": "0",
-        #                         "interest": "0",
-        #                         "borrowableAmount": "0"
+        #                         "currency": "MANA",
+        #                         "borrowEnabled": True,
+        #                         "repayEnabled": True,
+        #                         "transferEnabled": True,
+        #                         "borrowed": "0",
+        #                         "totalAsset": "0",
+        #                         "available": "0",
+        #                         "hold": "0",
+        #                         "maxBorrowSize": "1000"
         #                     },
         #                     "quoteAsset": {
         #                         "currency": "USDT",
-        #                         "totalBalance": "0",
-        #                         "holdBalance": "0",
-        #                         "availableBalance": "0",
-        #                         "liability": "0",
-        #                         "interest": "0",
-        #                         "borrowableAmount": "0"
+        #                         "borrowEnabled": True,
+        #                         "repayEnabled": True,
+        #                         "transferEnabled": True,
+        #                         "borrowed": "0",
+        #                         "totalAsset": "0",
+        #                         "available": "0",
+        #                         "hold": "0",
+        #                         "maxBorrowSize": "50000"
         #                     }
-        #                 },
+        #                 }
         #             ]
         #         }
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        assets = self.safe_value(data, 'assets', []) if (marginMode == 'isolated') else self.safe_value(data, 'items', [])
+        assets = self.safe_value(data, 'assets', []) if (marginMode == 'isolated') else self.safe_value(data, 'accounts', [])
         return self.parse_borrow_interests(assets, None)
 
     def parse_borrow_interest(self, info, market: Market = None):
@@ -3790,43 +3790,45 @@ class kucoin(Exchange, ImplicitAPI):
         # Cross
         #
         #     {
-        #         "tradeId": "62e1e320ff219600013b44e2",
-        #         "currency": "USDT",
-        #         "principal": "100",
-        #         "accruedInterest": "0.00016667",
-        #         "liability": "100.00016667",
-        #         "repaidSize": "0",
-        #         "dailyIntRate": "0.00004",
-        #         "term": 7,
-        #         "createdAt": 1658970912000,
-        #         "maturityTime": 1659575713000
-        #     },
+        #         "currency": "1INCH",
+        #         "total": "0",
+        #         "available": "0",
+        #         "hold": "0",
+        #         "liability": "0",
+        #         "maxBorrowSize": "0",
+        #         "borrowEnabled": True,
+        #         "transferInEnabled": True
+        #     }
         #
         # Isolated
         #
         #     {
-        #         "symbol": "BTC-USDT",
-        #         "status": "CLEAR",
+        #         "symbol": "MANA-USDT",
         #         "debtRatio": "0",
+        #         "status": "BORROW",
         #         "baseAsset": {
-        #             "currency": "BTC",
-        #             "totalBalance": "0",
-        #             "holdBalance": "0",
-        #             "availableBalance": "0",
-        #             "liability": "0",
-        #             "interest": "0",
-        #             "borrowableAmount": "0.0592"
+        #             "currency": "MANA",
+        #             "borrowEnabled": True,
+        #             "repayEnabled": True,
+        #             "transferEnabled": True,
+        #             "borrowed": "0",
+        #             "totalAsset": "0",
+        #             "available": "0",
+        #             "hold": "0",
+        #             "maxBorrowSize": "1000"
         #         },
         #         "quoteAsset": {
         #             "currency": "USDT",
-        #             "totalBalance": "149.99991731",
-        #             "holdBalance": "0",
-        #             "availableBalance": "149.99991731",
-        #             "liability": "0",
-        #             "interest": "0",
-        #             "borrowableAmount": "1349"
+        #             "borrowEnabled": True,
+        #             "repayEnabled": True,
+        #             "transferEnabled": True,
+        #             "borrowed": "0",
+        #             "totalAsset": "0",
+        #             "available": "0",
+        #             "hold": "0",
+        #             "maxBorrowSize": "50000"
         #         }
-        #     },
+        #     }
         #
         marketId = self.safe_string(info, 'symbol')
         marginMode = 'cross' if (marketId is None) else 'isolated'
@@ -3842,7 +3844,7 @@ class kucoin(Exchange, ImplicitAPI):
             interest = self.safe_number(isolatedBase, 'interest')
             currencyId = self.safe_string(isolatedBase, 'currency')
         else:
-            amountBorrowed = self.safe_number(info, 'principal')
+            amountBorrowed = self.safe_number(info, 'liability')
             interest = self.safe_number(info, 'accruedInterest')
             currencyId = self.safe_string(info, 'currency')
         return {
@@ -3857,37 +3859,23 @@ class kucoin(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://docs.kucoin.com/#1-margin-borrowing
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: unified market symbol, required for isolated margin
         :param dict [params]: extra parameters specific to the kucoin api endpoints
         :param str [params.timeInForce]: either IOC or FOK
-        :param str [params.marginMode]: 'cross' or 'isolated' default is 'cross'
-        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
-        isIsolated = marginMode == 'isolated'
-        params = self.omit(params, 'marginMode')
-        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
+            'timeInForce': 'FOK',
         }
-        timeInForce = self.safe_string_n(params, ['timeInForce', 'type', 'borrowStrategy'], 'IOC')
-        if isIsolated:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol parameter for isolated margin')
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            request['isIsolated'] = True
-        params = self.omit(params, ['timeInForce', 'type', 'borrowStrategy'])
-        request['timeInForce'] = timeInForce
         response = await self.privatePostMarginBorrow(self.extend(request, params))
         #
         #     {
@@ -3904,33 +3892,93 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        create a loan to borrow margin
+        :see: https://docs.kucoin.com/#1-margin-borrowing
+        :param str symbol: unified market symbol, required for isolated margin
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param dict [params]: extra parameters specific to the kucoin api endpoints
+        :param str [params.timeInForce]: either IOC or FOK
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'size': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+            'timeInForce': 'FOK',
+            'isIsolated': True,
+        }
+        response = await self.privatePostMarginBorrow(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": "200",
+        #         "msg": "success",
+        #         "retry": False,
+        #         "data": {
+        #             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        #             "actualSize": 10
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    async def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://docs.kucoin.com/#2-repayment
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the kucoin api endpoints
-        :param str [params.marginMode]: 'cross' or 'isolated' default is 'cross'
-        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
-        isIsolated = marginMode == 'isolated'
-        params = self.omit(params, 'marginMode')
-        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
         }
-        if isIsolated:
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol parameter for isolated margin')
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            request['isIsolated'] = True
+        response = await self.privatePostMarginRepay(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": "200",
+        #         "msg": "success",
+        #         "retry": False,
+        #         "data": {
+        #             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        #             "actualSize": 10
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://docs.kucoin.com/#2-repayment
+        :param str symbol: unified market symbol
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param dict [params]: extra parameters specific to the kucoin api endpoints
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'size': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+            'isIsolated': True,
+        }
         response = await self.privatePostMarginRepay(self.extend(request, params))
         #
         #     {
@@ -3972,7 +4020,7 @@ class kucoin(Exchange, ImplicitAPI):
         :see: https://docs.kucoin.com/#get-currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         await self.load_markets()
         response = await self.publicGetCurrencies(params)

@@ -80,7 +80,7 @@ export default class kuna extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
-                'fetchPositionsBySymbol': false,
+                'fetchPositionsForSymbol': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1860,7 +1860,6 @@ export default class kuna extends Exchange {
         let url = undefined;
         if (Array.isArray (api)) {
             const isGet = method === 'GET';
-            // const [ version, access ] = api;
             const version = this.safeString (api, 0);
             const access = this.safeString (api, 1);
             if (version === 'v3') {
