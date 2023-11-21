@@ -5576,6 +5576,7 @@ export default class bybit extends Exchange {
         //         "time": 1672280219169
         //     }
         //
+        return response;
     }
 
     async fetchPosition (symbol: string, params = {}) {
