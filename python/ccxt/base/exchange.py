@@ -2367,10 +2367,12 @@ class Exchange(object):
                 if 'rate' in reducedFees[i]:
                     reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
             if not parseFee and (reducedLength == 0):
-                fee['cost'] = self.safe_number(fee, 'cost')
-                if 'rate' in fee:
-                    fee['rate'] = self.safe_number(fee, 'rate')
-                reducedFees.append(fee)
+                # copy fee to avoid modification by reference
+                feeCopy = self.deep_extend(fee)
+                feeCopy['cost'] = self.safe_number(feeCopy, 'cost')
+                if 'rate' in feeCopy:
+                    feeCopy['rate'] = self.safe_number(feeCopy, 'rate')
+                reducedFees.append(feeCopy)
             order['fees'] = reducedFees
             if parseFee and (reducedLength == 1):
                 order['fee'] = reducedFees[0]
@@ -2607,10 +2609,12 @@ class Exchange(object):
                 if 'rate' in reducedFees[i]:
                     reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
             if not parseFee and (reducedLength == 0):
-                fee['cost'] = self.safe_number(fee, 'cost')
-                if 'rate' in fee:
-                    fee['rate'] = self.safe_number(fee, 'rate')
-                reducedFees.append(fee)
+                # copy fee to avoid modification by reference
+                feeCopy = self.deep_extend(fee)
+                feeCopy['cost'] = self.safe_number(feeCopy, 'cost')
+                if 'rate' in feeCopy:
+                    feeCopy['rate'] = self.safe_number(feeCopy, 'rate')
+                reducedFees.append(feeCopy)
             if parseFees:
                 trade['fees'] = reducedFees
             if parseFee and (reducedLength == 1):

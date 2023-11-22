@@ -1120,11 +1120,13 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
             if (!$parseFee && ($reducedLength === 0)) {
-                $fee['cost'] = $this->safe_number($fee, 'cost');
-                if (is_array($fee) && array_key_exists('rate', $fee)) {
-                    $fee['rate'] = $this->safe_number($fee, 'rate');
+                // copy $fee to avoid modification by reference
+                $feeCopy = $this->deep_extend($fee);
+                $feeCopy['cost'] = $this->safe_number($feeCopy, 'cost');
+                if (is_array($feeCopy) && array_key_exists('rate', $feeCopy)) {
+                    $feeCopy['rate'] = $this->safe_number($feeCopy, 'rate');
                 }
-                $reducedFees[] = $fee;
+                $reducedFees[] = $feeCopy;
             }
             $order['fees'] = $reducedFees;
             if ($parseFee && ($reducedLength === 1)) {
@@ -1402,11 +1404,13 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
             if (!$parseFee && ($reducedLength === 0)) {
-                $fee['cost'] = $this->safe_number($fee, 'cost');
-                if (is_array($fee) && array_key_exists('rate', $fee)) {
-                    $fee['rate'] = $this->safe_number($fee, 'rate');
+                // copy $fee to avoid modification by reference
+                $feeCopy = $this->deep_extend($fee);
+                $feeCopy['cost'] = $this->safe_number($feeCopy, 'cost');
+                if (is_array($feeCopy) && array_key_exists('rate', $feeCopy)) {
+                    $feeCopy['rate'] = $this->safe_number($feeCopy, 'rate');
                 }
-                $reducedFees[] = $fee;
+                $reducedFees[] = $feeCopy;
             }
             if ($parseFees) {
                 $trade['fees'] = $reducedFees;
