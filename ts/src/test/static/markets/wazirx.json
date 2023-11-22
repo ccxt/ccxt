@@ -1,0 +1,308 @@
+{
+    "BTC/USDT": {
+        "id": "btcusdt",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "btc",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 1
+        },
+        "limits": {
+            "amount": {},
+            "price": {
+                "min": 1
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "btcusdt",
+            "status": "trading",
+            "baseAsset": "btc",
+            "quoteAsset": "usdt",
+            "baseAssetPrecision": "5",
+            "quoteAssetPrecision": "0",
+            "orderTypes": [
+                "limit",
+                "stop_limit",
+                "limit_maker"
+            ],
+            "isSpotTradingAllowed": true,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "1.000000",
+                    "tickSize": "1.000000"
+                }
+            ]
+        },
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "LTC/USDT": {
+        "id": "ltcusdt",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "ltc",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {},
+            "price": {
+                "min": 0.01
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "ltcusdt",
+            "status": "trading",
+            "baseAsset": "ltc",
+            "quoteAsset": "usdt",
+            "baseAssetPrecision": "3",
+            "quoteAssetPrecision": "2",
+            "orderTypes": [
+                "limit",
+                "stop_limit",
+                "limit_maker"
+            ],
+            "isSpotTradingAllowed": true,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.010000",
+                    "tickSize": "0.010000"
+                }
+            ]
+        },
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "ADA/USDT": {
+        "id": "adausdt",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ada",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {},
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "adausdt",
+            "status": "trading",
+            "baseAsset": "ada",
+            "quoteAsset": "usdt",
+            "baseAssetPrecision": "1",
+            "quoteAssetPrecision": "5",
+            "orderTypes": [
+                "limit",
+                "stop_limit",
+                "limit_maker"
+            ],
+            "isSpotTradingAllowed": true,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.000010",
+                    "tickSize": "0.000010"
+                }
+            ]
+        },
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "XRP/USDT": {
+        "id": "xrpusdt",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "xrp",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {},
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "xrpusdt",
+            "status": "trading",
+            "baseAsset": "xrp",
+            "quoteAsset": "usdt",
+            "baseAssetPrecision": "1",
+            "quoteAssetPrecision": "5",
+            "orderTypes": [
+                "limit",
+                "stop_limit",
+                "limit_maker"
+            ],
+            "isSpotTradingAllowed": true,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.000010",
+                    "tickSize": "0.000010"
+                }
+            ]
+        },
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "SOL/USDT": {
+        "id": "solusdt",
+        "symbol": "SOL/USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "baseId": "sol",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {},
+            "price": {
+                "min": 0.001
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "solusdt",
+            "status": "trading",
+            "baseAsset": "sol",
+            "quoteAsset": "usdt",
+            "baseAssetPrecision": "3",
+            "quoteAssetPrecision": "3",
+            "orderTypes": [
+                "limit",
+                "stop_limit",
+                "limit_maker"
+            ],
+            "isSpotTradingAllowed": true,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.001000",
+                    "tickSize": "0.001000"
+                }
+            ]
+        },
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "TRX/USDT": {
+        "id": "trxusdt",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "trx",
+        "quoteId": "usdt",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {},
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "trxusdt",
+            "status": "trading",
+            "baseAsset": "trx",
+            "quoteAsset": "usdt",
+            "baseAssetPrecision": "0",
+            "quoteAssetPrecision": "5",
+            "orderTypes": [
+                "limit",
+                "stop_limit",
+                "limit_maker"
+            ],
+            "isSpotTradingAllowed": true,
+            "filters": [
+                {
+                    "filterType": "PRICE_FILTER",
+                    "minPrice": "0.000010",
+                    "tickSize": "0.000010"
+                }
+            ]
+        },
+        "taker": 0.002,
+        "maker": 0.002
+    }
+}

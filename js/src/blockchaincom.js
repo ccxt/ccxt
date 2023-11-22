@@ -349,6 +349,7 @@ export default class blockchaincom extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
             });
         }
         return result;
@@ -479,20 +480,20 @@ export default class blockchaincom extends Exchange {
     parseOrder(order, market = undefined) {
         //
         //     {
-        //         clOrdId: '00001',
-        //         ordType: 'MARKET',
-        //         ordStatus: 'FILLED',
-        //         side: 'BUY',
-        //         symbol: 'USDC-USDT',
-        //         exOrdId: '281775861306290',
-        //         price: null,
-        //         text: 'Fill',
-        //         lastShares: '30.0',
-        //         lastPx: '0.9999',
-        //         leavesQty: '0.0',
-        //         cumQty: '30.0',
-        //         avgPx: '0.9999',
-        //         timestamp: '1633940339619'
+        //         "clOrdId": "00001",
+        //         "ordType": "MARKET",
+        //         "ordStatus": "FILLED",
+        //         "side": "BUY",
+        //         "symbol": "USDC-USDT",
+        //         "exOrdId": "281775861306290",
+        //         "price": null,
+        //         "text": "Fill",
+        //         "lastShares": "30.0",
+        //         "lastPx": "0.9999",
+        //         "leavesQty": "0.0",
+        //         "cumQty": "30.0",
+        //         "avgPx": "0.9999",
+        //         "timestamp": "1633940339619"
         //     }
         //
         const clientOrderId = this.safeString(order, 'clOrdId');
@@ -541,7 +542,7 @@ export default class blockchaincom extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -650,9 +651,9 @@ export default class blockchaincom extends Exchange {
         const response = await this.privateGetFees(params);
         //
         //     {
-        //         makerRate: "0.002",
-        //         takerRate: "0.004",
-        //         volumeInUSD: "0.0"
+        //         "makerRate": "0.002",
+        //         "takerRate": "0.004",
+        //         "volumeInUSD": "0.0"
         //     }
         //
         const makerFee = this.safeNumber(response, 'makerRate');
@@ -885,7 +886,7 @@ export default class blockchaincom extends Exchange {
         }
         const address = this.safeString(transaction, 'address');
         const txid = this.safeString(transaction, 'txhash');
-        const result = {
+        return {
             'info': transaction,
             'id': id,
             'txid': txid,
@@ -904,9 +905,9 @@ export default class blockchaincom extends Exchange {
             'status': this.parseTransactionState(state),
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
-        return result;
     }
     async fetchWithdrawalWhitelist(params = {}) {
         /**
@@ -972,13 +973,13 @@ export default class blockchaincom extends Exchange {
         const response = await this.privatePostWithdrawals(this.extend(request, params));
         //
         //     {
-        //         amount: "30.0",
-        //         currency: "USDT",
-        //         beneficiary: "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        //         withdrawalId: "99df5ef7-eab6-4033-be49-312930fbd1ea",
-        //         fee: "34.005078",
-        //         state: "PENDING",
-        //         timestamp: "1634218452595"
+        //         "amount": "30.0",
+        //         "currency": "USDT",
+        //         "beneficiary": "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+        //         "withdrawalId": "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         "fee": "34.005078",
+        //         "state": "PENDING",
+        //         "timestamp": "1634218452595"
         //     },
         //
         return this.parseTransaction(response, currency);
@@ -1076,7 +1077,7 @@ export default class blockchaincom extends Exchange {
          * @name blockchaincom#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const accountName = this.safeString(params, 'account', 'primary');

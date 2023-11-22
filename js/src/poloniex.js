@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/poloniex.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, CancelPending } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -29,9 +29,9 @@ export default class poloniex extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -107,39 +107,51 @@ export default class poloniex extends Exchange {
                         'markets/{symbol}': 1,
                         'currencies': 20,
                         'currencies/{currency}': 20,
+                        'v2/currencies': 20,
+                        'v2/currencies/{currency}': 20,
                         'timestamp': 1,
                         'markets/price': 1,
                         'markets/{symbol}/price': 1,
+                        'markets/markPrice': 1,
+                        'markets/{symbol}/markPrice': 1,
+                        'markets/{symbol}/markPriceComponents': 1,
                         'markets/{symbol}/orderBook': 1,
                         'markets/{symbol}/candles': 1,
                         'markets/{symbol}/trades': 20,
                         'markets/ticker24h': 20,
                         'markets/{symbol}/ticker24h': 20,
+                        'markets/collateralInfo': 1,
+                        'markets/{currency}/collateralInfo': 1,
+                        'markets/borrowRatesInfo': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'accounts': 4,
-                        'accounts/activity': 4,
                         'accounts/balances': 4,
                         'accounts/{id}/balances': 4,
+                        'accounts/activity': 20,
                         'accounts/transfer': 20,
                         'accounts/transfer/{id}': 4,
+                        'feeinfo': 20,
+                        'accounts/interest/history': 1,
                         'subaccounts': 4,
                         'subaccounts/balances': 20,
                         'subaccounts/{id}/balances': 4,
                         'subaccounts/transfer': 20,
                         'subaccounts/transfer/{id}': 4,
-                        'feeinfo': 20,
                         'wallets/addresses': 20,
-                        'wallets/activity': 20,
                         'wallets/addresses/{currency}': 20,
+                        'wallets/activity': 20,
+                        'margin/accountMargin': 4,
+                        'margin/borrowStatus': 4,
+                        'margin/maxSize': 4,
                         'orders': 20,
                         'orders/{id}': 4,
-                        'orders/history': 20,
                         'orders/killSwitchStatus': 4,
                         'smartorders': 20,
                         'smartorders/{id}': 4,
+                        'orders/history': 20,
                         'smartorders/history': 20,
                         'trades': 20,
                         'orders/{id}/trades': 4,
@@ -149,9 +161,10 @@ export default class poloniex extends Exchange {
                         'subaccounts/transfer': 20,
                         'wallets/address': 20,
                         'wallets/withdraw': 20,
+                        'v2/wallets/withdraw': 20,
                         'orders': 4,
-                        'orders/killSwitch': 4,
                         'orders/batch': 20,
+                        'orders/killSwitch': 4,
                         'smartorders': 4,
                     },
                     'delete': {
@@ -163,8 +176,8 @@ export default class poloniex extends Exchange {
                         'smartorders': 20,
                     },
                     'put': {
-                        'orders/{id}': 4,
-                        'smartorders/{id}': 4,
+                        'orders/{id}': 20,
+                        'smartorders/{id}': 20,
                     },
                 },
             },
@@ -250,7 +263,6 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
-                    '200': CancelPending,
                     '500': ExchangeNotAvailable,
                     '603': RequestTimeout,
                     '601': BadRequest,
@@ -292,6 +304,7 @@ export default class poloniex extends Exchange {
                     '21352': BadSymbol,
                     '21353': PermissionDenied,
                     '21354': PermissionDenied,
+                    '21359': OrderNotFound,
                     '21360': InvalidOrder,
                     '24106': BadRequest,
                     '24201': ExchangeNotAvailable,
@@ -401,11 +414,18 @@ export default class poloniex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {int} [params.until] timestamp in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 500);
+        }
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
@@ -416,6 +436,7 @@ export default class poloniex extends Exchange {
             // limit should in between 100 and 500
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.publicGetMarketsSymbolCandles(this.extend(request, params));
         //
         //     [
@@ -480,64 +501,63 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = this.safeValue(markets, i);
-            const id = this.safeString(market, 'symbol');
-            const baseId = this.safeString(market, 'baseCurrencyName');
-            const quoteId = this.safeString(market, 'quoteCurrencyName');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const state = this.safeString(market, 'state');
-            const active = state === 'NORMAL';
-            const symbolTradeLimit = this.safeValue(market, 'symbolTradeLimit');
-            // these are known defaults
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(symbolTradeLimit, 'quantityScale'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(symbolTradeLimit, 'priceScale'))),
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'symbol');
+        const baseId = this.safeString(market, 'baseCurrencyName');
+        const quoteId = this.safeString(market, 'quoteCurrencyName');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const state = this.safeString(market, 'state');
+        const active = state === 'NORMAL';
+        const symbolTradeLimit = this.safeValue(market, 'symbolTradeLimit');
+        // these are known defaults
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(symbolTradeLimit, 'quantityScale'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(symbolTradeLimit, 'priceScale'))),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber(symbolTradeLimit, 'minQuantity'),
+                    'max': undefined,
                 },
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(symbolTradeLimit, 'minQuantity'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber(symbolTradeLimit, 'minAmount'),
-                        'max': undefined,
-                    },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'info': market,
-            });
-        }
-        return result;
+                'cost': {
+                    'min': this.safeNumber(symbolTradeLimit, 'minAmount'),
+                    'max': undefined,
+                },
+            },
+            'created': this.safeInteger(market, 'tradableStartTime'),
+            'info': market,
+        };
     }
     async fetchTime(params = {}) {
         /**
@@ -555,26 +575,33 @@ export default class poloniex extends Exchange {
         //
         //     {
         //         "symbol" : "BTC_USDT",
-        //         "open" : "22814.93",
-        //         "low" : "22441.90",
-        //         "high" : "23413.00",
-        //         "close" : "23148.66",
-        //         "quantity" : "71.743706",
-        //         "amount" : "1638994.52683452",
-        //         "tradeCount" : 3893,
-        //         "startTime" : 1659605760000,
-        //         "closeTime" : 1659692161077,
+        //         "open" : "26053.33",
+        //         "low" : "26053.33",
+        //         "high" : "26798.02",
+        //         "close" : "26447.58",
+        //         "quantity" : "6116.210188",
+        //         "amount" : "161082122.88450926",
+        //         "tradeCount" : "134709",
+        //         "startTime" : "1692784440000",
+        //         "closeTime" : "1692870839630",
         //         "displayName" : "BTC/USDT",
-        //         "dailyChange" : "0.0152",
-        //         "ts" : 1659692169838
+        //         "dailyChange" : "0.0151",
+        //         "bid" : "26447.57",
+        //         "bidQuantity" : "0.016313",
+        //         "ask" : "26447.58",
+        //         "askQuantity" : "0.068307",
+        //         "ts" : "1692870845446",
+        //         "markPrice" : "26444.11"
         //     }
         //
         const timestamp = this.safeInteger(ticker, 'ts');
         const marketId = this.safeString(ticker, 'symbol');
         market = this.safeMarket(marketId);
         const close = this.safeString(ticker, 'close');
-        const relativeChange = this.safeString(ticker, 'percentChange');
+        const relativeChange = this.safeString(ticker, 'dailyChange');
         const percentage = Precise.stringMul(relativeChange, '100');
+        const bidVolume = this.safeString(ticker, 'bidQuantity');
+        const askVolume = this.safeString(ticker, 'askQuantity');
         return this.safeTicker({
             'id': marketId,
             'symbol': market['symbol'],
@@ -582,10 +609,10 @@ export default class poloniex extends Exchange {
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'high'),
             'low': this.safeString(ticker, 'low'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': this.safeString(ticker, 'bid'),
+            'bidVolume': bidVolume,
+            'ask': this.safeString(ticker, 'ask'),
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': this.safeString(ticker, 'open'),
             'close': close,
@@ -615,19 +642,24 @@ export default class poloniex extends Exchange {
         //
         //     [
         //         {
-        //             "symbol" : "KUB_USDD",
-        //             "open" : "0",
-        //             "low" : "0",
-        //             "high" : "0",
-        //             "close" : "0",
-        //             "quantity" : "0",
-        //             "amount" : "0",
-        //             "tradeCount" : 0,
-        //             "startTime" : 1659606240000,
-        //             "closeTime" : 1659692648742,
-        //             "displayName" : "KUB/USDD",
-        //             "dailyChange" : "0.00",
-        //             "ts" : 1659692648742
+        //              "symbol" : "BTC_USDT",
+        //              "open" : "26053.33",
+        //              "low" : "26053.33",
+        //              "high" : "26798.02",
+        //              "close" : "26447.58",
+        //              "quantity" : "6116.210188",
+        //              "amount" : "161082122.88450926",
+        //              "tradeCount" : "134709",
+        //              "startTime" : "1692784440000",
+        //              "closeTime" : "1692870839630",
+        //              "displayName" : "BTC/USDT",
+        //              "dailyChange" : "0.0151",
+        //              "bid" : "26447.57",
+        //              "bidQuantity" : "0.016313",
+        //              "ask" : "26447.58",
+        //              "askQuantity" : "0.068307",
+        //              "ts" : "1692870845446",
+        //              "markPrice" : "26444.11"
         //         }
         //     ]
         //
@@ -658,8 +690,8 @@ export default class poloniex extends Exchange {
         //                 "delisted": false,
         //                 "tradingState": "NORMAL",
         //                 "walletState": "DISABLED",
-        //                 "walletDepositState": 'DISABLED',
-        //                 "walletWithdrawalState": 'DISABLED',
+        //                 "walletDepositState": "DISABLED",
+        //                 "walletWithdrawalState": "DISABLED",
         //                 "parentChain": null,
         //                 "isMultiChain": false,
         //                 "isChildChain": false,
@@ -785,18 +817,23 @@ export default class poloniex extends Exchange {
         //
         //     {
         //         "symbol" : "BTC_USDT",
-        //         "open" : "22814.93",
-        //         "low" : "22441.90",
-        //         "high" : "23413.00",
-        //         "close" : "23148.66",
-        //         "quantity" : "71.743706",
-        //         "amount" : "1638994.52683452",
-        //         "tradeCount" : 3893,
-        //         "startTime" : 1659605760000,
-        //         "closeTime" : 1659692161077,
+        //         "open" : "26053.33",
+        //         "low" : "26053.33",
+        //         "high" : "26798.02",
+        //         "close" : "26447.58",
+        //         "quantity" : "6116.210188",
+        //         "amount" : "161082122.88450926",
+        //         "tradeCount" : "134709",
+        //         "startTime" : "1692784440000",
+        //         "closeTime" : "1692870839630",
         //         "displayName" : "BTC/USDT",
-        //         "dailyChange" : "0.0152",
-        //         "ts" : 1659692169838
+        //         "dailyChange" : "0.0151",
+        //         "bid" : "26447.57",
+        //         "bidQuantity" : "0.016313",
+        //         "ask" : "26447.58",
+        //         "askQuantity" : "0.068307",
+        //         "ts" : "1692870845446",
+        //         "markPrice" : "26444.11"
         //     }
         //
         return this.parseTicker(response, market);
@@ -902,7 +939,7 @@ export default class poloniex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -938,14 +975,21 @@ export default class poloniex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const request = {
+        let request = {
         // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
         // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
@@ -955,6 +999,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.privateGetTrades(this.extend(request, params));
         //
         //     [
@@ -977,8 +1022,8 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        const result = this.parseTrades(response, market);
-        return this.filterBySinceLimit(result, since, limit);
+        const result = this.parseTrades(response, market, since, limit);
+        return result;
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1061,7 +1106,7 @@ export default class poloniex extends Exchange {
         const side = this.safeStringLower(order, 'side');
         const rawType = this.safeString(order, 'type');
         const type = this.parseOrderType(rawType);
-        const id = this.safeString2(order, 'orderNumber', 'id');
+        const id = this.safeStringN(order, ['orderNumber', 'id', 'orderId']);
         let fee = undefined;
         const feeCurrency = this.safeString(order, 'tokenFeeCurrency');
         let feeCost = undefined;
@@ -1083,6 +1128,7 @@ export default class poloniex extends Exchange {
             };
         }
         const clientOrderId = this.safeString(order, 'clientOrderId');
+        const triggerPrice = this.safeString2(order, 'triggerPrice', 'stopPrice');
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -1097,8 +1143,8 @@ export default class poloniex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'cost': undefined,
             'average': this.safeString(order, 'avgPrice'),
             'amount': amount,
@@ -1136,10 +1182,12 @@ export default class poloniex extends Exchange {
          * @name poloniex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
+         * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {boolean} [params.stop] set true to fetch trigger orders instead of regular orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1152,7 +1200,15 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOrders(this.extend(request, params));
+        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        params = this.omit(params, ['trigger', 'stop']);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateGetSmartorders(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetOrders(this.extend(request, params));
+        }
         //
         //     [
         //         {
@@ -1170,6 +1226,7 @@ export default class poloniex extends Exchange {
         //             "amount" : "0",
         //             "filledQuantity" : "0",
         //             "filledAmount" : "0",
+        //             "stopPrice": "3750.00",              // for trigger orders
         //             "createTime" : 16xxxxxxxxx26,
         //             "updateTime" : 16xxxxxxxxx36
         //         }
@@ -1180,35 +1237,41 @@ export default class poloniex extends Exchange {
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
-         * @method
-         * @name poloniex#createOrder
-         * @description create a trade order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        // if (type === 'market') {
-        //     throw new ExchangeError (this.id + ' createOrder() does not accept market orders');
-        // }
+        * @method
+        * @name poloniex#createOrder
+        * @description create a trade order
+        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
+        * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order  // trigger orders
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the poloniex api endpoint
+        * @param {float} [params.triggerPrice] *spot only* The price at which a trigger order is triggered at
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request = {
+        let request = {
             'symbol': market['id'],
             'side': side,
             // 'timeInForce': timeInForce,
             // 'accountType': 'SPOT',
             // 'amount': amount,
         };
-        const orderRequest = this.orderRequest(symbol, type, side, amount, request, price, params);
-        let response = await this.privatePostOrders(this.extend(orderRequest[0], orderRequest[1]));
+        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
+        [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
+        let response = undefined;
+        if (triggerPrice !== undefined) {
+            response = await this.privatePostSmartorders(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostOrders(this.extend(request, params));
+        }
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1225,9 +1288,14 @@ export default class poloniex extends Exchange {
         let upperCaseType = type.toUpperCase();
         const isMarket = upperCaseType === 'MARKET';
         const isPostOnly = this.isPostOnly(isMarket, upperCaseType === 'LIMIT_MAKER', params);
-        if (isPostOnly) {
+        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
+        params = this.omit(params, ['postOnly', 'triggerPrice', 'stopPrice']);
+        if (triggerPrice !== undefined) {
+            upperCaseType = (price === undefined) ? 'STOP' : 'STOP_LIMIT';
+            request['stopPrice'] = triggerPrice;
+        }
+        else if (isPostOnly) {
             upperCaseType = 'LIMIT_MAKER';
-            params = this.omit(params, 'postOnly');
         }
         request['type'] = upperCaseType;
         if (isMarket) {
@@ -1252,30 +1320,39 @@ export default class poloniex extends Exchange {
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
-         * @method
-         * @name poloniex#editOrder
-         * @description edit a trade order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
+        * @method
+        * @name poloniex#editOrder
+        * @description edit a trade order
+        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+        * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order
+        * @param {string} id order id
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the poloniex api endpoint
+        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
         }
-        const request = {
+        let request = {
             'id': id,
             // 'timeInForce': timeInForce,
         };
-        const orderRequest = this.orderRequest(symbol, type, side, amount, request, price, params);
-        let response = await this.privatePutOrdersId(this.extend(orderRequest[0], orderRequest[1]));
+        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
+        [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
+        let response = undefined;
+        if (triggerPrice !== undefined) {
+            response = await this.privatePutSmartordersId(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePutOrdersId(this.extend(request, params));
+        }
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1288,16 +1365,18 @@ export default class poloniex extends Exchange {
         return this.parseOrder(response, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniex#cancelOrder
-         * @description cancels an open order
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-id
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
+        //
+        // @method
+        // @name poloniex#cancelOrder
+        // @description cancels an open order
+        // @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-order-by-id
+        // @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-order-by-id  // trigger orders
+        // @param {string} id order id
+        // @param {string} symbol unified symbol of the market the order was made in
+        // @param {object} [params] extra parameters specific to the poloniex api endpoint
+        // @param {boolean} [params.trigger] true if canceling a trigger order
+        // @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        //
         await this.loadMarkets();
         const request = {};
         const clientOrderId = this.safeValue(params, 'clientOrderId');
@@ -1305,22 +1384,42 @@ export default class poloniex extends Exchange {
             id = clientOrderId;
         }
         request['id'] = id;
-        params = this.omit(params, 'clientOrderId');
-        return await this.privateDeleteOrdersId(this.extend(request, params));
+        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        params = this.omit(params, ['clientOrderId', 'trigger', 'stop']);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateDeleteSmartordersId(this.extend(request, params));
+        }
+        else {
+            response = await this.privateDeleteOrdersId(this.extend(request, params));
+        }
+        //
+        //   {
+        //       "orderId":"210832697138888704",
+        //       "clientOrderId":"",
+        //       "state":"PENDING_CANCEL",
+        //       "code":200,
+        //       "message":""
+        //   }
+        //
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
-         * @method
-         * @name poloniex#cancelAllOrders
-         * @description cancel all open orders
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
-         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
+        * @method
+        * @name poloniex#cancelAllOrders
+        * @description cancel all open orders
+        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders
+        * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders  // trigger orders
+        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+        * @param {object} [params] extra parameters specific to the poloniex api endpoint
+        * @param {boolean} [params.trigger] true if canceling trigger orders
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
         await this.loadMarkets();
         const request = {
-        // 'accountTypes': 'SPOT',
+            // 'accountTypes': 'SPOT',
+            'symbols': [],
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -1329,7 +1428,15 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        const response = await this.privateDeleteOrders(this.extend(request, params));
+        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        params = this.omit(params, ['trigger', 'stop']);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateDeleteSmartorders(this.extend(request, params));
+        }
+        else {
+            response = await this.privateDeleteOrders(this.extend(request, params));
+        }
         //
         //     [
         //         {
@@ -1347,25 +1454,36 @@ export default class poloniex extends Exchange {
         //         }
         //     ]
         //
-        return response;
+        return this.parseOrders(response, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
-         * @method
-         * @name poloniex#fetchOrder
-         * @description fetch an order by it's id
-         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol, default is undefined
-         * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
+        * @method
+        * @name poloniex#fetchOrder
+        * @description fetch an order by it's id
+        * @see https://docs.poloniex.com/#authenticated-endpoints-orders-order-details
+        * @see https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders  // trigger orders
+        * @param {string} id order id
+        * @param {string} symbol unified market symbol, default is undefined
+        * @param {object} [params] extra parameters specific to the poloniex api endpoint
+        * @param {boolean} [params.trigger] true if fetching a trigger order
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
         await this.loadMarkets();
         id = id.toString();
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrdersId(this.extend(request, params));
+        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        params = this.omit(params, ['trigger', 'stop']);
+        let response = undefined;
+        if (isTrigger) {
+            response = await this.privateGetSmartordersId(this.extend(request, params));
+            response = this.safeValue(response, 0);
+        }
+        else {
+            response = await this.privateGetOrdersId(this.extend(request, params));
+        }
         //
         //     {
         //         "id": "21934611974062080",
@@ -1382,13 +1500,14 @@ export default class poloniex extends Exchange {
         //         "amount": "0.00",
         //         "filledQuantity": "0.00",
         //         "filledAmount": "0.00",
+        //         "stopPrice": "3750.00",              // for trigger orders
         //         "createTime": 1646196019020,
         //         "updateTime": 1646196019020
         //     }
         //
-        return this.extend(this.parseOrder(response), {
-            'id': id,
-        });
+        const order = this.parseOrder(response);
+        order['id'] = id;
+        return order;
     }
     async fetchOrderStatus(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1465,7 +1584,7 @@ export default class poloniex extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1768,9 +1887,9 @@ export default class poloniex extends Exchange {
         const response = await this.privatePostWalletsWithdraw(this.extend(request, params));
         //
         //     {
-        //         response: 'Withdrew 1.00000000 USDT.',
-        //         email2FA: false,
-        //         withdrawalNumber: 13449869
+        //         "response": "Withdrew 1.00000000 USDT.",
+        //         "email2FA": false,
+        //         "withdrawalNumber": 13449869
         //     }
         //
         return this.parseTransaction(response, currency);
@@ -1790,22 +1909,22 @@ export default class poloniex extends Exchange {
         //         "adjustments":[],
         //         "deposits":[
         //             {
-        //                 currency: "BTC",
-        //                 address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //                 amount: "0.01063000",
-        //                 confirmations:  1,
-        //                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //                 timestamp:  1507916888,
-        //                 status: "COMPLETE"
+        //                 "currency": "BTC",
+        //                 "address": "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //                 "amount": "0.01063000",
+        //                 "confirmations":  1,
+        //                 "txid": "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //                 "timestamp":  1507916888,
+        //                 "status": "COMPLETE"
         //             },
         //             {
-        //                 currency: "ETH",
-        //                 address: "0x20108ba20b65c04d82909e91df06618107460197",
-        //                 amount: "4.00000000",
-        //                 confirmations: 38,
-        //                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
-        //                 timestamp: 1525060430,
-        //                 status: "COMPLETE"
+        //                 "currency": "ETH",
+        //                 "address": "0x20108ba20b65c04d82909e91df06618107460197",
+        //                 "amount": "4.00000000",
+        //                 "confirmations": 38,
+        //                 "txid": "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        //                 "timestamp": 1525060430,
+        //                 "status": "COMPLETE"
         //             }
         //         ],
         //         "withdrawals":[
@@ -1824,34 +1943,34 @@ export default class poloniex extends Exchange {
         //                 "scope":"crypto"
         //             },
         //             {
-        //                 withdrawalNumber: 8224394,
-        //                 currency: "EMC2",
-        //                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
-        //                 amount: "63.10796020",
-        //                 fee: "0.01000000",
-        //                 timestamp: 1510819838,
-        //                 status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        //                 ipAddress: "x.x.x.x"
+        //                 "withdrawalNumber": 8224394,
+        //                 "currency": "EMC2",
+        //                 "address": "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        //                 "amount": "63.10796020",
+        //                 "fee": "0.01000000",
+        //                 "timestamp": 1510819838,
+        //                 "status": "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        //                 "ipAddress": "x.x.x.x"
         //             },
         //             {
-        //                 withdrawalNumber: 9290444,
-        //                 currency: "ETH",
-        //                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
-        //                 amount: "0.15500000",
-        //                 fee: "0.00500000",
-        //                 timestamp: 1514099289,
-        //                 status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //                 ipAddress: "x.x.x.x"
+        //                 "withdrawalNumber": 9290444,
+        //                 "currency": "ETH",
+        //                 "address": "0x191015ff2e75261d50433fbd05bd57e942336149",
+        //                 "amount": "0.15500000",
+        //                 "fee": "0.00500000",
+        //                 "timestamp": 1514099289,
+        //                 "status": "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //                 "ipAddress": "x.x.x.x"
         //             },
         //             {
-        //                 withdrawalNumber: 11518260,
-        //                 currency: "BTC",
-        //                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
-        //                 amount: "0.20000000",
-        //                 fee: "0.00050000",
-        //                 timestamp: 1527918155,
-        //                 status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        //                 ipAddress: "x.x.x.x"
+        //                 "withdrawalNumber": 11518260,
+        //                 "currency": "BTC",
+        //                 "address": "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        //                 "amount": "0.20000000",
+        //                 "fee": "0.00050000",
+        //                 "timestamp": 1527918155,
+        //                 "status": "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        //                 "ipAddress": "x.x.x.x"
         //             }
         //         ]
         //     }
@@ -1978,7 +2097,8 @@ export default class poloniex extends Exchange {
             const code = this.safeCurrencyCode(currencyId);
             const feeInfo = response[currencyId];
             if ((codes === undefined) || (this.inArray(code, codes))) {
-                depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, code);
+                const currency = this.currency(code);
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee(feeInfo, currency);
                 const childChains = this.safeValue(feeInfo, 'childChains');
                 const chainsLength = childChains.length;
                 if (chainsLength > 0) {
@@ -2008,7 +2128,7 @@ export default class poloniex extends Exchange {
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         const depositWithdrawFee = this.depositWithdrawFee({});
-        depositWithdrawFee['info'][currency] = fee;
+        depositWithdrawFee['info'][currency['code']] = fee;
         const networkId = this.safeString(fee, 'blockchain');
         const withdrawFee = this.safeNumber(fee, 'withdrawalFee');
         const withdrawResult = {
@@ -2132,6 +2252,7 @@ export default class poloniex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCostString),
@@ -2194,7 +2315,8 @@ export default class poloniex extends Exchange {
         //         "message" : "Low available balance"
         //     }
         //
-        if ('code' in response) {
+        const responseCode = this.safeString(response, 'code');
+        if ((responseCode !== undefined) && (responseCode !== '200')) {
             const codeInner = response['code'];
             const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + body;

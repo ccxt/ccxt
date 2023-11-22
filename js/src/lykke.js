@@ -39,11 +39,11 @@ export default class lykke extends Exchange {
                 'createStopOrder': false,
                 'editOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': false,
@@ -53,11 +53,13 @@ export default class lykke extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': undefined,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -226,7 +228,8 @@ export default class lykke extends Exchange {
             const id = this.safeString(currency, 'assetId');
             const code = this.safeString(currency, 'symbol');
             const name = this.safeString(currency, 'name');
-            const type = this.safeString(currency, 'type');
+            const rawType = this.safeString(currency, 'type');
+            const type = (rawType === 'erc20Token') ? 'crypto' : 'other';
             const deposit = this.safeValue(currency, 'blockchainDepositEnabled');
             const withdraw = this.safeValue(currency, 'blockchainWithdrawal');
             const isDisabled = this.safeValue(currency, 'isDisabled');
@@ -313,7 +316,6 @@ export default class lykke extends Exchange {
                 'option': false,
                 'contract': false,
                 'active': true,
-                'info': market,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
@@ -343,6 +345,8 @@ export default class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
+                'info': market,
             });
         }
         return result;
@@ -523,15 +527,15 @@ export default class lykke extends Exchange {
         //     {
         //         "payload":[
         //             {
-        //                 assetPairId: 'BTCUSD',
-        //                 timestamp: '1643298038203',
-        //                 bids: [
+        //                 "assetPairId": "BTCUSD",
+        //                 "timestamp": "1643298038203",
+        //                 "bids": [
         //                     {
         //                         "v":0.59034382,
         //                         "p":36665.329
         //                     }
         //                 ],
-        //                 asks: [
+        //                 "asks": [
         //                     {
         //                         "v":-0.003,
         //                         "p":36729.686
@@ -612,7 +616,7 @@ export default class lykke extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -673,7 +677,7 @@ export default class lykke extends Exchange {
          * @name lykke#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the lykke api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetBalance(params);
@@ -771,7 +775,7 @@ export default class lykke extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the lykke api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -812,7 +816,7 @@ export default class lykke extends Exchange {
         if (type === 'market') {
             price = this.safeNumber(payload, 'price');
         }
-        return {
+        return this.safeOrder({
             'id': id,
             'info': result,
             'clientOrderId': undefined,
@@ -831,7 +835,7 @@ export default class lykke extends Exchange {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1163,6 +1167,8 @@ export default class lykke extends Exchange {
             'currency': code,
             'status': undefined,
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

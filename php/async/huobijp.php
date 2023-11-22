@@ -14,6 +14,7 @@ use ccxt\InvalidOrder;
 use ccxt\NetworkError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class huobijp extends Exchange {
 
@@ -320,7 +321,6 @@ class huobijp extends Exchange {
                 'GET' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'GTC' => 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'HIT' => 'HitChain',
-                'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
@@ -370,19 +370,19 @@ class huobijp extends Exchange {
             $response = Async\await($this->publicGetCommonExchange (array_merge($request, $params)));
             //
             //     { status =>   "ok",
-            //         data => {                                  symbol => "aidocbtc",
-            //                              'buy-limit-must-less-than' =>  1.1,
-            //                          'sell-limit-must-greater-than' =>  0.9,
-            //                         'limit-order-must-greater-than' =>  1,
-            //                            'limit-order-must-less-than' =>  5000000,
-            //                    'market-buy-order-must-greater-than' =>  0.0001,
-            //                       'market-buy-order-must-less-than' =>  100,
-            //                   'market-sell-order-must-greater-than' =>  1,
-            //                      'market-sell-order-must-less-than' =>  500000,
-            //                       'circuit-break-when-greater-than' =>  10000,
-            //                          'circuit-break-when-less-than' =>  10,
-            //                 'market-sell-order-rate-must-less-than' =>  0.1,
-            //                  'market-buy-order-rate-must-less-than' =>  0.1        } }
+            //         "data" => {                                  symbol => "aidocbtc",
+            //                              "buy-limit-must-less-than" =>  1.1,
+            //                          "sell-limit-must-greater-than" =>  0.9,
+            //                         "limit-order-must-greater-than" =>  1,
+            //                            "limit-order-must-less-than" =>  5000000,
+            //                    "market-buy-order-must-greater-than" =>  0.0001,
+            //                       "market-buy-order-must-less-than" =>  100,
+            //                   "market-sell-order-must-greater-than" =>  1,
+            //                      "market-sell-order-must-less-than" =>  500000,
+            //                       "circuit-break-when-greater-than" =>  10000,
+            //                          "circuit-break-when-less-than" =>  10,
+            //                 "market-sell-order-rate-must-less-than" =>  0.1,
+            //                  "market-buy-order-rate-must-less-than" =>  0.1        } }
             //
             return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
         }) ();
@@ -391,18 +391,18 @@ class huobijp extends Exchange {
     public function parse_trading_limits($limits, ?string $symbol = null, $params = array ()) {
         //
         //   {                                  $symbol => "aidocbtc",
-        //                  'buy-limit-must-less-than' =>  1.1,
-        //              'sell-limit-must-greater-than' =>  0.9,
-        //             'limit-order-must-greater-than' =>  1,
-        //                'limit-order-must-less-than' =>  5000000,
-        //        'market-buy-order-must-greater-than' =>  0.0001,
-        //           'market-buy-order-must-less-than' =>  100,
-        //       'market-sell-order-must-greater-than' =>  1,
-        //          'market-sell-order-must-less-than' =>  500000,
-        //           'circuit-break-when-greater-than' =>  10000,
-        //              'circuit-break-when-less-than' =>  10,
-        //     'market-sell-order-rate-must-less-than' =>  0.1,
-        //      'market-buy-order-rate-must-less-than' =>  0.1        }
+        //                  "buy-limit-must-less-than" =>  1.1,
+        //              "sell-limit-must-greater-than" =>  0.9,
+        //             "limit-order-must-greater-than" =>  1,
+        //                "limit-order-must-less-than" =>  5000000,
+        //        "market-buy-order-must-greater-than" =>  0.0001,
+        //           "market-buy-order-must-less-than" =>  100,
+        //       "market-sell-order-must-greater-than" =>  1,
+        //          "market-sell-order-must-less-than" =>  500000,
+        //           "circuit-break-when-greater-than" =>  10000,
+        //              "circuit-break-when-less-than" =>  10,
+        //     "market-sell-order-rate-must-less-than" =>  0.1,
+        //      "market-buy-order-rate-must-less-than" =>  0.1        }
         //
         return array(
             'info' => $limits,
@@ -527,6 +527,7 @@ class huobijp extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -534,7 +535,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -554,18 +555,18 @@ class huobijp extends Exchange {
         //
         // fetchTickers
         //     {
-        //         $symbol => "bhdht",
-        //         $open =>  2.3938,
-        //         high =>  2.4151,
-        //         low =>  2.3323,
-        //         $close =>  2.3909,
-        //         amount =>  628.992,
-        //         vol =>  1493.71841095,
-        //         count =>  2088,
-        //         $bid =>  2.3643,
-        //         bidSize =>  0.7136,
-        //         $ask =>  2.4061,
-        //         askSize =>  0.4156
+        //         "symbol" => "bhdht",
+        //         "open" =>  2.3938,
+        //         "high" =>  2.4151,
+        //         "low" =>  2.3323,
+        //         "close" =>  2.3909,
+        //         "amount" =>  628.992,
+        //         "vol" =>  1493.71841095,
+        //         "count" =>  2088,
+        //         "bid" =>  2.3643,
+        //         "bidSize" =>  0.7136,
+        //         "ask" =>  2.4061,
+        //         "askSize" =>  0.4156
         //     }
         //
         $symbol = $this->safe_symbol(null, $market);
@@ -620,7 +621,7 @@ class huobijp extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -671,7 +672,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -713,7 +714,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -736,11 +737,11 @@ class huobijp extends Exchange {
                 $ticker['datetime'] = $this->iso8601($timestamp);
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -756,21 +757,21 @@ class huobijp extends Exchange {
         // fetchMyTrades (private)
         //
         //     array(
-        //          'symbol' => 'swftcbtc',
-        //          'fee-currency' => 'swftc',
-        //          'filled-fees' => '0',
-        //          'source' => 'spot-api',
-        //          'id' => 83789509854000,
-        //          'type' => 'buy-limit',
-        //          'order-id' => 83711103204909,
-        //          'filled-points' => '0.005826843283532154',
-        //          'fee-deduct-currency' => 'ht',
-        //          'filled-amount' => '45941.53',
-        //          'price' => '0.0000001401',
-        //          'created-at' => 1597933260729,
-        //          'match-id' => 100087455560,
-        //          'role' => 'maker',
-        //          'trade-id' => 100050305348
+        //          "symbol" => "swftcbtc",
+        //          "fee-currency" => "swftc",
+        //          "filled-fees" => "0",
+        //          "source" => "spot-api",
+        //          "id" => 83789509854000,
+        //          "type" => "buy-limit",
+        //          "order-$id" => 83711103204909,
+        //          'filled-points' => "0.005826843283532154",
+        //          "fee-deduct-currency" => "ht",
+        //          'filled-amount' => "45941.53",
+        //          "price" => "0.0000001401",
+        //          "created-at" => 1597933260729,
+        //          "match-$id" => 100087455560,
+        //          "role" => "maker",
+        //          "trade-$id" => 100050305348
         //     ),
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -785,17 +786,15 @@ class huobijp extends Exchange {
             $type = $typeParts[1];
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string_2($trade, 'filled-amount', 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string_2($trade, 'filled-amount', 'amount');
+        $cost = Precise::string_mul($price, $amount);
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'filled-fees');
+        $feeCost = $this->safe_string($trade, 'filled-fees');
         $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-currency'));
-        $filledPoints = $this->safe_number($trade, 'filled-points');
+        $filledPoints = $this->safe_string($trade, 'filled-points');
         if ($filledPoints !== null) {
-            if (($feeCost === null) || ($feeCost === 0.0)) {
+            if (($feeCost === null) || (Precise::string_eq($feeCost, '0.0'))) {
                 $feeCost = $filledPoints;
                 $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-deduct-currency'));
             }
@@ -808,13 +807,13 @@ class huobijp extends Exchange {
         }
         $tradeId = $this->safe_string_2($trade, 'trade-id', 'tradeId');
         $id = $this->safe_string($trade, 'id', $tradeId);
-        return array(
-            'id' => $id,
+        return $this->safe_trade(array(
             'info' => $trade,
+            'id' => $id,
+            'symbol' => $symbol,
             'order' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
@@ -822,7 +821,7 @@ class huobijp extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -874,7 +873,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, $limit = 1000, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -882,7 +881,7 @@ class huobijp extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the huobijp api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades $trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades $trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -890,7 +889,7 @@ class huobijp extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['size'] = $limit;
+                $request['size'] = min ($limit, 2000);
             }
             $response = Async\await($this->marketGetHistoryTrade (array_merge($request, $params)));
             //
@@ -931,7 +930,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -954,7 +953,7 @@ class huobijp extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 1000, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1104,7 +1103,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -1128,12 +1127,12 @@ class huobijp extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the huobijp api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
@@ -1160,21 +1159,21 @@ class huobijp extends Exchange {
             $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
-            //     { status =>   "ok",
-            //         data => array( {                  id =>  13997833014,
-            //                                $symbol => "ethbtc",
-            //                          'account-id' =>  3398321,
-            //                                amount => "0.045000000000000000",
-            //                                 price => "0.034014000000000000",
-            //                          'created-at' =>  1545836976871,
-            //                                  type => "sell-$limit",
-            //                        'field-amount' => "0.045000000000000000",
-            //                   'field-cash-amount' => "0.001530630000000000",
-            //                          'field-fees' => "0.000003061260000000",
-            //                         'finished-at' =>  1545837948214,
-            //                                source => "spot-api",
-            //                                 state => "filled",
-            //                         'canceled-at' =>  0                      }  ) }
+            //     { "status" =>   "ok",
+            //         "data" => array( {                  id =>  13997833014,
+            //                                "symbol" => "ethbtc",
+            //                          "account-id" =>  3398321,
+            //                                "amount" => "0.045000000000000000",
+            //                                 "price" => "0.034014000000000000",
+            //                          "created-at" =>  1545836976871,
+            //                                  "type" => "sell-$limit",
+            //                        "field-amount" => "0.045000000000000000",
+            //                   "field-cash-amount" => "0.001530630000000000",
+            //                          "field-fees" => "0.000003061260000000",
+            //                         "finished-at" =>  1545837948214,
+            //                                "source" => "spot-api",
+            //                                 "state" => "filled",
+            //                         "canceled-at" =>  0                      }  ) }
             //
             return $this->parse_orders($response['data'], $market, $since, $limit);
         }) ();
@@ -1198,7 +1197,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1212,7 +1211,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1236,7 +1235,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1316,37 +1315,37 @@ class huobijp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         //     {                  $id =>  13997833014,
-        //                    symbol => "ethbtc",
-        //              'account-id' =>  3398321,
-        //                    $amount => "0.045000000000000000",
-        //                     $price => "0.034014000000000000",
-        //              'created-at' =>  1545836976871,
-        //                      $type => "sell-limit",
-        //            'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
-        //             'finished-at' =>  1545837948214,
-        //                    source => "spot-api",
-        //                     state => "filled",
-        //             'canceled-at' =>  0                      }
+        //                    "symbol" => "ethbtc",
+        //              "account-$id" =>  3398321,
+        //                    "amount" => "0.045000000000000000",
+        //                     "price" => "0.034014000000000000",
+        //              "created-at" =>  1545836976871,
+        //                      "type" => "sell-limit",
+        //            "field-$amount" => "0.045000000000000000", // they have fixed it for $filled-$amount
+        //       "field-cash-$amount" => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
+        //              "field-fees" => "0.000003061260000000", // they have fixed it for $filled-fees
+        //             "finished-at" =>  1545837948214,
+        //                    "source" => "spot-api",
+        //                     "state" => "filled",
+        //             "canceled-at" =>  0                      }
         //
         //     {                  $id =>  20395337822,
-        //                    symbol => "ethbtc",
-        //              'account-id' =>  5685075,
-        //                    $amount => "0.001000000000000000",
-        //                     $price => "0.0",
-        //              'created-at' =>  1545831584023,
-        //                      $type => "buy-$market",
-        //            'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
-        //             'finished-at' =>  1545831584181,
-        //                    source => "spot-api",
-        //                     state => "filled",
-        //             'canceled-at' =>  0                      }
+        //                    "symbol" => "ethbtc",
+        //              "account-$id" =>  5685075,
+        //                    "amount" => "0.001000000000000000",
+        //                     "price" => "0.0",
+        //              "created-at" =>  1545831584023,
+        //                      "type" => "buy-$market",
+        //            "field-$amount" => "0.029100000000000000", // they have fixed it for $filled-$amount
+        //       "field-cash-$amount" => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
+        //              "field-fees" => "0.000058200000000000", // they have fixed it for $filled-fees
+        //             "finished-at" =>  1545831584181,
+        //                    "source" => "spot-api",
+        //                     "state" => "filled",
+        //             "canceled-at" =>  0                      }
         //
         $id = $this->safe_string($order, 'id');
         $side = null;
@@ -1409,7 +1408,7 @@ class huobijp extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the huobijp api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1459,7 +1458,7 @@ class huobijp extends Exchange {
             $response = Async\await($this->$method (array_merge($request, $params)));
             $timestamp = $this->milliseconds();
             $id = $this->safe_string($response, 'data');
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $id,
                 'timestamp' => $timestamp,
@@ -1478,7 +1477,7 @@ class huobijp extends Exchange {
                 'fee' => null,
                 'clientOrderId' => null,
                 'average' => null,
-            );
+            ), $market);
         }) ();
     }
 
@@ -1494,8 +1493,8 @@ class huobijp extends Exchange {
             $response = Async\await($this->privatePostOrderOrdersIdSubmitcancel (array( 'id' => $id )));
             //
             //     {
-            //         'status' => 'ok',
-            //         'data' => '10138899000',
+            //         "status" => "ok",
+            //         "data" => "10138899000",
             //     }
             //
             return array_merge($this->parse_order($response), array(
@@ -1584,8 +1583,8 @@ class huobijp extends Exchange {
             $response = Async\await($this->privatePostOrderOrdersBatchCancelOpenOrders (array_merge($request, $params)));
             //
             //     {
-            //         code => 200,
-            //         data => {
+            //         "code" => 200,
+            //         "data" => {
             //             "success-count" => 2,
             //             "failed-count" => 0,
             //             "next-id" => 5454600
@@ -1610,13 +1609,13 @@ class huobijp extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
-        //         $currency => "usdt",
-        //         $address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-        //         addressTag => "",
-        //         chain => "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
+        //         "currency" => "usdt",
+        //         "address" => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //         "addressTag" => "",
+        //         "chain" => "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -1639,7 +1638,7 @@ class huobijp extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1673,7 +1672,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1707,40 +1706,40 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
         //     {
-        //         'id' => 8211029,
-        //         'type' => 'deposit',
-        //         'currency' => 'eth',
-        //         'chain' => 'eth',
-        //         'tx-hash' => 'bd315....',
-        //         'amount' => 0.81162421,
-        //         'address' => '4b8b....',
-        //         'address-tag' => '',
-        //         'fee' => 0,
-        //         'state' => 'safe',
-        //         'created-at' => 1542180380965,
-        //         'updated-at' => 1542180788077
+        //         "id" => 8211029,
+        //         "type" => "deposit",
+        //         "currency" => "eth",
+        //         "chain" => "eth",
+        //         'tx-hash' => "bd315....",
+        //         "amount" => 0.81162421,
+        //         "address" => "4b8b....",
+        //         'address-tag" => '",
+        //         "fee" => 0,
+        //         "state" => "safe",
+        //         "created-at" => 1542180380965,
+        //         "updated-at" => 1542180788077
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         'id' => 6908275,
-        //         'type' => 'withdraw',
-        //         'currency' => 'btc',
-        //         'chain' => 'btc',
-        //         'tx-hash' => 'c1a1a....',
-        //         'amount' => 0.80257005,
-        //         'address' => '1QR....',
-        //         'address-tag' => '',
-        //         'fee' => 0.0005,
-        //         'state' => 'confirmed',
-        //         'created-at' => 1552107295685,
-        //         'updated-at' => 1552108032859
+        //         "id" => 6908275,
+        //         "type" => "withdraw",
+        //         "currency" => "btc",
+        //         "chain" => "btc",
+        //         'tx-hash' => "c1a1a....",
+        //         "amount" => 0.80257005,
+        //         "address" => "1QR....",
+        //         'address-tag" => '",
+        //         "fee" => 0.0005,
+        //         "state" => "confirmed",
+        //         "created-at" => 1552107295685,
+        //         "updated-at" => 1552108032859
         //     }
         //
         // withdraw
@@ -1778,6 +1777,8 @@ class huobijp extends Exchange {
             'currency' => $code,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'state')),
             'updated' => $this->safe_integer($transaction, 'updated-at'),
+            'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),
