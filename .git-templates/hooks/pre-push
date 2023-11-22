@@ -39,7 +39,7 @@ PYTHON_EXIT_CODE=$?
 
 if [ $PYTHON_EXIT_CODE -ne 0 ]; then
     echo "Python linting failed, check the Python files..."
-    exit $ESLINT_EXIT_CODE
+    exit $PYTHON_EXIT_CODE
 fi
 
 # Run PHP linting
@@ -48,7 +48,7 @@ PHP_EXIT_CODE=$?
 
 if [ $PHP_EXIT_CODE -ne 0 ]; then
     echo "PHP linting failed, check the PHP files..."
-    exit $ESLINT_EXIT_CODE
+    exit $PHP_EXIT_CODE
 fi
 
 echo "All checks passed, pushing..."

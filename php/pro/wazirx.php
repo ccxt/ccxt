@@ -52,7 +52,7 @@ class wazirx extends \ccxt\async\wazirx {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.wazirx.com/#account-update
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate($params));
@@ -95,8 +95,8 @@ class wazirx extends \ccxt\async\wazirx {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'a');
             $code = $this->safe_currency_code($currencyId);
-            $available = $this->safe_number($balance, 'b');
-            $locked = $this->safe_number($balance, 'l');
+            $available = $this->safe_string($balance, 'b');
+            $locked = $this->safe_string($balance, 'l');
             $account = $this->account();
             $account['free'] = $available;
             $account['used'] = $locked;
@@ -176,7 +176,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @see https://docs.wazirx.com/#all-$market-tickers-$stream
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -200,7 +200,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @see https://docs.wazirx.com/#all-market-$tickers-$stream
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -303,7 +303,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -371,7 +371,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $token = Async\await($this->authenticate($params));
@@ -494,7 +494,7 @@ class wazirx extends \ccxt\async\wazirx {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the wazirx api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

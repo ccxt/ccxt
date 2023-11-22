@@ -5,7 +5,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -206,7 +206,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'tickers';
         const topic = name;
@@ -460,7 +460,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const topic = 'executionreport';
         let messageHash = topic;
@@ -634,7 +634,7 @@ export default class woo extends wooRest {
          * @name woo#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const topic = 'balance';

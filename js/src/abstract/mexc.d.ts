@@ -65,10 +65,6 @@ interface Exchange {
     spotPrivatePostCapitalDepositAddress(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalSubAccountUniversalTransfer(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostCapitalConvert(params?: {}): Promise<implicitReturnType>;
-    spotPrivatePostMarginTradeMode(params?: {}): Promise<implicitReturnType>;
-    spotPrivatePostMarginOrder(params?: {}): Promise<implicitReturnType>;
-    spotPrivatePostMarginLoan(params?: {}): Promise<implicitReturnType>;
-    spotPrivatePostMarginRepay(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostMxDeductEnable(params?: {}): Promise<implicitReturnType>;
     spotPrivatePostUserDataStream(params?: {}): Promise<implicitReturnType>;
     spotPrivatePutUserDataStream(params?: {}): Promise<implicitReturnType>;

@@ -1,13 +1,13 @@
 import bybitRest from '../bybit.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
     requestId(): any;
-    getUrlByMarketType(symbol?: string, isPrivate?: boolean, method?: any, params?: {}): any;
+    getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: any, params?: {}): any;
     cleanParams(params: any): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
@@ -23,13 +23,13 @@ export default class bybit extends bybitRest {
     handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     getPrivateType(url: any): "spot" | "unified" | "usdc";
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
-    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
-    setPositionsCache(client: Client, symbols?: string[]): any;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    setPositionsCache(client: Client, symbols?: Strings): any;
     loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
     handlePositions(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any, subscription?: any): void;
     parseWsSpotOrder(order: any, market?: any): import("../base/types.js").Order;
     watchBalance(params?: {}): Promise<any>;

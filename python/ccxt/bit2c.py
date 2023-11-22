@@ -6,11 +6,11 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
@@ -40,17 +40,18 @@ class bit2c(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -209,7 +210,7 @@ class bit2c(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetAccountBalanceV2(params)
@@ -257,13 +258,13 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -273,7 +274,7 @@ class bit2c(Exchange, ImplicitAPI):
         orderbook = self.publicGetExchangesPairOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market=None) -> Ticker:
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
         averagePrice = self.safe_string(ticker, 'av')
@@ -307,7 +308,7 @@ class bit2c(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -317,14 +318,14 @@ class bit2c(Exchange, ImplicitAPI):
         response = self.publicGetExchangesPairTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -352,7 +353,7 @@ class bit2c(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.privateGetAccountBalance(params)
@@ -402,7 +403,7 @@ class bit2c(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         method = 'privatePostOrderAddOrder'
@@ -422,29 +423,30 @@ class bit2c(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: Not used by bit2c cancelOrder()
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'id': id,
         }
         return self.privatePostOrderCancelOrder(self.extend(request, params))
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_symbol('fetchOpenOrders', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -456,12 +458,12 @@ class bit2c(Exchange, ImplicitAPI):
         bids = self.safe_value(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -485,7 +487,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         #      createOrder
         #      {
@@ -592,14 +594,14 @@ class bit2c(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -661,7 +663,7 @@ class bit2c(Exchange, ImplicitAPI):
             newString += strParts[i]
         return newString
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -763,7 +765,7 @@ class bit2c(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bit2c api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -781,7 +783,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
         #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",

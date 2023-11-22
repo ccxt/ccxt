@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import OrderSide, OrderType
+from ccxt.base.types import Int, OrderSide, OrderType, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import AuthenticationError
@@ -69,14 +68,14 @@ class cryptocom(ccxt.async_support.cryptocom):
             error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
             client.reset(error)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -84,7 +83,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         orderbook = await self.watch_public(messageHash, params)
         return orderbook.limit()
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
@@ -145,7 +144,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         client.resolve(orderbook, messageHash)
         self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbooks::', symbol, orderbook)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
@@ -153,7 +152,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -164,7 +163,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
@@ -235,7 +234,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         client.resolve(stored, channelReplaced)
         self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-trade-instrument_name
@@ -243,7 +242,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
         market = None
@@ -263,7 +262,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -304,7 +303,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             self.tickers[symbol] = parsed
             client.resolve(parsed, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name
@@ -355,7 +354,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-order-instrument_name
@@ -363,7 +362,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -425,7 +424,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             client.resolve(stored, channel)  # channel might have a symbol-specific suffix
             client.resolve(stored, 'user.order')
 
-    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         watch all open positions
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
@@ -460,7 +459,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type, symbols: Optional[List[str]] = None):
+    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot:
             messageHash = 'fetchPositionsSnapshot'
@@ -487,24 +486,24 @@ class cryptocom(ccxt.async_support.cryptocom):
     def handle_positions(self, client, message):
         #
         #    {
-        #        subscription: "user.position_balance",
-        #        channel: "user.position_balance",
-        #        data: [{
-        #            balances: [{
-        #                instrument_name: "USD",
-        #                quantity: "8.9979961950886",
-        #                update_timestamp_ms: 1695598760597,
+        #        "subscription": "user.position_balance",
+        #        "channel": "user.position_balance",
+        #        "data": [{
+        #            "balances": [{
+        #                "instrument_name": "USD",
+        #                "quantity": "8.9979961950886",
+        #                "update_timestamp_ms": 1695598760597,
         #            }],
-        #            positions: [{
-        #                account_id: "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-        #                instrument_name: "LTCUSD-PERP",
-        #                type: "PERPETUAL_SWAP",
-        #                quantity: "1.8",
-        #                cost: "114.766",
-        #                open_position_pnl: "-0.0216206",
-        #                session_pnl: "0.00962994",
-        #                update_timestamp_ms: 1695598760597,
-        #                open_pos_cost: "114.766",
+        #            "positions": [{
+        #                "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+        #                "instrument_name": "LTCUSD-PERP",
+        #                "type": "PERPETUAL_SWAP",
+        #                "quantity": "1.8",
+        #                "cost": "114.766",
+        #                "open_position_pnl": "-0.0216206",
+        #                "session_pnl": "0.00962994",
+        #                "update_timestamp_ms": 1695598760597,
+        #                "open_pos_cost": "114.766",
         #            }],
         #        }],
         #    }
@@ -539,7 +538,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         messageHash = 'user.balance'
         return await self.watch_private_subscribe(messageHash, params)
@@ -607,7 +606,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHashRequest = self.safe_string(message, 'id')
         client.resolve(self.balance, messageHashRequest)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
         """
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
         create a trade order
@@ -617,7 +616,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         params = self.createOrderRequest(symbol, type, side, amount, price, params)
@@ -645,14 +644,14 @@ class cryptocom(ccxt.async_support.cryptocom):
         order = self.parse_order(rawOrder)
         client.resolve(order, messageHash)
 
-    async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
         :param str id: the order id of the order to cancel
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         params = self.extend({
@@ -665,13 +664,13 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = self.nonce()
         return await self.watch_private_request(messageHash, request)
 
-    async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
         :param str symbol: unified market symbol of the orders to cancel
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
-        :returns dict} Returns exchange raw message {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure:
+        :returns dict} Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure:
         """
         await self.load_markets()
         market = None

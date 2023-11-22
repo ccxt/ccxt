@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import { Int, OrderSide, OrderType, Trade } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str, Strings, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -22,9 +22,9 @@ export default class binance extends binanceRest {
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<import("../base/types.js").OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     parseWsTicker(message: any, marketType: any): {
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: string;
         high: number;
@@ -62,22 +62,22 @@ export default class binance extends binanceRest {
     handleOrdersWs(client: Client, message: any): void;
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<any>;
     handleEditOrderWs(client: Client, message: any): void;
-    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
-    fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<any>;
-    fetchOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchOpenOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
+    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<any>;
+    fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrderUpdate(client: Client, message: any): void;
-    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
-    setPositionsCache(client: Client, type: any, symbols?: string[]): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
     loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     parseWsPosition(position: any, market?: any): import("../base/types.js").Position;
-    fetchMyTradesWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTradesWs(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
     handleAcountUpdate(client: any, message: any): void;

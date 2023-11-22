@@ -78,7 +78,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -164,7 +164,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -267,7 +267,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             $market = null;
@@ -292,7 +292,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -404,7 +404,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -550,24 +550,24 @@ class cryptocom extends \ccxt\async\cryptocom {
     public function handle_positions($client, $message) {
         //
         //    {
-        //        subscription => "user.position_balance",
-        //        channel => "user.position_balance",
-        //        $data => [array(
-        //            balances => [array(
-        //                instrument_name => "USD",
-        //                quantity => "8.9979961950886",
-        //                update_timestamp_ms => 1695598760597,
+        //        "subscription" => "user.position_balance",
+        //        "channel" => "user.position_balance",
+        //        "data" => [array(
+        //            "balances" => [array(
+        //                "instrument_name" => "USD",
+        //                "quantity" => "8.9979961950886",
+        //                "update_timestamp_ms" => 1695598760597,
         //            )],
-        //            $positions => [array(
-        //                account_id => "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-        //                instrument_name => "LTCUSD-PERP",
-        //                type => "PERPETUAL_SWAP",
-        //                quantity => "1.8",
-        //                cost => "114.766",
-        //                open_position_pnl => "-0.0216206",
-        //                session_pnl => "0.00962994",
-        //                update_timestamp_ms => 1695598760597,
-        //                open_pos_cost => "114.766",
+        //            "positions" => [array(
+        //                "account_id" => "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+        //                "instrument_name" => "LTCUSD-PERP",
+        //                "type" => "PERPETUAL_SWAP",
+        //                "quantity" => "1.8",
+        //                "cost" => "114.766",
+        //                "open_position_pnl" => "-0.0216206",
+        //                "session_pnl" => "0.00962994",
+        //                "update_timestamp_ms" => 1695598760597,
+        //                "open_pos_cost" => "114.766",
         //            )],
         //        )],
         //    }
@@ -608,7 +608,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             $messageHash = 'user.balance';
             return Async\await($this->watch_private_subscribe($messageHash, $params));
@@ -691,7 +691,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $params = $this->createOrderRequest ($symbol, $type, $side, $amount, $price, $params);
@@ -730,7 +730,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {string} $id the order $id of the order to cancel
              * @param {string} [$symbol] unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $params = array_merge(array(
@@ -752,7 +752,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
              * @param {string} $symbol unified $market $symbol of the orders to cancel
              * @param {array} [$params] extra parameters specific to the cryptocom api endpoint
-             * @return {array} Returns exchange raw message array(@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
+             * @return {array} Returns exchange raw message array(@link https://docs.ccxt.com/#/?id=order-structure)
              */
             Async\await($this->load_markets());
             $market = null;

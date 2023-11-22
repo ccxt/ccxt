@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseproRest from '../coinbasepro.js';
-import { AuthenticationError, ExchangeError, BadSymbol, BadRequest } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Ticker } from '../base/types.js';
+import { Int, Ticker, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -119,13 +119,13 @@ export default class coinbasepro extends coinbaseproRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const name = 'ticker';
         return await this.subscribe (name, symbol, name, params);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchTickers
@@ -134,7 +134,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const symbolsLength = symbols.length;
@@ -159,7 +159,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -199,7 +199,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchMyTrades
@@ -208,9 +208,11 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
-        this.checkRequiredSymbol ('watchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const name = 'user';
@@ -223,7 +225,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTradesForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTradesForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchMyTradesForSymbols
@@ -232,7 +234,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         symbols = this.marketSymbols (symbols, undefined, false);
         await this.loadMarkets ();
@@ -248,7 +250,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchOrdersForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrdersForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchOrdersForSymbols
@@ -257,7 +259,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         symbols = this.marketSymbols (symbols, undefined, false);
         await this.loadMarkets ();
@@ -273,7 +275,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchOrders
@@ -282,7 +284,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
@@ -307,7 +309,7 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const name = 'level2';
         await this.loadMarkets ();
@@ -514,7 +516,6 @@ export default class coinbasepro extends coinbaseproRest {
             'rate': feeRate,
             'cost': feeCost,
             'currency': feeCurrency,
-            'type': undefined,
         };
         return parsed;
     }

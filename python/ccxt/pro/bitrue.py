@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 
 
 class bitrue(ccxt.async_support.bitrue):
@@ -61,7 +61,7 @@ class bitrue(ccxt.async_support.bitrue):
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
         :param dict [params]: extra parameters specific to the bitrue api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         url = await self.authenticate()
         messageHash = 'balance'
@@ -162,7 +162,7 @@ class bitrue(ccxt.async_support.bitrue):
                 self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on user orders
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
@@ -170,7 +170,7 @@ class bitrue(ccxt.async_support.bitrue):
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum amount of orders to return
         :param dict [params]: extra parameters specific to the bitrue api endpoint
-        :returns dict: A dictionary of `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order structure <https://docs.ccxt.com/#/?id=order-structure>` indexed by market symbols
         """
         await self.load_markets()
         if symbol is not None:
@@ -282,7 +282,7 @@ class bitrue(ccxt.async_support.bitrue):
             },
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']

@@ -3,7 +3,7 @@
 import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -26,16 +26,14 @@ export default class alpaca extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www': 'https://alpaca.markets',
                 'api': {
-                    'public': 'https://api.{hostname}/{version}',
-                    'private': 'https://api.{hostname}/{version}',
-                    'cryptoPublic': 'https://data.{hostname}/{version}',
-                    'markets': 'https://api.{hostname}/{version}',
+                    'broker': 'https://broker-api.{hostname}',
+                    'trader': 'https://api.{hostname}',
+                    'market': 'https://data.{hostname}',
                 },
                 'test': {
-                    'public': 'https://paper-api.{hostname}/{version}',
-                    'private': 'https://paper-api.{hostname}/{version}',
-                    'cryptoPublic': 'https://data.{hostname}/{version}',
-                    'markets': 'https://api.{hostname}/{version}',
+                    'broker': 'https://broker-api.sandbox.{hostname}',
+                    'trader': 'https://paper-api.{hostname}',
+                    'market': 'https://data.sandbox.{hostname}',
                 },
                 'doc': 'https://alpaca.markets/docs/',
                 'fees': 'https://alpaca.markets/support/what-are-the-fees-associated-with-crypto-trading/',
@@ -89,37 +87,97 @@ export default class alpaca extends Exchange {
                 'withdraw': false,
             },
             'api': {
-                'markets': {
-                    'get': [
-                        'assets/public/beta',
-                    ],
+                'broker': {
                 },
-                'private': {
-                    'get': [
-                        'account',
-                        'orders',
-                        'orders/{order_id}',
-                        'positions',
-                        'positions/{symbol}',
-                        'account/activities/{activity_type}',
-                    ],
-                    'post': [
-                        'orders',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/{order_id}',
-                    ],
+                'trader': {
+                    'private': {
+                        'get': [
+                            'v2/account',
+                            'v2/orders',
+                            'v2/orders/{order_id}',
+                            'v2/positions',
+                            'v2/positions/{symbol_or_asset_id}',
+                            'v2/account/portfolio/history',
+                            'v2/watchlists',
+                            'v2/watchlists/{watchlist_id}',
+                            'v2/watchlists:by_name',
+                            'v2/account/configurations',
+                            'v2/account/activities',
+                            'v2/account/activities/{activity_type}',
+                            'v2/calendar',
+                            'v2/clock',
+                            'v2/assets',
+                            'v2/assets/{symbol_or_asset_id}',
+                            'v2/corporate_actions/announcements/{id}',
+                            'v2/corporate_actions/announcements',
+                        ],
+                        'post': [
+                            'v2/orders',
+                            'v2/watchlists',
+                            'v2/watchlists/{watchlist_id}',
+                            'v2/watchlists:by_name',
+                        ],
+                        'put': [
+                            'v2/watchlists/{watchlist_id}',
+                            'v2/watchlists:by_name',
+                        ],
+                        'patch': [
+                            'v2/orders/{order_id}',
+                            'v2/account/configurations',
+                        ],
+                        'delete': [
+                            'v2/orders',
+                            'v2/orders/{order_id}',
+                            'v2/positions',
+                            'v2/positions/{symbol_or_asset_id}',
+                            'v2/watchlists/{watchlist_id}',
+                            'v2/watchlists:by_name',
+                            'v2/watchlists/{watchlist_id}/{symbol}',
+                        ],
+                    },
                 },
-                'cryptoPublic': {
-                    'get': [
-                        'crypto/latest/orderbooks',
-                        'crypto/trades',
-                        'crypto/quotes',
-                        'crypto/latest/quotes',
-                        'crypto/bars',
-                        'crypto/snapshots',
-                    ],
+                'market': {
+                    'public': {
+                        'get': [
+                            'v1beta3/crypto/{loc}/bars',
+                            'v1beta3/crypto/{loc}/latest/bars',
+                            'v1beta3/crypto/{loc}/latest/orderbooks',
+                            'v1beta3/crypto/{loc}/latest/quotes',
+                            'v1beta3/crypto/{loc}/latest/trades',
+                            'v1beta3/crypto/{loc}/quotes',
+                            'v1beta3/crypto/{loc}/snapshots',
+                            'v1beta3/crypto/{loc}/trades',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'v1beta1/corporate-actions',
+                            'v1beta1/forex/latest/rates',
+                            'v1beta1/forex/rates',
+                            'v1beta1/logos/{symbol}',
+                            'v1beta1/news',
+                            'v1beta1/screener/stocks/most-actives',
+                            'v1beta1/screener/{market_type}/movers',
+                            'v2/stocks/auctions',
+                            'v2/stocks/bars',
+                            'v2/stocks/bars/latest',
+                            'v2/stocks/meta/conditions/{ticktype}',
+                            'v2/stocks/meta/exchanges',
+                            'v2/stocks/quotes',
+                            'v2/stocks/quotes/latest',
+                            'v2/stocks/snapshots',
+                            'v2/stocks/trades',
+                            'v2/stocks/trades/latest',
+                            'v2/stocks/{symbol}/auctions',
+                            'v2/stocks/{symbol}/bars',
+                            'v2/stocks/{symbol}/bars/latest',
+                            'v2/stocks/{symbol}/quotes',
+                            'v2/stocks/{symbol}/quotes/latest',
+                            'v2/stocks/{symbol}/snapshot',
+                            'v2/stocks/{symbol}/trades',
+                            'v2/stocks/{symbol}/trades/latest',
+                        ],
+                    },
                 },
             },
             'timeframes': {
@@ -178,14 +236,6 @@ export default class alpaca extends Exchange {
                 'APCA-PARTNER-ID': 'ccxt',
             },
             'options': {
-                'fetchTradesMethod': 'cryptoPublicGetCryptoTrades', // or cryptoPublicGetCryptoLatestTrades
-                'fetchOHLCVMethod': 'cryptoPublicGetCryptoBars', // or cryptoPublicGetCryptoLatestBars
-                'versions': {
-                    'public': 'v2',
-                    'private': 'v2',
-                    'cryptoPublic': 'v1beta2', // crypto beta
-                    'markets': 'v2', // crypto beta
-                },
                 'defaultExchange': 'CBSE',
                 'exchanges': [
                     'CBSE', // Coinbase
@@ -225,7 +275,7 @@ export default class alpaca extends Exchange {
             'asset_class': 'crypto',
             'tradeable': true,
         };
-        const assets = await this.marketsGetAssetsPublicBeta (this.extend (request, params));
+        const assets = await this.traderPrivateGetV2Assets (this.extend (request, params));
         //
         //    [
         //        {
@@ -246,72 +296,71 @@ export default class alpaca extends Exchange {
         //        }
         //    ]
         //
-        const markets = [];
-        for (let i = 0; i < assets.length; i++) {
-            const asset = assets[i];
-            const marketId = this.safeString (asset, 'symbol');
-            const parts = marketId.split ('/');
-            const baseId = this.safeString (parts, 0);
-            const quoteId = this.safeString (parts, 1);
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const status = this.safeString (asset, 'status');
-            const active = (status === 'active');
-            const minAmount = this.safeNumber (asset, 'min_order_size');
-            const amount = this.safeNumber (asset, 'min_trade_increment');
-            const price = this.safeNumber (asset, 'price_increment');
-            markets.push ({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': undefined,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': amount,
-                    'price': price,
+        return this.parseMarkets (assets);
+    }
+
+    parseMarket (asset): Market {
+        const marketId = this.safeString (asset, 'symbol');
+        const parts = marketId.split ('/');
+        const baseId = this.safeString (parts, 0);
+        const quoteId = this.safeString (parts, 1);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        const status = this.safeString (asset, 'status');
+        const active = (status === 'active');
+        const minAmount = this.safeNumber (asset, 'min_order_size');
+        const amount = this.safeNumber (asset, 'min_trade_increment');
+        const price = this.safeNumber (asset, 'price_increment');
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': undefined,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amount,
+                'price': price,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': minAmount,
+                    'max': undefined,
                 },
-                'created': undefined,
-                'info': asset,
-            });
-        }
-        return markets;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': asset,
+        };
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -319,26 +368,40 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.alpaca.markets/reference/cryptotrades
+         * @see https://docs.alpaca.markets/reference/cryptolatesttrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {string} [params.loc] crypto location, default: us
+         * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const id = market['id'];
+        const marketId = market['id'];
+        const loc = this.safeString (params, 'loc', 'us');
+        const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocTrades');
         const request = {
-            'symbols': id,
+            'symbols': marketId,
+            'loc': loc,
         };
-        if (since !== undefined) {
-            request['start'] = this.iso8601 (since);
+        params = this.omit (params, [ 'loc', 'method' ]);
+        let response = undefined;
+        if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
+            if (since !== undefined) {
+                request['start'] = this.iso8601 (since);
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.marketPublicGetV1beta3CryptoLocTrades (this.extend (request, params));
+        } else if (method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
+            response = await this.marketPublicGetV1beta3CryptoLocLatestTrades (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
-        const response = await this[method] (this.extend (request, params));
         //
         // {
         //     "next_page_token":null,
@@ -355,28 +418,51 @@ export default class alpaca extends Exchange {
         //     }
         // }
         //
+        // {
+        //     "trades":{
+        //        "BTC/USD":{
+        //           "i":36440704,
+        //           "p":22625,
+        //           "s":0.0001,
+        //           "t":"2022-07-21T11:47:31.073391Z",
+        //           "tks":"B"
+        //        }
+        //     }
+        // }
+        //
         const trades = this.safeValue (response, 'trades', {});
-        const symbolTrades = this.safeValue (trades, market['id'], {});
+        let symbolTrades = this.safeValue (trades, marketId, {});
+        if (!Array.isArray (symbolTrades)) {
+            symbolTrades = [ symbolTrades ];
+        }
         return this.parseTrades (symbolTrades, market, since, limit);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name alpaca#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
-         */
+        //
+        // @method
+        // @name alpaca#fetchOrderBook
+        // @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        // @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
+        // @param {string} symbol unified symbol of the market to fetch the order book for
+        // @param {int} [limit] the maximum amount of order book entries to return
+        // @param {object} [params] extra parameters specific to the alpaca api endpoint
+        // <<<<<<< HEAD
+        // @param {string} [params.loc] crypto location, default: us
+        // @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+        // =======
+        // @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        // >>>>>>> f68b1b599ee41469fefa424f0efc9b6891549278
+        //
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
+        const loc = this.safeString (params, 'loc', 'us');
         const request = {
             'symbols': id,
+            'loc': loc,
         };
-        const response = await this.cryptoPublicGetCryptoLatestOrderbooks (this.extend (request, params));
+        const response = await this.marketPublicGetV1beta3CryptoLocLatestOrderbooks (this.extend (request, params));
         //
         //   {
         //       "orderbooks":{
@@ -425,27 +511,42 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.alpaca.markets/reference/cryptobars
+         * @see https://docs.alpaca.markets/reference/cryptolatestbars
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the alpha api endpoint
+         * @param {string} [params.loc] crypto location, default: us
+         * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketId = market['id'];
+        const loc = this.safeString (params, 'loc', 'us');
+        const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         const request = {
-            'symbols': market['id'],
-            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
+            'symbols': marketId,
+            'loc': loc,
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        params = this.omit (params, [ 'loc', 'method' ]);
+        let response = undefined;
+        if (method === 'marketPublicGetV1beta3CryptoLocBars') {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (since !== undefined) {
+                request['start'] = this.yyyymmdd (since);
+            }
+            request['timeframe'] = this.safeString (this.timeframes, timeframe, timeframe);
+            response = await this.marketPublicGetV1beta3CryptoLocBars (this.extend (request, params));
+        } else if (method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
+            response = await this.marketPublicGetV1beta3CryptoLocLatestBars (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
         }
-        if (since !== undefined) {
-            request['start'] = this.yyyymmdd (since);
-        }
-        const method = this.safeString (this.options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
-        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "bars":{
@@ -475,12 +576,30 @@ export default class alpaca extends Exchange {
         //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
         //     }
         //
+        //    {
+        //        "bars":{
+        //           "BTC/USD":{
+        //              "c":22887,
+        //              "h":22888,
+        //              "l":22873,
+        //              "n":11,
+        //              "o":22883,
+        //              "t":"2022-07-21T05:00:00Z",
+        //              "v":1.1138,
+        //              "vw":22883.0155324116
+        //           }
+        //        }
+        //     }
+        //
         const bars = this.safeValue (response, 'bars', {});
-        const ohlcvs = this.safeValue (bars, market['id'], {});
+        let ohlcvs = this.safeValue (bars, marketId, {});
+        if (!Array.isArray (ohlcvs)) {
+            ohlcvs = [ ohlcvs ];
+        }
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //        "c":22895,
@@ -517,7 +636,7 @@ export default class alpaca extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -553,7 +672,7 @@ export default class alpaca extends Exchange {
         const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
         request['client_order_id'] = clientOrderId;
         params = this.omit (params, [ 'clientOrderId' ]);
-        const order = await this.privatePostOrders (this.extend (request, params));
+        const order = await this.traderPrivatePostV2Orders (this.extend (request, params));
         //
         //   {
         //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -593,7 +712,7 @@ export default class alpaca extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#cancelOrder
@@ -601,12 +720,12 @@ export default class alpaca extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'order_id': id,
         };
-        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await this.traderPrivateDeleteV2OrdersOrderId (this.extend (request, params));
         //
         //   {
         //       "code": 40410000,
@@ -616,26 +735,26 @@ export default class alpaca extends Exchange {
         return this.safeValue (response, 'message', {});
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
         };
-        const order = await this.privateGetOrdersOrderId (this.extend (request, params));
+        const order = await this.traderPrivateGetV2OrdersOrderId (this.extend (request, params));
         const marketId = this.safeString (order, 'symbol');
         const market = this.safeMarket (marketId);
         return this.parseOrder (order, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name alpaca#fetchOpenOrders
@@ -644,18 +763,18 @@ export default class alpaca extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const orders = await this.privateGetOrders (params);
+        const orders = await this.traderPrivateGetV2Orders (params);
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         //    {
         //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -759,7 +878,7 @@ export default class alpaca extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
@@ -775,7 +894,7 @@ export default class alpaca extends Exchange {
         const datetime = this.safeString (trade, 't');
         const timestamp = this.parse8601 (datetime);
         const alpacaSide = this.safeString (trade, 'tks');
-        let side = undefined;
+        let side: string;
         if (alpacaSide === 'B') {
             side = 'buy';
         } else if (alpacaSide === 'S') {
@@ -801,13 +920,10 @@ export default class alpaca extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const versions = this.safeValue (this.options, 'versions');
-        const version = this.safeString (versions, api);
         let endpoint = '/' + this.implodeParams (path, params);
-        let url = this.implodeParams (this.urls['api'][api], { 'version': version });
-        url = this.implodeHostname (url);
+        let url = this.implodeHostname (this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
-        if (api === 'private') {
+        if (api[1] === 'private') {
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }

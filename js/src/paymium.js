@@ -140,7 +140,7 @@ export default class paymium extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetUser(params);
@@ -155,7 +155,7 @@ export default class paymium extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -221,7 +221,7 @@ export default class paymium extends Exchange {
          * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1ticker/get
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -283,7 +283,7 @@ export default class paymium extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -301,7 +301,7 @@ export default class paymium extends Exchange {
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/post
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostUserAddresses(params);
@@ -323,7 +323,7 @@ export default class paymium extends Exchange {
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -348,7 +348,7 @@ export default class paymium extends Exchange {
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
          * @param {string[]|undefined} codes list of unified currency codes, default is undefined
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {object} a list of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetUserAddresses(params);
@@ -395,7 +395,7 @@ export default class paymium extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -424,7 +424,7 @@ export default class paymium extends Exchange {
          * @param {string} id order id
          * @param {string} symbol not used by paymium cancelOrder ()
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'uuid': id,
@@ -442,7 +442,7 @@ export default class paymium extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the paymium api endpoint
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);

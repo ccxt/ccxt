@@ -38,18 +38,19 @@ class coinone extends coinone$1 {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDepositAddresses': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -260,7 +261,7 @@ class coinone extends coinone$1 {
          * @name coinone#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostAccountBalance(params);
@@ -274,7 +275,7 @@ class coinone extends coinone$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -293,7 +294,7 @@ class coinone extends coinone$1 {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -322,7 +323,7 @@ class coinone extends coinone$1 {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -461,7 +462,7 @@ class coinone extends coinone$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -502,7 +503,7 @@ class coinone extends coinone$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (type !== 'limit') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
@@ -532,9 +533,11 @@ class coinone extends coinone$1 {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('fetchOrder', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -625,10 +628,10 @@ class coinone extends coinone$1 {
         let base = undefined;
         let quote = undefined;
         if (baseId !== undefined) {
-            base = this.safeCurrencyCode(baseId, this.safeString(market, 'base'));
+            base = this.safeCurrencyCode(baseId);
         }
         if (quoteId !== undefined) {
-            quote = this.safeCurrencyCode(quoteId, this.safeString(market, 'quote'));
+            quote = this.safeCurrencyCode(quoteId);
         }
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
@@ -700,7 +703,7 @@ class coinone extends coinone$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
@@ -742,9 +745,11 @@ class coinone extends coinone$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol('fetchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -782,7 +787,7 @@ class coinone extends coinone$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             // eslint-disable-next-line quotes
@@ -819,7 +824,7 @@ class coinone extends coinone$1 {
          * @description fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|undefined} codes list of unified currency codes, default is undefined
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} a list of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostAccountDepositAddress(params);

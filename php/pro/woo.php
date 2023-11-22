@@ -651,7 +651,7 @@ class woo extends \ccxt\async\woo {
              * @see https://docs.woo.org/#balance
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the woo api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $topic = 'balance';

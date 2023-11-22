@@ -4,7 +4,7 @@ import deribitRest from '../deribit.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ export default class deribit extends deribitRest {
          * @see https://docs.deribit.com/#user-portfolio-currency
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.authenticate (params);
         const messageHash = 'balance';
@@ -154,7 +154,7 @@ export default class deribit extends deribitRest {
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -229,7 +229,7 @@ export default class deribit extends deribitRest {
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -300,7 +300,7 @@ export default class deribit extends deribitRest {
         client.resolve (this.trades[symbol], channel);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchMyTrades
@@ -311,7 +311,7 @@ export default class deribit extends deribitRest {
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.authenticate (params);
         if (symbol !== undefined) {
@@ -397,7 +397,7 @@ export default class deribit extends deribitRest {
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the deribit api endpoint
          * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -521,7 +521,7 @@ export default class deribit extends deribitRest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name deribit#watchOrders
@@ -531,7 +531,7 @@ export default class deribit extends deribitRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the deribit api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         await this.authenticate (params);

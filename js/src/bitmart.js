@@ -31,10 +31,11 @@ export default class bitmart extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
-                'swap': undefined,
+                'swap': true,
                 'future': false,
-                'option': undefined,
-                'borrowMargin': true,
+                'option': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -45,12 +46,12 @@ export default class bitmart extends Exchange {
                 'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
@@ -63,6 +64,8 @@ export default class bitmart extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchIsolatedBorrowRate': true,
+                'fetchIsolatedBorrowRates': true,
                 'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -94,7 +97,8 @@ export default class bitmart extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -130,15 +134,15 @@ export default class bitmart extends Exchange {
                         'spot/v1/symbols/details': 5,
                         'spot/quotation/v3/tickers': 6,
                         'spot/quotation/v3/ticker': 4,
-                        'spot/quotation/v3/lite-klines': 4,
-                        'spot/quotation/v3/klines': 6,
+                        'spot/quotation/v3/lite-klines': 5,
+                        'spot/quotation/v3/klines': 7,
                         'spot/quotation/v3/books': 4,
                         'spot/quotation/v3/trades': 4,
                         'spot/v1/ticker': 5,
-                        'spot/v2/ticker': 5,
+                        'spot/v2/ticker': 30,
                         'spot/v1/ticker_detail': 5,
                         'spot/v1/steps': 30,
-                        'spot/v1/symbols/kline': 5,
+                        'spot/v1/symbols/kline': 6,
                         'spot/v1/symbols/book': 5,
                         'spot/v1/symbols/trades': 5,
                         // contract markets
@@ -147,7 +151,7 @@ export default class bitmart extends Exchange {
                         'contract/public/depth': 5,
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
-                        'contract/public/kline': 5,
+                        'contract/public/kline': 6,
                         'account/v1/currencies': 30,
                     },
                 },
@@ -180,10 +184,10 @@ export default class bitmart extends Exchange {
                         // margin
                         'spot/v1/margin/isolated/borrow_record': 1,
                         'spot/v1/margin/isolated/repay_record': 1,
-                        'spot/v1/margin/isolated/pairs': 1,
-                        'spot/v1/margin/isolated/account': 6,
-                        'spot/v1/trade_fee': 6,
-                        'spot/v1/user_fee': 6,
+                        'spot/v1/margin/isolated/pairs': 30,
+                        'spot/v1/margin/isolated/account': 5,
+                        'spot/v1/trade_fee': 30,
+                        'spot/v1/user_fee': 30,
                         // broker
                         'spot/v1/broker/rebate': 1,
                         // contract
@@ -223,9 +227,9 @@ export default class bitmart extends Exchange {
                         'spot/v2/submit_order': 1,
                         // margin
                         'spot/v1/margin/submit_order': 1,
-                        'spot/v1/margin/isolated/borrow': 6,
-                        'spot/v1/margin/isolated/repay': 6,
-                        'spot/v1/margin/isolated/transfer': 6,
+                        'spot/v1/margin/isolated/borrow': 30,
+                        'spot/v1/margin/isolated/repay': 30,
+                        'spot/v1/margin/isolated/transfer': 30,
                         // contract
                         'account/v1/transfer-contract-list': 60,
                         'account/v1/transfer-contract': 60,
@@ -399,7 +403,14 @@ export default class bitmart extends Exchange {
                     '40032': InvalidOrder,
                     '40033': InvalidOrder,
                     '40034': BadSymbol,
-                    '53002': PermissionDenied, // 403, Your account has not yet completed the kyc advanced certification, please complete first
+                    '53002': PermissionDenied,
+                    '53003': PermissionDenied,
+                    '53005': PermissionDenied,
+                    '53006': PermissionDenied,
+                    '53007': PermissionDenied,
+                    '53008': PermissionDenied,
+                    '53009': PermissionDenied,
+                    '53010': PermissionDenied, // 403 This account is restricted from borrowing
                 },
                 'broad': {},
             },
@@ -578,6 +589,7 @@ export default class bitmart extends Exchange {
                     'swap': 'swap',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
+                'brokerId': 'CCXTxBitmart000',
             },
         });
     }
@@ -609,7 +621,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const options = this.safeValue(this.options, 'fetchStatus', {});
         const defaultType = this.safeString(this.options, 'defaultType');
@@ -945,7 +957,7 @@ export default class bitmart extends Exchange {
          * @description please use fetchDepositWithdrawFee instead
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1004,7 +1016,7 @@ export default class bitmart extends Exchange {
          * @description fetch the fee for deposits and withdrawals
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1117,7 +1129,7 @@ export default class bitmart extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1206,7 +1218,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1242,7 +1254,7 @@ export default class bitmart extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1415,7 +1427,7 @@ export default class bitmart extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1626,7 +1638,7 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
          * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1661,7 +1673,9 @@ export default class bitmart extends Exchange {
             response = await this.privatePostSpotV4QueryTrades(this.extend(request, params));
         }
         else if (type === 'swap') {
-            this.checkRequiredSymbol('fetchMyTrades', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+            }
             if (since !== undefined) {
                 request['start_time'] = since;
             }
@@ -1738,7 +1752,7 @@ export default class bitmart extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1811,7 +1825,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
          * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         let marketType = undefined;
@@ -1950,7 +1964,7 @@ export default class bitmart extends Exchange {
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1983,6 +1997,12 @@ export default class bitmart extends Exchange {
         //     {
         //         "order_id": 2707217580
         //     }
+        //
+        // swap
+        //   "data": {
+        //       "order_id": 231116359426639,
+        //       "price": "market price"
+        //    },
         //
         // cancelOrder
         //
@@ -2066,6 +2086,10 @@ export default class bitmart extends Exchange {
             type = 'limit';
             timeInForce = 'IOC';
         }
+        let priceString = this.safeString(order, 'price');
+        if (priceString === 'market price') {
+            priceString = undefined;
+        }
         return this.safeOrder({
             'id': id,
             'clientOrderId': this.safeString(order, 'client_order_id'),
@@ -2078,7 +2102,7 @@ export default class bitmart extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': this.parseOrderSide(this.safeString(order, 'side')),
-            'price': this.omitZero(this.safeString(order, 'price')),
+            'price': this.omitZero(priceString),
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': this.omitZero(this.safeString(order, 'size')),
@@ -2103,17 +2127,17 @@ export default class bitmart extends Exchange {
     parseOrderStatusByType(type, status) {
         const statusesByType = {
             'spot': {
-                '1': 'failed',
+                '1': 'rejected',
                 '2': 'open',
-                '3': 'failed',
+                '3': 'rejected',
                 '4': 'open',
                 '5': 'open',
                 '6': 'closed',
-                '7': 'canceling',
+                '7': 'canceled',
                 '8': 'canceled',
                 'new': 'open',
                 'partially_filled': 'open',
-                'filled': 'filled',
+                'filled': 'closed',
                 'partially_canceled': 'canceled',
             },
             'swap': {
@@ -2132,6 +2156,7 @@ export default class bitmart extends Exchange {
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2139,77 +2164,30 @@ export default class bitmart extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {string} [params.leverage] *swap only* leverage level
+         * @param {string} [params.clientOrderId] client order id of the order
+         * @param {boolean} [params.reduceOnly] *swap only* reduce only
+         * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const request = {};
-        const timeInForce = this.safeString(params, 'timeInForce');
-        if (timeInForce === 'FOK') {
-            throw new InvalidOrder(this.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO');
-        }
-        const mode = this.safeInteger(params, 'mode'); // only for swap
-        const isMarketOrder = type === 'market';
-        let postOnly = undefined;
-        const isExchangeSpecificPo = (type === 'limit_maker') || (mode === 4);
-        [postOnly, params] = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, params);
-        params = this.omit(params, ['timeInForce', 'postOnly']);
-        const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
-        const isLimitOrder = (type === 'limit') || postOnly || ioc;
-        let method = undefined;
+        const result = this.handleMarginModeAndParams('createOrder', params);
+        const marginMode = this.safeString(result, 0);
+        let response = undefined;
         if (market['spot']) {
-            request['symbol'] = market['id'];
-            request['side'] = side;
-            request['type'] = type;
-            method = 'privatePostSpotV2SubmitOrder';
-            if (isLimitOrder) {
-                request['size'] = this.amountToPrecision(symbol, amount);
-                request['price'] = this.priceToPrecision(symbol, price);
+            const spotRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
+            if (marginMode === 'isolated') {
+                response = await this.privatePostSpotV1MarginSubmitOrder(spotRequest);
             }
-            else if (isMarketOrder) {
-                // for market buy it requires the amount of quote currency to spend
-                if (side === 'buy') {
-                    let notional = this.safeNumber(params, 'notional');
-                    const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-                    if (createMarketBuyOrderRequiresPrice) {
-                        if (price !== undefined) {
-                            if (notional === undefined) {
-                                const amountString = this.numberToString(amount);
-                                const priceString = this.numberToString(price);
-                                notional = this.parseNumber(Precise.stringMul(amountString, priceString));
-                            }
-                        }
-                        else if (notional === undefined) {
-                            throw new InvalidOrder(this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
-                        }
-                    }
-                    else {
-                        notional = (notional === undefined) ? amount : notional;
-                    }
-                    request['notional'] = this.decimalToPrecision(notional, TRUNCATE, market['precision']['price'], this.precisionMode);
-                }
-                else if (side === 'sell') {
-                    request['size'] = this.amountToPrecision(symbol, amount);
-                }
+            else {
+                response = await this.privatePostSpotV2SubmitOrder(spotRequest);
             }
         }
-        else if (market['swap']) {
-            throw new NotSupported(this.id + ' createOrder() does not accept swap orders, only spot orders are allowed');
+        else {
+            const swapRequest = this.createSwapOrderRequest(symbol, type, side, amount, price, params);
+            response = await this.privatePostContractPrivateSubmitOrder(swapRequest);
         }
-        if (postOnly) {
-            request['type'] = 'limit_maker';
-        }
-        if (ioc) {
-            request['type'] = 'ioc';
-        }
-        const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
-        if (marginMode !== undefined) {
-            if (marginMode !== 'isolated') {
-                throw new NotSupported(this.id + ' only isolated margin is supported');
-            }
-            method = 'privatePostSpotV1MarginSubmitOrder';
-        }
-        const response = await this[method](this.extend(request, query));
         //
         // spot and margin
         //
@@ -2222,6 +2200,9 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
+        // swap
+        // {"code":1000,"message":"Ok","data":{"order_id":231116359426639,"price":"market price"},"trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.62.16996369620521911"}
+        //
         const data = this.safeValue(response, 'data', {});
         const order = this.parseOrder(data, market);
         order['type'] = type;
@@ -2229,6 +2210,157 @@ export default class bitmart extends Exchange {
         order['amount'] = amount;
         order['price'] = price;
         return order;
+    }
+    createSwapOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#createSwapOrderRequest
+         * @description create a trade order
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {int} [params.leverage] leverage level
+         * @param {boolean} [params.reduceOnly] *swap only* reduce only
+         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+         *  @param {string} [params.clientOrderId] client order id of the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'type': type,
+            'size': parseInt(this.amountToPrecision(symbol, amount)),
+        };
+        const timeInForce = this.safeString(params, 'timeInForce');
+        const mode = this.safeInteger(params, 'mode'); // only for swap
+        const isMarketOrder = type === 'market';
+        let postOnly = undefined;
+        const reduceOnly = this.safeValue(params, 'reduceOnly');
+        const isExchangeSpecificPo = (mode === 4);
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, params);
+        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly']);
+        const ioc = ((timeInForce === 'IOC') || (mode === 3));
+        const isLimitOrder = (type === 'limit') || postOnly || ioc;
+        if (timeInForce === 'GTC') {
+            request['mode'] = 1;
+        }
+        else if (timeInForce === 'FOK') {
+            request['mode'] = 2;
+        }
+        else if (timeInForce === 'IOC') {
+            request['mode'] = 3;
+        }
+        if (postOnly) {
+            request['mode'] = 4;
+        }
+        if (isLimitOrder) {
+            request['price'] = this.priceToPrecision(symbol, price);
+        }
+        if (side === 'buy') {
+            if (reduceOnly) {
+                request['side'] = 2; // sell close long
+            }
+            else {
+                request['side'] = 1; // buy open long
+            }
+        }
+        else if (side === 'sell') {
+            if (reduceOnly) {
+                request['side'] = 3; // sell close long
+            }
+            else {
+                request['side'] = 4; // sell open short
+            }
+        }
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params, 'cross');
+        request['open_type'] = marginMode;
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit(params, 'clientOrderId');
+            request['client_order_id'] = clientOrderId;
+        }
+        const leverage = this.safeInteger(params, 'leverage', 1);
+        params = this.omit(params, 'leverage');
+        request['leverage'] = this.numberToString(leverage);
+        return this.extend(request, params);
+    }
+    createSpotOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#createSpotOrderRequest
+         * @description create a spot order request
+         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated'
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            'type': type,
+        };
+        const timeInForce = this.safeString(params, 'timeInForce');
+        if (timeInForce === 'FOK') {
+            throw new InvalidOrder(this.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO');
+        }
+        const mode = this.safeInteger(params, 'mode'); // only for swap
+        const isMarketOrder = type === 'market';
+        let postOnly = undefined;
+        const isExchangeSpecificPo = (type === 'limit_maker') || (mode === 4);
+        [postOnly, params] = this.handlePostOnly(isMarketOrder, isExchangeSpecificPo, params);
+        params = this.omit(params, ['timeInForce', 'postOnly']);
+        const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
+        const isLimitOrder = (type === 'limit') || postOnly || ioc;
+        // method = 'privatePostSpotV2SubmitOrder';
+        if (isLimitOrder) {
+            request['size'] = this.amountToPrecision(symbol, amount);
+            request['price'] = this.priceToPrecision(symbol, price);
+        }
+        else if (isMarketOrder) {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                let notional = this.safeNumber(params, 'notional');
+                const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        if (notional === undefined) {
+                            const amountString = this.numberToString(amount);
+                            const priceString = this.numberToString(price);
+                            notional = this.parseNumber(Precise.stringMul(amountString, priceString));
+                        }
+                    }
+                    else if (notional === undefined) {
+                        throw new InvalidOrder(this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                    }
+                }
+                else {
+                    notional = (notional === undefined) ? amount : notional;
+                }
+                request['notional'] = this.decimalToPrecision(notional, TRUNCATE, market['precision']['price'], this.precisionMode);
+            }
+            else if (side === 'sell') {
+                request['size'] = this.amountToPrecision(symbol, amount);
+            }
+        }
+        if (postOnly) {
+            request['type'] = 'limit_maker';
+        }
+        if (ioc) {
+            request['type'] = 'ioc';
+        }
+        return this.extend(request, params);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -2243,9 +2375,11 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
          * @param {boolean} [params.stop] *swap only* whether the order is a stop order
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('cancelOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -2329,7 +2463,7 @@ export default class bitmart extends Exchange {
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @param {string} [params.side] *spot only* 'buy' or 'sell'
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2345,7 +2479,9 @@ export default class bitmart extends Exchange {
             response = await this.privatePostSpotV1CancelOrders(this.extend(request, params));
         }
         else if (type === 'swap') {
-            this.checkRequiredSymbol('cancelAllOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
+            }
             response = await this.privatePostContractPrivateCancelOrders(this.extend(request, params));
         }
         //
@@ -2369,7 +2505,9 @@ export default class bitmart extends Exchange {
         return response;
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        this.checkRequiredSymbol('fetchOrdersByStatus', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchOrdersByStatus() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['spot']) {
@@ -2440,7 +2578,7 @@ export default class bitmart extends Exchange {
          * @param {int} [params.until] *spot* the latest time in ms to fetch orders for
          * @param {string} [params.type] *swap* order type, 'limit' or 'market'
          * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2539,12 +2677,15 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchClosedOrders
          * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {int} [params.until] timestamp in ms of the latest entry
+         * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2556,20 +2697,33 @@ export default class bitmart extends Exchange {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
         if (type !== 'spot') {
-            throw new NotSupported(this.id + ' fetchClosedOrders() does not support ' + type + ' orders, only spot orders are accepted');
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
+            }
         }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchClosedOrders', params);
         if (marginMode === 'isolated') {
             request['orderMode'] = 'iso_margin';
         }
-        const until = this.safeInteger2(params, 'until', 'endTime');
-        if (until !== undefined) {
-            params = this.omit(params, ['endTime']);
-            request['endTime'] = until;
+        const startTimeKey = (type === 'spot') ? 'startTime' : 'start_time';
+        if (since !== undefined) {
+            request[startTimeKey] = since;
         }
-        const response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const endTimeKey = (type === 'spot') ? 'endTime' : 'end_time';
+        const until = this.safeInteger2(params, 'until', endTimeKey);
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request[endTimeKey] = until;
+        }
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.privateGetContractPrivateOrderHistory(this.extend(request, params));
+        }
+        const data = this.safeValue(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2581,7 +2735,7 @@ export default class bitmart extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('canceled', symbol, since, limit, params);
     }
@@ -2597,7 +2751,7 @@ export default class bitmart extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2621,7 +2775,9 @@ export default class bitmart extends Exchange {
             }
         }
         else if (type === 'swap') {
-            this.checkRequiredSymbol('fetchOrder', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+            }
             request['symbol'] = market['id'];
             request['order_id'] = id;
             response = await this.privateGetContractPrivateOrder(this.extend(request, params));
@@ -2686,7 +2842,7 @@ export default class bitmart extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2751,7 +2907,7 @@ export default class bitmart extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
@@ -2860,7 +3016,7 @@ export default class bitmart extends Exchange {
          * @param {string} id deposit id
          * @param {string} code not used by bitmart fetchDeposit ()
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -2902,7 +3058,7 @@ export default class bitmart extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsByType('deposit', code, since, limit, params);
     }
@@ -2914,7 +3070,7 @@ export default class bitmart extends Exchange {
          * @param {string} id withdrawal id
          * @param {string} code not used by bitmart.fetchWithdrawal
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -2956,7 +3112,7 @@ export default class bitmart extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsByType('withdraw', code, since, limit, params);
     }
@@ -3039,25 +3195,25 @@ export default class bitmart extends Exchange {
             'type': type,
             'updated': undefined,
             'txid': txid,
+            'internal': undefined,
+            'comment': undefined,
             'timestamp': (timestamp !== 0) ? timestamp : undefined,
             'datetime': (timestamp !== 0) ? this.iso8601(timestamp) : undefined,
             'fee': fee,
         };
     }
-    async repayMargin(code, amount, symbol = undefined, params = {}) {
+    async repayIsolatedMargin(symbol, code, amount, params = {}) {
         /**
          * @method
-         * @name bitmart#repayMargin
+         * @name bitmart#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+         * @param {string} symbol unified market symbol
          * @param {string} code unified currency code of the currency to repay
          * @param {string} amount the amount to repay
-         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @param {string} [params.marginMode] 'isolated' is the default and 'cross' is unavailable
-         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        this.checkRequiredSymbol('repayMargin', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const currency = this.currency(code);
@@ -3066,7 +3222,6 @@ export default class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        params = this.omit(params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedRepay(this.extend(request, params));
         //
         //     {
@@ -3085,20 +3240,18 @@ export default class bitmart extends Exchange {
             'symbol': symbol,
         });
     }
-    async borrowMargin(code, amount, symbol = undefined, params = {}) {
+    async borrowIsolatedMargin(symbol, code, amount, params = {}) {
         /**
          * @method
-         * @name bitmart#borrowMargin
+         * @name bitmart#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+         * @param {string} symbol unified market symbol
          * @param {string} code unified currency code of the currency to borrow
          * @param {string} amount the amount to borrow
-         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @param {string} [params.marginMode] 'isolated' is the default and 'cross' is unavailable
-         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        this.checkRequiredSymbol('borrowMargin', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const currency = this.currency(code);
@@ -3107,7 +3260,6 @@ export default class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        params = this.omit(params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedBorrow(this.extend(request, params));
         //
         //     {
@@ -3151,30 +3303,22 @@ export default class bitmart extends Exchange {
             'info': info,
         };
     }
-    async fetchBorrowRate(code, params = {}) {
-        /**
-         * @method
-         * @name bitmart#fetchBorrowRate
-         * @description fetch the rate of interest to borrow a currency for margin trading
-         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
-         */
+    async fetchIsolatedBorrowRate(symbol, params = {}) {
+        //
+        // @method
+        // @name bitmart#fetchIsolatedBorrowRate
+        // @description fetch the rate of interest to borrow a currency for margin trading
+        // @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+        // @param {string} symbol unified symbol of the market to fetch the borrow rate for
+        // @param {object} [params] extra parameters specific to the bitmart api endpoint
+        // <<<<<<< HEAD
+        // @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+        // =======
+        // @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
+        // >>>>>>> 3215552206edf1cda1ae63d2063535e19973dbe5
+        //
         await this.loadMarkets();
-        let market = undefined;
-        if (code in this.markets) {
-            market = this.market(code);
-        }
-        else {
-            const defaultSettle = this.safeString(this.options, 'defaultSettle', 'USDT');
-            if (code === 'USDT') {
-                market = this.market('BTC' + '/' + defaultSettle);
-            }
-            else {
-                market = this.market(code + '/' + defaultSettle);
-            }
-        }
+        const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
@@ -3213,10 +3357,10 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue(response, 'data', {});
         const symbols = this.safeValue(data, 'symbols', []);
-        const currency = (code === 'USDT') ? market['quote'] : market['base'];
-        return this.parseBorrowRate(symbols, currency);
+        const borrowRate = this.safeValue(symbols, 0);
+        return this.parseIsolatedBorrowRate(borrowRate, market);
     }
-    parseBorrowRate(info, currency = undefined) {
+    parseIsolatedBorrowRate(info, market = undefined) {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -3240,25 +3384,32 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const timestamp = this.milliseconds();
-        const currencyData = (currency === 'USDT') ? this.safeValue(info[0], 'quote', {}) : this.safeValue(info[0], 'base', {});
+        const marketId = this.safeString(info, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        const baseData = this.safeValue(info, 'base', {});
+        const quoteData = this.safeValue(info, 'quote', {});
+        const baseId = this.safeString(baseData, 'currency');
+        const quoteId = this.safeString(quoteData, 'currency');
         return {
-            'currency': this.safeCurrencyCode(currency),
-            'rate': this.safeNumber(currencyData, 'hourly_interest'),
+            'symbol': symbol,
+            'base': this.safeCurrencyCode(baseId),
+            'baseRate': this.safeNumber(baseData, 'hourly_interest'),
+            'quote': this.safeCurrencyCode(quoteId),
+            'quoteRate': this.safeNumber(quoteData, 'hourly_interest'),
             'period': 3600000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
-    async fetchBorrowRates(params = {}) {
+    async fetchIsolatedBorrowRates(params = {}) {
         /**
          * @method
-         * @name bitmart#fetchBorrowRates
+         * @name bitmart#fetchIsolatedBorrowRates
          * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
-         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount
+         * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetSpotV1MarginIsolatedPairs(params);
@@ -3296,47 +3447,12 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeValue(response, 'data', {});
         const symbols = this.safeValue(data, 'symbols', []);
-        return this.parseBorrowRates(symbols, undefined);
-    }
-    parseBorrowRates(info, codeKey) {
-        //
-        //     {
-        //         "symbol": "BTC_USDT",
-        //         "max_leverage": "5",
-        //         "symbol_enabled": true,
-        //         "base": {
-        //             "currency": "BTC",
-        //             "daily_interest": "0.00055000",
-        //             "hourly_interest": "0.00002291",
-        //             "max_borrow_amount": "2.00000000",
-        //             "min_borrow_amount": "0.00000001",
-        //             "borrowable_amount": "0.00670810"
-        //         },
-        //         "quote": {
-        //             "currency": "USDT",
-        //             "daily_interest": "0.00055000",
-        //             "hourly_interest": "0.00002291",
-        //             "max_borrow_amount": "50000.00000000",
-        //             "min_borrow_amount": "0.00000001",
-        //             "borrowable_amount": "135.12575038"
-        //         }
-        //     }
-        //
-        const timestamp = this.milliseconds();
-        const rates = [];
-        for (let i = 0; i < info.length; i++) {
-            const entry = info[i];
-            const base = this.safeValue(entry, 'base', {});
-            rates.push({
-                'currency': this.safeCurrencyCode(this.safeString(base, 'currency')),
-                'rate': this.safeNumber(base, 'hourly_interest'),
-                'period': 3600000,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-                'info': entry,
-            });
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = this.safeValue(symbols, i);
+            result.push(this.parseIsolatedBorrowRate(symbol));
         }
-        return rates;
+        return result;
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**
@@ -3350,7 +3466,7 @@ export default class bitmart extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -3491,7 +3607,7 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @param {int} [params.page] the required number of pages, default is 1, max is 1000
          * @param {int} [params.until] the latest time in ms to fetch transfers for
-         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         if (limit === undefined) {
@@ -3553,9 +3669,11 @@ export default class bitmart extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch borrrow interest for
          * @param {int} [limit] the maximum number of structures to retrieve
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object[]} a list of [borrow interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure}
+         * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
-        this.checkRequiredSymbol('fetchBorrowInterest', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchBorrowInterest() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -3630,7 +3748,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3689,7 +3807,9 @@ export default class bitmart extends Exchange {
          * @param {string} [params.marginMode] 'isolated' or 'cross'
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
+        }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params);
         this.checkRequiredArgument('setLeverage', marginMode, 'marginMode', ['isolated', 'cross']);
@@ -3713,7 +3833,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#get-current-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3779,7 +3899,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3828,7 +3948,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -3956,9 +4076,11 @@ export default class bitmart extends Exchange {
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the bitmart api endpoint
          * @param {int} [params.until] timestamp in ms of the latest liquidation
-         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
          */
-        this.checkRequiredSymbol('fetchMyLiquidations', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchMyLiquidations() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['swap']) {
@@ -4064,9 +4186,11 @@ export default class bitmart extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
+            const brokerId = this.safeString(this.options, 'brokerId', 'CCXTxBitmart000');
             headers = {
                 'X-BM-KEY': this.apiKey,
                 'X-BM-TIMESTAMP': timestamp,
+                'X-BM-BROKER-ID': brokerId,
                 'Content-Type': 'application/json',
             };
             if (!getOrDelete) {

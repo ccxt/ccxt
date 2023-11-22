@@ -32,16 +32,17 @@ error_hierarchy = {
             },
             'NotSupported': {},
         },
-        'NetworkError': {
-            'DDoSProtection': {
-                'RateLimitExceeded': {},
+        'OperationFailed': {
+            'NetworkError': {
+                'DDoSProtection': {
+                    'RateLimitExceeded': {},
+                },
+                'ExchangeNotAvailable': {
+                    'OnMaintenance': {},
+                },
+                'InvalidNonce': {},
+                'RequestTimeout': {},
             },
-            'ExchangeNotAvailable': {
-                'OnMaintenance': {},
-            },
-            'InvalidNonce': {},
-            'RequestTimeout': {},
-            'OperationFailed': {},
         },
     },
 }
@@ -151,7 +152,11 @@ class NotSupported(ExchangeError):
     pass
 
 
-class NetworkError(BaseError):
+class OperationFailed(BaseError):
+    pass
+
+
+class NetworkError(OperationFailed):
     pass
 
 
@@ -176,10 +181,6 @@ class InvalidNonce(NetworkError):
 
 
 class RequestTimeout(NetworkError):
-    pass
-
-
-class OperationFailed(NetworkError):
     pass
 
 
@@ -211,12 +212,12 @@ __all__ = [
     'DuplicateOrderId',
     'ContractUnavailable',
     'NotSupported',
+    'OperationFailed',
     'NetworkError',
     'DDoSProtection',
     'RateLimitExceeded',
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout',
-    'OperationFailed'
+    'RequestTimeout'
 ]

@@ -5,7 +5,7 @@ import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, Inval
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -21,6 +21,13 @@ export default class bitget extends bitgetRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
@@ -130,7 +137,7 @@ export default class bitget extends bitgetRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -145,14 +152,14 @@ export default class bitget extends bitgetRest {
         return await this.watchPublic (messageHash, args, params);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
@@ -462,7 +469,7 @@ export default class bitget extends bitgetRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -638,7 +645,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -766,7 +773,7 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
-    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchPositions
@@ -947,7 +954,7 @@ export default class bitget extends bitgetRest {
         });
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchOrders
@@ -959,7 +966,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1274,7 +1281,7 @@ export default class bitget extends bitgetRest {
         return this.safeString (statuses, status, status);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitget#watchMyTrades
@@ -1283,7 +1290,7 @@ export default class bitget extends bitgetRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         // only contracts stream provides the trade info consistently in between order updates
         // the spot stream only provides on limit orders updates so we can't support it for spot
@@ -1438,7 +1445,7 @@ export default class bitget extends bitgetRest {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);

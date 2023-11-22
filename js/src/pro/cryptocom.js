@@ -74,7 +74,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -157,7 +157,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -257,7 +257,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
         let market = undefined;
@@ -281,7 +281,7 @@ export default class cryptocom extends cryptocomRest {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -389,7 +389,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -528,24 +528,24 @@ export default class cryptocom extends cryptocomRest {
     handlePositions(client, message) {
         //
         //    {
-        //        subscription: "user.position_balance",
-        //        channel: "user.position_balance",
-        //        data: [{
-        //            balances: [{
-        //                instrument_name: "USD",
-        //                quantity: "8.9979961950886",
-        //                update_timestamp_ms: 1695598760597,
+        //        "subscription": "user.position_balance",
+        //        "channel": "user.position_balance",
+        //        "data": [{
+        //            "balances": [{
+        //                "instrument_name": "USD",
+        //                "quantity": "8.9979961950886",
+        //                "update_timestamp_ms": 1695598760597,
         //            }],
-        //            positions: [{
-        //                account_id: "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-        //                instrument_name: "LTCUSD-PERP",
-        //                type: "PERPETUAL_SWAP",
-        //                quantity: "1.8",
-        //                cost: "114.766",
-        //                open_position_pnl: "-0.0216206",
-        //                session_pnl: "0.00962994",
-        //                update_timestamp_ms: 1695598760597,
-        //                open_pos_cost: "114.766",
+        //            "positions": [{
+        //                "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+        //                "instrument_name": "LTCUSD-PERP",
+        //                "type": "PERPETUAL_SWAP",
+        //                "quantity": "1.8",
+        //                "cost": "114.766",
+        //                "open_position_pnl": "-0.0216206",
+        //                "session_pnl": "0.00962994",
+        //                "update_timestamp_ms": 1695598760597,
+        //                "open_pos_cost": "114.766",
         //            }],
         //        }],
         //    }
@@ -586,7 +586,7 @@ export default class cryptocom extends cryptocomRest {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const messageHash = 'user.balance';
         return await this.watchPrivateSubscribe(messageHash, params);
@@ -667,7 +667,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         params = this.createOrderRequest(symbol, type, side, amount, price, params);
@@ -704,7 +704,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {string} id the order id of the order to cancel
          * @param {string} [symbol] unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         params = this.extend({
@@ -725,7 +725,7 @@ export default class cryptocom extends cryptocomRest {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
          * @param {string} symbol unified market symbol of the orders to cancel
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} Returns exchange raw message {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;

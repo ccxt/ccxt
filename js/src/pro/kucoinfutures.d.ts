@@ -1,5 +1,5 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoinfutures extends kucoinfuturesRest {
     describe(): any;
@@ -9,7 +9,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;
-    watchPosition(symbol?: string, params?: {}): Promise<any>;
+    watchPosition(symbol?: Str, params?: {}): Promise<any>;
     getCurrentPosition(symbol: any): any;
     setPositionCache(client: Client, symbol: string): void;
     loadPositionSnapshot(client: any, messageHash: any, symbol: any): Promise<void>;
@@ -26,7 +26,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleSystemStatus(client: Client, message: any): any;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsOrderStatus(status: any): string;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrder(client: Client, message: any): void;

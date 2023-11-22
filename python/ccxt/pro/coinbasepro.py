@@ -6,11 +6,11 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Ticker
+from ccxt.base.types import Int, Str, Strings, Ticker
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
@@ -116,19 +116,19 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         name = 'ticker'
         return await self.subscribe(name, symbol, name, params)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbolsLength = len(symbols)
@@ -141,14 +141,14 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -158,7 +158,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -181,16 +181,17 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
-        self.check_required_symbol('watchMyTrades', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
         await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'user'
@@ -201,14 +202,14 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_my_trades_for_symbols(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades_for_symbols(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         symbols = self.market_symbols(symbols, None, False)
         await self.load_markets()
@@ -222,14 +223,14 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_orders_for_symbols(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders_for_symbols(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str[] symbols: unified symbol of the market to fetch orders for
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         symbols = self.market_symbols(symbols, None, False)
         await self.load_markets()
@@ -243,14 +244,14 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = orders.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
@@ -264,13 +265,13 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         name = 'level2'
         await self.load_markets()
@@ -298,7 +299,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         orderbook = await self.watch(url, messageHash, self.extend(request, authentication), messageHash, subscription)
         return orderbook.limit()
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
@@ -464,7 +465,6 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             'rate': feeRate,
             'cost': feeCost,
             'currency': feeCurrency,
-            'type': None,
         }
         return parsed
 
