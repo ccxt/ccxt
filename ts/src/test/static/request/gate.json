@@ -225,6 +225,20 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from swap to spot",
+                "method": "transfer",
+                "url": "https://api.gateio.ws/api/v4/wallet/transfers",
+                "input": [
+                  "USDT",
+                  "1",
+                  "swap",
+                  "spot"
+                ],
+                "output": "{\"currency\":\"usdt\",\"amount\":\"1\",\"from\":\"futures\",\"to\":\"spot\",\"settle\":\"usdt\"}"
+            }
         ]
     }
 }
