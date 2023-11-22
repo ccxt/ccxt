@@ -997,6 +997,15 @@ export default class kucoinfutures extends kucoin {
     }
 
     async fetchPositionsForSymbol (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchPositions
+         * @see https://docs.kucoin.com/futures/#get-position-details
+         * @description fetch all open positions for specific symbol
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
