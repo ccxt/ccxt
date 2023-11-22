@@ -20,6 +20,10 @@ class hitbtc extends hitbtc$1 {
                 'watchOrders': true,
                 'watchOHLCV': true,
                 'watchMyTrades': false,
+                'createOrderWs': true,
+                'cancelOrderWs': true,
+                'fetchOpenOrdersWs': true,
+                'cancelAllOrdersWs': true,
             },
             'urls': {
                 'api': {
@@ -147,6 +151,25 @@ class hitbtc extends hitbtc$1 {
             'method': name,
             'params': params,
             'id': this.nonce(),
+        };
+        return await this.watch(url, messageHash, subscribe, messageHash);
+    }
+    async tradeRequest(name, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} name websocket endpoint name
+         * @param {string} [symbol] unified CCXT symbol
+         * @param {object} [params] extra parameters specific to the hitbtc api
+         */
+        await this.loadMarkets();
+        await this.authenticate();
+        const url = this.urls['api']['ws']['private'];
+        const messageHash = this.nonce();
+        const subscribe = {
+            'method': name,
+            'params': params,
+            'id': messageHash,
         };
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
@@ -459,7 +482,7 @@ class hitbtc extends hitbtc$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -887,13 +910,22 @@ class hitbtc extends hitbtc$1 {
         //    }
         //
         const timestamp = this.safeString(order, 'created_at');
-        const marketId = this.safeSymbol(order, 'symbol');
+        const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const tradeId = this.safeString(order, 'trade_id');
         let trades = undefined;
         if (tradeId !== undefined) {
             const trade = this.parseWsOrderTrade(order, market);
             trades = [trade];
+        }
+        const rawStatus = this.safeString(order, 'status');
+        const report_type = this.safeString(order, 'report_type');
+        let parsedStatus = undefined;
+        if (report_type === 'canceled') {
+            parsedStatus = this.parseOrderStatus(report_type);
+        }
+        else {
+            parsedStatus = this.parseOrderStatus(rawStatus);
         }
         return this.safeOrder({
             'info': order,
@@ -913,7 +945,7 @@ class hitbtc extends hitbtc$1 {
             'filled': undefined,
             'remaining': undefined,
             'cost': undefined,
-            'status': this.parseOrderStatus(this.safeString(order, 'status')),
+            'status': parsedStatus,
             'average': undefined,
             'trades': trades,
             'fee': undefined,
@@ -948,6 +980,152 @@ class hitbtc extends hitbtc$1 {
         };
         return await this.subscribePrivate(name, undefined, this.extend(request, params));
     }
+    async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#createOrder
+         * @description create a trade order
+         * @see https://api.hitbtc.com/#create-new-spot-order
+         * @see https://api.hitbtc.com/#create-margin-order
+         * @see https://api.hitbtc.com/#create-futures-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
+         * @param {bool} [params.margin] true for creating a margin order
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let request = undefined;
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        [request, params] = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, params);
+        request = this.extend(request, params);
+        if (marketType === 'swap') {
+            return await this.tradeRequest('futures_new_order', request);
+        }
+        else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            return await this.tradeRequest('margin_new_order', request);
+        }
+        else {
+            return await this.tradeRequest('spot_new_order', request);
+        }
+    }
+    async cancelOrderWs(id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#cancelOrderWs
+         * @see https://api.hitbtc.com/#cancel-spot-order-2
+         * @see https://api.hitbtc.com/#cancel-futures-order-2
+         * @see https://api.hitbtc.com/#cancel-margin-order-2
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for canceling a margin order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        let request = {
+            'client_order_id': id,
+        };
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('cancelOrderWs', market, params);
+        const [marginMode, query] = this.handleMarginModeAndParams('cancelOrderWs', params);
+        request = this.extend(request, query);
+        if (marketType === 'swap') {
+            return await this.tradeRequest('futures_cancel_order', request);
+        }
+        else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            return await this.tradeRequest('margin_cancel_order', request);
+        }
+        else {
+            return await this.tradeRequest('spot_cancel_order', request);
+        }
+    }
+    async cancelAllOrdersWs(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#cancelAllOrdersWs
+         * @see https://api.hitbtc.com/#cancel-spot-orders
+         * @see https://api.hitbtc.com/#cancel-futures-order-3
+         * @description cancel all open orders
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for canceling margin orders
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrdersWs', market, params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('cancelAllOrdersWs', params);
+        if (marketType === 'swap') {
+            return await this.tradeRequest('futures_cancel_orders', params);
+        }
+        else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            throw new errors.NotSupported(this.id + ' cancelAllOrdersWs is not supported for margin orders');
+        }
+        else {
+            return await this.tradeRequest('spot_cancel_orders', params);
+        }
+    }
+    async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchOpenOrdersWs
+         * @see https://api.hitbtc.com/#get-active-futures-orders-2
+         * @see https://api.hitbtc.com/#get-margin-orders
+         * @see https://api.hitbtc.com/#get-active-spot-orders
+         * @description fetch all unfilled currently open orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
+         * @param {bool} [params.margin] true for fetching open margin orders
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrdersWs', market, params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrdersWs', params);
+        if (marketType === 'swap') {
+            return await this.tradeRequest('futures_get_orders', request);
+        }
+        else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            return await this.tradeRequest('margin_get_orders', request);
+        }
+        else {
+            return await this.tradeRequest('spot_get_orders', request);
+        }
+    }
     handleBalance(client, message) {
         //
         //    {
@@ -976,7 +1154,52 @@ class hitbtc extends hitbtc$1 {
         //
         return message;
     }
+    handleOrderRequest(client, message) {
+        //
+        // createOrderWs, cancelOrderWs
+        //
+        //    {
+        //        "jsonrpc": "2.0",
+        //        "result": {
+        //            "id": 1130310696965,
+        //            "client_order_id": "OPC2oyHSkEBqIpPtniLqeW-597hUL3Yo",
+        //            "symbol": "ADAUSDT",
+        //            "side": "buy",
+        //            "status": "new",
+        //            "type": "limit",
+        //            "time_in_force": "GTC",
+        //            "quantity": "4",
+        //            "quantity_cumulative": "0",
+        //            "price": "0.3300000",
+        //            "post_only": false,
+        //            "created_at": "2023-11-17T14:58:15.903Z",
+        //            "updated_at": "2023-11-17T14:58:15.903Z",
+        //            "original_client_order_id": "d6b645556af740b1bd1683400fd9cbce",       // spot_replace_order only
+        //            "report_type": "new"
+        //            "margin_mode": "isolated",                                            // margin and future only
+        //            "reduce_only": false,                                                 // margin and future only
+        //        },
+        //        "id": 1700233093414
+        //    }
+        //
+        const messageHash = this.safeInteger(message, 'id');
+        const result = this.safeValue(message, 'result', {});
+        if (Array.isArray(result)) {
+            const parsedOrders = [];
+            for (let i = 0; i < result.length; i++) {
+                const parsedOrder = this.parseWsOrder(result[i]);
+                parsedOrders.push(parsedOrder);
+            }
+            client.resolve(parsedOrders, messageHash);
+        }
+        else {
+            const parsedOrder = this.parseWsOrder(result);
+            client.resolve(parsedOrder, messageHash);
+        }
+        return message;
+    }
     handleMessage(client, message) {
+        this.handleError(client, message);
         let channel = this.safeString2(message, 'ch', 'method');
         if (channel !== undefined) {
             const splitChannel = channel.split('/');
@@ -1001,9 +1224,21 @@ class hitbtc extends hitbtc$1 {
             }
         }
         else {
-            const success = this.safeValue(message, 'result');
-            if ((success === true) && !('id' in message)) {
+            const result = this.safeValue(message, 'result');
+            const clientOrderId = this.safeString(result, 'client_order_id');
+            if (clientOrderId !== undefined) {
+                this.handleOrderRequest(client, message);
+            }
+            if ((result === true) && !('id' in message)) {
                 this.handleAuthenticate(client, message);
+            }
+            if (Array.isArray(result)) {
+                // to do improve this, not very reliable right now
+                const first = this.safeValue(result, 0, {});
+                const arrayLength = result.length;
+                if ((arrayLength === 0) || ('client_order_id' in first)) {
+                    this.handleOrderRequest(client, message);
+                }
             }
         }
     }
@@ -1028,6 +1263,30 @@ class hitbtc extends hitbtc$1 {
             }
         }
         return message;
+    }
+    handleError(client, message) {
+        //
+        //    {
+        //        jsonrpc: '2.0',
+        //        error: {
+        //          code: 20001,
+        //          message: 'Insufficient funds',
+        //          description: 'Check that the funds are sufficient, given commissions'
+        //        },
+        //        id: 1700228604325
+        //    }
+        //
+        const error = this.safeValue(message, 'error');
+        if (error !== undefined) {
+            const code = this.safeValue(error, 'code');
+            const errorMessage = this.safeString(error, 'message');
+            const description = this.safeString(error, 'description');
+            const feedback = this.id + ' ' + description;
+            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+            throw new errors.ExchangeError(feedback); // unknown message
+        }
+        return undefined;
     }
 }
 
