@@ -17,12 +17,12 @@ print('CCXT Version:', ccxt.__version__)
 
 
 async def main():
-    exchange = ccxt.okex({
+    exchange = ccxt.okx({
         'apiKey': 'YOUR_API_KEY',  # https://github.com/ccxt/ccxt/wiki/Manual#authentication
         'secret': 'YOUR_API_SECRET',
         'password': 'YOUR_API_PASSWORD',
         'options': {
-            'defaultType': 'futures',
+            'defaultType': 'future',
         },
     })
     try:
@@ -34,7 +34,7 @@ async def main():
         pprint(futures_balance)
         print('---------------------------------------------------------------')
         print('Futures symbols:')
-        print([market['symbol'] for market in markets.values() if market['futures']])
+        print([market['symbol'] for market in markets.values() if market['future']])
         print('---------------------------------------------------------------')
         symbol = 'BTC/USDT:USDT-201225'  # a futures symbol
         market = exchange.market(symbol)
