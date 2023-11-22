@@ -73,7 +73,7 @@ export default class alpaca extends Exchange {
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -261,6 +261,29 @@ export default class alpaca extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.traderPrivateGetV2Clock (params);
+        //
+        //     {
+        //         timestamp: '2023-11-22T08:07:57.654738097-05:00',
+        //         is_open: false,
+        //         next_open: '2023-11-22T09:30:00-05:00',
+        //         next_close: '2023-11-22T16:00:00-05:00'
+        //     }
+        //
+        const timestamp = this.safeString (response, 'timestamp');
+        const localTime = timestamp.substring (0, 23);
+        const iso = this.parse8601 (localTime) - this.parseToNumeric (timestamp.substring (timestamp.length - 6, timestamp.length - 3)) * 3600 * 1000;
+        return iso;
     }
 
     async fetchMarkets (params = {}) {
