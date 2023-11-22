@@ -782,6 +782,25 @@ export default class alpaca extends Exchange {
         return this.safeValue (response, 'message', {});
     }
 
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @see https://docs.alpaca.markets/reference/deleteallorders
+         * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.traderPrivateDeleteV2Orders (params);
+        if (Array.isArray (response)) {
+            return this.parseOrders (response, undefined);
+        } else {
+            return response;
+        }
+    }
+
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
@@ -970,9 +989,11 @@ export default class alpaca extends Exchange {
             };
         }
         let orderType = this.safeString (order, 'order_type');
-        if (orderType.indexOf ('limit') >= 0) {
-            // might be limit or stop-limit
-            orderType = 'limit';
+        if (orderType !== undefined) {
+            if (orderType.indexOf ('limit') >= 0) {
+                // might be limit or stop-limit
+                orderType = 'limit';
+            }
         }
         const datetime = this.safeString (order, 'submitted_at');
         const timestamp = this.parse8601 (datetime);
