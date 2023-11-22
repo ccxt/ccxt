@@ -50,7 +50,7 @@ export default class alpaca extends Exchange {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -68,7 +68,7 @@ export default class alpaca extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchPositions': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
@@ -807,6 +807,7 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://docs.alpaca.markets/reference/getallorders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -884,19 +885,36 @@ export default class alpaca extends Exchange {
          * @name alpaca#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.alpaca.markets/reference/getallorders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const orders = await this.traderPrivateGetV2Orders (params);
-        return this.parseOrders (orders, market, since, limit);
+        const request = {
+            'status': 'open',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name alpaca#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.alpaca.markets/reference/getallorders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const request = {
+            'status': 'closed',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     parseOrder (order, market: Market = undefined): Order {
