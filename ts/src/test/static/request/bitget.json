@@ -332,6 +332,16 @@
                 ]
             }
         ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "linear swap",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.bitget.com/api/mix/v1/position/singlePosition?marginCoin=USDT&symbol=BTCUSDT_UMCBL",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "Fetch linear position",
