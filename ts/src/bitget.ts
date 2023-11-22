@@ -3205,6 +3205,8 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/contract/account/Get-Account-List
          * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
          * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
+         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -3221,9 +3223,9 @@ export default class bitget extends Exchange {
             request['productType'] = productType;
             response = await this.privateMixGetV2MixAccountAccounts (this.extend (request, params));
         } else if (marginMode === 'isolated') {
-            response = await this.privateMarginGetV2MarginIsolatedAccountAssets (this.extend (request, params));
+            response = await this.privateMarginGetMarginV1IsolatedAccountAssets (this.extend (request, params));
         } else if (marginMode === 'cross') {
-            response = await this.privateMarginGetV2MarginCrossedAccountAssets (this.extend (request, params));
+            response = await this.privateMarginGetMarginV1CrossAccountAssets (this.extend (request, params));
         } else if (marketType === 'spot') {
             response = await this.privateSpotGetV2SpotAccountAssets (this.extend (request, params));
         } else {
@@ -3278,20 +3280,19 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1700624192523,
+        //         "requestTime": 1697501436571,
         //         "data": [
         //             {
         //                 "symbol": "BTCUSDT",
         //                 "coin": "BTC",
-        //                 "totalAmount": "0",
-        //                 "available": "0",
+        //                 "totalAmount": "0.00021654",
+        //                 "available": "0.00021654",
+        //                 "transferable": "0.00021654",
         //                 "frozen": "0",
         //                 "borrow": "0",
         //                 "interest": "0",
-        //                 "net": "0",
-        //                 "coupon": "0",
-        //                 "cTime": "1697248128071",
-        //                 "uTime": "1698367290148"
+        //                 "net": "0.00021654",
+        //                 "ctime": "1697248128071"
         //             },
         //         ]
         //     }
@@ -3301,20 +3302,19 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1700624748080,
+        //         "requestTime": 1697515463804,
         //         "data": [
         //             {
-        //                 "coin": "USDT",
-        //                 "totalAmount": "13.09004874",
-        //                 "available": "13.09004874",
+        //                 "coin": "BTC",
+        //                 "totalAmount": "0.00024996",
+        //                 "available": "0.00024996",
+        //                 "transferable": "0.00004994",
         //                 "frozen": "0",
-        //                 "borrow": "1.39498697",
-        //                 "interest": "0.00002384",
-        //                 "net": "11.69503793",
-        //                 "coupon": "0",
-        //                 "cTime": "1697251265504",
-        //                 "uTime": "1700624729664"
-        //             }
+        //                 "borrow": "0.0001",
+        //                 "interest": "0.00000001",
+        //                 "net": "0.00014995",
+        //                 "ctime": "1697251265504"
+        //             },
         //         ]
         //     }
         //
@@ -3360,30 +3360,28 @@ export default class bitget extends Exchange {
         //     {
         //         "symbol": "BTCUSDT",
         //         "coin": "BTC",
-        //         "totalAmount": "0",
-        //         "available": "0",
+        //         "totalAmount": "0.00021654",
+        //         "available": "0.00021654",
+        //         "transferable": "0.00021654",
         //         "frozen": "0",
         //         "borrow": "0",
         //         "interest": "0",
-        //         "net": "0",
-        //         "coupon": "0",
-        //         "cTime": "1697248128071",
-        //         "uTime": "1698367290148"
+        //         "net": "0.00021654",
+        //         "ctime": "1697248128071"
         //     }
         //
         // cross margin
         //
         //     {
-        //         "coin": "USDT",
-        //         "totalAmount": "13.09004874",
-        //         "available": "13.09004874",
+        //         "coin": "BTC",
+        //         "totalAmount": "0.00024995",
+        //         "available": "0.00024995",
+        //         "transferable": "0.00004993",
         //         "frozen": "0",
-        //         "borrow": "1.39498697",
-        //         "interest": "0.00002384",
-        //         "net": "11.69503793",
-        //         "coupon": "0",
-        //         "cTime": "1697251265504",
-        //         "uTime": "1700624729664"
+        //         "borrow": "0.0001",
+        //         "interest": "0.00000001",
+        //         "net": "0.00014994",
+        //         "ctime": "1697251265504"
         //     }
         //
         for (let i = 0; i < balance.length; i++) {
@@ -3394,7 +3392,7 @@ export default class bitget extends Exchange {
             const borrow = this.safeString (entry, 'borrow');
             if (borrow !== undefined) {
                 const interest = this.safeString (entry, 'interest');
-                account['free'] = this.safeString (entry, 'net');
+                account['free'] = this.safeString (entry, 'transferable');
                 account['total'] = this.safeString (entry, 'totalAmount');
                 account['debt'] = Precise.stringAdd (borrow, interest);
             } else {
