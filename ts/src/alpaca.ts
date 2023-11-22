@@ -268,6 +268,7 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchMarkets
          * @description retrieves data on all markets for alpaca
+         * @see https://docs.alpaca.markets/reference/get-v2-assets
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -439,21 +440,17 @@ export default class alpaca extends Exchange {
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        //
-        // @method
-        // @name alpaca#fetchOrderBook
-        // @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        // @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
-        // @param {string} symbol unified symbol of the market to fetch the order book for
-        // @param {int} [limit] the maximum amount of order book entries to return
-        // @param {object} [params] extra parameters specific to the alpaca api endpoint
-        // <<<<<<< HEAD
-        // @param {string} [params.loc] crypto location, default: us
-        // @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
-        // =======
-        // @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        // >>>>>>> f68b1b599ee41469fefa424f0efc9b6891549278
-        //
+        /**
+         * @method
+         * @name alpaca#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {string} [params.loc] crypto location, default: us
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+        */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const id = market['id'];
@@ -629,6 +626,7 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#createOrder
          * @description create a trade order
+         * @see https://docs.alpaca.markets/reference/postorder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'stop_limit'
          * @param {string} side 'buy' or 'sell'
@@ -717,6 +715,7 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#cancelOrder
          * @description cancels an open order
+         * @see https://docs.alpaca.markets/reference/deleteorderbyorderid
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
@@ -740,6 +739,7 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.alpaca.markets/reference/getorderbyorderid
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -759,6 +759,7 @@ export default class alpaca extends Exchange {
          * @method
          * @name alpaca#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.alpaca.markets/reference/getallorders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
