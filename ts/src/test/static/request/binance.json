@@ -471,7 +471,14 @@
               "BTC/USDT:USDT"
             ]
           },
-          
+          {
+            "description": "inverse swap",
+            "method": "fetchPositionsForSymbol",
+            "url": "https://dapi.binance.com/dapi/v1/positionRisk?timestamp=1700649423370&symbol=BTCUSD_PERP&recvWindow=10000&signature=ddd0ac2a2fc31d1c5d8804bf0488dae492f74824428c883d1de21e534035fe0a",
+            "input": [
+              "BTC/USD:BTC"
+            ]
+          }
         ],
         "fetchPositions": [
           {
