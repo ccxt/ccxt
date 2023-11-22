@@ -3603,14 +3603,13 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#createOrder
          * @description create a trade order
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-order
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#place-plan-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-stop-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-position-tpsl
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#place-plan-order
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-place-order
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-place-order
+         * @see https://www.bitget.com/api-doc/spot/trade/Place-Order
+         * @see https://www.bitget.com/api-doc/spot/plan/Place-Plan-Order
+         * @see https://www.bitget.com/api-doc/contract/trade/Place-Order
+         * @see https://www.bitget.com/api-doc/contract/plan/Place-Tpsl-Order
+         * @see https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order
+         * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
+         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell' or 'open_long' or 'open_short' or 'close_long' or 'close_short'
@@ -3627,6 +3626,11 @@ export default class bitget extends Exchange {
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @param {string} [params.loanType] *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
+         * @param {string} [params.holdSide] *contract stopLossPrice, takeProfitPrice only* Two-way position: ('long' or 'short'), one-way position: ('buy' or 'sell')
+         * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
+         * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
+         * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+         * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3644,21 +3648,21 @@ export default class bitget extends Exchange {
         let response = undefined;
         if (market['spot']) {
             if (isTriggerOrder) {
-                response = await this.privateSpotPostSpotV1PlanPlacePlan (request);
+                response = await this.privateSpotPostV2SpotTradePlacePlanOrder (request);
             } else if (marginMode === 'isolated') {
-                response = await this.privateMarginPostMarginV1IsolatedOrderPlaceOrder (request);
+                response = await this.privateMarginPostV2MarginIsolatedPlaceOrder (request);
             } else if (marginMode === 'cross') {
-                response = await this.privateMarginPostMarginV1CrossOrderPlaceOrder (request);
+                response = await this.privateMarginPostV2MarginCrossedPlaceOrder (request);
             } else {
-                response = await this.privateSpotPostSpotV1TradeOrders (request);
+                response = await this.privateSpotPostV2SpotTradePlaceOrder (request);
             }
         } else {
             if (isTriggerOrder) {
-                response = await this.privateMixPostMixV1PlanPlacePlan (request);
+                response = await this.privateMixPostV2MixOrderPlacePlanOrder (request);
             } else if (isStopLossOrTakeProfitTrigger) {
-                response = await this.privateMixPostMixV1PlanPlacePositionsTPSL (request);
+                response = await this.privateMixPostV2MixOrderPlaceTpslOrder (request);
             } else {
-                response = await this.privateMixPostMixV1OrderPlaceOrder (request);
+                response = await this.privateMixPostV2MixOrderPlaceOrder (request);
             }
         }
         //
@@ -3668,7 +3672,7 @@ export default class bitget extends Exchange {
         //         "requestTime": 1645932209602,
         //         "data": {
         //             "orderId": "881669078313766912",
-        //             "clientOrderId": "iauIBf#a45b595f96474d888d0ada"
+        //             "clientOid": "iauIBf#a45b595f96474d888d0ada"
         //         }
         //     }
         //
@@ -3682,12 +3686,8 @@ export default class bitget extends Exchange {
         let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        const marketId = market['id'];
-        const parts = marketId.split ('_');
-        const marginMarketId = this.safeStringUpper (parts, 0);
-        const symbolRequest = (marginMode !== undefined) ? marginMarketId : marketId;
         const request = {
-            'symbol': symbolRequest,
+            'symbol': market['id'],
             'orderType': type,
         };
         const isMarketOrder = type === 'market';
@@ -3709,36 +3709,30 @@ export default class bitget extends Exchange {
         if ((type === 'limit') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        // default triggerType to market price for unification
-        const triggerType = this.safeString (params, 'triggerType', 'market_price');
+        const triggerType = this.safeString (params, 'triggerType', 'mark_price');
         const reduceOnly = this.safeValue (params, 'reduceOnly', false);
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const exchangeSpecificTifParam = this.safeStringN (params, [ 'force', 'timeInForceValue', 'timeInForce' ]);
+        const exchangeSpecificTifParam = this.safeString2 (params, 'force', 'timeInForce');
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
-        const defaultTimeInForce = this.safeStringLower (this.options, 'defaultTimeInForce');
-        const timeInForce = this.safeStringLower (params, 'timeInForce', defaultTimeInForce);
-        let timeInForceKey = 'timeInForceValue';
-        if (marketType === 'spot') {
-            if (marginMode !== undefined) {
-                timeInForceKey = 'timeInForce';
-            } else if (triggerPrice === undefined) {
-                timeInForceKey = 'force';
-            }
-        }
+        const defaultTimeInForce = this.safeStringUpper (this.options, 'defaultTimeInForce');
+        const timeInForce = this.safeStringUpper (params, 'timeInForce', defaultTimeInForce);
         if (postOnly) {
-            request[timeInForceKey] = 'post_only';
-        } else if (timeInForce === 'gtc') {
-            const gtcRequest = (marginMode !== undefined) ? 'gtc' : 'normal';
-            request[timeInForceKey] = gtcRequest;
-        } else if (timeInForce === 'fok') {
-            request[timeInForceKey] = 'fok';
-        } else if (timeInForce === 'ioc') {
-            request[timeInForceKey] = 'ioc';
+            request['force'] = 'post_only';
+        } else if (timeInForce === 'GTC') {
+            request['force'] = 'GTC';
+        } else if (timeInForce === 'FOK') {
+            request['force'] = 'FOK';
+        } else if (timeInForce === 'IOC') {
+            request['force'] = 'IOC';
         }
-        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
         if ((marketType === 'swap') || (marketType === 'future')) {
             request['marginCoin'] = market['settleId'];
+            request['size'] = this.amountToPrecision (symbol, amount);
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
             if (clientOrderId !== undefined) {
                 request['clientOid'] = clientOrderId;
             }
@@ -3751,23 +3745,43 @@ export default class bitget extends Exchange {
                 }
                 request['holdSide'] = (side === 'buy') ? 'long' : 'short';
             } else {
-                request['size'] = this.amountToPrecision (symbol, amount);
+                if (marginMode === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a marginMode parameter for ' + marketType + ' markets');
+                }
+                let marginModeRequest = marginMode;
+                if (!isTriggerOrder) {
+                    marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
+                }
+                request['marginMode'] = marginModeRequest;
+                request['side'] = side;
                 if (reduceOnly) {
-                    request['side'] = (side === 'buy') ? 'close_short' : 'close_long';
+                    request['reduceOnly'] = 'YES';
+                    request['tradeSide'] = 'Close';
                 } else {
-                    if (side === 'buy') {
-                        request['side'] = 'open_long';
-                    } else if (side === 'sell') {
-                        request['side'] = 'open_short';
-                    } else {
-                        request['side'] = side;
-                    }
+                    request['tradeSide'] = 'Open';
                 }
             }
             if (isTriggerOrder) {
+                request['planType'] = 'normal_plan';
                 request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 if (price !== undefined) {
                     request['executePrice'] = this.priceToPrecision (symbol, price);
+                }
+                if (isStopLoss) {
+                    const slTriggerPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'stopPrice');
+                    request['stopLossTriggerPrice'] = this.priceToPrecision (symbol, slTriggerPrice);
+                    const slPrice = this.safeNumber (stopLoss, 'price');
+                    request['stopLossExecutePrice'] = this.priceToPrecision (symbol, slPrice);
+                    const slType = this.safeString (stopLoss, 'type', 'mark_price');
+                    request['stopLossTriggerType'] = slType;
+                }
+                if (isTakeProfit) {
+                    const tpTriggerPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'stopPrice');
+                    request['stopSurplusTriggerPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                    const tpPrice = this.safeNumber (takeProfit, 'price');
+                    request['stopSurplusExecutePrice'] = this.priceToPrecision (symbol, tpPrice);
+                    const tpType = this.safeString (takeProfit, 'type', 'mark_price');
+                    request['stopSurplusTriggerType'] = tpType;
                 }
             } else if (isStopLossOrTakeProfitTrigger) {
                 if (isStopLossTriggerOrder) {
@@ -3784,56 +3798,52 @@ export default class bitget extends Exchange {
                 }
                 if (isTakeProfit) {
                     const tpTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
-                    request['presetTakeProfitPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                    request['presetStopSurplusPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
                 }
             }
         } else if (marketType === 'spot') {
             if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
             }
+            request['side'] = side;
             let quantity = undefined;
+            let planType = undefined;
             const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
             if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
                 if (price === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
                 } else {
+                    planType = 'total';
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
                     const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
                     quantity = this.priceToPrecision (symbol, cost);
                 }
             } else {
+                planType = 'amount';
                 quantity = this.amountToPrecision (symbol, amount);
             }
-            request['side'] = side;
-            if (triggerPrice !== undefined) {
+            if (clientOrderId !== undefined) {
+                request['clientOid'] = clientOrderId;
+            }
+            if (marginMode !== undefined) {
+                request['loanType'] = 'normal';
+                if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                    request['quoteSize'] = quantity;
+                } else {
+                    request['baseSize'] = quantity;
+                }
+            } else {
                 if (quantity !== undefined) {
                     request['size'] = quantity;
                 }
-                request['triggerType'] = triggerType;
-                request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-                if (price !== undefined) {
-                    request['executePrice'] = this.priceToPrecision (symbol, price);
-                }
-                if (clientOrderId !== undefined) {
-                    request['clientOrderId'] = clientOrderId;
-                }
-            } else if (marginMode !== undefined) {
-                request['loanType'] = 'normal';
-                if (clientOrderId !== undefined) {
-                    request['clientOid'] = clientOrderId;
-                }
-                if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
-                    request['quoteAmount'] = quantity;
-                } else {
-                    request['baseQuantity'] = quantity;
-                }
-            } else {
-                if (clientOrderId !== undefined) {
-                    request['clientOrderId'] = clientOrderId;
-                }
-                if (quantity !== undefined) {
-                    request['quantity'] = quantity;
+                if (triggerPrice !== undefined) {
+                    request['planType'] = planType;
+                    request['triggerType'] = triggerType;
+                    request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+                    if (price !== undefined) {
+                        request['executePrice'] = this.priceToPrecision (symbol, price);
+                    }
                 }
             }
         } else {
