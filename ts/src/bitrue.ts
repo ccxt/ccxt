@@ -1437,8 +1437,12 @@ export default class bitrue extends Exchange {
         //         "open": "35349.4"
         //     }
         //
+        let timestamp = this.safeTimestamp (ohlcv, 'i');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (ohlcv, 'idx');
+        }
         return [
-            this.safeTimestamp2 (ohlcv, 'i', 'idx'),
+            timestamp,
             this.safeNumber2 (ohlcv, 'o', 'open'),
             this.safeNumber2 (ohlcv, 'h', 'high'),
             this.safeNumber2 (ohlcv, 'l', 'low'),
