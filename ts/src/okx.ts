@@ -1615,7 +1615,7 @@ export default class okx extends Exchange {
                 const networkId = this.safeString (chain, 'chain');
                 if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
                     const parts = networkId.split ('-');
-                    const chainPart = this.safeString (parts, 1, networkId);
+                    const chainPart = parts.slice (1).join ('-');
                     const networkCode = this.safeNetwork (chainPart);
                     const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
@@ -4319,51 +4319,7 @@ export default class okx extends Exchange {
         const chain = this.safeString (depositAddress, 'chain');
         const networks = this.safeValue (currency, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
-        let networkData = this.safeValue (networksById, chain);
-        // inconsistent naming responses from exchange
-        // with respect to network naming provided in currency info vs address chain-names and ids
-        //
-        // response from address endpoint:
-        //      {
-        //          "chain": "USDT-Polygon",
-        //          "ctAddr": "",
-        //          "ccy": "USDT",
-        //          "to":"6" ,
-        //          "addr": "0x1903441e386cc49d937f6302955b5feb4286dcfa",
-        //          "selected": true
-        //      }
-        // network information from currency['networks'] field:
-        // Polygon: {
-        //        info: {
-        //            canDep: false,
-        //            canInternal: false,
-        //            canWd: false,
-        //            ccy: 'USDT',
-        //            chain: 'USDT-Polygon-Bridge',
-        //            mainNet: false,
-        //            maxFee: '26.879528',
-        //            minFee: '13.439764',
-        //            minWd: '0.001',
-        //            name: ''
-        //        },
-        //        id: 'USDT-Polygon-Bridge',
-        //        network: 'Polygon',
-        //        active: false,
-        //        deposit: false,
-        //        withdraw: false,
-        //        fee: 13.439764,
-        //        precision: undefined,
-        //        limits: {
-        //            withdraw: {
-        //                min: 0.001,
-        //                max: undefined
-        //            }
-        //        }
-        //     },
-        //
-        if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue (networksById, 'USDT-Polygon-Bridge');
-        }
+        const networkData = this.safeValue (networksById, chain);
         const network = this.safeString (networkData, 'network');
         this.checkAddress (address);
         return {
@@ -4428,9 +4384,8 @@ export default class okx extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
+        const network = this.safeString (params, 'network');
         const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
         const response = await this.fetchDepositAddressesByNetwork (code, params);
         let result = undefined;
