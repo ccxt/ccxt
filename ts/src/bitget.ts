@@ -1275,12 +1275,12 @@ export default class bitget extends Exchange {
                         '30m': '30min',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
+                        '6h': '6h',
+                        '12h': '12h',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                        '1M': '1M',
                     },
                     'swap': {
                         '1m': '1m',
@@ -1291,12 +1291,12 @@ export default class bitget extends Exchange {
                         '1h': '1H',
                         '2h': '2H',
                         '4h': '4H',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
+                        '6h': '6H',
+                        '12h': '12H',
+                        '1d': '1D',
+                        '3d': '3D',
+                        '1w': '1W',
+                        '1M': '1M',
                     },
                 },
                 'fetchMarkets': [
@@ -1312,10 +1312,10 @@ export default class bitget extends Exchange {
                 },
                 'fetchOHLCV': {
                     'spot': {
-                        'method': 'publicSpotGetSpotV1MarketCandles', // or publicSpotGetSpotV1MarketHistoryCandles
+                        'method': 'publicSpotGetV2SpotMarketCandles', // or publicSpotGetV2SpotMarketHistoryCandles
                     },
                     'swap': {
-                        'method': 'publicMixGetMixV1MarketCandles', // or publicMixGetMixV1MarketHistoryCandles or publicMixGetMixV1MarketHistoryIndexCandles or publicMixGetMixV1MarketHistoryMarkCandles
+                        'method': 'publicMixGetV2MixMarketCandles', // or publicMixGetV2MixMarketHistoryCandles or publicMixGetV2MixMarketHistoryIndexCandles or publicMixGetV2MixMarketHistoryMarkCandles
                     },
                 },
                 'fetchTrades': {
@@ -3080,21 +3080,6 @@ export default class bitget extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
-        // spot
-        //
-        //     {
-        //         "open": "57882.31",
-        //         "high": "58967.24",
-        //         "low": "57509.56",
-        //         "close": "57598.96",
-        //         "quoteVol": "439160536.605821",
-        //         "baseVol": "7531.2927",
-        //         "usdtVol": "439160536.605821",
-        //         "ts": "1637337600000"
-        //     }
-        //
-        // swap
-        //
         //     [
         //         "1645911960000",
         //         "39406",
@@ -3105,13 +3090,14 @@ export default class bitget extends Exchange {
         //         "1399132.341"
         //     ]
         //
+        const volumeIndex = (market['inverse']) ? 6 : 5;
         return [
-            this.safeInteger2 (ohlcv, 0, 'ts'),
-            this.safeNumber2 (ohlcv, 1, 'open'),
-            this.safeNumber2 (ohlcv, 2, 'high'),
-            this.safeNumber2 (ohlcv, 3, 'low'),
-            this.safeNumber2 (ohlcv, 4, 'close'),
-            this.safeNumber2 (ohlcv, 5, 'baseVol'),
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, volumeIndex),
         ];
     }
 
@@ -3120,19 +3106,19 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-history-candle-data
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-candle-data
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-candle-data
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-index-candle-data
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-mark-candle-data
+         * @see https://www.bitget.com/api-doc/spot/market/Get-Candle-Data
+         * @see https://www.bitget.com/api-doc/spot/market/Get-History-Candle-Data
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
+         * @see https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data
+         * @see https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data
+         * @see https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -3142,79 +3128,54 @@ export default class bitget extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const until = this.safeInteger2 (params, 'until', 'till');
-        const limitIsUndefined = (limit === undefined);
-        if (limit === undefined) {
-            limit = 200;
-        }
-        request['limit'] = limit;
         const marketType = market['spot'] ? 'spot' : 'swap';
         const timeframes = this.options['timeframes'][marketType];
         const selectedTimeframe = this.safeString (timeframes, timeframe, timeframe);
-        const duration = this.parseTimeframe (timeframe);
-        if (market['spot']) {
-            request['period'] = selectedTimeframe;
+        let request = {
+            'symbol': market['id'],
+            'granularity': selectedTimeframe,
+        };
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = limit;
+        }
+        if (limit !== undefined) {
             request['limit'] = limit;
-            if (since !== undefined) {
-                request['after'] = since;
-                if (until === undefined) {
-                    request['before'] = this.sum (since, limit * duration * 1000);
-                }
-            }
-            if (until !== undefined) {
-                request['before'] = until;
-            }
-        } else if (market['contract']) {
-            request['granularity'] = selectedTimeframe;
-            const now = this.milliseconds ();
-            if (since === undefined) {
-                request['startTime'] = now - limit * (duration * 1000);
-                request['endTime'] = now;
-            } else {
-                request['startTime'] = since;
-                if (until !== undefined) {
-                    request['endTime'] = until;
-                } else {
-                    request['endTime'] = this.sum (since, limit * duration * 1000);
-                }
-            }
         }
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
-        params = this.omit (params, [ 'until', 'till' ]);
         let response = undefined;
         if (market['spot']) {
             const spotOptions = this.safeValue (options, 'spot', {});
-            const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetSpotV1MarketCandles');
+            const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketCandles');
             const method = this.safeString (params, 'method', defaultSpotMethod);
             params = this.omit (params, 'method');
-            if (method === 'publicSpotGetSpotV1MarketCandles') {
-                if (limitIsUndefined) {
-                    request['limit'] = 1000;
+            if (method === 'publicSpotGetV2SpotMarketCandles') {
+                response = await this.publicSpotGetV2SpotMarketCandles (this.extend (request, params));
+            } else if (method === 'publicSpotGetV2SpotMarketHistoryCandles') {
+                const until = this.safeInteger2 (params, 'until', 'till');
+                params = this.omit (params, [ 'until', 'till' ]);
+                if (until === undefined) {
+                    request['endTime'] = this.milliseconds ();
                 }
-                response = await this.publicSpotGetSpotV1MarketCandles (this.extend (request, params));
-            } else if (method === 'publicSpotGetSpotV1MarketHistoryCandles') {
-                response = await this.publicSpotGetSpotV1MarketHistoryCandles (this.extend (request, params));
+                response = await this.publicSpotGetV2SpotMarketHistoryCandles (this.extend (request, params));
             }
         } else {
             const swapOptions = this.safeValue (options, 'swap', {});
-            const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetMixV1MarketCandles');
+            const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetV2MixMarketCandles');
             const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
             const priceType = this.safeString (params, 'price');
             params = this.omit (params, [ 'method', 'price' ]);
-            if ((priceType === 'mark') || (swapMethod === 'publicMixGetMixV1MarketHistoryMarkCandles')) {
-                response = await this.publicMixGetMixV1MarketHistoryMarkCandles (this.extend (request, params));
-            } else if ((priceType === 'index') || (swapMethod === 'publicMixGetMixV1MarketHistoryIndexCandles')) {
-                response = await this.publicMixGetMixV1MarketHistoryIndexCandles (this.extend (request, params));
-            } else if (swapMethod === 'publicMixGetMixV1MarketCandles') {
-                if (limitIsUndefined) {
-                    request['limit'] = 1000;
-                }
-                response = await this.publicMixGetMixV1MarketCandles (this.extend (request, params));
-            } else if (swapMethod === 'publicMixGetMixV1MarketHistoryCandles') {
-                response = await this.publicMixGetMixV1MarketHistoryCandles (this.extend (request, params));
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            params['productType'] = productType;
+            if ((priceType === 'mark') || (swapMethod === 'publicMixGetV2MixMarketHistoryMarkCandles')) {
+                response = await this.publicMixGetV2MixMarketHistoryMarkCandles (this.extend (request, params));
+            } else if ((priceType === 'index') || (swapMethod === 'publicMixGetV2MixMarketHistoryIndexCandles')) {
+                response = await this.publicMixGetV2MixMarketHistoryIndexCandles (this.extend (request, params));
+            } else if (swapMethod === 'publicMixGetV2MixMarketCandles') {
+                response = await this.publicMixGetV2MixMarketCandles (this.extend (request, params));
+            } else if (swapMethod === 'publicMixGetV2MixMarketHistoryCandles') {
+                response = await this.publicMixGetV2MixMarketHistoryCandles (this.extend (request, params));
             }
         }
         if (response === '') {
