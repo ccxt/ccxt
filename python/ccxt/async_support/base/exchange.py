@@ -123,19 +123,15 @@ class Exchange(BaseExchange):
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        # ##### PROXY & HEADERS #####
         request_headers = self.prepare_request_headers(headers)
-        self.last_request_headers = request_headers
-        # proxy-url
-        proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
-        if proxyUrl is not None:
-            request_headers.update({'Origin': self.origin})
-            url = proxyUrl + url
-        # proxy agents
+        # ##### PROXY & HEADERS #####
         final_proxy = None  # set default
         final_session = None
-        httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
-        if httpProxy:
+        proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+        if proxyUrl:
+            request_headers.update({'Origin': self.origin})
+            url = proxyUrl + url
+        elif httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
             final_proxy = httpsProxy
@@ -144,7 +140,6 @@ class Exchange(BaseExchange):
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
-            self.open()  # ensure `asyncio_loop` is set
             connector = ProxyConnector.from_url(
                 socksProxy,
                 # extra args copied from self.open()
@@ -158,17 +153,14 @@ class Exchange(BaseExchange):
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
 
-        proxyAgentSet = final_proxy is not None or socksProxy is not None
-        self.checkConflictingProxies(proxyAgentSet, proxyUrl)
         # avoid old proxies mixing
         if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
+        # ######## end of proxies ########
 
-        # log
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
-        # end of proxies & headers
 
         request_body = body
         encoded_body = body.encode() if body else None
@@ -363,20 +355,7 @@ class Exchange(BaseExchange):
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
-        self.set_client_session_proxy(url)
         return self.clients[url]
-
-    def set_client_session_proxy(self, url):
-        final_proxy = None  # set default
-        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
-        if httpProxy:
-            final_proxy = httpProxy
-        elif httpsProxy:
-            final_proxy = httpsProxy
-        if (final_proxy):
-            self.clients[url].proxy = final_proxy
-        else:
-            self.clients[url].proxy = None
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
@@ -388,8 +367,6 @@ class Exchange(BaseExchange):
         return {}
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
-        # base exchange self.open starts the aiohttp Session in an async context
-        self.open()
         backoff_delay = 0
         client = self.client(url)
         if subscribe_hash is None and message_hash in client.futures:
@@ -401,6 +378,8 @@ class Exchange(BaseExchange):
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
 
+        # base exchange self.open starts the aiohttp Session in an async context
+        self.open()
         connected = client.connected if client.connected.done() \
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
@@ -521,164 +500,6 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-<<<<<<< HEAD
-    def handle_deltas(self, orderbook, deltas):
-        for i in range(0, len(deltas)):
-            self.handle_delta(orderbook, deltas[i])
-
-    def handle_delta(self, bookside, delta):
-        raise NotSupported(self.id + ' handleDelta not supported yet')
-
-    def get_cache_index(self, orderbook, deltas):
-        # return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        return -1
-
-    def find_timeframe(self, timeframe, timeframes=None):
-        if timeframes is None:
-            timeframes = self.timeframes
-        keys = list(timeframes.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if timeframes[key] == timeframe:
-                return key
-        return None
-
-    def check_proxy_url_settings(self, url, method, headers, body):
-        proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
-        proxyUrlCallback = self.proxyUrlCallback if (self.proxyUrlCallback is not None) else self.proxy_url_callback
-        if proxyUrlCallback is not None:
-            proxyUrl = proxyUrlCallback(url, method, headers, body)
-        # backwards-compatibility
-        if self.proxy is not None:
-            if callable(self.proxy):
-                proxyUrl = self.proxy(url, method, headers, body)
-            else:
-                proxyUrl = self.proxy
-        val = 0
-        if proxyUrl is not None:
-            val = val + 1
-        if proxyUrlCallback is not None:
-            val = val + 1
-        if val > 1:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
-        return proxyUrl
-
-    def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
-        if proxyAgentSet and proxyUrlSet:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
-
-    def check_proxy_settings(self, url=None, method=None, headers=None, body=None):
-        httpProxy = self.httpProxy if (self.httpProxy is not None) else self.http_proxy
-        httpProxyCallback = self.httpProxyCallback if (self.httpProxyCallback is not None) else self.http_proxy_callback
-        if httpProxyCallback is not None:
-            httpProxy = httpProxyCallback(url, method, headers, body)
-        httpsProxy = self.httpsProxy if (self.httpsProxy is not None) else self.https_proxy
-        httpsProxyCallback = self.httpsProxyCallback if (self.httpsProxyCallback is not None) else self.https_proxy_callback
-        if httpsProxyCallback is not None:
-            httpsProxy = httpsProxyCallback(url, method, headers, body)
-        socksProxy = self.socksProxy if (self.socksProxy is not None) else self.socks_proxy
-        socksProxyCallback = self.socksProxyCallback if (self.socksProxyCallback is not None) else self.socks_proxy_callback
-        if socksProxyCallback is not None:
-            socksProxy = socksProxyCallback(url, method, headers, body)
-        val = 0
-        if httpProxy is not None:
-            val = val + 1
-        if httpProxyCallback is not None:
-            val = val + 1
-        if httpsProxy is not None:
-            val = val + 1
-        if httpsProxyCallback is not None:
-            val = val + 1
-        if socksProxy is not None:
-            val = val + 1
-        if socksProxyCallback is not None:
-            val = val + 1
-        if val > 1:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
-        return [httpProxy, httpsProxy, socksProxy]
-
-    def find_message_hashes(self, client, element: str):
-        result = []
-        messageHashes = list(client.futures.keys())
-        for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            if messageHash.find(element) >= 0:
-                result.append(messageHash)
-        return result
-
-    def filter_by_limit(self, array: List[object], limit: Optional[int] = None, key: IndexType = 'timestamp'):
-        if self.valueIsDefined(limit):
-            arrayLength = len(array)
-            if arrayLength > 0:
-                ascending = True
-                if (key in array[0]):
-                    first = array[0][key]
-                    last = array[arrayLength - 1][key]
-                    if first is not None and last is not None:
-                        ascending = first <= last  # True if array is sorted in ascending order based on 'timestamp'
-                array = self.arraySlice(array, -limit) if ascending else self.arraySlice(array, 0, limit)
-        return array
-
-    def filter_by_since_limit(self, array: List[object], since: Optional[int] = None, limit: Optional[int] = None, key: IndexType = 'timestamp', tail=False):
-        sinceIsDefined = self.valueIsDefined(since)
-        parsedArray = self.to_array(array)
-        result = parsedArray
-        if sinceIsDefined:
-            result = []
-            for i in range(0, len(parsedArray)):
-                entry = parsedArray[i]
-                value = self.safe_value(entry, key)
-                if value and (value >= since):
-                    result.append(entry)
-        if tail and limit is not None:
-            return self.arraySlice(result, -limit)
-        return self.filter_by_limit(result, limit, key)
-
-    def filter_by_value_since_limit(self, array: List[object], field: IndexType, value=None, since: Optional[int] = None, limit: Optional[int] = None, key='timestamp', tail=False):
-        valueIsDefined = self.valueIsDefined(value)
-        sinceIsDefined = self.valueIsDefined(since)
-        parsedArray = self.to_array(array)
-        result = parsedArray
-        # single-pass filter for both symbol and since
-        if valueIsDefined or sinceIsDefined:
-            result = []
-            for i in range(0, len(parsedArray)):
-                entry = parsedArray[i]
-                entryFiledEqualValue = entry[field] == value
-                firstCondition = entryFiledEqualValue if valueIsDefined else True
-                entryKeyValue = self.safe_value(entry, key)
-                entryKeyGESince = (entryKeyValue) and since and (entryKeyValue >= since)
-                secondCondition = entryKeyGESince if sinceIsDefined else True
-                if firstCondition and secondCondition:
-                    result.append(entry)
-        if tail and limit is not None:
-            return self.arraySlice(result, -limit)
-        return self.filter_by_limit(result, limit, key)
-
-    def set_sandbox_mode(self, enabled):
-        if enabled:
-            if 'test' in self.urls:
-                if isinstance(self.urls['api'], str):
-                    self.urls['apiBackup'] = self.urls['api']
-                    self.urls['api'] = self.urls['test']
-                else:
-                    self.urls['apiBackup'] = self.clone(self.urls['api'])
-                    self.urls['api'] = self.clone(self.urls['test'])
-            else:
-                raise NotSupported(self.id + ' does not have a sandbox URL')
-        elif 'apiBackup' in self.urls:
-            if isinstance(self.urls['api'], str):
-                self.urls['api'] = self.urls['apiBackup']
-            else:
-                self.urls['api'] = self.clone(self.urls['apiBackup'])
-            newUrls = self.omit(self.urls, 'apiBackup')
-            self.urls = newUrls
-
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None):
-        return {}
-
-=======
->>>>>>> 005d4a11b5609dfcd6e1cae1608a66613148fba9
     async def fetch_accounts(self, params={}):
         raise NotSupported(self.id + ' fetchAccounts() is not supported yet')
 
