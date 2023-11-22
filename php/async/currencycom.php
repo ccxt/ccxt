@@ -13,6 +13,7 @@ use ccxt\InvalidOrder;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class currencycom extends Exchange {
 
@@ -48,13 +49,12 @@ class currencycom extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
-                'fetchBorrowRate' => null,
                 'fetchBorrowRateHistory' => null,
-                'fetchBorrowRates' => null,
-                'fetchBorrowRatesPerSymbol' => null,
                 'fetchCanceledOrders' => null,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => null,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
@@ -67,6 +67,8 @@ class currencycom extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchL2OrderBook' => true,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => false,
@@ -345,13 +347,13 @@ class currencycom extends Exchange {
             //             "minDeposit" => "90.0",
             //         ),
             //         array(
-            //             name => "Bitcoin",
-            //             displaySymbol => "BTC",
-            //             precision => "8",
-            //             type => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
-            //             minWithdrawal => "0.00020",
-            //             commissionFixed => "0.00010",
-            //             minDeposit => "0.00010",
+            //             "name" => "Bitcoin",
+            //             "displaySymbol" => "BTC",
+            //             "precision" => "8",
+            //             "type" => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
+            //             "minWithdrawal" => "0.00020",
+            //             "commissionFixed" => "0.00010",
+            //             "minDeposit" => "0.00010",
             //         ),
             //     )
             //
@@ -402,49 +404,49 @@ class currencycom extends Exchange {
             $response = Async\await($this->publicGetV2ExchangeInfo ($params));
             //
             //     {
-            //         timezone => "UTC",
-            //         serverTime => "1645186287261",
-            //         rateLimits => array(
+            //         "timezone" => "UTC",
+            //         "serverTime" => "1645186287261",
+            //         "rateLimits" => array(
             //             array( rateLimitType => "REQUEST_WEIGHT", interval => "MINUTE", intervalNum => "1", limit => "1200" ),
             //             array( rateLimitType => "ORDERS", interval => "SECOND", intervalNum => "1", limit => "10" ),
             //             array( rateLimitType => "ORDERS", interval => "DAY", intervalNum => "1", limit => "864000" ),
             //         ),
-            //         exchangeFilters => array(),
-            //         symbols => array(
+            //         "exchangeFilters" => array(),
+            //         "symbols" => array(
             //             array(
-            //                 $symbol => "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
-            //                 name => "Bitcoin / Tether",
-            //                 status => "TRADING", // TRADING, BREAK, HALT
-            //                 baseAsset => "BTC",
-            //                 baseAssetPrecision => "4",
-            //                 quoteAsset => "USDT",
-            //                 quoteAssetId => "USDT", // USDT, USDT_LEVERAGE
-            //                 quotePrecision => "4",
-            //                 orderTypes => array( "LIMIT", "MARKET" ), // LIMIT, MARKET, STOP
-            //                 $filters => array(
+            //                 "symbol" => "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
+            //                 "name" => "Bitcoin / Tether",
+            //                 "status" => "TRADING", // TRADING, BREAK, HALT
+            //                 "baseAsset" => "BTC",
+            //                 "baseAssetPrecision" => "4",
+            //                 "quoteAsset" => "USDT",
+            //                 "quoteAssetId" => "USDT", // USDT, USDT_LEVERAGE
+            //                 "quotePrecision" => "4",
+            //                 "orderTypes" => array( "LIMIT", "MARKET" ), // LIMIT, MARKET, STOP
+            //                 "filters" => array(
             //                     array( filterType => "LOT_SIZE", minQty => "0.0001", maxQty => "100", stepSize => "0.0001", ),
             //                     array( filterType => "MIN_NOTIONAL", minNotional => "5", ),
             //                 ),
-            //                 marketModes => array( "REGULAR" ), // CLOSE_ONLY, LONG_ONLY, REGULAR
-            //                 marketType => "SPOT", // SPOT, LEVERAGE
-            //                 longRate => -0.0684932, // LEVERAGE only
-            //                 shortRate => -0.0684932, // LEVERAGE only
-            //                 swapChargeInterval => 1440, // LEVERAGE only
-            //                 country => "",
-            //                 sector => "",
-            //                 industry => "",
-            //                 tradingHours => "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
-            //                 tickSize => "0.01",
-            //                 tickValue => "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
-            //                 $exchangeFee => "0.2", // SPOT only
-            //                 tradingFee => 0.075, // LEVERAGE only
-            //                 $makerFee => -0.025, // LEVERAGE only
-            //                 $takerFee => 0.06, // LEVERAGE only
-            //                 maxSLGap => 50, // LEVERAGE only
-            //                 minSLGap => 1, // LEVERAGE only
-            //                 maxTPGap => 50, // LEVERAGE only
-            //                 minTPGap => 0.5, // LEVERAGE only
-            //                 assetType => "CRYPTOCURRENCY",
+            //                 "marketModes" => array( "REGULAR" ), // CLOSE_ONLY, LONG_ONLY, REGULAR
+            //                 "marketType" => "SPOT", // SPOT, LEVERAGE
+            //                 "longRate" => -0.0684932, // LEVERAGE only
+            //                 "shortRate" => -0.0684932, // LEVERAGE only
+            //                 "swapChargeInterval" => 1440, // LEVERAGE only
+            //                 "country" => "",
+            //                 "sector" => "",
+            //                 "industry" => "",
+            //                 "tradingHours" => "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+            //                 "tickSize" => "0.01",
+            //                 "tickValue" => "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+            //                 "exchangeFee" => "0.2", // SPOT only
+            //                 "tradingFee" => 0.075, // LEVERAGE only
+            //                 "makerFee" => -0.025, // LEVERAGE only
+            //                 "takerFee" => 0.06, // LEVERAGE only
+            //                 "maxSLGap" => 50, // LEVERAGE only
+            //                 "minSLGap" => 1, // LEVERAGE only
+            //                 "maxTPGap" => 50, // LEVERAGE only
+            //                 "minTPGap" => 0.5, // LEVERAGE only
+            //                 "assetType" => "CRYPTOCURRENCY",
             //             ),
             //         )
             //     }
@@ -573,6 +575,7 @@ class currencycom extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -648,16 +651,16 @@ class currencycom extends Exchange {
             $response = Async\await($this->privateGetV2Account ($params));
             //
             //    {
-            //        makerCommission => '0.20',
-            //        takerCommission => '0.20',
-            //        buyerCommission => '0.20',
-            //        sellerCommission => '0.20',
-            //        canTrade => true,
-            //        canWithdraw => true,
-            //        canDeposit => true,
-            //        updateTime => '1645738976',
-            //        userId => '-1924114235',
-            //        balances => array()
+            //        "makerCommission" => "0.20",
+            //        "takerCommission" => "0.20",
+            //        "buyerCommission" => "0.20",
+            //        "sellerCommission" => "0.20",
+            //        "canTrade" => true,
+            //        "canWithdraw" => true,
+            //        "canDeposit" => true,
+            //        "updateTime" => "1645738976",
+            //        "userId" => "-1924114235",
+            //        "balances" => array()
             //    }
             //
             $makerFee = $this->safe_number($response, 'makerCommission');
@@ -715,12 +718,12 @@ class currencycom extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV2Account ($params));
@@ -759,7 +762,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -798,7 +801,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -877,7 +880,7 @@ class currencycom extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -915,7 +918,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -947,7 +950,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1590971040000,
@@ -968,7 +971,7 @@ class currencycom extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1003,7 +1006,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1081,7 +1084,7 @@ class currencycom extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1089,7 +1092,7 @@ class currencycom extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1098,7 +1101,7 @@ class currencycom extends Exchange {
                 // 'limit' => 500, // default 500, max 1000
             );
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 500, max 1000
+                $request['limit'] = min ($limit, 1000); // default 500, max 1000
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -1119,7 +1122,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1279,7 +1282,7 @@ class currencycom extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the currencycom api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -1375,7 +1378,9 @@ class currencycom extends Exchange {
              * @param {array} [$params] extra parameters specific to the currencycom api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            $this->check_required_symbol('fetchOrder', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1409,7 +1414,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1542,7 +1547,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1556,7 +1561,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1570,7 +1575,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1619,7 +1624,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //    {
         //        "id" => "616769213",
@@ -1647,7 +1652,7 @@ class currencycom extends Exchange {
             $fee['currency'] = $code;
             $fee['cost'] = $feeCost;
         }
-        $result = array(
+        return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'blockchainTransactionHash'),
@@ -1665,10 +1670,10 @@ class currencycom extends Exchange {
             'tagFrom' => null,
             'tagTo' => null,
             'updated' => null,
+            'internal' => null,
             'comment' => null,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function parse_transaction_status($status) {
@@ -1741,7 +1746,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         $id = $this->safe_string($item, 'id');
         $amountString = $this->safe_string($item, 'amount');
         $amount = Precise::string_abs($amountString);
@@ -1837,7 +1842,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         $currency = $this->safe_currency(null, $currency);
@@ -1894,43 +1899,71 @@ class currencycom extends Exchange {
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetV2TradingPositions ($params));
             //
-            // {
-            //     "positions" => array(
-            //       {
-            //         "accountId" => "109698017416453793",
-            //         "id" => "00a18490-0079-54c4-0000-0000803e73d3",
-            //         "instrumentId" => "45463225268524228",
-            //         "orderId" => "00a18490-0079-54c4-0000-0000803e73d2",
-            //         "openQuantity" => "13.6",
-            //         "openPrice" => "0.75724",
-            //         "closeQuantity" => "0.0",
-            //         "closePrice" => "0",
-            //         "rpl" => "-0.007723848",
-            //         "rplConverted" => "0",
-            //         "upl" => "-0.006664",
-            //         "uplConverted" => "-0.006664",
-            //         "swap" => "0",
-            //         "swapConverted" => "0",
-            //         "fee" => "-0.007723848",
-            //         "dividend" => "0",
-            //         "margin" => "0.2",
-            //         "state" => "ACTIVE",
-            //         "currency" => "USD",
-            //         "createdTimestamp" => "1645473877236",
-            //         "openTimestamp" => "1645473877193",
-            //         "type" => "NET",
-            //         "cost" => "2.0583600",
-            //         "symbol" => "XRP/USD_LEVERAGE"
-            //       }
-            //     )
-            // }
+            //    {
+            //        "positions" => array(
+            //          {
+            //            "accountId" => "109698017416453793",
+            //            "id" => "00a18490-0079-54c4-0000-0000803e73d3",
+            //            "instrumentId" => "45463225268524228",
+            //            "orderId" => "00a18490-0079-54c4-0000-0000803e73d2",
+            //            "openQuantity" => "13.6",
+            //            "openPrice" => "0.75724",
+            //            "closeQuantity" => "0.0",
+            //            "closePrice" => "0",
+            //            "rpl" => "-0.007723848",
+            //            "rplConverted" => "0",
+            //            "upl" => "-0.006664",
+            //            "uplConverted" => "-0.006664",
+            //            "swap" => "0",
+            //            "swapConverted" => "0",
+            //            "fee" => "-0.007723848",
+            //            "dividend" => "0",
+            //            "margin" => "0.2",
+            //            "state" => "ACTIVE",
+            //            "currency" => "USD",
+            //            "createdTimestamp" => "1645473877236",
+            //            "openTimestamp" => "1645473877193",
+            //            "type" => "NET",
+            //            "cost" => "2.0583600",
+            //            "symbol" => "XRP/USD_LEVERAGE"
+            //          }
+            //        )
+            //    }
             //
             $data = $this->safe_value($response, 'positions', array());
             return $this->parse_positions($data, $symbols);
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
+        //
+        //    {
+        //        "accountId" => "109698017416453793",
+        //        "id" => "00a18490-0079-54c4-0000-0000803e73d3",
+        //        "instrumentId" => "45463225268524228",
+        //        "orderId" => "00a18490-0079-54c4-0000-0000803e73d2",
+        //        "openQuantity" => "13.6",
+        //        "openPrice" => "0.75724",
+        //        "closeQuantity" => "0.0",
+        //        "closePrice" => "0",
+        //        "rpl" => "-0.007723848",
+        //        "rplConverted" => "0",
+        //        "upl" => "-0.006664",
+        //        "uplConverted" => "-0.006664",
+        //        "swap" => "0",
+        //        "swapConverted" => "0",
+        //        "fee" => "-0.007723848",
+        //        "dividend" => "0",
+        //        "margin" => "0.2",
+        //        "state" => "ACTIVE",
+        //        "currency" => "USD",
+        //        "createdTimestamp" => "1645473877236",
+        //        "openTimestamp" => "1645473877193",
+        //        "type" => "NET",
+        //        "cost" => "2.0583600",
+        //        "symbol" => "XRP/USD_LEVERAGE"
+        //    }
+        //
         $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_number($position, 'createdTimestamp');
@@ -1942,6 +1975,7 @@ class currencycom extends Exchange {
         $marginCoeff = $this->safe_string($position, 'margin');
         $leverage = Precise::string_div('1', $marginCoeff);
         return $this->safe_position(array(
+            'info' => $position,
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1965,8 +1999,11 @@ class currencycom extends Exchange {
             'maintenanceMargin' => $this->parse_number($marginCoeff),
             'maintenanceMarginPercentage' => null,
             'marginRatio' => null,
-            'info' => $position,
             'id' => null,
+            'unrealizedPnl' => null,
+            'hedged' => null,
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
         ));
     }
 

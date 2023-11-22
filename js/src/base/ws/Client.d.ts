@@ -1,5 +1,7 @@
+import { Future } from './Future.js';
 export default class Client {
     connected: Promise<any>;
+    disconnected: Future;
     futures: {};
     rejections: {};
     keepAlive: number;

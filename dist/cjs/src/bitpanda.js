@@ -35,14 +35,16 @@ class bitpanda extends bitpanda$1 {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': false,
+                'createStopOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
@@ -54,6 +56,8 @@ class bitpanda extends bitpanda$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
@@ -302,8 +306,8 @@ class bitpanda extends bitpanda$1 {
         const response = await this.publicGetTime(params);
         //
         //     {
-        //         iso: '2020-07-10T05:17:26.716Z',
-        //         epoch_millis: 1594358246716,
+        //         "iso": "2020-07-10T05:17:26.716Z",
+        //         "epoch_millis": 1594358246716,
         //     }
         //
         return this.safeInteger(response, 'epoch_millis');
@@ -361,76 +365,75 @@ class bitpanda extends bitpanda$1 {
         //
         //     [
         //         {
-        //             state: 'ACTIVE',
-        //             base: { code: 'ETH', precision: 8 },
-        //             quote: { code: 'CHF', precision: 2 },
-        //             amount_precision: 4,
-        //             market_precision: 2,
-        //             min_size: '10.0'
+        //             "state": "ACTIVE",
+        //             "base": { code: "ETH", precision: 8 },
+        //             "quote": { code: "CHF", precision: 2 },
+        //             "amount_precision": 4,
+        //             "market_precision": 2,
+        //             "min_size": "10.0"
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const baseAsset = this.safeValue(market, 'base', {});
-            const quoteAsset = this.safeValue(market, 'quote', {});
-            const baseId = this.safeString(baseAsset, 'code');
-            const quoteId = this.safeString(quoteAsset, 'code');
-            const id = baseId + '_' + quoteId;
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const state = this.safeString(market, 'state');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (state === 'ACTIVE'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'market_precision'))),
+        return this.parseMarkets(response);
+    }
+    parseMarket(market) {
+        const baseAsset = this.safeValue(market, 'base', {});
+        const quoteAsset = this.safeValue(market, 'quote', {});
+        const baseId = this.safeString(baseAsset, 'code');
+        const quoteId = this.safeString(quoteAsset, 'code');
+        const id = baseId + '_' + quoteId;
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const state = this.safeString(market, 'state');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (state === 'ACTIVE'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'market_precision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber(market, 'min_size'),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber(market, 'min_size'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchTradingFees(params = {}) {
         /**
@@ -678,7 +681,7 @@ class bitpanda extends bitpanda$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -942,7 +945,7 @@ class bitpanda extends bitpanda$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitpanda api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -994,7 +997,7 @@ class bitpanda extends bitpanda$1 {
          * @name bitpanda#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bitpanda api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetAccountBalances(params);
@@ -1344,6 +1347,8 @@ class bitpanda extends bitpanda$1 {
             'type': undefined,
             'updated': undefined,
             'txid': this.safeString(transaction, 'blockchain_transaction_id'),
+            'comment': undefined,
+            'internal': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'fee': fee,
@@ -1486,12 +1491,14 @@ class bitpanda extends bitpanda$1 {
          * @method
          * @name bitpanda#createOrder
          * @description create a trade order
+         * @see https://docs.onetrading.com/#create-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitpanda api endpoint
+         * @param {float} [params.triggerPrice] bitpanda only does stop limit orders and does not do stop market
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1513,13 +1520,17 @@ class bitpanda extends bitpanda$1 {
         if (uppercaseType === 'LIMIT' || uppercaseType === 'STOP') {
             priceIsRequired = true;
         }
-        if (uppercaseType === 'STOP') {
-            const triggerPrice = this.safeNumber(params, 'trigger_price');
-            if (triggerPrice === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a trigger_price param for ' + type + ' orders');
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'trigger_price', 'stopPrice']);
+        if (triggerPrice !== undefined) {
+            if (uppercaseType === 'MARKET') {
+                throw new errors.BadRequest(this.id + ' createOrder() cannot place stop market orders, only stop limit');
             }
             request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
-            params = this.omit(params, 'trigger_price');
+            request['type'] = 'STOP';
+            params = this.omit(params, ['triggerPrice', 'trigger_price', 'stopPrice']);
+        }
+        else if (uppercaseType === 'STOP') {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice param for ' + type + ' orders');
         }
         if (priceIsRequired) {
             request['price'] = this.priceToPrecision(symbol, price);

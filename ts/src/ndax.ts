@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -35,14 +35,16 @@ export default class ndax extends Exchange {
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -51,6 +53,8 @@ export default class ndax extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
@@ -259,6 +263,13 @@ export default class ndax extends Exchange {
                     'TrailingStopMarket': 5,
                     'TrailingStopLimit': 6,
                     'BlockTrade': 7,
+                    '1': 1,
+                    '2': 2,
+                    '3': 3,
+                    '4': 4,
+                    '5': 5,
+                    '6': 6,
+                    '7': 7,
                 },
             },
         });
@@ -352,7 +363,12 @@ export default class ndax extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'ProductId');
             const name = this.safeString (currency, 'ProductFullName');
-            const type = this.safeString (currency, 'ProductType');
+            const ProductType = this.safeString (currency, 'ProductType');
+            let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+            if (ProductType === 'Unknown') {
+                // such currency is just a blanket entry
+                type = 'other';
+            }
             const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
             const isDisabled = this.safeValue (currency, 'IsDisabled');
             const active = !isDisabled;
@@ -442,68 +458,68 @@ export default class ndax extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString (market, 'InstrumentId');
-            // const lowercaseId = this.safeStringLower (market, 'symbol');
-            const baseId = this.safeString (market, 'Product1');
-            const quoteId = this.safeString (market, 'Product2');
-            const base = this.safeCurrencyCode (this.safeString (market, 'Product1Symbol'));
-            const quote = this.safeCurrencyCode (this.safeString (market, 'Product2Symbol'));
-            const sessionStatus = this.safeString (market, 'SessionStatus');
-            const isDisable = this.safeValue (market, 'IsDisable');
-            const sessionRunning = (sessionStatus === 'Running');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (sessionRunning && !isDisable),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'QuantityIncrement'),
-                    'price': this.safeNumber (market, 'PriceIncrement'),
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'InstrumentId');
+        // const lowercaseId = this.safeStringLower (market, 'symbol');
+        const baseId = this.safeString (market, 'Product1');
+        const quoteId = this.safeString (market, 'Product2');
+        const base = this.safeCurrencyCode (this.safeString (market, 'Product1Symbol'));
+        const quote = this.safeCurrencyCode (this.safeString (market, 'Product2Symbol'));
+        const sessionStatus = this.safeString (market, 'SessionStatus');
+        const isDisable = this.safeValue (market, 'IsDisable');
+        const sessionRunning = (sessionStatus === 'Running');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (sessionRunning && !isDisable),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'QuantityIncrement'),
+                'price': this.safeNumber (market, 'PriceIncrement'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'MinimumQuantity'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': this.safeNumber (market, 'MinimumPrice'),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber (market, 'MinimumQuantity'),
+                    'max': undefined,
                 },
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': this.safeNumber (market, 'MinimumPrice'),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8) {
@@ -540,10 +556,10 @@ export default class ndax extends Exchange {
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         result['nonce'] = nonce;
-        return result as any;
+        return result as OrderBook;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name ndax#fetchOrderBook
@@ -588,7 +604,7 @@ export default class ndax extends Exchange {
         return this.parseOrderBook (response, symbol);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -655,7 +671,7 @@ export default class ndax extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name ndax#fetchTicker
@@ -705,7 +721,7 @@ export default class ndax extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1501603632000, // 0 DateTime
@@ -729,7 +745,7 @@ export default class ndax extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name ndax#fetchOHLCV
@@ -775,7 +791,7 @@ export default class ndax extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -943,7 +959,7 @@ export default class ndax extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name ndax#fetchTrades
@@ -952,7 +968,7 @@ export default class ndax extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the ndax api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1010,7 +1026,7 @@ export default class ndax extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1030,13 +1046,13 @@ export default class ndax extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name ndax#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the ndax api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
@@ -1102,7 +1118,7 @@ export default class ndax extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "TransactionId": 2663709493,
@@ -1158,7 +1174,7 @@ export default class ndax extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchLedger
@@ -1220,7 +1236,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -1324,8 +1340,9 @@ export default class ndax extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the ndax api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
@@ -1334,7 +1351,16 @@ export default class ndax extends Exchange {
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2 (params, 'ClientOrderId', 'clientOrderId');
-        params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ]);
+        let orderType = this.safeInteger (this.options['orderTypes'], this.capitalize (type));
+        const triggerPrice = this.safeString (params, 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            if (type === 'market') {
+                orderType = 3;
+            } else if (type === 'limit') {
+                orderType = 4;
+            }
+        }
+        params = this.omit (params, [ 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ]);
         const market = this.market (symbol);
         const orderSide = (side === 'buy') ? 0 : 1;
         const request = {
@@ -1351,7 +1377,7 @@ export default class ndax extends Exchange {
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
             'Quantity': parseFloat (this.amountToPrecision (symbol, amount)),
-            'OrderType': this.safeInteger (this.options['orderTypes'], this.capitalize (type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
+            'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         };
@@ -1361,6 +1387,9 @@ export default class ndax extends Exchange {
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
+        }
+        if (triggerPrice !== undefined) {
+            request['StopPrice'] = triggerPrice;
         }
         const response = await this.privatePostSendOrder (this.extend (request, params));
         //
@@ -1421,7 +1450,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchMyTrades
@@ -1509,7 +1538,7 @@ export default class ndax extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ndax#cancelAllOrders
@@ -1544,7 +1573,7 @@ export default class ndax extends Exchange {
         return response;
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ndax#cancelOrder
@@ -1583,7 +1612,7 @@ export default class ndax extends Exchange {
         });
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name ndax#fetchOpenOrders
@@ -1662,7 +1691,7 @@ export default class ndax extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name ndax#fetchOrders
@@ -1757,7 +1786,7 @@ export default class ndax extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrder
@@ -1833,7 +1862,7 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name ndax#fetchOrderTrades
@@ -1954,7 +1983,7 @@ export default class ndax extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         // fetchDepositAddress, createDepositAddress
         //
@@ -2005,7 +2034,7 @@ export default class ndax extends Exchange {
         return await this.fetchDepositAddress (code, this.extend (request, params));
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name ndax#fetchDeposits
@@ -2066,7 +2095,7 @@ export default class ndax extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name ndax#fetchWithdrawals
@@ -2168,7 +2197,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2261,6 +2290,9 @@ export default class ndax extends Exchange {
             'status': this.parseTransactionStatusByType (transactionStatus, type),
             'updated': updated,
             'fee': fee,
+            'internal': undefined,
+            'comment': undefined,
+            'network': undefined,
         };
     }
 
@@ -2301,10 +2333,10 @@ export default class ndax extends Exchange {
         const withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
         //
         //     {
-        //         result: true,
-        //         errormsg: null,
-        //         statuscode: "0",
-        //         TemplateTypes: [
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "TemplateTypes": [
         //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
         //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
         //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
@@ -2327,10 +2359,10 @@ export default class ndax extends Exchange {
         const withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate (withdrawTemplateRequest);
         //
         //     {
-        //         result: true,
-        //         errormsg: null,
-        //         statuscode: "0",
-        //         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
         //     }
         //
         const template = this.safeString (withdrawTemplateResponse, 'Template');

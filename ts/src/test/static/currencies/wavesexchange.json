@@ -1,0 +1,13 @@
+{
+    "ETH": {
+        "id": "3VuV5WTmDz47Dmdn3QpcYjzbSdipjQE4JMdNe1xZpX13",
+        "code": "ETH",
+        "precision": 8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}

@@ -21,6 +21,7 @@ class coinone extends coinone$1 {
             // 'enableRateLimit': false,
             'rateLimit': 667,
             'version': 'v2',
+            'pro': false,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -37,18 +38,19 @@ class coinone extends coinone$1 {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDepositAddresses': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -71,6 +73,7 @@ class coinone extends coinone$1 {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'ws': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -227,6 +230,7 @@ class coinone extends coinone$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': ticker,
             });
         }
@@ -257,7 +261,7 @@ class coinone extends coinone$1 {
          * @name coinone#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostAccountBalance(params);
@@ -310,7 +314,7 @@ class coinone extends coinone$1 {
             result[symbol] = this.parseTicker(ticker, market);
             result[symbol]['timestamp'] = timestamp;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -458,7 +462,7 @@ class coinone extends coinone$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the coinone api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -497,7 +501,7 @@ class coinone extends coinone$1 {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -621,10 +625,19 @@ class coinone extends coinone$1 {
         const id = this.safeString(order, 'orderId');
         const baseId = this.safeString(order, 'baseCurrency');
         const quoteId = this.safeString(order, 'targetCurrency');
-        const base = this.safeCurrencyCode(baseId, market['base']);
-        const quote = this.safeCurrencyCode(quoteId, market['quote']);
-        const symbol = base + '/' + quote;
-        market = this.safeMarket(symbol, market, '/');
+        let base = undefined;
+        let quote = undefined;
+        if (baseId !== undefined) {
+            base = this.safeCurrencyCode(baseId);
+        }
+        if (quoteId !== undefined) {
+            quote = this.safeCurrencyCode(quoteId);
+        }
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            market = this.safeMarket(symbol, market, '/');
+        }
         const timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
         let side = this.safeString2(order, 'type', 'side');
         if (side === 'ask') {
@@ -817,15 +830,15 @@ class coinone extends coinone$1 {
         const response = await this.privatePostAccountDepositAddress(params);
         //
         //     {
-        //         result: 'success',
-        //         errorCode: '0',
-        //         walletAddress: {
-        //             matic: null,
-        //             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        //             xrp: null,
-        //             xrp_tag: '-1',
-        //             kava: null,
-        //             kava_memo: null,
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "walletAddress": {
+        //             "matic": null,
+        //             "btc": "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        //             "xrp": null,
+        //             "xrp_tag": "-1",
+        //             "kava": null,
+        //             "kava_memo": null,
         //         }
         //     }
         //
@@ -884,7 +897,7 @@ class coinone extends coinone$1 {
             const payload = this.stringToBase64(json);
             body = payload;
             const secret = this.secret.toUpperCase();
-            const signature = this.hmac(payload, this.encode(secret), sha512.sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(secret), sha512.sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

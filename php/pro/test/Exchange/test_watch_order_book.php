@@ -21,6 +21,8 @@ function test_watch_order_book($exchange, $symbol) {
         'woo',
         'luno', // requires authentication for watch_order_book
         'alpaca', // requires auth
+        'coinbasepro', // requires auth
+        'coinbaseprime', // requires auth
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {

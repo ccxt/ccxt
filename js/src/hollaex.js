@@ -40,17 +40,17 @@ export default class hollaex extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
@@ -60,6 +60,8 @@ export default class hollaex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -216,46 +218,46 @@ export default class hollaex extends Exchange {
         const response = await this.publicGetConstants(params);
         //
         //     {
-        //         coins: {
-        //             xmr: {
-        //                 id: 7,
-        //                 fullname: "Monero",
-        //                 symbol: "xmr",
-        //                 active: true,
-        //                 allow_deposit: true,
-        //                 allow_withdrawal: true,
-        //                 withdrawal_fee: 0.02,
-        //                 min: 0.001,
-        //                 max: 100000,
-        //                 increment_unit: 0.001,
-        //                 deposit_limits: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0 },
-        //                 withdrawal_limits: { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, '9': 500, '10': -1 },
-        //                 created_at: "2019-12-09T07:14:02.720Z",
-        //                 updated_at: "2020-01-16T12:12:53.162Z"
+        //         "coins": {
+        //             "xmr": {
+        //                 "id": 7,
+        //                 "fullname": "Monero",
+        //                 "symbol": "xmr",
+        //                 "active": true,
+        //                 "allow_deposit": true,
+        //                 "allow_withdrawal": true,
+        //                 "withdrawal_fee": 0.02,
+        //                 "min": 0.001,
+        //                 "max": 100000,
+        //                 "increment_unit": 0.001,
+        //                 "deposit_limits": { '1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0 },
+        //                 "withdrawal_limits": { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1 },
+        //                 "created_at": "2019-12-09T07:14:02.720Z",
+        //                 "updated_at": "2020-01-16T12:12:53.162Z"
         //             },
         //             // ...
         //         },
-        //         pairs: {
-        //             'btc-usdt': {
-        //                 id: 2,
-        //                 name: "btc-usdt",
-        //                 pair_base: "btc",
-        //                 pair_2: "usdt",
-        //                 taker_fees: { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, '9': 0.04, '10': 0 },
-        //                 maker_fees: { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0 },
-        //                 min_size: 0.0001,
-        //                 max_size: 1000,
-        //                 min_price: 100,
-        //                 max_price: 100000,
-        //                 increment_size: 0.0001,
-        //                 increment_price: 0.05,
-        //                 active: true,
-        //                 created_at: "2019-12-09T07:15:54.537Z",
-        //                 updated_at: "2019-12-09T07:15:54.537Z"
+        //         "pairs": {
+        //             "btc-usdt": {
+        //                 "id": 2,
+        //                 "name": "btc-usdt",
+        //                 "pair_base": "btc",
+        //                 "pair_2": "usdt",
+        //                 "taker_fees": { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0 },
+        //                 "maker_fees": { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0 },
+        //                 "min_size": 0.0001,
+        //                 "max_size": 1000,
+        //                 "min_price": 100,
+        //                 "max_price": 100000,
+        //                 "increment_size": 0.0001,
+        //                 "increment_price": 0.05,
+        //                 "active": true,
+        //                 "created_at": "2019-12-09T07:15:54.537Z",
+        //                 "updated_at": "2019-12-09T07:15:54.537Z"
         //             },
         //         },
-        //         config: { tiers: 10 },
-        //         status: true
+        //         "config": { tiers: 10 },
+        //         "status": true
         //     }
         //
         const pairs = this.safeValue(response, 'pairs', {});
@@ -314,6 +316,7 @@ export default class hollaex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'created_at')),
                 'info': market,
             });
         }
@@ -485,13 +488,13 @@ export default class hollaex extends Exchange {
         const response = await this.publicGetTicker(this.extend(request, params));
         //
         //     {
-        //         open: 8615.55,
-        //         close: 8841.05,
-        //         high: 8921.1,
-        //         low: 8607,
-        //         last: 8841.05,
-        //         volume: 20.2802,
-        //         timestamp: '2020-03-03T03:11:18.964Z'
+        //         "open": 8615.55,
+        //         "close": 8841.05,
+        //         "high": 8921.1,
+        //         "low": 8607,
+        //         "last": 8841.05,
+        //         "volume": 20.2802,
+        //         "timestamp": "2020-03-03T03:11:18.964Z"
         //     }
         //
         return this.parseTicker(response, market);
@@ -536,20 +539,20 @@ export default class hollaex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.extend(this.parseTicker(ticker, market), params);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         //
         // fetchTicker
         //
         //     {
-        //         open: 8615.55,
-        //         close: 8841.05,
-        //         high: 8921.1,
-        //         low: 8607,
-        //         last: 8841.05,
-        //         volume: 20.2802,
-        //         timestamp: '2020-03-03T03:11:18.964Z',
+        //         "open": 8615.55,
+        //         "close": 8841.05,
+        //         "high": 8921.1,
+        //         "low": 8607,
+        //         "last": 8841.05,
+        //         "volume": 20.2802,
+        //         "timestamp": "2020-03-03T03:11:18.964Z",
         //     }
         //
         // fetchTickers
@@ -602,7 +605,7 @@ export default class hollaex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the hollaex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -693,28 +696,28 @@ export default class hollaex extends Exchange {
         const response = await this.publicGetTiers(params);
         //
         //     {
-        //         '1': {
-        //             id: '1',
-        //             name: 'Silver',
-        //             icon: '',
-        //             description: 'Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!',
-        //             deposit_limit: '0',
-        //             withdrawal_limit: '1000',
-        //             fees: {
-        //                 maker: {
-        //                     'eth-btc': '0.1',
-        //                     'ada-usdt': '0.1',
+        //         "1": {
+        //             "id": "1",
+        //             "name": "Silver",
+        //             "icon": '',
+        //             "description": "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
+        //             "deposit_limit": "0",
+        //             "withdrawal_limit": "1000",
+        //             "fees": {
+        //                 "maker": {
+        //                     'eth-btc': "0.1",
+        //                     'ada-usdt': "0.1",
         //                     ...
         //                 },
-        //                 taker: {
-        //                     'eth-btc': '0.1',
-        //                     'ada-usdt': '0.1',
+        //                 "taker": {
+        //                     'eth-btc': "0.1",
+        //                     'ada-usdt': "0.1",
         //                     ...
         //                 }
         //             },
-        //             note: '<ul>\n<li>Login and verify email</li>\n</ul>\n',
-        //             created_at: '2021-03-22T03:51:39.129Z',
-        //             updated_at: '2021-11-01T02:51:56.214Z'
+        //             "note": "<ul>\n<li>Login and verify email</li>\n</ul>\n",
+        //             "created_at": "2021-03-22T03:51:39.129Z",
+        //             "updated_at": "2021-11-01T02:51:56.214Z"
         //         },
         //         ...
         //     }
@@ -795,7 +798,7 @@ export default class hollaex extends Exchange {
         //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
-    parseOHLCV(response, market = undefined) {
+    parseOHLCV(ohlcv, market = undefined) {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -808,12 +811,12 @@ export default class hollaex extends Exchange {
         //     }
         //
         return [
-            this.parse8601(this.safeString(response, 'time')),
-            this.safeNumber(response, 'open'),
-            this.safeNumber(response, 'high'),
-            this.safeNumber(response, 'low'),
-            this.safeNumber(response, 'close'),
-            this.safeNumber(response, 'volume'),
+            this.parse8601(this.safeString(ohlcv, 'time')),
+            this.safeNumber(ohlcv, 'open'),
+            this.safeNumber(ohlcv, 'high'),
+            this.safeNumber(ohlcv, 'low'),
+            this.safeNumber(ohlcv, 'close'),
+            this.safeNumber(ohlcv, 'volume'),
         ];
     }
     parseBalance(response) {
@@ -840,7 +843,7 @@ export default class hollaex extends Exchange {
          * @name hollaex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the hollaex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetUserBalance(params);
@@ -1126,8 +1129,10 @@ export default class hollaex extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the hollaex api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1223,7 +1228,7 @@ export default class hollaex extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + " cancelAllOrders() requires a 'symbol' argument");
+            throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const request = {};
@@ -1580,12 +1585,12 @@ export default class hollaex extends Exchange {
         // withdraw
         //
         //     {
-        //         message: 'Withdrawal request is in the queue and will be processed.',
-        //         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
-        //         amount: 1,
-        //         currency: 'xht',
-        //         fee: 0,
-        //         fee_coin: 'xht'
+        //         "message": "Withdrawal request is in the queue and will be processed.",
+        //         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        //         "amount": 1,
+        //         "currency": "xht",
+        //         "fee": 0,
+        //         "fee_coin": "xht"
         //     }
         //
         const id = this.safeString(transaction, 'id');
@@ -1652,6 +1657,8 @@ export default class hollaex extends Exchange {
             'currency': currency['code'],
             'status': status,
             'updated': updated,
+            'comment': this.safeString(transaction, 'message'),
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -1688,12 +1695,12 @@ export default class hollaex extends Exchange {
         const response = await this.privatePostUserWithdrawal(this.extend(request, params));
         //
         //     {
-        //         message: 'Withdrawal request is in the queue and will be processed.',
-        //         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
-        //         amount: 1,
-        //         currency: 'xht',
-        //         fee: 0,
-        //         fee_coin: 'xht'
+        //         "message": "Withdrawal request is in the queue and will be processed.",
+        //         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        //         "amount": 1,
+        //         "currency": "xht",
+        //         "fee": 0,
+        //         "fee_coin": "xht"
         //     }
         //
         return this.parseTransaction(response, currency);
@@ -1773,7 +1780,7 @@ export default class hollaex extends Exchange {
          * @see https://apidocs.hollaex.com/#constants
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the hollaex api endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         const response = await this.publicGetConstants(params);
         //
@@ -1815,7 +1822,7 @@ export default class hollaex extends Exchange {
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
     }
     normalizeNumberIfNeeded(number) {
-        if (number % 1 === 0) {
+        if (this.isRoundNumber(number)) {
             number = parseInt(number);
         }
         return number;

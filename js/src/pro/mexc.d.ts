@@ -1,5 +1,5 @@
 import mexcRest from '../mexc.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class mexc extends mexcRest {
     describe(): any;
@@ -12,7 +12,7 @@ export default class mexc extends mexcRest {
     watchSwapPrivate(messageHash: any, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): number[];
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBookSubscription(client: Client, message: any): void;
     getCacheIndex(orderbook: any, cache: any): any;
@@ -21,10 +21,10 @@ export default class mexc extends mexcRest {
     handleDelta(orderbook: any, delta: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrade(client: Client, message: any, subscription?: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     parseWsOrderStatus(status: any, market?: any): string;
