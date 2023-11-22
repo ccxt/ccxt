@@ -7705,14 +7705,7 @@ export default class binance extends Exchange {
     }
 
     parsePosition (position, market: Market = undefined) {
-        // avoid being parsed as "vanilla options" position
-        if ('isAutoAddMargin' in position) {
-            return this.parsePositionRisk (position, market);
-        }
-        return this.parseOptionPosition (position, market);
-    }
-
-    parseOptionPosition (position, market: Market = undefined) {
+        // this method currently implements only options market parsing now
         //
         //     {
         //         "entryPrice": "27.70000000",
