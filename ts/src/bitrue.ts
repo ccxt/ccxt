@@ -29,8 +29,8 @@ export default class bitrue extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined, // has but unimplemented
-                'future': true,
+                'swap': true,
+                'future': false,
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
