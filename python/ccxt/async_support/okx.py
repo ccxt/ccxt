@@ -6014,7 +6014,7 @@ class okx(Exchange, ImplicitAPI):
     async def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin(need to be VIP 5 and above)
-        :see: https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the okx api endpoint
@@ -6034,12 +6034,10 @@ class okx(Exchange, ImplicitAPI):
         #         "data": [
         #             {
         #                 "amt": "102",
-        #                 "availLoan": "97",
         #                 "ccy": "USDT",
-        #                 "loanQuota": "6000000",
-        #                 "posLoan": "0",
+        #                 "ordId": "544199684697214976",
         #                 "side": "borrow",
-        #                 "usedLoan": "97"
+        #                 "state": "1"
         #             }
         #         ],
         #         "msg": ""
@@ -6052,18 +6050,24 @@ class okx(Exchange, ImplicitAPI):
     async def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.id]: the order ID of borrowing, it is necessary while repaying
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         await self.load_markets()
+        id = self.safe_string_2(params, 'id', 'ordId')
+        params = self.omit(params, 'id')
+        if id is None:
+            raise ArgumentsRequired(self.id + ' repayCrossMargin() requires an id parameter')
         currency = self.currency(code)
         request = {
             'ccy': currency['id'],
             'amt': self.currency_to_precision(code, amount),
             'side': 'repay',
+            'ordId': id,
         }
         response = await self.privatePostAccountBorrowRepay(self.extend(request, params))
         #
@@ -6072,12 +6076,10 @@ class okx(Exchange, ImplicitAPI):
         #         "data": [
         #             {
         #                 "amt": "102",
-        #                 "availLoan": "97",
         #                 "ccy": "USDT",
-        #                 "loanQuota": "6000000",
-        #                 "posLoan": "0",
+        #                 "ordId": "544199684697214976",
         #                 "side": "repay",
-        #                 "usedLoan": "97"
+        #                 "state": "1"
         #             }
         #         ],
         #         "msg": ""

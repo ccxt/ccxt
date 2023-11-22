@@ -4882,7 +4882,7 @@ class gate extends Exchange {
             $params = $this->omit($params, 'symbol');
         }
         if (($toId === 'futures') || ($toId === 'delivery') || ($fromId === 'futures') || ($fromId === 'delivery')) {
-            $request['settle'] = $currency['lowerCaseId'];
+            $request['settle'] = $currency['id'];
         }
         $response = $this->privateWalletPostTransfers (array_merge($request, $params));
         //

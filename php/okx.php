@@ -6335,7 +6335,7 @@ class okx extends Exchange {
     public function borrow_cross_margin(string $code, $amount, $params = array ()) {
         /**
          * create a $loan to borrow margin (need to be VIP 5 and above)
-         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {array} [$params] extra parameters specific to the okx api endpoint
@@ -6355,12 +6355,10 @@ class okx extends Exchange {
         //         "data" => array(
         //             {
         //                 "amt" => "102",
-        //                 "availLoan" => "97",
         //                 "ccy" => "USDT",
-        //                 "loanQuota" => "6000000",
-        //                 "posLoan" => "0",
+        //                 "ordId" => "544199684697214976",
         //                 "side" => "borrow",
-        //                 "usedLoan" => "97"
+        //                 "state" => "1"
         //             }
         //         ),
         //         "msg" => ""
@@ -6374,18 +6372,25 @@ class okx extends Exchange {
     public function repay_cross_margin(string $code, $amount, $params = array ()) {
         /**
          * repay borrowed margin and interest
-         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {array} [$params] extra parameters specific to the okx api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
+         * @param {string} [$params->id] the order ID of borrowing, it is necessary while repaying
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=margin-$loan-structure margin $loan structure~
          */
         $this->load_markets();
+        $id = $this->safe_string_2($params, 'id', 'ordId');
+        $params = $this->omit($params, 'id');
+        if ($id === null) {
+            throw new ArgumentsRequired($this->id . ' repayCrossMargin() requires an $id parameter');
+        }
         $currency = $this->currency($code);
         $request = array(
             'ccy' => $currency['id'],
             'amt' => $this->currency_to_precision($code, $amount),
             'side' => 'repay',
+            'ordId' => $id,
         );
         $response = $this->privatePostAccountBorrowRepay (array_merge($request, $params));
         //
@@ -6394,12 +6399,10 @@ class okx extends Exchange {
         //         "data" => array(
         //             {
         //                 "amt" => "102",
-        //                 "availLoan" => "97",
         //                 "ccy" => "USDT",
-        //                 "loanQuota" => "6000000",
-        //                 "posLoan" => "0",
+        //                 "ordId" => "544199684697214976",
         //                 "side" => "repay",
-        //                 "usedLoan" => "97"
+        //                 "state" => "1"
         //             }
         //         ),
         //         "msg" => ""

@@ -4928,7 +4928,7 @@ class gate extends gate$1 {
             params = this.omit(params, 'symbol');
         }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
-            request['settle'] = currency['lowerCaseId'];
+            request['settle'] = currency['id'];
         }
         const response = await this.privateWalletPostTransfers(this.extend(request, params));
         //

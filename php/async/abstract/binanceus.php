@@ -247,6 +247,9 @@ abstract class binanceus extends \ccxt\async\binance {
     public function sapi_get_capital_deposit_address($params = array()) {
         return $this->request('capital/deposit/address', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function sapi_get_capital_deposit_address_list($params = array()) {
+        return $this->request('capital/deposit/address/list', 'sapi', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function sapi_get_capital_deposit_hisrec($params = array()) {
         return $this->request('capital/deposit/hisrec', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -2223,6 +2226,9 @@ abstract class binanceus extends \ccxt\async\binance {
     }
     public function sapiGetCapitalDepositAddress($params = array()) {
         return $this->request('capital/deposit/address', 'sapi', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function sapiGetCapitalDepositAddressList($params = array()) {
+        return $this->request('capital/deposit/address/list', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapiGetCapitalDepositHisrec($params = array()) {
         return $this->request('capital/deposit/hisrec', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));

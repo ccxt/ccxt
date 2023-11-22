@@ -89,6 +89,7 @@ interface Exchange {
     sapiGetRebateTaxQuery (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositAddress (params?: {}): Promise<implicitReturnType>;
+    sapiGetCapitalDepositAddressList (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubAddress (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubHisrec (params?: {}): Promise<implicitReturnType>;

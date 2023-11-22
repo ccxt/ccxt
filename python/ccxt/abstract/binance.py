@@ -82,6 +82,7 @@ class ImplicitAPI:
     sapi_get_rebate_taxquery = sapiGetRebateTaxQuery = Entry('rebate/taxQuery', 'sapi', 'GET', {'cost': 80.004})
     sapi_get_capital_config_getall = sapiGetCapitalConfigGetall = Entry('capital/config/getall', 'sapi', 'GET', {'cost': 1})
     sapi_get_capital_deposit_address = sapiGetCapitalDepositAddress = Entry('capital/deposit/address', 'sapi', 'GET', {'cost': 1})
+    sapi_get_capital_deposit_address_list = sapiGetCapitalDepositAddressList = Entry('capital/deposit/address/list', 'sapi', 'GET', {'cost': 1})
     sapi_get_capital_deposit_hisrec = sapiGetCapitalDepositHisrec = Entry('capital/deposit/hisrec', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_capital_deposit_subaddress = sapiGetCapitalDepositSubAddress = Entry('capital/deposit/subAddress', 'sapi', 'GET', {'cost': 0.1})
     sapi_get_capital_deposit_subhisrec = sapiGetCapitalDepositSubHisrec = Entry('capital/deposit/subHisrec', 'sapi', 'GET', {'cost': 0.1})
