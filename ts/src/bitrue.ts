@@ -580,22 +580,6 @@ export default class bitrue extends Exchange {
         return this.safeString2 (networksById, networkId, uppercaseNetworkId, networkId);
     }
 
-    isInverse (type, subType = undefined) {
-        if (subType === undefined) {
-            return type === 'delivery';
-        } else {
-            return subType === 'inverse';
-        }
-    }
-
-    isLinear (type, subType = undefined) {
-        if (subType === undefined) {
-            return (type === 'future') || (type === 'swap');
-        } else {
-            return subType === 'linear';
-        }
-    }
-
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -1019,72 +1003,74 @@ export default class bitrue extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         let response = undefined;
         let result = undefined;
-        if (this.isLinear (type, subType)) {
-            response = await this.fapiV2PrivateGetAccount (params);
-            result = this.safeValue (response, 'data', {});
-            //
-            //     {
-            //         "code":"0",
-            //         "msg":"Success",
-            //         "data":{
-            //             "account":[
-            //                 {
-            //                     "marginCoin":"USDT",
-            //                     "coinPrecious":4,
-            //                     "accountNormal":1010.4043400372839856,
-            //                     "accountLock":2.9827889600000006,
-            //                     "partPositionNormal":0,
-            //                     "totalPositionNormal":0,
-            //                     "achievedAmount":0,
-            //                     "unrealizedAmount":0,
-            //                     "totalMarginRate":0,
-            //                     "totalEquity":1010.4043400372839856,
-            //                     "partEquity":0,
-            //                     "totalCost":0,
-            //                     "sumMarginRate":0,
-            //                     "sumOpenRealizedAmount":0,
-            //                     "canUseTrialFund":0,
-            //                     "sumMaintenanceMargin":null,
-            //                     "futureModel":null,
-            //                     "positionVos":[]
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
-        } else if (this.isInverse (type, subType)) {
-            response = await this.dapiV2PrivateGetAccount (params);
-            result = this.safeValue (response, 'data', {});
-            //
-            // {
-            //         "code":"0",
-            //         "msg":"Success",
-            //         "data":{
-            //             "account":[
-            //                 {
-            //                     "marginCoin":"USD",
-            //                     "coinPrecious":4,
-            //                     "accountNormal":1010.4043400372839856,
-            //                     "accountLock":2.9827889600000006,
-            //                     "partPositionNormal":0,
-            //                     "totalPositionNormal":0,
-            //                     "achievedAmount":0,
-            //                     "unrealizedAmount":0,
-            //                     "totalMarginRate":0,
-            //                     "totalEquity":1010.4043400372839856,
-            //                     "partEquity":0,
-            //                     "totalCost":0,
-            //                     "sumMarginRate":0,
-            //                     "sumOpenRealizedAmount":0,
-            //                     "canUseTrialFund":0,
-            //                     "sumMaintenanceMargin":null,
-            //                     "futureModel":null,
-            //                     "positionVos":[]
-            //                 }
-            //             ]
-            //         }
-            //     }
-            //
+        if (type === 'swap') {
+            if (subType !== undefined && subType === 'inverse') {
+                response = await this.dapiV2PrivateGetAccount (params);
+                result = this.safeValue (response, 'data', {});
+                //
+                // {
+                //         "code":"0",
+                //         "msg":"Success",
+                //         "data":{
+                //             "account":[
+                //                 {
+                //                     "marginCoin":"USD",
+                //                     "coinPrecious":4,
+                //                     "accountNormal":1010.4043400372839856,
+                //                     "accountLock":2.9827889600000006,
+                //                     "partPositionNormal":0,
+                //                     "totalPositionNormal":0,
+                //                     "achievedAmount":0,
+                //                     "unrealizedAmount":0,
+                //                     "totalMarginRate":0,
+                //                     "totalEquity":1010.4043400372839856,
+                //                     "partEquity":0,
+                //                     "totalCost":0,
+                //                     "sumMarginRate":0,
+                //                     "sumOpenRealizedAmount":0,
+                //                     "canUseTrialFund":0,
+                //                     "sumMaintenanceMargin":null,
+                //                     "futureModel":null,
+                //                     "positionVos":[]
+                //                 }
+                //             ]
+                //         }
+                //     }
+                //
+            } else {
+                response = await this.fapiV2PrivateGetAccount (params);
+                result = this.safeValue (response, 'data', {});
+                //
+                //     {
+                //         "code":"0",
+                //         "msg":"Success",
+                //         "data":{
+                //             "account":[
+                //                 {
+                //                     "marginCoin":"USDT",
+                //                     "coinPrecious":4,
+                //                     "accountNormal":1010.4043400372839856,
+                //                     "accountLock":2.9827889600000006,
+                //                     "partPositionNormal":0,
+                //                     "totalPositionNormal":0,
+                //                     "achievedAmount":0,
+                //                     "unrealizedAmount":0,
+                //                     "totalMarginRate":0,
+                //                     "totalEquity":1010.4043400372839856,
+                //                     "partEquity":0,
+                //                     "totalCost":0,
+                //                     "sumMarginRate":0,
+                //                     "sumOpenRealizedAmount":0,
+                //                     "canUseTrialFund":0,
+                //                     "sumMaintenanceMargin":null,
+                //                     "futureModel":null,
+                //                     "positionVos":[]
+                //                 }
+                //             ]
+                //         }
+                //     }
+                //
+            }
         } else {
             response = await this.spotV1PrivateGetAccount (params);
             result = response;
