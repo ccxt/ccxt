@@ -297,33 +297,55 @@ export default class alpaca extends Exchange {
          */
         const request = {
             'asset_class': 'crypto',
-            'tradeable': true,
+            'status': 'active',
         };
         const assets = await this.traderPrivateGetV2Assets (this.extend (request, params));
         //
-        //    [
-        //        {
-        //           "id":"a3ba8ac0-166d-460b-b17a-1f035622dd47",
-        //           "class":"crypto",
-        //           "exchange":"FTXU",
-        //           "symbol":"DOGEUSD",
-        //           "name":"Dogecoin",
-        //           "status":"active",
-        //           "tradable":true,
-        //           "marginable":false,
-        //           "shortable":false,
-        //           "easy_to_borrow":false,
-        //           "fractionable":true,
-        //           "min_order_size":"1",
-        //           "min_trade_increment":"1",
-        //           "price_increment":"0.0000005"
-        //        }
-        //    ]
+        //     [
+        //         {
+        //             "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
+        //             "class": "crypto",
+        //             "exchange": "CRYPTO",
+        //             "symbol": "BTC/USDT",
+        //             "name": "Bitcoin / USD Tether",
+        //             "status": "active",
+        //             "tradable": true,
+        //             "marginable": false,
+        //             "maintenance_margin_requirement": 100,
+        //             "shortable": false,
+        //             "easy_to_borrow": false,
+        //             "fractionable": true,
+        //             "attributes": [],
+        //             "min_order_size": "0.000026873",
+        //             "min_trade_increment": "0.000000001",
+        //             "price_increment": "1"
+        //         }
+        //     ]
         //
         return this.parseMarkets (assets);
     }
 
     parseMarket (asset): Market {
+        //
+        //     {
+        //         "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
+        //         "class": "crypto",
+        //         "exchange": "CRYPTO",
+        //         "symbol": "BTC/USDT",
+        //         "name": "Bitcoin / USD Tether",
+        //         "status": "active",
+        //         "tradable": true,
+        //         "marginable": false,
+        //         "maintenance_margin_requirement": 100,
+        //         "shortable": false,
+        //         "easy_to_borrow": false,
+        //         "fractionable": true,
+        //         "attributes": [],
+        //         "min_order_size": "0.000026873",
+        //         "min_trade_increment": "0.000000001",
+        //         "price_increment": "1"
+        //     }
+        //
         const marketId = this.safeString (asset, 'symbol');
         const parts = marketId.split ('/');
         const baseId = this.safeString (parts, 0);
