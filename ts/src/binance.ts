@@ -7685,7 +7685,7 @@ export default class binance extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    async fetchPositionsForSymbol (symbol, params = {}) {
+    async fetchPositionsForSymbol (symbol: string, params = {}) {
         /**
          * @method
          * @name binance#fetchPositions
