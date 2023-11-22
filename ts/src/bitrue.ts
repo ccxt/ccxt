@@ -313,6 +313,7 @@ export default class bitrue extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [
                     'spot',
                     'linear',
@@ -409,6 +410,7 @@ export default class bitrue extends Exchange {
                     '-1115': BadRequest, // Invalid timeInForce.
                     '-1116': BadRequest, // Invalid orderType.
                     '-1117': BadRequest, // Invalid side.
+                    '-1166': InvalidOrder, // {"code":"-1166","msg":"The leverage value of the order is inconsistent with the user contract configuration 5","data":null}
                     '-1118': BadRequest, // New client order ID was empty.
                     '-1119': BadRequest, // Original client order ID was empty.
                     '-1120': BadRequest, // Invalid interval.
@@ -418,12 +420,15 @@ export default class bitrue extends Exchange {
                     '-1128': BadRequest, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                     '-1130': BadRequest, // Data sent for paramter %s is not valid.
                     '-1131': BadRequest, // recvWindow must be less than 60000
+                    '-1160': InvalidOrder, // {"code":"-1160","msg":"Minimum order amount 10","data":null}
+                    '-1156': InvalidOrder, // {"code":"-1156","msg":"The number of closed positions exceeds the total number of positions","data":null}
                     '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
                     '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                     '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                     '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
                     '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
                     '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                    '-2017': InsufficientFunds, // {code":"-2017","msg":"Insufficient balance","data":null}
                     '-2019': InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
                     '-3005': InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
                     '-3006': InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
@@ -444,10 +449,6 @@ export default class bitrue extends Exchange {
                 },
             },
         });
-    }
-
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
 
     currencyToPrecision (code, fee, networkCode = undefined) {
@@ -1844,7 +1845,7 @@ export default class bitrue extends Exchange {
         const fills = this.safeValue (order, 'fills', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
-        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
+        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX') || (type === 'post_only');
         if (type === 'limit_maker') {
             type = 'limit';
         }
@@ -1892,7 +1893,7 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
-         * @param {decimal} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration, default is 5
+         * @param {decimal} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
          * @param {string} [params.timeInForce] 'fok', 'ioc' or 'po'
          * @param {bool} [params.postOnly] default false
          * @param {bool} [params.reduceOnly] default false
@@ -1933,12 +1934,27 @@ export default class bitrue extends Exchange {
                 request['type'] = 'IOC';
             }
             request['contractName'] = market['id'];
-            request['amount'] = this.parseToNumeric (amount);
-            request['volume'] = this.parseToNumeric (amount);
+            if (isMarket && (side === 'buy') && (this.options['createMarketBuyOrderRequiresPrice'])) {
+                const cost = this.safeString (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (price === undefined && cost === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const quoteAmount = Precise.stringMul (amountString, priceString);
+                    amount = (cost !== undefined) ? cost : quoteAmount;
+                    request['amount'] = this.costToPrecision (symbol, amount);
+                    request['volume'] = this.costToPrecision (symbol, amount);
+                }
+            } else {
+                request['amount'] = this.parseToNumeric (amount);
+                request['volume'] = this.parseToNumeric (amount);
+            }
             request['positionType'] = 1;
             const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
             request['open'] = reduceOnly ? 'CLOSE' : 'OPEN';
-            const leverage = this.safeNumber (params, 'leverage', 5);
+            const leverage = this.safeString (params, 'leverage', '1');
             request['leverage'] = this.parseToNumeric (leverage);
             params = this.omit (params, [ 'leverage', 'reduceOnly', 'reduce_only', 'timeInForce' ]);
             if (market['linear']) {
@@ -2357,6 +2373,9 @@ export default class bitrue extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         const market = this.market (symbol);
         let response = undefined;
         let data = undefined;
