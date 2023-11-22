@@ -7699,6 +7699,8 @@ export default class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        params['type'] = market['type'];
+        params['subType'] = market['linear'] ? 'linear' : 'inverse';
         return await this.fetchPositions ([ symbol ], this.extend (request, params));
     }
 
