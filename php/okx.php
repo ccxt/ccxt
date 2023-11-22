@@ -91,6 +91,7 @@ class okx extends Exchange {
                 'fetchPermissions' => null,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsForSymbol' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
@@ -113,7 +114,7 @@ class okx extends Exchange {
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => true,
-                'repayMargin' => true,
+                'repayCrossMargin' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => true,
@@ -4948,7 +4949,7 @@ class okx extends Exchange {
         if ($position === null) {
             return null;
         }
-        return $this->parse_position($position);
+        return $this->parse_position($position, $market);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()) {
@@ -5033,6 +5034,18 @@ class okx extends Exchange {
             $result[] = $this->parse_position($positions[$i]);
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+    }
+
+    public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
+        /**
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+         * fetch all open positions for specific $symbol
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {string} [$params->instType] MARGIN (if needed)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         */
+        return $this->fetch_positions(array( $symbol ), $params);
     }
 
     public function parse_position($position, ?array $market = null) {
@@ -6319,13 +6332,12 @@ class okx extends Exchange {
         );
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
         /**
-         * create a $loan to borrow margin
-         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * create a $loan to borrow margin (need to be VIP 5 and above)
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
-         * @param {string} $symbol not used by okx.borrowMargin ()
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
          */
@@ -6343,12 +6355,10 @@ class okx extends Exchange {
         //         "data" => array(
         //             {
         //                 "amt" => "102",
-        //                 "availLoan" => "97",
         //                 "ccy" => "USDT",
-        //                 "loanQuota" => "6000000",
-        //                 "posLoan" => "0",
+        //                 "ordId" => "544199684697214976",
         //                 "side" => "borrow",
-        //                 "usedLoan" => "97"
+        //                 "state" => "1"
         //             }
         //         ),
         //         "msg" => ""
@@ -6356,28 +6366,31 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $loan = $this->safe_value($data, 0);
-        $transaction = $this->parse_margin_loan($loan, $currency);
-        return array_merge($transaction, array(
-            'symbol' => $symbol,
-        ));
+        return $this->parse_margin_loan($loan, $currency);
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_cross_margin(string $code, $amount, $params = array ()) {
         /**
          * repay borrowed margin and interest
-         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
-         * @param {string} $symbol not used by okx.repayMargin ()
          * @param {array} [$params] extra parameters specific to the okx api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-$loan-structure margin $loan structure~
+         * @param {string} [$params->id] the order ID of borrowing, it is necessary while repaying
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=margin-$loan-structure margin $loan structure~
          */
         $this->load_markets();
+        $id = $this->safe_string_2($params, 'id', 'ordId');
+        $params = $this->omit($params, 'id');
+        if ($id === null) {
+            throw new ArgumentsRequired($this->id . ' repayCrossMargin() requires an $id parameter');
+        }
         $currency = $this->currency($code);
         $request = array(
             'ccy' => $currency['id'],
             'amt' => $this->currency_to_precision($code, $amount),
             'side' => 'repay',
+            'ordId' => $id,
         );
         $response = $this->privatePostAccountBorrowRepay (array_merge($request, $params));
         //
@@ -6386,12 +6399,10 @@ class okx extends Exchange {
         //         "data" => array(
         //             {
         //                 "amt" => "102",
-        //                 "availLoan" => "97",
         //                 "ccy" => "USDT",
-        //                 "loanQuota" => "6000000",
-        //                 "posLoan" => "0",
+        //                 "ordId" => "544199684697214976",
         //                 "side" => "repay",
-        //                 "usedLoan" => "97"
+        //                 "state" => "1"
         //             }
         //         ),
         //         "msg" => ""
@@ -6399,10 +6410,7 @@ class okx extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $loan = $this->safe_value($data, 0);
-        $transaction = $this->parse_margin_loan($loan, $currency);
-        return array_merge($transaction, array(
-            'symbol' => $symbol,
-        ));
+        return $this->parse_margin_loan($loan, $currency);
     }
 
     public function parse_margin_loan($info, ?array $currency = null) {

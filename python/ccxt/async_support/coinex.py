@@ -51,7 +51,8 @@ class coinex(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': True,
-                'borrowMargin': True,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
@@ -104,7 +105,8 @@ class coinex(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
-                'repayMargin': True,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
@@ -3087,16 +3089,19 @@ class coinex(Exchange, ImplicitAPI):
         maintenanceMargin = self.safe_string(position, 'mainten_margin_amount')
         maintenanceMarginPercentage = self.safe_string(position, 'mainten_margin')
         collateral = self.safe_string(position, 'margin_amount')
-        leverage = self.safe_number(position, 'leverage')
+        leverage = self.safe_string(position, 'leverage')
+        notional = self.safe_string(position, 'open_val')
+        initialMargin = Precise.string_div(notional, leverage)
+        initialMarginPercentage = Precise.string_div('1', leverage)
         return self.safe_position({
             'info': position,
             'id': positionId,
             'symbol': symbol,
-            'notional': None,
+            'notional': self.parse_number(notional),
             'marginMode': marginMode,
             'liquidationPrice': liquidationPrice,
-            'entryPrice': entryPrice,
-            'unrealizedPnl': unrealizedPnl,
+            'entryPrice': self.parse_number(entryPrice),
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
             'percentage': None,
             'contracts': contracts,
             'contractSize': self.safe_number(market, 'contractSize'),
@@ -3107,15 +3112,15 @@ class coinex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastUpdateTimestamp': None,
-            'maintenanceMargin': maintenanceMargin,
-            'maintenanceMarginPercentage': maintenanceMarginPercentage,
-            'collateral': collateral,
-            'initialMargin': None,
-            'initialMarginPercentage': None,
-            'leverage': leverage,
+            'maintenanceMargin': self.parse_number(maintenanceMargin),
+            'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
+            'collateral': self.parse_number(collateral),
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
+            'leverage': self.parse_number(leverage),
             'marginRatio': None,
-            'stopLossPrice': self.safe_number(position, 'stop_loss_price'),
-            'takeProfitPrice': self.safe_number(position, 'take_profit_price'),
+            'stopLossPrice': self.omit_zero(self.safe_string(position, 'stop_loss_price')),
+            'takeProfitPrice': self.omit_zero(self.safe_string(position, 'take_profit_price')),
         })
 
     async def set_margin_mode(self, marginMode, symbol: Str = None, params={}):
@@ -4347,18 +4352,16 @@ class coinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+        :param str symbol: unified market symbol, required for coinex
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: unified market symbol, required for coinex
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -4384,19 +4387,17 @@ class coinex(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+        :param str symbol: unified market symbol, required for coinex
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: unified market symbol, required for coinex
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :param str [params.loan_id]: extra parameter that is not required
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -4405,9 +4406,6 @@ class coinex(Exchange, ImplicitAPI):
             'coin_type': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        loanId = self.safe_integer(params, 'loan_id')
-        if loanId is not None:
-            request['loan_id'] = loanId
         response = await self.privatePostMarginFlat(self.extend(request, params))
         #
         #     {

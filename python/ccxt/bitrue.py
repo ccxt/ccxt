@@ -112,7 +112,7 @@ class bitrue(Exchange, ImplicitAPI):
                     'kline': 'https://www.bitrue.com/kline-api',
                 },
                 'www': 'https://www.bitrue.com',
-                'referral': 'https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000',
+                'referral': 'https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE',
                 'doc': [
                     'https://github.com/Bitrue-exchange/bitrue-official-api-docs',
                 ],
@@ -1776,7 +1776,7 @@ class bitrue(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        chainName = self.safe_string(params, 'chainName')
+        chainName = self.safe_string_2(params, 'network', 'chainName')
         if chainName is None:
             networks = self.safe_value(currency, 'networks', {})
             optionsNetworks = self.safe_value(self.options, 'networks', {})

@@ -93,7 +93,7 @@ class bitrue extends bitrue$1 {
                     'kline': 'https://www.bitrue.com/kline-api',
                 },
                 'www': 'https://www.bitrue.com',
-                'referral': 'https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000',
+                'referral': 'https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE',
                 'doc': [
                     'https://github.com/Bitrue-exchange/bitrue-official-api-docs',
                 ],
@@ -1854,7 +1854,7 @@ class bitrue extends bitrue$1 {
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        let chainName = this.safeString(params, 'chainName');
+        let chainName = this.safeString2(params, 'network', 'chainName');
         if (chainName === undefined) {
             const networks = this.safeValue(currency, 'networks', {});
             const optionsNetworks = this.safeValue(this.options, 'networks', {});

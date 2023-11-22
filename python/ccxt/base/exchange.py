@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.57'
+__version__ = '4.1.61'
 
 # -----------------------------------------------------------------------------
 
@@ -2712,17 +2712,17 @@ class Exchange(object):
         return result
 
     def safe_ticker(self, ticker: object, market: Market = None):
-        open = self.safe_value(ticker, 'open')
-        close = self.safe_value(ticker, 'close')
-        last = self.safe_value(ticker, 'last')
-        change = self.safe_value(ticker, 'change')
-        percentage = self.safe_value(ticker, 'percentage')
-        average = self.safe_value(ticker, 'average')
-        vwap = self.safe_value(ticker, 'vwap')
+        open = self.omit_zero(self.safe_string(ticker, 'open'))
+        close = self.omit_zero(self.safe_string(ticker, 'close'))
+        last = self.omit_zero(self.safe_string(ticker, 'last'))
+        change = self.omit_zero(self.safe_string(ticker, 'change'))
+        percentage = self.omit_zero(self.safe_string(ticker, 'percentage'))
+        average = self.omit_zero(self.safe_string(ticker, 'average'))
+        vwap = self.omit_zero(self.safe_string(ticker, 'vwap'))
         baseVolume = self.safe_string(ticker, 'baseVolume')
         quoteVolume = self.safe_string(ticker, 'quoteVolume')
         if vwap is None:
-            vwap = Precise.string_div(quoteVolume, baseVolume)
+            vwap = Precise.string_div(self.omit_zero(quoteVolume), baseVolume)
         if (last is not None) and (close is None):
             close = last
         elif (last is None) and (close is not None):
@@ -2741,23 +2741,44 @@ class Exchange(object):
         # timestamp and symbol operations don't belong in safeTicker
         # they should be done in the derived classes
         return self.extend(ticker, {
-            'bid': self.omit_zero(self.safe_number(ticker, 'bid')),
+            'bid': self.parse_number(self.omit_zero(self.safe_number(ticker, 'bid'))),
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
-            'ask': self.omit_zero(self.safe_number(ticker, 'ask')),
+            'ask': self.parse_number(self.omit_zero(self.safe_number(ticker, 'ask'))),
             'askVolume': self.safe_number(ticker, 'askVolume'),
-            'high': self.omit_zero(self.safe_number(ticker, 'high')),
-            'low': self.omit_zero(self.safe_number(ticker, 'low')),
-            'open': self.omit_zero(self.parse_number(open)),
-            'close': self.omit_zero(self.parse_number(close)),
-            'last': self.omit_zero(self.parse_number(last)),
+            'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high"'))),
+            'low': self.parse_number(self.omit_zero(self.safe_number(ticker, 'low'))),
+            'open': self.parse_number(self.omit_zero(self.parse_number(open))),
+            'close': self.parse_number(self.omit_zero(self.parse_number(close))),
+            'last': self.parse_number(self.omit_zero(self.parse_number(last))),
             'change': self.parse_number(change),
             'percentage': self.parse_number(percentage),
-            'average': self.omit_zero(self.parse_number(average)),
-            'vwap': self.omit_zero(self.parse_number(vwap)),
+            'average': self.parse_number(average),
+            'vwap': self.parse_number(vwap),
             'baseVolume': self.parse_number(baseVolume),
             'quoteVolume': self.parse_number(quoteVolume),
             'previousClose': self.safe_number(ticker, 'previousClose'),
         })
+
+    def fetch_borrow_rate(self, code: str, amount, params={}):
+        raise NotSupported(self.id + ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead')
+
+    def repay_cross_margin(self, code: str, amount, params={}):
+        raise NotSupported(self.id + ' repayCrossMargin is not support yet')
+
+    def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        raise NotSupported(self.id + ' repayIsolatedMargin is not support yet')
+
+    def borrow_cross_margin(self, code: str, amount, params={}):
+        raise NotSupported(self.id + ' borrowCrossMargin is not support yet')
+
+    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        raise NotSupported(self.id + ' borrowIsolatedMargin is not support yet')
+
+    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead')
+
+    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead')
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         message = ''
@@ -3300,14 +3321,14 @@ class Exchange(object):
     def watch_position_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
         return self.watchPositions(symbols, since, limit, params)
 
-    def fetch_positions_by_symbol(self, symbol: str, params={}):
+    def fetch_positions_for_symbol(self, symbol: str, params={}):
         """
-        specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
-        :param str symbol: unified market symbol of the market the position is held in
+        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
+        :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
-        raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
+        raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
 
     def fetch_positions(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')

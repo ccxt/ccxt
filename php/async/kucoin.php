@@ -36,7 +36,8 @@ class kucoin extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'borrowMargin' => true,
+                'borrowCrossMargin' => true,
+                'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
@@ -97,7 +98,8 @@ class kucoin extends Exchange {
                 'fetchTransactionFee' => true,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
-                'repayMargin' => true,
+                'repayCrossMargin' => true,
+                'repayIsolatedMargin' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -2225,16 +2227,18 @@ class kucoin extends Exchange {
                     throw new BadRequest($this->id . ' cancelAllOrders does not support isolated margin for $stop orders');
                 }
             }
-            $method = 'privateDeleteOrders';
+            $response = null;
             if ($stop) {
-                $method = 'privateDeleteStopOrderCancel';
+                $response = Async\await($this->privateDeleteStopOrderCancel (array_merge($request, $query)));
             } elseif ($hf) {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol parameter for $hf orders');
                 }
-                $method = 'privateDeleteHfOrders';
+                $response = Async\await($this->privateDeleteHfOrders (array_merge($request, $query)));
+            } else {
+                $response = Async\await($this->privateDeleteOrders (array_merge($request, $query)));
             }
-            return Async\await($this->$method (array_merge($request, $query)));
+            return $response;
         }) ();
     }
 
@@ -2291,18 +2295,19 @@ class kucoin extends Exchange {
             if ($until) {
                 $request['endAt'] = $until;
             }
-            $method = 'privateGetOrders';
+            $request['tradeType'] = $this->safe_string($this->options['marginModes'], $marginMode, 'TRADE');
+            $response = null;
             if ($stop) {
-                $method = 'privateGetStopOrder';
+                $response = Async\await($this->privateGetStopOrder (array_merge($request, $query)));
             } elseif ($hf) {
                 if ($lowercaseStatus === 'active') {
-                    $method = 'privateGetHfOrdersActive';
+                    $response = Async\await($this->privateGetHfOrdersActive (array_merge($request, $query)));
                 } elseif ($lowercaseStatus === 'done') {
-                    $method = 'privateGetHfOrdersDone';
+                    $response = Async\await($this->privateGetHfOrdersDone (array_merge($request, $query)));
                 }
+            } else {
+                $response = Async\await($this->privateGetOrders (array_merge($request, $query)));
             }
-            $request['tradeType'] = $this->safe_string($this->options['marginModes'], $marginMode, 'TRADE');
-            $response = Async\await($this->$method (array_merge($request, $query)));
             //
             //     {
             //         "code" => "200000",
@@ -2450,19 +2455,19 @@ class kucoin extends Exchange {
                 }
                 $request['symbol'] = $market['id'];
             }
-            $params = $this->omit($params, array( 'stop', 'hf' ));
-            $method = 'privateGetOrdersOrderId';
+            $params = $this->omit($params, array( 'stop', 'hf', 'clientOid', 'clientOrderId' ));
+            $response = null;
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
                 if ($stop) {
-                    $method = 'privateGetStopOrderQueryOrderByClientOid';
                     if ($symbol !== null) {
                         $request['symbol'] = $market['id'];
                     }
+                    $response = Async\await($this->privateGetStopOrderQueryOrderByClientOid (array_merge($request, $params)));
                 } elseif ($hf) {
-                    $method = 'privateGetHfOrdersClientOrderClientOid';
+                    $response = Async\await($this->privateGetHfOrdersClientOrderClientOid (array_merge($request, $params)));
                 } else {
-                    $method = 'privateGetOrderClientOrderClientOid';
+                    $response = Async\await($this->privateGetOrderClientOrderClientOid (array_merge($request, $params)));
                 }
             } else {
                 // a special case for null ids
@@ -2471,17 +2476,17 @@ class kucoin extends Exchange {
                 if ($id === null) {
                     throw new InvalidOrder($this->id . ' fetchOrder() requires an order id');
                 }
-                if ($stop) {
-                    $method = 'privateGetStopOrderOrderId';
-                } elseif ($hf) {
-                    $method = 'privateGetHfOrdersOrderId';
-                }
                 $request['orderId'] = $id;
+                if ($stop) {
+                    $response = Async\await($this->privateGetStopOrderOrderId (array_merge($request, $params)));
+                } elseif ($hf) {
+                    $response = Async\await($this->privateGetHfOrdersOrderId (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
+                }
             }
-            $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
             $responseData = $this->safe_value($response, 'data');
-            if ($method === 'privateGetStopOrderQueryOrderByClientOid') {
+            if (gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData))) {
                 $responseData = $this->safe_value($responseData, 0);
             }
             return $this->parse_order($responseData, $market);
@@ -2726,31 +2731,26 @@ class kucoin extends Exchange {
             }
             $method = $this->options['fetchMyTradesMethod'];
             $parseResponseData = false;
+            $response = null;
+            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
             if ($hf) {
-                $method = 'privateGetHfFills';
+                $response = Async\await($this->privateGetHfFills (array_merge($request, $params)));
             } elseif ($method === 'private_get_fills') {
                 // does not return $trades earlier than 2019-02-18T00:00:00Z
                 if ($since !== null) {
                     // only returns $trades up to one week after the $since param
                     $request['startAt'] = $since;
                 }
+                $response = Async\await($this->privateGetFills (array_merge($request, $params)));
             } elseif ($method === 'private_get_limit_fills') {
                 // does not return $trades earlier than 2019-02-18T00:00:00Z
                 // takes no $params
                 // only returns first 1000 $trades (not only "in the last 24 hours" in the docs)
                 $parseResponseData = true;
-            } elseif ($method === 'private_get_hist_orders') {
-                // despite that this endpoint is called `HistOrders`
-                // it returns historical $trades instead of orders
-                // returns $trades earlier than 2019-02-18T00:00:00Z only
-                if ($since !== null) {
-                    $request['startAt'] = $this->parse_to_int($since / 1000);
-                }
+                $response = Async\await($this->privateGetLimitFills (array_merge($request, $params)));
             } else {
                 throw new ExchangeError($this->id . ' fetchMyTradesMethod() invalid method');
             }
-            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "currentPage" => 1,
@@ -3198,8 +3198,6 @@ class kucoin extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @see https://docs.kucoin.com/#get-deposit-list
-             * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
              * fetch all deposits made to an account
              * @see https://docs.kucoin.com/#get-deposit-list
              * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
@@ -3226,18 +3224,18 @@ class kucoin extends Exchange {
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
-            $method = 'privateGetDeposits';
-            if ($since !== null) {
+            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
+            $response = null;
+            if ($since !== null && $since < 1550448000000) {
                 // if $since is earlier than 2019-02-18T00:00:00Z
-                if ($since < 1550448000000) {
-                    $request['startAt'] = $this->parse_to_int($since / 1000);
-                    $method = 'privateGetHistDeposits';
-                } else {
+                $request['startAt'] = $this->parse_to_int($since / 1000);
+                $response = Async\await($this->privateGetHistDeposits (array_merge($request, $params)));
+            } else {
+                if ($since !== null) {
                     $request['startAt'] = $since;
                 }
+                $response = Async\await($this->privateGetDeposits (array_merge($request, $params)));
             }
-            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code" => "200000",
@@ -3310,18 +3308,18 @@ class kucoin extends Exchange {
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
-            $method = 'privateGetWithdrawals';
-            if ($since !== null) {
+            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
+            $response = null;
+            if ($since !== null && $since < 1550448000000) {
                 // if $since is earlier than 2019-02-18T00:00:00Z
-                if ($since < 1550448000000) {
-                    $request['startAt'] = $this->parse_to_int($since / 1000);
-                    $method = 'privateGetHistWithdrawals';
-                } else {
+                $request['startAt'] = $this->parse_to_int($since / 1000);
+                $response = Async\await($this->privateGetHistWithdrawals (array_merge($request, $params)));
+            } else {
+                if ($since !== null) {
                     $request['startAt'] = $since;
                 }
+                $response = Async\await($this->privateGetWithdrawals (array_merge($request, $params)));
             }
-            list($request, $params) = $this->handle_until_option('endAt', $request, $params);
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code" => "200000",
@@ -3400,24 +3398,24 @@ class kucoin extends Exchange {
             $type = $this->safe_string($accountsByType, $requestedType, $requestedType);
             $params = $this->omit($params, 'type');
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-            $method = 'privateGetAccounts';
+            $response = null;
             $request = array();
             $isolated = ($marginMode === 'isolated') || ($type === 'isolated');
             $cross = ($marginMode === 'cross') || ($type === 'cross');
             if ($isolated) {
-                $method = 'privateGetIsolatedAccounts';
                 if ($currency !== null) {
                     $request['balanceCurrency'] = $currency['id'];
                 }
+                $response = Async\await($this->privateGetIsolatedAccounts (array_merge($request, $query)));
             } elseif ($cross) {
-                $method = 'privateGetMarginAccount';
+                $response = Async\await($this->privateGetMarginAccount (array_merge($request, $query)));
             } else {
                 if ($currency !== null) {
                     $request['currency'] = $currency['id'];
                 }
                 $request['type'] = $type;
+                $response = Async\await($this->privateGetAccounts (array_merge($request, $query)));
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
             //
             // Spot and Cross
             //
@@ -3960,42 +3958,36 @@ class kucoin extends Exchange {
                 $marginMode = 'cross'; // cross $marginMode
             }
             $request = array();
-            $method = 'privateGetMarginBorrowOutstanding';
-            if ($marginMode === 'isolated') {
-                if ($code !== null) {
-                    $currency = $this->currency($code);
-                    $request['balanceCurrency'] = $currency['id'];
-                }
-                $method = 'privateGetIsolatedAccounts';
-            } else {
-                if ($code !== null) {
-                    $currency = $this->currency($code);
-                    $request['currency'] = $currency['id'];
-                }
+            $response = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['quoteCurrency'] = $currency['id'];
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            if ($marginMode === 'isolated') {
+                $response = Async\await($this->privateGetIsolatedAccounts (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetMarginAccounts (array_merge($request, $params)));
+            }
             //
             // Cross
             //
             //     {
             //         "code" => "200000",
             //         "data" => {
-            //             "currentPage" => 1,
-            //             "pageSize" => 10,
-            //             "totalNum" => 1,
-            //             "totalPage" => 1,
-            //             "items" => array(
+            //             "totalAssetOfQuoteCurrency" => "0",
+            //             "totalLiabilityOfQuoteCurrency" => "0",
+            //             "debtRatio" => "0",
+            //             "status" => "EFFECTIVE",
+            //             "accounts" => array(
             //                 {
-            //                     "tradeId" => "62e1e320ff219600013b44e2",
-            //                     "currency" => "USDT",
-            //                     "principal" => "100",
-            //                     "accruedInterest" => "0.00016667",
-            //                     "liability" => "100.00016667",
-            //                     "repaidSize" => "0",
-            //                     "dailyIntRate" => "0.00004",
-            //                     "term" => 7,
-            //                     "createdAt" => 1658970912000,
-            //                     "maturityTime" => 1659575713000
+            //                     "currency" => "1INCH",
+            //                     "total" => "0",
+            //                     "available" => "0",
+            //                     "hold" => "0",
+            //                     "liability" => "0",
+            //                     "maxBorrowSize" => "0",
+            //                     "borrowEnabled" => true,
+            //                     "transferInEnabled" => true
             //                 }
             //             )
             //         }
@@ -4010,34 +4002,38 @@ class kucoin extends Exchange {
             //             "liabilityConversionBalance" => "0.01480001",
             //             "assets" => array(
             //                 {
-            //                     "symbol" => "NKN-USDT",
-            //                     "status" => "CLEAR",
+            //                     "symbol" => "MANA-USDT",
             //                     "debtRatio" => "0",
+            //                     "status" => "BORROW",
             //                     "baseAsset" => array(
-            //                         "currency" => "NKN",
-            //                         "totalBalance" => "0",
-            //                         "holdBalance" => "0",
-            //                         "availableBalance" => "0",
-            //                         "liability" => "0",
-            //                         "interest" => "0",
-            //                         "borrowableAmount" => "0"
+            //                         "currency" => "MANA",
+            //                         "borrowEnabled" => true,
+            //                         "repayEnabled" => true,
+            //                         "transferEnabled" => true,
+            //                         "borrowed" => "0",
+            //                         "totalAsset" => "0",
+            //                         "available" => "0",
+            //                         "hold" => "0",
+            //                         "maxBorrowSize" => "1000"
             //                     ),
-            //                     "quoteAsset" => array(
+            //                     "quoteAsset" => {
             //                         "currency" => "USDT",
-            //                         "totalBalance" => "0",
-            //                         "holdBalance" => "0",
-            //                         "availableBalance" => "0",
-            //                         "liability" => "0",
-            //                         "interest" => "0",
-            //                         "borrowableAmount" => "0"
+            //                         "borrowEnabled" => true,
+            //                         "repayEnabled" => true,
+            //                         "transferEnabled" => true,
+            //                         "borrowed" => "0",
+            //                         "totalAsset" => "0",
+            //                         "available" => "0",
+            //                         "hold" => "0",
+            //                         "maxBorrowSize" => "50000"
             //                     }
-            //                 ),
+            //                 }
             //             )
             //         }
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $assets = ($marginMode === 'isolated') ? $this->safe_value($data, 'assets', array()) : $this->safe_value($data, 'items', array());
+            $assets = ($marginMode === 'isolated') ? $this->safe_value($data, 'assets', array()) : $this->safe_value($data, 'accounts', array());
             return $this->parse_borrow_interests($assets, null);
         }) ();
     }
@@ -4046,44 +4042,46 @@ class kucoin extends Exchange {
         //
         // Cross
         //
-        //     array(
-        //         "tradeId" => "62e1e320ff219600013b44e2",
-        //         "currency" => "USDT",
-        //         "principal" => "100",
-        //         "accruedInterest" => "0.00016667",
-        //         "liability" => "100.00016667",
-        //         "repaidSize" => "0",
-        //         "dailyIntRate" => "0.00004",
-        //         "term" => 7,
-        //         "createdAt" => 1658970912000,
-        //         "maturityTime" => 1659575713000
-        //     ),
+        //     {
+        //         "currency" => "1INCH",
+        //         "total" => "0",
+        //         "available" => "0",
+        //         "hold" => "0",
+        //         "liability" => "0",
+        //         "maxBorrowSize" => "0",
+        //         "borrowEnabled" => true,
+        //         "transferInEnabled" => true
+        //     }
         //
         // Isolated
         //
         //     {
-        //         "symbol" => "BTC-USDT",
-        //         "status" => "CLEAR",
+        //         "symbol" => "MANA-USDT",
         //         "debtRatio" => "0",
+        //         "status" => "BORROW",
         //         "baseAsset" => array(
-        //             "currency" => "BTC",
-        //             "totalBalance" => "0",
-        //             "holdBalance" => "0",
-        //             "availableBalance" => "0",
-        //             "liability" => "0",
-        //             "interest" => "0",
-        //             "borrowableAmount" => "0.0592"
+        //             "currency" => "MANA",
+        //             "borrowEnabled" => true,
+        //             "repayEnabled" => true,
+        //             "transferEnabled" => true,
+        //             "borrowed" => "0",
+        //             "totalAsset" => "0",
+        //             "available" => "0",
+        //             "hold" => "0",
+        //             "maxBorrowSize" => "1000"
         //         ),
-        //         "quoteAsset" => array(
+        //         "quoteAsset" => {
         //             "currency" => "USDT",
-        //             "totalBalance" => "149.99991731",
-        //             "holdBalance" => "0",
-        //             "availableBalance" => "149.99991731",
-        //             "liability" => "0",
-        //             "interest" => "0",
-        //             "borrowableAmount" => "1349"
+        //             "borrowEnabled" => true,
+        //             "repayEnabled" => true,
+        //             "transferEnabled" => true,
+        //             "borrowed" => "0",
+        //             "totalAsset" => "0",
+        //             "available" => "0",
+        //             "hold" => "0",
+        //             "maxBorrowSize" => "50000"
         //         }
-        //     ),
+        //     }
         //
         $marketId = $this->safe_string($info, 'symbol');
         $marginMode = ($marketId === null) ? 'cross' : 'isolated';
@@ -4099,7 +4097,7 @@ class kucoin extends Exchange {
             $interest = $this->safe_number($isolatedBase, 'interest');
             $currencyId = $this->safe_string($isolatedBase, 'currency');
         } else {
-            $amountBorrowed = $this->safe_number($info, 'principal');
+            $amountBorrowed = $this->safe_number($info, 'liability');
             $interest = $this->safe_number($info, 'accruedInterest');
             $currencyId = $this->safe_string($info, 'currency');
         }
@@ -4116,40 +4114,24 @@ class kucoin extends Exchange {
         );
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
              * @see https://docs.kucoin.com/#1-margin-borrowing
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
-             * @param {string} $symbol unified $market $symbol, required for isolated margin
              * @param {array} [$params] extra parameters specific to the kucoin api endpoints
              * @param {string} [$params->timeInForce] either IOC or FOK
-             * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
-            $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
-            $isIsolated = $marginMode === 'isolated';
-            $params = $this->omit($params, 'marginMode');
-            $this->check_required_margin_argument('borrowMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
                 'size' => $this->currency_to_precision($code, $amount),
+                'timeInForce' => 'FOK',
             );
-            $timeInForce = $this->safe_string_n($params, array( 'timeInForce', 'type', 'borrowStrategy' ), 'IOC');
-            if ($isIsolated) {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol parameter for isolated margin');
-                }
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-                $request['isIsolated'] = true;
-            }
-            $params = $this->omit($params, array( 'timeInForce', 'type', 'borrowStrategy' ));
-            $request['timeInForce'] = $timeInForce;
             $response = Async\await($this->privatePostMarginBorrow (array_merge($request, $params)));
             //
             //     {
@@ -4168,36 +4150,100 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
+            /**
+             * create a loan to borrow margin
+             * @see https://docs.kucoin.com/#1-margin-borrowing
+             * @param {string} $symbol unified $market $symbol, required for isolated margin
+             * @param {string} $code unified $currency $code of the $currency to borrow
+             * @param {float} $amount the $amount to borrow
+             * @param {array} [$params] extra parameters specific to the kucoin api endpoints
+             * @param {string} [$params->timeInForce] either IOC or FOK
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                'size' => $this->currency_to_precision($code, $amount),
+                'symbol' => $market['id'],
+                'timeInForce' => 'FOK',
+                'isIsolated' => true,
+            );
+            $response = Async\await($this->privatePostMarginBorrow (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => "200",
+            //         "msg" => "success",
+            //         "retry" => false,
+            //         "data" => {
+            //             "orderNo" => "5da6dba0f943c0c81f5d5db5",
+            //             "actualSize" => 10
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_margin_loan($data, $currency);
+        }) ();
+    }
+
+    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
              * @see https://docs.kucoin.com/#2-repayment
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
-             * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the kucoin api endpoints
-             * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
-            $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
-            $isIsolated = $marginMode === 'isolated';
-            $params = $this->omit($params, 'marginMode');
-            $this->check_required_margin_argument('repayMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
                 'size' => $this->currency_to_precision($code, $amount),
             );
-            if ($isIsolated) {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol parameter for isolated margin');
-                }
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-                $request['isIsolated'] = true;
-            }
+            $response = Async\await($this->privatePostMarginRepay (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => "200",
+            //         "msg" => "success",
+            //         "retry" => false,
+            //         "data" => {
+            //             "orderNo" => "5da6dba0f943c0c81f5d5db5",
+            //             "actualSize" => 10
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_margin_loan($data, $currency);
+        }) ();
+    }
+
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
+            /**
+             * repay borrowed margin and interest
+             * @see https://docs.kucoin.com/#2-repayment
+             * @param {string} $symbol unified $market $symbol
+             * @param {string} $code unified $currency $code of the $currency to repay
+             * @param {float} $amount the $amount to repay
+             * @param {array} [$params] extra parameters specific to the kucoin api endpoints
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                'size' => $this->currency_to_precision($code, $amount),
+                'symbol' => $market['id'],
+                'isIsolated' => true,
+            );
             $response = Async\await($this->privatePostMarginRepay (array_merge($request, $params)));
             //
             //     {

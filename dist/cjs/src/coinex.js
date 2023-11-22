@@ -38,7 +38,8 @@ class coinex extends coinex$1 {
                 'future': false,
                 'option': false,
                 'addMargin': true,
-                'borrowMargin': true,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -91,7 +92,8 @@ class coinex extends coinex$1 {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'repayMargin': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
@@ -3256,16 +3258,19 @@ class coinex extends coinex$1 {
         const maintenanceMargin = this.safeString(position, 'mainten_margin_amount');
         const maintenanceMarginPercentage = this.safeString(position, 'mainten_margin');
         const collateral = this.safeString(position, 'margin_amount');
-        const leverage = this.safeNumber(position, 'leverage');
+        const leverage = this.safeString(position, 'leverage');
+        const notional = this.safeString(position, 'open_val');
+        const initialMargin = Precise["default"].stringDiv(notional, leverage);
+        const initialMarginPercentage = Precise["default"].stringDiv('1', leverage);
         return this.safePosition({
             'info': position,
             'id': positionId,
             'symbol': symbol,
-            'notional': undefined,
+            'notional': this.parseNumber(notional),
             'marginMode': marginMode,
             'liquidationPrice': liquidationPrice,
-            'entryPrice': entryPrice,
-            'unrealizedPnl': unrealizedPnl,
+            'entryPrice': this.parseNumber(entryPrice),
+            'unrealizedPnl': this.parseNumber(unrealizedPnl),
             'percentage': undefined,
             'contracts': contracts,
             'contractSize': this.safeNumber(market, 'contractSize'),
@@ -3276,15 +3281,15 @@ class coinex extends coinex$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': undefined,
-            'maintenanceMargin': maintenanceMargin,
-            'maintenanceMarginPercentage': maintenanceMarginPercentage,
-            'collateral': collateral,
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
-            'leverage': leverage,
+            'maintenanceMargin': this.parseNumber(maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber(maintenanceMarginPercentage),
+            'collateral': this.parseNumber(collateral),
+            'initialMargin': this.parseNumber(initialMargin),
+            'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
+            'leverage': this.parseNumber(leverage),
             'marginRatio': undefined,
-            'stopLossPrice': this.safeNumber(position, 'stop_loss_price'),
-            'takeProfitPrice': this.safeNumber(position, 'take_profit_price'),
+            'stopLossPrice': this.omitZero(this.safeString(position, 'stop_loss_price')),
+            'takeProfitPrice': this.omitZero(this.safeString(position, 'take_profit_price')),
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
@@ -4603,21 +4608,18 @@ class coinex extends coinex$1 {
             'info': info,
         };
     }
-    async borrowMargin(code, amount, symbol = undefined, params = {}) {
+    async borrowIsolatedMargin(symbol, code, amount, params = {}) {
         /**
          * @method
-         * @name coinex#borrowMargin
+         * @name coinex#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+         * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol, required for coinex
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' borrowMargin() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const currency = this.currency(code);
@@ -4643,22 +4645,19 @@ class coinex extends coinex$1 {
             'symbol': symbol,
         });
     }
-    async repayMargin(code, amount, symbol = undefined, params = {}) {
+    async repayIsolatedMargin(symbol, code, amount, params = {}) {
         /**
          * @method
-         * @name coinex#repayMargin
+         * @name coinex#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+         * @param {string} symbol unified market symbol, required for coinex
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol, required for coinex
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @param {string} [params.loan_id] extra parameter that is not required
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' repayMargin() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const currency = this.currency(code);
@@ -4667,10 +4666,6 @@ class coinex extends coinex$1 {
             'coin_type': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        const loanId = this.safeInteger(params, 'loan_id');
-        if (loanId !== undefined) {
-            request['loan_id'] = loanId;
-        }
         const response = await this.privatePostMarginFlat(this.extend(request, params));
         //
         //     {

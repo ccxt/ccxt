@@ -51,7 +51,8 @@ class bitget(Exchange, ImplicitAPI):
                 'future': True,
                 'option': False,
                 'addMargin': True,
-                'borrowMargin': True,
+                'borrowCrossMargin': True,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -115,7 +116,8 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
-                'repayMargin': True,
+                'repayCrossMargin': True,
+                'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
@@ -5864,16 +5866,13 @@ class bitget(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def borrow_cross_margin(self, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
-        :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
         :param str code: unified currency code of the currency to borrow
         :param str amount: the amount to borrow
-        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :param str [params.marginMode]: 'isolated' or 'cross', symbol is required for 'isolated'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
@@ -5882,34 +5881,7 @@ class bitget(Exchange, ImplicitAPI):
             'coin': currency['info']['coinName'],
             'borrowAmount': self.currency_to_precision(code, amount),
         }
-        response = None
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
-        if (symbol is not None) or (marginMode == 'isolated'):
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
-            market = self.market(symbol)
-            marketId = market['id']
-            parts = marketId.split('_')
-            marginMarketId = self.safe_string_upper(parts, 0)
-            request['symbol'] = marginMarketId
-            response = self.privateMarginPostMarginV1IsolatedAccountBorrow(self.extend(request, params))
-        else:
-            response = self.privateMarginPostMarginV1CrossAccountBorrow(self.extend(request, params))
-        #
-        # isolated
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1697250952516,
-        #         "data": {
-        #             "clientOid": null,
-        #             "symbol": "BTCUSDT",
-        #             "coin": "BTC",
-        #             "borrowAmount": "0.001"
-        #         }
-        #     }
+        response = self.privateMarginPostMarginV1CrossAccountBorrow(self.extend(request, params))
         #
         # cross
         #
@@ -5927,38 +5899,69 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
-        repay borrowed margin and interest
-        :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
-        :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
-        :param str code: unified currency code of the currency to repay
-        :param str amount: the amount to repay
-        :param str [symbol]: unified market symbol
+        create a loan to borrow margin
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
+        :param str symbol: unified market symbol
+        :param str code: unified currency code of the currency to borrow
+        :param str amount: the amount to borrow
         :param dict [params]: extra parameters specific to the bitget api endpoint
-        :param str [params.marginMode]: 'isolated' or 'cross', symbol is required for 'isolated'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
+        market = self.market(symbol)
+        marketId = market['id']
+        parts = marketId.split('_')
+        marginMarketId = self.safe_string_upper(parts, 0)
+        request = {
+            'coin': currency['info']['coinName'],
+            'borrowAmount': self.currency_to_precision(code, amount),
+            'symbol': marginMarketId,
+        }
+        response = self.privateMarginPostMarginV1IsolatedAccountBorrow(self.extend(request, params))
+        #
+        # isolated
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1697250952516,
+        #         "data": {
+        #             "clientOid": null,
+        #             "symbol": "BTCUSDT",
+        #             "coin": "BTC",
+        #             "borrowAmount": "0.001"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+        :param str symbol: unified market symbol
+        :param str code: unified currency code of the currency to repay
+        :param str amount: the amount to repay
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        market = self.market(symbol)
+        marketId = market['id']
+        parts = marketId.split('_')
+        marginMarketId = self.safe_string_upper(parts, 0)
         request = {
             'coin': currency['info']['coinName'],
             'repayAmount': self.currency_to_precision(code, amount),
+            'symbol': marginMarketId,
         }
-        response = None
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
-        if (symbol is not None) or (marginMode == 'isolated'):
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
-            market = self.market(symbol)
-            marketId = market['id']
-            parts = marketId.split('_')
-            marginMarketId = self.safe_string_upper(parts, 0)
-            request['symbol'] = marginMarketId
-            response = self.privateMarginPostMarginV1IsolatedAccountRepay(self.extend(request, params))
-        else:
-            response = self.privateMarginPostMarginV1CrossAccountRepay(self.extend(request, params))
+        response = self.privateMarginPostMarginV1IsolatedAccountRepay(self.extend(request, params))
         #
         # isolated
         #
@@ -5974,6 +5977,27 @@ class bitget(Exchange, ImplicitAPI):
         #             "repayAmount": "0.00100001"
         #         }
         #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_margin_loan(data, currency)
+
+    def repay_cross_margin(self, code: str, amount, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
+        :see: https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+        :param str code: unified currency code of the currency to repay
+        :param str amount: the amount to repay
+        :param dict [params]: extra parameters specific to the bitget api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['info']['coinName'],
+            'repayAmount': self.currency_to_precision(code, amount),
+        }
+        response = self.privateMarginPostMarginV1CrossAccountRepay(self.extend(request, params))
         #
         # cross
         #

@@ -73,7 +73,7 @@ class kuna extends Exchange {
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
-                'fetchPositionsBySymbol' => false,
+                'fetchPositionsForSymbol' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -946,7 +946,7 @@ class kuna extends Exchange {
         $request = array(
             'pair' => $market['id'],
             'orderSide' => ($side === 'buy') ? 'Bid' : 'Ask',
-            'quantity' => (string) $amount,
+            'quantity' => $this->number_to_string($amount),
             'type' => $capitalizedType,
         );
         if ($capitalizedType === 'Limit') {
@@ -1805,7 +1805,8 @@ class kuna extends Exchange {
         $url = null;
         if (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) {
             $isGet = $method === 'GET';
-            list($version, $access) = $api;
+            $version = $this->safe_string($api, 0);
+            $access = $this->safe_string($api, 1);
             if ($version === 'v3') {
                 $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
                 if ($access === 'public') {

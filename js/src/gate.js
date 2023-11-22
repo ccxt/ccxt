@@ -4931,7 +4931,7 @@ export default class gate extends Exchange {
             params = this.omit(params, 'symbol');
         }
         if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
-            request['settle'] = currency['lowerCaseId'];
+            request['settle'] = currency['id'];
         }
         const response = await this.privateWalletPostTransfers(this.extend(request, params));
         //

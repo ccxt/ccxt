@@ -90,7 +90,7 @@ class bitrue extends Exchange {
                     'kline' => 'https://www.bitrue.com/kline-api',
                 ),
                 'www' => 'https://www.bitrue.com',
-                'referral' => 'https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000',
+                'referral' => 'https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE',
                 'doc' => array(
                     'https://github.com/Bitrue-exchange/bitrue-official-api-docs',
                 ),
@@ -1838,7 +1838,7 @@ class bitrue extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        $chainName = $this->safe_string($params, 'chainName');
+        $chainName = $this->safe_string_2($params, 'network', 'chainName');
         if ($chainName === null) {
             $networks = $this->safe_value($currency, 'networks', array());
             $optionsNetworks = $this->safe_value($this->options, 'networks', array());

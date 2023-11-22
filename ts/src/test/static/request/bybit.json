@@ -20,7 +20,23 @@
                         "stopPrice": 55
                     }
                 ],
-                "output": "{\"symbol\":\"XRPUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\",\"triggerDirection\":1,\"triggerPrice\":\"55\",\"orderFilter\":\"StopOrder\"}"
+                "output": "{\"symbol\":\"XRPUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\",\"triggerPrice\":\"55\",\"orderFilter\":\"StopOrder\"}"
+            },
+            {
+                "description": "spot limit buy with triggerPrice",
+                "method": "createOrder",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  36000,
+                  {
+                    "triggerPrice": 36001
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"36000\",\"triggerPrice\":\"36001\",\"orderFilter\":\"StopOrder\"}"
             },
             {
                 "description": "Swap limit order",
@@ -62,20 +78,38 @@
                 "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\"}"
             },
             {
-                "description": "Swap limit buy with trigger price",
+                "description": "swap limit buy with triggerPrice and triggerDirection above",
                 "method": "createOrder",
-                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "url": "https://api.bybit.com/v5/order/create",
                 "input": [
-                    "LTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    0.1,
-                    55,
-                    {
-                        "triggerPrice": 100
-                    }
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.001,
+                  37000,
+                  {
+                    "triggerPrice": 37000,
+                    "triggerDirection": "above"
+                  }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"55\",\"triggerDirection\":1,\"triggerPrice\":\"100\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"37000\",\"triggerDirection\":1,\"triggerPrice\":\"37000\"}"
+            },
+            {
+                "description": "swap limit buy with triggerPrice and triggerDirection below",
+                "method": "createOrder",
+                "url": "https://api.bybit.com/v5/order/create",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.001,
+                  35000,
+                  {
+                    "triggerPrice": 35000,
+                    "triggerDirection": "below"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"35000\",\"triggerDirection\":2,\"triggerPrice\":\"35000\"}"
             },
             {
                 "description": "Spot limit buy with postOnly",
@@ -164,7 +198,7 @@
                 "output": "{\"symbol\":\"TRXUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"1\",\"stopLoss\":\"0.04\",\"takeProfit\":\"1\"}"
             },
             {
-                "description": "Create swap stop price with stopLoss attached",
+                "description": "Create swap trigger order with stopLoss attached",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
                 "input": [
@@ -175,6 +209,7 @@
                   41000,
                   {
                     "triggerPrice": "40000",
+                    "triggerDirection": "above",
                     "stopLoss": "39500"
                   }
                 ],

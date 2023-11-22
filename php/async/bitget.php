@@ -37,7 +37,8 @@ class bitget extends Exchange {
                 'future' => true,
                 'option' => false,
                 'addMargin' => true,
-                'borrowMargin' => true,
+                'borrowCrossMargin' => true,
+                'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -101,7 +102,8 @@ class bitget extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
-                'repayMargin' => true,
+                'repayCrossMargin' => true,
+                'repayIsolatedMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => true,
@@ -6275,17 +6277,14 @@ class bitget extends Exchange {
         ), $market);
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
             /**
              * create a loan to borrow margin
              * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
-             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {string} $amount the $amount to borrow
-             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @param {string} [$params->marginMode] 'isolated' or 'cross', $symbol is required for 'isolated'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -6294,36 +6293,7 @@ class bitget extends Exchange {
                 'coin' => $currency['info']['coinName'],
                 'borrowAmount' => $this->currency_to_precision($code, $amount),
             );
-            $response = null;
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
-            if (($symbol !== null) || ($marginMode === 'isolated')) {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
-                }
-                $market = $this->market($symbol);
-                $marketId = $market['id'];
-                $parts = explode('_', $marketId);
-                $marginMarketId = $this->safe_string_upper($parts, 0);
-                $request['symbol'] = $marginMarketId;
-                $response = Async\await($this->privateMarginPostMarginV1IsolatedAccountBorrow (array_merge($request, $params)));
-            } else {
-                $response = Async\await($this->privateMarginPostMarginV1CrossAccountBorrow (array_merge($request, $params)));
-            }
-            //
-            // isolated
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => 1697250952516,
-            //         "data" => {
-            //             "clientOid" => null,
-            //             "symbol" => "BTCUSDT",
-            //             "coin" => "BTC",
-            //             "borrowAmount" => "0.001"
-            //         }
-            //     }
+            $response = Async\await($this->privateMarginPostMarginV1CrossAccountBorrow (array_merge($request, $params)));
             //
             // cross
             //
@@ -6343,41 +6313,73 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
-             * repay borrowed margin and interest
-             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
-             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
-             * @param {string} $code unified $currency $code of the $currency to repay
-             * @param {string} $amount the $amount to repay
-             * @param {string} [$symbol] unified $market $symbol
+             * create a loan to borrow margin
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
+             * @param {string} $symbol unified $market $symbol
+             * @param {string} $code unified $currency $code of the $currency to borrow
+             * @param {string} $amount the $amount to borrow
              * @param {array} [$params] extra parameters specific to the bitget api endpoint
-             * @param {string} [$params->marginMode] 'isolated' or 'cross', $symbol is required for 'isolated'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $parts = explode('_', $marketId);
+            $marginMarketId = $this->safe_string_upper($parts, 0);
+            $request = array(
+                'coin' => $currency['info']['coinName'],
+                'borrowAmount' => $this->currency_to_precision($code, $amount),
+                'symbol' => $marginMarketId,
+            );
+            $response = Async\await($this->privateMarginPostMarginV1IsolatedAccountBorrow (array_merge($request, $params)));
+            //
+            // isolated
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1697250952516,
+            //         "data" => {
+            //             "clientOid" => null,
+            //             "symbol" => "BTCUSDT",
+            //             "coin" => "BTC",
+            //             "borrowAmount" => "0.001"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_margin_loan($data, $currency);
+        }) ();
+    }
+
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
+            /**
+             * repay borrowed margin and interest
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+             * @param {string} $symbol unified $market $symbol
+             * @param {string} $code unified $currency $code of the $currency to repay
+             * @param {string} $amount the $amount to repay
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $market = $this->market($symbol);
+            $marketId = $market['id'];
+            $parts = explode('_', $marketId);
+            $marginMarketId = $this->safe_string_upper($parts, 0);
             $request = array(
                 'coin' => $currency['info']['coinName'],
                 'repayAmount' => $this->currency_to_precision($code, $amount),
+                'symbol' => $marginMarketId,
             );
-            $response = null;
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('repayMargin', $params);
-            if (($symbol !== null) || ($marginMode === 'isolated')) {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');
-                }
-                $market = $this->market($symbol);
-                $marketId = $market['id'];
-                $parts = explode('_', $marketId);
-                $marginMarketId = $this->safe_string_upper($parts, 0);
-                $request['symbol'] = $marginMarketId;
-                $response = Async\await($this->privateMarginPostMarginV1IsolatedAccountRepay (array_merge($request, $params)));
-            } else {
-                $response = Async\await($this->privateMarginPostMarginV1CrossAccountRepay (array_merge($request, $params)));
-            }
+            $response = Async\await($this->privateMarginPostMarginV1IsolatedAccountRepay (array_merge($request, $params)));
             //
             // isolated
             //
@@ -6393,6 +6395,30 @@ class bitget extends Exchange {
             //             "repayAmount" => "0.00100001"
             //         }
             //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_margin_loan($data, $currency);
+        }) ();
+    }
+
+    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $params) {
+            /**
+             * repay borrowed margin and interest
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
+             * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+             * @param {string} $code unified $currency $code of the $currency to repay
+             * @param {string} $amount the $amount to repay
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['info']['coinName'],
+                'repayAmount' => $this->currency_to_precision($code, $amount),
+            );
+            $response = Async\await($this->privateMarginPostMarginV1CrossAccountRepay (array_merge($request, $params)));
             //
             // cross
             //

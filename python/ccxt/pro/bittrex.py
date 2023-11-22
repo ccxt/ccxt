@@ -21,6 +21,15 @@ class bittrex(ccxt.async_support.bittrex):
         return self.deep_extend(super(bittrex, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchBalance': True,
                 'watchHeartbeat': True,
                 'watchMyTrades': True,
