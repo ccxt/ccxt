@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitteam.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, ExchangeNotAvailable } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
@@ -45,9 +45,9 @@ export default class bitteam extends Exchange {
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchCanceledOrders': true, // todo: check
+                'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
-                'fetchClosedOrders': true, // todo: check
+                'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -77,7 +77,7 @@ export default class bitteam extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': true, // todo: check
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false, // todo: check
@@ -191,7 +191,7 @@ export default class bitteam extends Exchange {
                         'trade/api/enable-2fa': 1, // not unified returns 401000
                         'trade/api/logout': 1, // not unified returns 401000
                         'trade/api/order/cancel': 1, // todo check
-                        'trade/api/order/conditional/create': 1, // todo check
+                        'trade/api/order/conditional/create': 1, // not unified returns 401000
                         'trade/api/order/create': 1, // todo check
                         'trade/api/p2p/create-transaction': 1, // not unified returns 401000
                         'trade/api/p2p/get-balance': 1, // not unified returns 401000
@@ -215,7 +215,7 @@ export default class bitteam extends Exchange {
                         'trade/api/withdraw/create': 1,
                     },
                     'delete': {
-                        'trade/api/dev/all-orders/cancel': 1, // todo: check
+                        'trade/api/dev/all-orders/cancel': 1, // not unified
                     },
                 },
             },
@@ -256,6 +256,7 @@ export default class bitteam extends Exchange {
             'exceptions': {
                 // todo
                 'exact': {
+                    '403002': BadRequest, // {"ok":false,"code":403002,"data":{},"message":"Order cannot be deleted, status does not match"}
                 },
                 'broad': {
                     'Service Unavailable': ExchangeNotAvailable, // {"message":"Service Unavailable","code":403000,"ok":false}
@@ -879,7 +880,7 @@ export default class bitteam extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'type': 'cloded',
+            'type': 'closed',
         };
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -923,7 +924,7 @@ export default class bitteam extends Exchange {
             'pairId': market['numericId'].toString (),
             'type': type,
             'side': side,
-            'size': this.amountToPrecision (symbol, amount),
+            'amount': this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit') {
             if (price === undefined) {
@@ -978,9 +979,15 @@ export default class bitteam extends Exchange {
         };
         const response = await this.privatePostTradeApiCcxtCancelorder (this.extend (request, params));
         //
-        // todo: check and parse the response
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "message": "The request to cancel your order was received"
+        //         }
+        //     }
         //
-        return this.parseOrder (response);
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1004,9 +1011,15 @@ export default class bitteam extends Exchange {
         }
         const response = await this.privatePostTradeApiCcxtCancelAllOrder (this.extend (request, params));
         //
-        // todo: check and parse the response
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "message":"The request to cancel all your orders was received"
+        //         }
+        //     }
         //
-        const orders = [ response ];
+        const result = this.safeValue (response, 'result', {});
+        const orders = [ result ];
         return this.parseOrders (orders, market);
     }
 
@@ -1160,10 +1173,10 @@ export default class bitteam extends Exchange {
             'executed': 'closed',
             'cancelled': 'canceled',
             'partiallyCancelled': 'canceled',
-            'delete': 'rejected', // todo: check
+            'delete': 'rejected',
             'inactive': 'rejected',
-            'executing': 'open', // todo: check
-            'created': 'open', // todo: check
+            'executing': 'open',
+            'created': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1666,10 +1679,138 @@ export default class bitteam extends Exchange {
         }
         const response = await this.privateGetTradeApiCcxtTradesOfUser (this.extend (request, params));
         //
-        // todo: check and parse the response
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 3,
+        //             "trades": [
+        //                 {
+        //                     "id": 34880724,
+        //                     "tradeId": "4368041",
+        //                     "makerOrderId": 106742914,
+        //                     "takerOrderId": 106761614,
+        //                     "pairId": 2,
+        //                     "quantity": "0.00955449",
+        //                     "price": "1993.674994",
+        //                     "isBuyerMaker": true,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "side": "sell",
+        //                     "timestamp": 1700615250,
+        //                     "rewarded": true,
+        //                     "makerUserId": 21639,
+        //                     "takerUserId": 15913,
+        //                     "baseCurrencyId": 2,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0.0000191",
+        //                         "symbol": "eth",
+        //                         "userId": 21639,
+        //                         "decimals": 18,
+        //                         "symbolId": 2
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15913,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "pair": "eth_usdt",
+        //                     "createdAt": "2023-11-22T01:07:30.593Z",
+        //                     "updatedAt": "2023-11-22T01:10:00.117Z"
+        //                 },
+        //                 {
+        //                     "id": 34875793,
+        //                     "tradeId": "4368010",
+        //                     "makerOrderId": 106742914,
+        //                     "takerOrderId": 106745926,
+        //                     "pairId": 2,
+        //                     "quantity": "0.0027193",
+        //                     "price": "1993.674994",
+        //                     "isBuyerMaker": true,
+        //                     "baseDecimals": 18,
+        //                     "quoteDecimals": 6,
+        //                     "side": "sell",
+        //                     "timestamp": 1700602983,
+        //                     "rewarded": true,
+        //                     "makerUserId": 21639,
+        //                     "takerUserId": 15912,
+        //                     "baseCurrencyId": 2,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0.00000543",
+        //                         "symbol": "eth",
+        //                         "userId": 21639,
+        //                         "decimals": 18,
+        //                         "symbolId": 2
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15912,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "pair": "eth_usdt",
+        //                     "createdAt": "2023-11-21T21:43:02.758Z",
+        //                     "updatedAt": "2023-11-21T21:45:00.147Z"
+        //                 },
+        //                 {
+        //                     "id": 34871727,
+        //                     "tradeId": "3441840",
+        //                     "makerOrderId": 106733299,
+        //                     "takerOrderId": 106733308,
+        //                     "pairId": 22,
+        //                     "quantity": "0.00001",
+        //                     "price": "37017.495008",
+        //                     "isBuyerMaker": false,
+        //                     "baseDecimals": 8,
+        //                     "quoteDecimals": 6,
+        //                     "side": "buy",
+        //                     "timestamp": 1700594960,
+        //                     "rewarded": true,
+        //                     "makerUserId": 15909,
+        //                     "takerUserId": 21639,
+        //                     "baseCurrencyId": 11,
+        //                     "quoteCurrencyId": 3,
+        //                     "feeMaker": {
+        //                         "amount": "0",
+        //                         "symbol": "usdt",
+        //                         "userId": 15909,
+        //                         "decimals": 6,
+        //                         "symbolId": 3,
+        //                         "discountAmount": "0",
+        //                         "discountSymbol": "btt",
+        //                         "discountDecimals": 18,
+        //                         "discountSymbolId": 5
+        //                     },
+        //                     "feeTaker": {
+        //                         "amount": "0.00000002",
+        //                         "symbol": "btc",
+        //                         "userId": 21639,
+        //                         "decimals": 8,
+        //                         "symbolId": 11
+        //                     },
+        //                     "pair": "btc_usdt",
+        //                     "createdAt": "2023-11-21T19:29:20.092Z",
+        //                     "updatedAt": "2023-11-21T19:30:00.159Z"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseTrades (result, market, since, limit);
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market: Market = undefined): Trade {
@@ -1719,7 +1860,6 @@ export default class bitteam extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const price = this.parseValueToPricision (trade, 'price', 'quoteDecimals');
         const amount = this.parseValueToPricision (trade, 'quantity', 'baseDecimals');
-        const order = undefined; // todo
         const side = this.safeString (trade, 'side');
         const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
         let takerOrMaker = undefined;
@@ -1741,12 +1881,15 @@ export default class bitteam extends Exchange {
         }
         let fee = undefined;
         let feeInfo = undefined;
+        let order = undefined;
         if (takerOrMaker === 'taker') {
             feeInfo = this.safeValue (trade, 'feeTaker');
+            order = this.safeString (trade, 'takerOrderId');
         } else if (takerOrMaker === 'maker') {
             feeInfo = this.safeValue (trade, 'feeMaker');
+            order = this.safeString (trade, 'makerOrderId');
         }
-        // todo: bad values for fees that are not in USDT
+        // todo: bad values for fees that are not in USDT from fetchOrders
         if (feeInfo !== undefined) {
             const feeCost = this.parseValueToPricision (feeInfo, 'amount', 'decimals');
             const feeCurrencyId = this.safeString (feeInfo, 'symbol');
