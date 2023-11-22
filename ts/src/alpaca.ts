@@ -281,8 +281,11 @@ export default class alpaca extends Exchange {
         //     }
         //
         const timestamp = this.safeString (response, 'timestamp');
-        const localTime = timestamp.substring (0, 23);
-        const iso = this.parse8601 (localTime) - this.parseToNumeric (timestamp.substring (timestamp.length - 6, timestamp.length - 3)) * 3600 * 1000;
+        const localTime = timestamp.slice (0, 23);
+        const jetlagStrStart = timestamp.length - 6;
+        const jetlagStrEnd = timestamp.length - 3;
+        const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
+        const iso = this.parse8601 (localTime) - this.parseToNumeric (jetlag) * 3600 * 1000;
         return iso;
     }
 
@@ -797,6 +800,82 @@ export default class alpaca extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const market = this.safeMarket (marketId);
         return this.parseOrder (order, market);
+    }
+
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name alpaca#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the alpaca api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'status': 'all',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbols'] = market['id'];
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
+        }
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.traderPrivateGetV2Orders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //           "id": "cbaf12d7-69b8-49c0-a31b-b46af35c755c",
+        //           "client_order_id": "ccxt_b36156ae6fd44d098ac9c179bab33efd",
+        //           "created_at": "2023-11-17T04:21:42.234579Z",
+        //           "updated_at": "2023-11-17T04:22:34.442765Z",
+        //           "submitted_at": "2023-11-17T04:21:42.233357Z",
+        //           "filled_at": null,
+        //           "expired_at": null,
+        //           "canceled_at": "2023-11-17T04:22:34.399019Z",
+        //           "failed_at": null,
+        //           "replaced_at": null,
+        //           "replaced_by": null,
+        //           "replaces": null,
+        //           "asset_id": "77c6f47f-0939-4b23-b41e-47b4469c4bc8",
+        //           "symbol": "LTC/USDT",
+        //           "asset_class": "crypto",
+        //           "notional": null,
+        //           "qty": "0.001",
+        //           "filled_qty": "0",
+        //           "filled_avg_price": null,
+        //           "order_class": "",
+        //           "order_type": "limit",
+        //           "type": "limit",
+        //           "side": "sell",
+        //           "time_in_force": "gtc",
+        //           "limit_price": "1000",
+        //           "stop_price": null,
+        //           "status": "canceled",
+        //           "extended_hours": false,
+        //           "legs": null,
+        //           "trail_percent": null,
+        //           "trail_price": null,
+        //           "hwm": null,
+        //           "subtag": null,
+        //           "source": "access_key"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
