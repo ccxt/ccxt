@@ -12,10 +12,10 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def main():
-    exchange = ccxt.okex({
+    exchange = ccxt.okx({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
-        # okex requires this: https://github.com/ccxt/ccxt/wiki/Manual#authentication
+        # okx requires this: https://github.com/ccxt/ccxt/wiki/Manual#authentication
         'password': 'YOUR_API_PASSWORD',
         # 'verbose': True,  # for debug output
     })
@@ -27,7 +27,8 @@ async def main():
         type = 'limit'  # or market
         side = 'sell'
         order = await exchange.create_order(symbol, type, side, amount, price, {
-            'margin_trading': '2',
+            'margin': True,
+            'marginMode': 'cross',
         })
         pprint(order)
     except ccxt.InsufficientFunds as e:
