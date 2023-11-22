@@ -563,7 +563,7 @@ export default class bitget extends Exchange {
                             'v2/margin/crossed/interest-history': 2,
                             'v2/margin/crossed/liquidation-history': 2,
                             'v2/margin/crossed/financial-records': 2,
-                            'v2/margin/crossed/account-assets': 2,
+                            'v2/margin/crossed/account/assets': 2,
                             'v2/margin/crossed/account/risk-rate': 2,
                             'v2/margin/crossed/account/max-borrowable-amount': 2,
                             'v2/margin/crossed/account/max-transfer-out-amount': 2,
@@ -577,7 +577,7 @@ export default class bitget extends Exchange {
                             'v2/margin/isolated/interest-history': 2,
                             'v2/margin/isolated/liquidation-history': 2,
                             'v2/margin/isolated/financial-records': 2,
-                            'v2/margin/isolated/account-assets': 2,
+                            'v2/margin/isolated/account/assets': 2,
                             'v2/margin/isolated/account/risk-rate': 2,
                             'v2/margin/isolated/account/max-borrowable-amount': 2,
                             'v2/margin/isolated/account/max-transfer-out-amount': 2,
@@ -3177,7 +3177,7 @@ export default class bitget extends Exchange {
             params = this.omit (params, [ 'method', 'price' ]);
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
-            params['productType'] = productType;
+            request['productType'] = productType;
             if ((priceType === 'mark') || (swapMethod === 'publicMixGetV2MixMarketHistoryMarkCandles')) {
                 response = await this.publicMixGetV2MixMarketHistoryMarkCandles (this.extend (request, params));
             } else if ((priceType === 'index') || (swapMethod === 'publicMixGetV2MixMarketHistoryIndexCandles')) {
@@ -3201,14 +3201,13 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-list
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets
+         * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Assets
+         * @see https://www.bitget.com/api-doc/contract/account/Get-Account-List
+         * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Assets
+         * @see https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         const request = {};
         let marketType = undefined;
@@ -3217,20 +3216,16 @@ export default class bitget extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         if ((marketType === 'swap') || (marketType === 'future')) {
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
-            let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
-            if (sandboxMode) {
-                productType = 'S' + productType;
-            }
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
             request['productType'] = productType;
-            response = await this.privateMixGetMixV1AccountAccounts (this.extend (request, params));
+            response = await this.privateMixGetV2MixAccountAccounts (this.extend (request, params));
         } else if (marginMode === 'isolated') {
-            response = await this.privateMarginGetMarginV1IsolatedAccountAssets (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginIsolatedAccountAssets (this.extend (request, params));
         } else if (marginMode === 'cross') {
-            response = await this.privateMarginGetMarginV1CrossAccountAssets (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginCrossedAccountAssets (this.extend (request, params));
         } else if (marketType === 'spot') {
-            response = await this.privateSpotGetSpotV1AccountAssets (this.extend (request, params));
+            response = await this.privateSpotGetV2SpotAccountAssets (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchBalance() does not support ' + marketType + ' accounts');
         }
@@ -3239,16 +3234,16 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1697507299139,
+        //         "requestTime": 1700623852854,
         //         "data": [
         //             {
-        //                 "coinId": 1,
-        //                 "coinName": "BTC",
+        //                 "coin": "USDT",
         //                 "available": "0.00000000",
+        //                 "limitAvailable": "0",
         //                 "frozen": "0.00000000",
-        //                 "lock": "0.00000000",
-        //                 "uTime": "1697248128000"
-        //             },
+        //                 "locked": "0.00000000",
+        //                 "uTime": "1699937566000"
+        //             }
         //         ]
         //     }
         //
@@ -3257,22 +3252,24 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1697507505367,
+        //         "requestTime": 1700625127294,
         //         "data": [
         //             {
-        //                 "marginCoin": "STETH",
+        //                 "marginCoin": "USDT",
         //                 "locked": "0",
         //                 "available": "0",
-        //                 "crossMaxAvailable": "0",
-        //                 "fixedMaxAvailable": "0",
+        //                 "crossedMaxAvailable": "0",
+        //                 "isolatedMaxAvailable": "0",
         //                 "maxTransferOut": "0",
-        //                 "equity": "0",
-        //                 "usdtEquity": "0",
+        //                 "accountEquity": "0",
+        //                 "usdtEquity": "0.000000005166",
         //                 "btcEquity": "0",
-        //                 "crossRiskRate": "0",
+        //                 "crossedRiskRate": "0",
         //                 "unrealizedPL": "0",
-        //                 "bonus": "0"
-        //             },
+        //                 "coupon": "0",
+        //                 "crossedUnrealizedPL": null,
+        //                 "isolatedUnrealizedPL": null
+        //             }
         //         ]
         //     }
         //
@@ -3281,19 +3278,20 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1697501436571,
+        //         "requestTime": 1700624192523,
         //         "data": [
         //             {
         //                 "symbol": "BTCUSDT",
         //                 "coin": "BTC",
-        //                 "totalAmount": "0.00021654",
-        //                 "available": "0.00021654",
-        //                 "transferable": "0.00021654",
+        //                 "totalAmount": "0",
+        //                 "available": "0",
         //                 "frozen": "0",
         //                 "borrow": "0",
         //                 "interest": "0",
-        //                 "net": "0.00021654",
-        //                 "ctime": "1697248128071"
+        //                 "net": "0",
+        //                 "coupon": "0",
+        //                 "cTime": "1697248128071",
+        //                 "uTime": "1698367290148"
         //             },
         //         ]
         //     }
@@ -3303,19 +3301,20 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1697515463804,
+        //         "requestTime": 1700624748080,
         //         "data": [
         //             {
-        //                 "coin": "BTC",
-        //                 "totalAmount": "0.00024996",
-        //                 "available": "0.00024996",
-        //                 "transferable": "0.00004994",
+        //                 "coin": "USDT",
+        //                 "totalAmount": "13.09004874",
+        //                 "available": "13.09004874",
         //                 "frozen": "0",
-        //                 "borrow": "0.0001",
-        //                 "interest": "0.00000001",
-        //                 "net": "0.00014995",
-        //                 "ctime": "1697251265504"
-        //             },
+        //                 "borrow": "1.39498697",
+        //                 "interest": "0.00002384",
+        //                 "net": "11.69503793",
+        //                 "coupon": "0",
+        //                 "cTime": "1697251265504",
+        //                 "uTime": "1700624729664"
+        //             }
         //         ]
         //     }
         //
@@ -3329,29 +3328,31 @@ export default class bitget extends Exchange {
         // spot
         //
         //     {
-        //         "coinId": 1,
-        //         "coinName": "BTC",
+        //         "coin": "USDT",
         //         "available": "0.00000000",
+        //         "limitAvailable": "0",
         //         "frozen": "0.00000000",
-        //         "lock": "0.00000000",
-        //         "uTime": "1697248128000"
+        //         "locked": "0.00000000",
+        //         "uTime": "1699937566000"
         //     }
         //
         // swap
         //
         //     {
-        //         "marginCoin": "STETH",
+        //         "marginCoin": "USDT",
         //         "locked": "0",
         //         "available": "0",
-        //         "crossMaxAvailable": "0",
-        //         "fixedMaxAvailable": "0",
+        //         "crossedMaxAvailable": "0",
+        //         "isolatedMaxAvailable": "0",
         //         "maxTransferOut": "0",
-        //         "equity": "0",
-        //         "usdtEquity": "0",
+        //         "accountEquity": "0",
+        //         "usdtEquity": "0.000000005166",
         //         "btcEquity": "0",
-        //         "crossRiskRate": "0",
+        //         "crossedRiskRate": "0",
         //         "unrealizedPL": "0",
-        //         "bonus": "0"
+        //         "coupon": "0",
+        //         "crossedUnrealizedPL": null,
+        //         "isolatedUnrealizedPL": null
         //     }
         //
         // isolated margin
@@ -3359,39 +3360,41 @@ export default class bitget extends Exchange {
         //     {
         //         "symbol": "BTCUSDT",
         //         "coin": "BTC",
-        //         "totalAmount": "0.00021654",
-        //         "available": "0.00021654",
-        //         "transferable": "0.00021654",
+        //         "totalAmount": "0",
+        //         "available": "0",
         //         "frozen": "0",
         //         "borrow": "0",
         //         "interest": "0",
-        //         "net": "0.00021654",
-        //         "ctime": "1697248128071"
+        //         "net": "0",
+        //         "coupon": "0",
+        //         "cTime": "1697248128071",
+        //         "uTime": "1698367290148"
         //     }
         //
         // cross margin
         //
         //     {
-        //         "coin": "BTC",
-        //         "totalAmount": "0.00024995",
-        //         "available": "0.00024995",
-        //         "transferable": "0.00004993",
+        //         "coin": "USDT",
+        //         "totalAmount": "13.09004874",
+        //         "available": "13.09004874",
         //         "frozen": "0",
-        //         "borrow": "0.0001",
-        //         "interest": "0.00000001",
-        //         "net": "0.00014994",
-        //         "ctime": "1697251265504"
+        //         "borrow": "1.39498697",
+        //         "interest": "0.00002384",
+        //         "net": "11.69503793",
+        //         "coupon": "0",
+        //         "cTime": "1697251265504",
+        //         "uTime": "1700624729664"
         //     }
         //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
             const account = this.account ();
-            const currencyId = this.safeStringN (entry, [ 'coinName', 'marginCoin', 'coin' ]);
+            const currencyId = this.safeString2 (entry, 'marginCoin', 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const borrow = this.safeString (entry, 'borrow');
             if (borrow !== undefined) {
                 const interest = this.safeString (entry, 'interest');
-                account['free'] = this.safeString (entry, 'transferable');
+                account['free'] = this.safeString (entry, 'net');
                 account['total'] = this.safeString (entry, 'totalAmount');
                 account['debt'] = Precise.stringAdd (borrow, interest);
             } else {
@@ -3400,7 +3403,7 @@ export default class bitget extends Exchange {
                 const contractAccountFree = this.safeString (entry, 'maxTransferOut');
                 account['free'] = (contractAccountFree !== undefined) ? contractAccountFree : spotAccountFree;
                 const frozen = this.safeString (entry, 'frozen');
-                const locked = this.safeString2 (entry, 'lock', 'locked');
+                const locked = this.safeString (entry, 'locked');
                 account['used'] = Precise.stringAdd (frozen, locked);
             }
             result[code] = account;
