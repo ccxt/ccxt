@@ -123,7 +123,10 @@ class woo extends woo$1 {
                 'fees': [
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
-                'referral': 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral': {
+                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount': 0.35,
+                },
             },
             'api': {
                 'v1': {
@@ -206,9 +209,15 @@ class woo extends woo$1 {
                             'buypower': 1,
                             'referrals': 60,
                             'referral_rewards': 60,
+                            'convert/exchangeInfo': 1,
+                            'convert/assetInfo': 1,
+                            'convert/rfq': 60,
+                            'convert/trade': 1,
+                            'convert/trades': 1,
                         },
                         'post': {
                             'algo/order': 5,
+                            'convert/rft': 60,
                         },
                         'put': {
                             'order/{oid}': 2,
@@ -234,6 +243,7 @@ class woo extends woo$1 {
                 },
             },
             'options': {
+                'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
                 'network-aliases-for-tokens': {
@@ -300,104 +310,111 @@ class woo extends woo$1 {
         const response = await this.v1PublicGetInfo(params);
         //
         // {
-        //     rows: [
+        //     "rows": [
         //         {
-        //             symbol: "SPOT_AAVE_USDT",
-        //             quote_min: 0,
-        //             quote_max: 100000,
-        //             quote_tick: 0.01,
-        //             base_min: 0.01,
-        //             base_max: 7284,
-        //             base_tick: 0.0001,
-        //             min_notional: 10,
-        //             price_range: 0.1,
-        //             created_time: "0",
-        //             updated_time: "1639107647.988",
-        //             is_stable: 0
+        //             "symbol": "SPOT_AAVE_USDT",
+        //             "quote_min": 0,
+        //             "quote_max": 100000,
+        //             "quote_tick": 0.01,
+        //             "base_min": 0.01,
+        //             "base_max": 7284,
+        //             "base_tick": 0.0001,
+        //             "min_notional": 10,
+        //             "price_range": 0.1,
+        //             "created_time": "0",
+        //             "updated_time": "1639107647.988",
+        //             "is_stable": 0
         //         },
         //         ...
-        //     success: true
+        //     "success": true
         // }
         //
-        const result = [];
         const data = this.safeValue(response, 'rows', []);
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const marketId = this.safeString(market, 'symbol');
-            const parts = marketId.split('_');
-            let marketType = this.safeStringLower(parts, 0);
-            const isSpot = marketType === 'spot';
-            const isSwap = marketType === 'perp';
-            const baseId = this.safeString(parts, 1);
-            const quoteId = this.safeString(parts, 2);
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            let settleId = undefined;
-            let settle = undefined;
-            let symbol = base + '/' + quote;
-            let contractSize = undefined;
-            let linear = undefined;
-            let margin = true;
-            const contract = isSwap;
-            if (contract) {
-                margin = false;
-                settleId = this.safeString(parts, 2);
-                settle = this.safeCurrencyCode(settleId);
-                symbol = base + '/' + quote + ':' + settle;
-                contractSize = this.parseNumber('1');
-                marketType = 'swap';
-                linear = true;
-            }
-            result.push({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': marketType,
-                'spot': isSpot,
-                'margin': margin,
-                'swap': isSwap,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': contract,
-                'linear': linear,
-                'inverse': undefined,
-                'contractSize': contractSize,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber(market, 'base_tick'),
-                    'price': this.safeNumber(market, 'quote_tick'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(market, 'base_min'),
-                        'max': this.safeNumber(market, 'base_max'),
-                    },
-                    'price': {
-                        'min': this.safeNumber(market, 'quote_min'),
-                        'max': this.safeNumber(market, 'quote_max'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber(market, 'min_notional'),
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
+        return this.parseMarkets(data);
+    }
+    parseMarket(market) {
+        const marketId = this.safeString(market, 'symbol');
+        const parts = marketId.split('_');
+        const first = this.safeString(parts, 0);
+        let marketType;
+        let spot = false;
+        let swap = false;
+        if (first === 'SPOT') {
+            spot = true;
+            marketType = 'spot';
         }
-        return result;
+        else if (first === 'PERP') {
+            swap = true;
+            marketType = 'swap';
+        }
+        const baseId = this.safeString(parts, 1);
+        const quoteId = this.safeString(parts, 2);
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        let settleId = undefined;
+        let settle = undefined;
+        let symbol = base + '/' + quote;
+        let contractSize = undefined;
+        let linear = undefined;
+        let margin = true;
+        const contract = swap;
+        if (contract) {
+            margin = false;
+            settleId = this.safeString(parts, 2);
+            settle = this.safeCurrencyCode(settleId);
+            symbol = base + '/' + quote + ':' + settle;
+            contractSize = this.parseNumber('1');
+            linear = true;
+        }
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': marketType,
+            'spot': spot,
+            'margin': margin,
+            'swap': swap,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': contract,
+            'linear': linear,
+            'inverse': undefined,
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber(market, 'base_tick'),
+                'price': this.safeNumber(market, 'quote_tick'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber(market, 'base_min'),
+                    'max': this.safeNumber(market, 'base_max'),
+                },
+                'price': {
+                    'min': this.safeNumber(market, 'quote_min'),
+                    'max': this.safeNumber(market, 'quote_max'),
+                },
+                'cost': {
+                    'min': this.safeNumber(market, 'min_notional'),
+                    'max': undefined,
+                },
+            },
+            'created': this.safeTimestamp(market, 'created_time'),
+            'info': market,
+        };
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -408,11 +425,8 @@ class woo extends woo$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchTrades() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -424,28 +438,28 @@ class woo extends woo$1 {
         const response = await this.v1PublicGetMarketTrades(this.extend(request, params));
         //
         // {
-        //     success: true,
-        //     rows: [
+        //     "success": true,
+        //     "rows": [
         //         {
-        //             symbol: "SPOT_BTC_USDT",
-        //             side: "SELL",
-        //             executed_price: 46222.35,
-        //             executed_quantity: 0.0012,
-        //             executed_timestamp: "1641241162.329"
+        //             "symbol": "SPOT_BTC_USDT",
+        //             "side": "SELL",
+        //             "executed_price": 46222.35,
+        //             "executed_quantity": 0.0012,
+        //             "executed_timestamp": "1641241162.329"
         //         },
         //         {
-        //             symbol: "SPOT_BTC_USDT",
-        //             side: "SELL",
-        //             executed_price: 46222.35,
-        //             executed_quantity: 0.0012,
-        //             executed_timestamp: "1641241162.329"
+        //             "symbol": "SPOT_BTC_USDT",
+        //             "side": "SELL",
+        //             "executed_price": 46222.35,
+        //             "executed_quantity": 0.0012,
+        //             "executed_timestamp": "1641241162.329"
         //         },
         //         {
-        //             symbol: "SPOT_BTC_USDT",
-        //             side: "BUY",
-        //             executed_price: 46224.32,
-        //             executed_quantity: 0.00039,
-        //             executed_timestamp: "1641241162.287"
+        //             "symbol": "SPOT_BTC_USDT",
+        //             "side": "BUY",
+        //             "executed_price": 46224.32,
+        //             "executed_quantity": 0.00039,
+        //             "executed_timestamp": "1641241162.287"
         //         },
         //         ...
         //      ]
@@ -459,27 +473,27 @@ class woo extends woo$1 {
         // public/market_trades
         //
         //     {
-        //         symbol: "SPOT_BTC_USDT",
-        //         side: "SELL",
-        //         executed_price: 46222.35,
-        //         executed_quantity: 0.0012,
-        //         executed_timestamp: "1641241162.329"
+        //         "symbol": "SPOT_BTC_USDT",
+        //         "side": "SELL",
+        //         "executed_price": 46222.35,
+        //         "executed_quantity": 0.0012,
+        //         "executed_timestamp": "1641241162.329"
         //     }
         //
         // fetchOrderTrades, fetchOrder
         //
         //     {
-        //         id: '99119876',
-        //         symbol: 'SPOT_WOO_USDT',
-        //         fee: '0.0024',
-        //         side: 'BUY',
-        //         executed_timestamp: '1641481113.084',
-        //         order_id: '87001234',
-        //         order_tag: 'default', <-- this param only in "fetchOrderTrades"
-        //         executed_price: '1',
-        //         executed_quantity: '12',
-        //         fee_asset: 'WOO',
-        //         is_maker: '1'
+        //         "id": "99119876",
+        //         "symbol": "SPOT_WOO_USDT",
+        //         "fee": "0.0024",
+        //         "side": "BUY",
+        //         "executed_timestamp": "1641481113.084",
+        //         "order_id": "87001234",
+        //         "order_tag": "default", <-- this param only in "fetchOrderTrades"
+        //         "executed_price": "1",
+        //         "executed_quantity": "12",
+        //         "fee_asset": "WOO",
+        //         "is_maker": "1"
         //     }
         //
         const isFromFetchOrder = ('id' in trade);
@@ -596,62 +610,62 @@ class woo extends woo$1 {
         const tokenResponse = await this.v1PublicGetToken(params);
         //
         // {
-        //     rows: [
+        //     "rows": [
         //         {
-        //             token: "ETH_USDT",
-        //             fullname: "Tether",
-        //             decimals: 6,
-        //             balance_token: "USDT",
-        //             created_time: "0",
-        //             updated_time: "0"
+        //             "token": "ETH_USDT",
+        //             "fullname": "Tether",
+        //             "decimals": 6,
+        //             "balance_token": "USDT",
+        //             "created_time": "0",
+        //             "updated_time": "0"
         //         },
         //         {
-        //             token: "BSC_USDT",
-        //             fullname: "Tether",
-        //             decimals: 18,
-        //             balance_token: "USDT",
-        //             created_time: "0",
-        //             updated_time: "0"
+        //             "token": "BSC_USDT",
+        //             "fullname": "Tether",
+        //             "decimals": 18,
+        //             "balance_token": "USDT",
+        //             "created_time": "0",
+        //             "updated_time": "0"
         //         },
         //         {
-        //             token: "ZEC",
-        //             fullname: "ZCash",
-        //             decimals: 8,
-        //             balance_token: "ZEC",
-        //             created_time: "0",
-        //             updated_time: "0"
+        //             "token": "ZEC",
+        //             "fullname": "ZCash",
+        //             "decimals": 8,
+        //             "balance_token": "ZEC",
+        //             "created_time": "0",
+        //             "updated_time": "0"
         //         },
         //         ...
         //     ],
-        //     success: true
+        //     "success": true
         // }
         //
         // only make one request for currrencies...
         // const tokenNetworkResponse = await this.v1PublicGetTokenNetwork (params);
         //
         // {
-        //     rows: [
+        //     "rows": [
         //         {
-        //             protocol: "ERC20",
-        //             token: "USDT",
-        //             name: "Ethereum",
-        //             minimum_withdrawal: 30,
-        //             withdrawal_fee: 25,
-        //             allow_deposit: 1,
-        //             allow_withdraw: 1
+        //             "protocol": "ERC20",
+        //             "token": "USDT",
+        //             "name": "Ethereum",
+        //             "minimum_withdrawal": 30,
+        //             "withdrawal_fee": 25,
+        //             "allow_deposit": 1,
+        //             "allow_withdraw": 1
         //         },
         //         {
-        //             protocol: "TRC20",
-        //             token: "USDT",
-        //             name: "Tron",
-        //             minimum_withdrawal: 30,
-        //             withdrawal_fee: 1,
-        //             allow_deposit: 1,
-        //             allow_withdraw: 1
+        //             "protocol": "TRC20",
+        //             "token": "USDT",
+        //             "name": "Tron",
+        //             "minimum_withdrawal": 30,
+        //             "withdrawal_fee": 1,
+        //             "allow_deposit": 1,
+        //             "allow_withdraw": 1
         //         },
         //         ...
         //     ],
-        //     success: true
+        //     "success": true
         // }
         //
         const tokenRows = this.safeValue(tokenResponse, 'rows', []);
@@ -731,7 +745,7 @@ class woo extends woo$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -864,36 +878,38 @@ class woo extends woo$1 {
             response = await this.v1PrivatePostOrder(this.extend(request, params));
         }
         // {
-        //     success: true,
-        //     timestamp: '1641383206.489',
-        //     order_id: '86980774',
-        //     order_type: 'LIMIT',
-        //     order_price: '1', // null for 'MARKET' order
-        //     order_quantity: '12', // null for 'MARKET' order
-        //     order_amount: null, // NOT-null for 'MARKET' order
-        //     client_order_id: '0'
+        //     "success": true,
+        //     "timestamp": "1641383206.489",
+        //     "order_id": "86980774",
+        //     "order_type": "LIMIT",
+        //     "order_price": "1", // null for "MARKET" order
+        //     "order_quantity": "12", // null for "MARKET" order
+        //     "order_amount": null, // NOT-null for "MARKET" order
+        //     "client_order_id": "0"
         // }
         // stop orders
         // {
-        //     success: true,
-        //     data: {
-        //       rows: [
+        //     "success": true,
+        //     "data": {
+        //       "rows": [
         //         {
-        //           orderId: '1578938',
-        //           clientOrderId: '0',
-        //           algoType: 'STOP_LOSS',
-        //           quantity: '0.1'
+        //           "orderId": "1578938",
+        //           "clientOrderId": "0",
+        //           "algoType": "STOP_LOSS",
+        //           "quantity": "0.1"
         //         }
         //       ]
         //     },
-        //     timestamp: '1686149372216'
+        //     "timestamp": "1686149372216"
         // }
         const data = this.safeValue(response, 'data');
         if (data !== undefined) {
             const rows = this.safeValue(data, 'rows', []);
             return this.parseOrder(rows[0], market);
         }
-        return this.extend(this.parseOrder(response, market), { 'type': type });
+        const order = this.parseOrder(response, market);
+        order['type'] = type;
+        return order;
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
@@ -909,7 +925,7 @@ class woo extends woo$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -935,29 +951,27 @@ class woo extends woo$1 {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
+        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice']);
         const isStop = (stopPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
-        let method = undefined;
+        let response = undefined;
         if (isByClientOrder) {
+            request['client_order_id'] = clientOrderIdExchangeSpecific;
             if (isStop) {
-                method = 'v3PrivatePutAlgoOrderClientClientOrderId';
-                request['oid'] = id;
+                response = await this.v3PrivatePutAlgoOrderClientClientOrderId(this.extend(request, params));
             }
             else {
-                method = 'v3PrivatePutOrderClientClientOrderId';
-                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                response = await this.v3PrivatePutOrderClientClientOrderId(this.extend(request, params));
             }
         }
         else {
+            request['oid'] = id;
             if (isStop) {
-                method = 'v3PrivatePutAlgoOrderOid';
+                response = await this.v3PrivatePutAlgoOrderOid(this.extend(request, params));
             }
             else {
-                method = 'v3PrivatePutOrderOid';
+                response = await this.v3PrivatePutOrderOid(this.extend(request, params));
             }
-            request['oid'] = id;
         }
-        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice']);
-        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "code": 0,
@@ -989,38 +1003,37 @@ class woo extends woo$1 {
          */
         const stop = this.safeValue(params, 'stop', false);
         params = this.omit(params, 'stop');
-        if (!stop) {
-            this.checkRequiredSymbol('cancelOrder', symbol);
+        if (!stop && (symbol === undefined)) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets();
-        const request = {};
-        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
-        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let method = undefined;
-        if (stop) {
-            method = 'v3PrivateDeleteAlgoOrderOrderId';
-            request['order_id'] = id;
-        }
-        else if (isByClientOrder) {
-            method = 'v1PrivateDeleteClientOrder';
-            request['client_order_id'] = clientOrderIdExchangeSpecific;
-            params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        }
-        else {
-            method = 'v1PrivateDeleteOrder';
-            request['order_id'] = id;
-        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        if (!stop) {
-            request['symbol'] = market['id'];
+        const request = {};
+        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let response = undefined;
+        if (stop) {
+            request['order_id'] = id;
+            response = await this.v3PrivateDeleteAlgoOrderOrderId(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            request['symbol'] = market['id'];
+            if (isByClientOrder) {
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
+                response = await this.v1PrivateDeleteClientOrder(this.extend(request, params));
+            }
+            else {
+                request['order_id'] = id;
+                response = await this.v1PrivateDeleteOrder(this.extend(request, params));
+            }
+        }
         //
-        // { success: true, status: 'CANCEL_SENT' }
+        // { success: true, status: "CANCEL_SENT" }
         //
         const extendParams = { 'symbol': symbol };
         if (isByClientOrder) {
@@ -1050,7 +1063,9 @@ class woo extends woo$1 {
         if (stop) {
             return await this.v3PrivateDeleteAlgoOrdersPending(params);
         }
-        this.checkRequiredSymbol('cancelOrders', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1082,51 +1097,50 @@ class woo extends woo$1 {
         params = this.omit(params, 'stop');
         const request = {};
         const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        let method = undefined;
+        let response = undefined;
         if (stop) {
-            method = 'v3PrivateGetAlgoOrderOid';
             request['oid'] = id;
+            response = await this.v3PrivateGetAlgoOrderOid(this.extend(request, params));
         }
         else if (clientOrderId) {
-            method = 'v1PrivateGetClientOrderClientOrderId';
             request['client_order_id'] = clientOrderId;
+            response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, params));
         }
         else {
-            method = 'v1PrivateGetOrderOid';
             request['oid'] = id;
+            response = await this.v1PrivateGetOrderOid(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         // {
-        //     success: true,
-        //     symbol: 'SPOT_WOO_USDT',
-        //     status: 'FILLED', // FILLED, NEW
-        //     side: 'BUY',
-        //     created_time: '1641480933.000',
-        //     order_id: '87541111',
-        //     order_tag: 'default',
-        //     price: '1',
-        //     type: 'LIMIT',
-        //     quantity: '12',
-        //     amount: null,
-        //     visible: '12',
-        //     executed: '12', // or any partial amount
-        //     total_fee: '0.0024',
-        //     fee_asset: 'WOO',
-        //     client_order_id: null,
-        //     average_executed_price: '1',
-        //     Transactions: [
+        //     "success": true,
+        //     "symbol": "SPOT_WOO_USDT",
+        //     "status": "FILLED", // FILLED, NEW
+        //     "side": "BUY",
+        //     "created_time": "1641480933.000",
+        //     "order_id": "87541111",
+        //     "order_tag": "default",
+        //     "price": "1",
+        //     "type": "LIMIT",
+        //     "quantity": "12",
+        //     "amount": null,
+        //     "visible": "12",
+        //     "executed": "12", // or any partial amount
+        //     "total_fee": "0.0024",
+        //     "fee_asset": "WOO",
+        //     "client_order_id": null,
+        //     "average_executed_price": "1",
+        //     "Transactions": [
         //       {
-        //         id: '99111647',
-        //         symbol: 'SPOT_WOO_USDT',
-        //         fee: '0.0024',
-        //         side: 'BUY',
-        //         executed_timestamp: '1641482113.084',
-        //         order_id: '87541111',
-        //         executed_price: '1',
-        //         executed_quantity: '12',
-        //         fee_asset: 'WOO',
-        //         is_maker: '1'
+        //         "id": "99111647",
+        //         "symbol": "SPOT_WOO_USDT",
+        //         "fee": "0.0024",
+        //         "side": "BUY",
+        //         "executed_timestamp": "1641482113.084",
+        //         "order_id": "87541111",
+        //         "executed_price": "1",
+        //         "executed_quantity": "12",
+        //         "fee_asset": "WOO",
+        //         "is_maker": "1"
         //       }
         //     ]
         // }
@@ -1231,38 +1245,38 @@ class woo extends woo$1 {
         //
         // stop order after creating it:
         //   {
-        //     orderId: '1578938',
-        //     clientOrderId: '0',
-        //     algoType: 'STOP_LOSS',
-        //     quantity: '0.1'
+        //     "orderId": "1578938",
+        //     "clientOrderId": "0",
+        //     "algoType": "STOP_LOSS",
+        //     "quantity": "0.1"
         //   }
         // stop order after fetching it:
         //   {
-        //       algoOrderId: '1578958',
-        //       clientOrderId: '0',
-        //       rootAlgoOrderId: '1578958',
-        //       parentAlgoOrderId: '0',
-        //       symbol: 'SPOT_LTC_USDT',
-        //       orderTag: 'default',
-        //       algoType: 'STOP_LOSS',
-        //       side: 'BUY',
-        //       quantity: '0.1',
-        //       isTriggered: false,
-        //       triggerPrice: '100',
-        //       triggerStatus: 'USELESS',
-        //       type: 'LIMIT',
-        //       rootAlgoStatus: 'CANCELLED',
-        //       algoStatus: 'CANCELLED',
-        //       triggerPriceType: 'MARKET_PRICE',
-        //       price: '75',
-        //       triggerTime: '0',
-        //       totalExecutedQuantity: '0',
-        //       averageExecutedPrice: '0',
-        //       totalFee: '0',
-        //       feeAsset: '',
-        //       reduceOnly: false,
-        //       createdTime: '1686149609.744',
-        //       updatedTime: '1686149903.362'
+        //       "algoOrderId": "1578958",
+        //       "clientOrderId": "0",
+        //       "rootAlgoOrderId": "1578958",
+        //       "parentAlgoOrderId": "0",
+        //       "symbol": "SPOT_LTC_USDT",
+        //       "orderTag": "default",
+        //       "algoType": "STOP_LOSS",
+        //       "side": "BUY",
+        //       "quantity": "0.1",
+        //       "isTriggered": false,
+        //       "triggerPrice": "100",
+        //       "triggerStatus": "USELESS",
+        //       "type": "LIMIT",
+        //       "rootAlgoStatus": "CANCELLED",
+        //       "algoStatus": "CANCELLED",
+        //       "triggerPriceType": "MARKET_PRICE",
+        //       "price": "75",
+        //       "triggerTime": "0",
+        //       "totalExecutedQuantity": "0",
+        //       "averageExecutedPrice": "0",
+        //       "totalFee": "0",
+        //       "feeAsset": '',
+        //       "reduceOnly": false,
+        //       "createdTime": "1686149609.744",
+        //       "updatedTime": "1686149903.362"
         //   }
         //
         const timestamp = this.safeTimestampN(order, ['timestamp', 'created_time', 'createdTime']);
@@ -1370,16 +1384,16 @@ class woo extends woo$1 {
         const response = await this.v1PublicGetOrderbookSymbol(this.extend(request, params));
         //
         // {
-        //   success: true,
-        //   timestamp: '1641562961192',
-        //   asks: [
-        //     { price: '0.921', quantity: '76.01' },
-        //     { price: '0.933', quantity: '477.10' },
+        //   "success": true,
+        //   "timestamp": "1641562961192",
+        //   "asks": [
+        //     { price: '0.921', quantity: "76.01" },
+        //     { price: '0.933', quantity: "477.10" },
         //     ...
         //   ],
-        //   bids: [
-        //     { price: '0.940', quantity: '13502.47' },
-        //     { price: '0.932', quantity: '43.91' },
+        //   "bids": [
+        //     { price: '0.940', quantity: "13502.47" },
+        //     { price: '0.932', quantity: "43.91" },
         //     ...
         //   ]
         // }
@@ -1391,6 +1405,7 @@ class woo extends woo$1 {
         /**
          * @method
          * @name woo#fetchOHLCV
+         * @see https://docs.woo.org/#kline-public
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1410,31 +1425,31 @@ class woo extends woo$1 {
         }
         const response = await this.v1PublicGetKline(this.extend(request, params));
         // {
-        //     success: true,
-        //     rows: [
+        //     "success": true,
+        //     "rows": [
         //       {
-        //         open: '0.94238',
-        //         close: '0.94271',
-        //         low: '0.94238',
-        //         high: '0.94296',
-        //         volume: '73.55',
-        //         amount: '69.32040520',
-        //         symbol: 'SPOT_WOO_USDT',
-        //         type: '1m',
-        //         start_timestamp: '1641584700000',
-        //         end_timestamp: '1641584760000'
+        //         "open": "0.94238",
+        //         "close": "0.94271",
+        //         "low": "0.94238",
+        //         "high": "0.94296",
+        //         "volume": "73.55",
+        //         "amount": "69.32040520",
+        //         "symbol": "SPOT_WOO_USDT",
+        //         "type": "1m",
+        //         "start_timestamp": "1641584700000",
+        //         "end_timestamp": "1641584760000"
         //       },
         //       {
-        //         open: '0.94186',
-        //         close: '0.94186',
-        //         low: '0.94186',
-        //         high: '0.94186',
-        //         volume: '64.00',
-        //         amount: '60.27904000',
-        //         symbol: 'SPOT_WOO_USDT',
-        //         type: '1m',
-        //         start_timestamp: '1641584640000',
-        //         end_timestamp: '1641584700000'
+        //         "open": "0.94186",
+        //         "close": "0.94186",
+        //         "low": "0.94186",
+        //         "high": "0.94186",
+        //         "volume": "64.00",
+        //         "amount": "60.27904000",
+        //         "symbol": "SPOT_WOO_USDT",
+        //         "type": "1m",
+        //         "start_timestamp": "1641584640000",
+        //         "end_timestamp": "1641584700000"
         //       },
         //       ...
         //     ]
@@ -1475,20 +1490,20 @@ class woo extends woo$1 {
         };
         const response = await this.v1PrivateGetOrderOidTrades(this.extend(request, params));
         // {
-        //     success: true,
-        //     rows: [
+        //     "success": true,
+        //     "rows": [
         //       {
-        //         id: '99111647',
-        //         symbol: 'SPOT_WOO_USDT',
-        //         fee: '0.0024',
-        //         side: 'BUY',
-        //         executed_timestamp: '1641482113.084',
-        //         order_id: '87541111',
-        //         order_tag: 'default',
-        //         executed_price: '1',
-        //         executed_quantity: '12',
-        //         fee_asset: 'WOO',
-        //         is_maker: '1'
+        //         "id": "99111647",
+        //         "symbol": "SPOT_WOO_USDT",
+        //         "fee": "0.0024",
+        //         "side": "BUY",
+        //         "executed_timestamp": "1641482113.084",
+        //         "order_id": "87541111",
+        //         "order_tag": "default",
+        //         "executed_price": "1",
+        //         "executed_quantity": "12",
+        //         "fee_asset": "WOO",
+        //         "is_maker": "1"
         //       }
         //     ]
         // }
@@ -1554,18 +1569,18 @@ class woo extends woo$1 {
         const response = await this.v1PrivateGetSubAccountAssets(params);
         //
         //     {
-        //         rows: [{
-        //                 application_id: '13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365',
-        //                 account: 'Main',
-        //                 usdt_balance: '4.0'
+        //         "rows": [{
+        //                 "application_id": "13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365",
+        //                 "account": "Main",
+        //                 "usdt_balance": "4.0"
         //             },
         //             {
-        //                 application_id: '432952aa-a401-4e26-aff6-972920aebba3',
-        //                 account: 'subaccount',
-        //                 usdt_balance: '1.0'
+        //                 "application_id": "432952aa-a401-4e26-aff6-972920aebba3",
+        //                 "account": "subaccount",
+        //                 "usdt_balance": "1.0"
         //             }
         //         ],
-        //         success: true
+        //         "success": true
         //     }
         //
         const rows = this.safeValue(response, 'rows', []);
@@ -1574,9 +1589,9 @@ class woo extends woo$1 {
     parseAccount(account) {
         //
         //     {
-        //         application_id: '336952aa-a401-4e26-aff6-972920aebba3',
-        //         account: 'subaccount',
-        //         usdt_balance: '1.0',
+        //         "application_id": "336952aa-a401-4e26-aff6-972920aebba3",
+        //         "account": "subaccount",
+        //         "usdt_balance": "1.0",
         //     }
         //
         const accountId = this.safeString(account, 'account');
@@ -1595,7 +1610,7 @@ class woo extends woo$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.woo.org/#get-current-holding-get-balance-new
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.v3PrivateGetBalances(params);
@@ -1661,9 +1676,9 @@ class woo extends woo$1 {
         };
         const response = await this.v1PrivateGetAssetDeposit(this.extend(request, params));
         // {
-        //     success: true,
-        //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
-        //     extra: ''
+        //     "success": true,
+        //     "address": "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
+        //     "extra": ''
         // }
         const tag = this.safeString(response, 'extra');
         const address = this.safeString(response, 'address');
@@ -1697,38 +1712,38 @@ class woo extends woo$1 {
         }
         const response = await this.v1PrivateGetAssetHistory(this.extend(request, params));
         // {
-        //     rows: [
+        //     "rows": [
         //       {
-        //         id: '22010508193900165',
-        //         token: 'TRON_USDT',
-        //         extra: '',
-        //         amount: '13.75848500',
-        //         status: 'COMPLETED',
-        //         account: null,
-        //         description: null,
-        //         user_id: '42222',
-        //         application_id: '6ad2b303-f354-45c0-8105-9f5f19d0e335',
-        //         external_id: '220105081900134',
-        //         target_address: 'TXnyFSnAYad3YCaqtwMw9jvXKkeU39NLnK',
-        //         source_address: 'TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6',
-        //         type: 'BALANCE',
-        //         token_side: 'DEPOSIT',
-        //         tx_id: '35b0004022f6b3ad07f39a0b7af199f6b258c2c3e2c7cdc93c67efa74fd625ee',
-        //         fee_token: '',
-        //         fee_amount: '0.00000000',
-        //         created_time: '1641370779.442',
-        //         updated_time: '1641370779.465',
-        //         is_new_target_address: null,
-        //         confirmed_number: '29',
-        //         confirming_threshold: '27',
-        //         audit_tag: '1',
-        //         audit_result: '0',
-        //         balance_token: null, // TODO -write to support, that this seems broken. here should be the token id
-        //         network_name: null // TODO -write to support, that this seems broken. here should be the network id
+        //         "id": "22010508193900165",
+        //         "token": "TRON_USDT",
+        //         "extra": '',
+        //         "amount": "13.75848500",
+        //         "status": "COMPLETED",
+        //         "account": null,
+        //         "description": null,
+        //         "user_id": "42222",
+        //         "application_id": "6ad2b303-f354-45c0-8105-9f5f19d0e335",
+        //         "external_id": "220105081900134",
+        //         "target_address": "TXnyFSnAYad3YCaqtwMw9jvXKkeU39NLnK",
+        //         "source_address": "TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6",
+        //         "type": "BALANCE",
+        //         "token_side": "DEPOSIT",
+        //         "tx_id": "35b0004022f6b3ad07f39a0b7af199f6b258c2c3e2c7cdc93c67efa74fd625ee",
+        //         "fee_token": '',
+        //         "fee_amount": "0.00000000",
+        //         "created_time": "1641370779.442",
+        //         "updated_time": "1641370779.465",
+        //         "is_new_target_address": null,
+        //         "confirmed_number": "29",
+        //         "confirming_threshold": "27",
+        //         "audit_tag": "1",
+        //         "audit_result": "0",
+        //         "balance_token": null, // TODO -write to support, that this seems broken. here should be the token id
+        //         "network_name": null // TODO -write to support, that this seems broken. here should be the network id
         //       }
         //     ],
-        //     meta: { total: '1', records_per_page: '25', current_page: '1' },
-        //     success: true
+        //     "meta": { total: '1', records_per_page: "25", current_page: "1" },
+        //     "success": true
         // }
         return [currency, this.safeValue(response, 'rows', {})];
     }
@@ -1887,7 +1902,9 @@ class woo extends woo$1 {
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'updated': this.safeTimestamp(transaction, 'updated_time'),
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
+            'network': undefined,
         };
     }
     parseTransactionStatus(status) {
@@ -2140,14 +2157,17 @@ class woo extends woo$1 {
         else {
             this.checkRequiredCredentials();
             if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
-                const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-                const brokerId = this.safeString(this.options, 'brokerId', applicationId);
-                const isStop = path.indexOf('algo') > -1;
-                if (isStop) {
-                    params['brokerId'] = brokerId;
-                }
-                else {
-                    params['broker_id'] = brokerId;
+                const isSandboxMode = this.safeValue(this.options, 'sandboxMode', false);
+                if (!isSandboxMode) {
+                    const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                    const brokerId = this.safeString(this.options, 'brokerId', applicationId);
+                    const isStop = path.indexOf('algo') > -1;
+                    if (isStop) {
+                        params['brokerId'] = brokerId;
+                    }
+                    else {
+                        params['broker_id'] = brokerId;
+                    }
                 }
                 params = this.keysort(params);
             }
@@ -2357,8 +2377,26 @@ class woo extends woo$1 {
         return this.filterByArray(result, 'symbol', symbols);
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the woo api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+         */
         await this.loadMarkets();
-        const request = {};
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25);
+        }
+        let request = {};
         if (symbol !== undefined) {
             const market = this.market(symbol);
             symbol = market['symbol'];
@@ -2367,6 +2405,7 @@ class woo extends woo$1 {
         if (since !== undefined) {
             request['start_t'] = this.parseToInt(since / 1000);
         }
+        [request, params] = this.handleUntilOption('end_t', request, params, 0.001);
         const response = await this.v1PublicGetFundingRateHistory(this.extend(request, params));
         //
         //     {
@@ -2566,6 +2605,9 @@ class woo extends woo$1 {
             'marginType': undefined,
             'side': side,
             'percentage': undefined,
+            'hedged': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
     }
     defaultNetworkCodeForCurrency(code) {
@@ -2580,6 +2622,10 @@ class woo extends woo$1 {
         }
         // if it was not returned according to above options, then return the first network of currency
         return this.safeValue(networkKeys, 0);
+    }
+    setSandboxMode(enable) {
+        super.setSandboxMode(enable);
+        this.options['sandboxMode'] = enable;
     }
 }
 

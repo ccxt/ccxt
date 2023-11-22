@@ -34,12 +34,11 @@ class timex extends timex$1 {
                 'createStopOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDeposits': true,
@@ -48,6 +47,8 @@ class timex extends timex$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -291,11 +292,7 @@ class timex extends timex$1 {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            result.push(this.parseMarket(response[i]));
-        }
-        return result;
+        return this.parseMarkets(response);
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -452,6 +449,8 @@ class timex extends timex$1 {
             'currency': this.safeCurrencyCode(undefined, currency),
             'status': 'ok',
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': undefined,
         };
     }
@@ -581,7 +580,7 @@ class timex extends timex$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the timex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -690,7 +689,7 @@ class timex extends timex$1 {
          * @name timex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the timex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.tradingGetBalances(params);
@@ -714,7 +713,7 @@ class timex extends timex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the timex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1185,7 +1184,7 @@ class timex extends timex$1 {
         const minBase = this.safeString(market, 'baseMinSize');
         const minAmount = Precise["default"].stringMax(amountIncrement, minBase);
         const priceIncrement = this.safeString(market, 'tickSize');
-        const minCost = this.safeString(market, 'quoteMinSize');
+        const minCost = this.safeNumber(market, 'quoteMinSize');
         return {
             'id': id,
             'symbol': base + '/' + quote,
@@ -1234,6 +1233,7 @@ class timex extends timex$1 {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -1484,7 +1484,7 @@ class timex extends timex$1 {
         const amount = this.safeString(order, 'quantity');
         const filled = this.safeString(order, 'filledQuantity');
         const canceledQuantity = this.omitZero(this.safeString(order, 'cancelledQuantity'));
-        let status = undefined;
+        let status;
         if (Precise["default"].stringEquals(filled, amount)) {
             status = 'closed';
         }

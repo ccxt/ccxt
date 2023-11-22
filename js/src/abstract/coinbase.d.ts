@@ -59,6 +59,8 @@ interface Exchange {
     v3PrivateGetBrokerageBestBidAsk(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrders(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersBatchCancel(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageOrdersEdit(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostBrokerageOrdersEditPreview(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

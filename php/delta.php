@@ -41,6 +41,7 @@ class delta extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
@@ -49,6 +50,7 @@ class delta extends Exchange {
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -66,6 +68,7 @@ class delta extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransfer' => null,
                 'fetchTransfers' => null,
+                'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => null,
@@ -699,6 +702,9 @@ class delta extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $type = $this->safe_string($market, 'contract_type');
+            if ($type === 'options_combos') {
+                continue;
+            }
             // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
             $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
             $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());
@@ -806,13 +812,14 @@ class delta extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => $this->parse8601($this->safe_string($market, 'launch_time')),
                 'info' => $market,
             );
         }
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -957,7 +964,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
@@ -1099,7 +1106,7 @@ class delta extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://docs.delta.exchange/#get-$tickers-for-products
@@ -1247,10 +1254,10 @@ class delta extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.delta.exchange/#get-l2-orderbook
@@ -1290,7 +1297,7 @@ class delta extends Exchange {
         return $this->parse_order_book($result, $market['symbol'], null, 'buy', 'sell', 'price', 'size');
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -1390,7 +1397,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://docs.delta.exchange/#get-public-trades
@@ -1398,7 +1405,7 @@ class delta extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the delta api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1425,7 +1432,7 @@ class delta extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "time":1605393120,
@@ -1446,7 +1453,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          * @see https://docs.delta.exchange/#get-ohlc-candles
@@ -1497,7 +1504,7 @@ class delta extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'result', array());
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
@@ -1514,12 +1521,12 @@ class delta extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.delta.exchange/#get-wallet-balances
          * @param {array} [$params] extra parameters specific to the delta api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetWalletBalances ($params);
@@ -1610,7 +1617,7 @@ class delta extends Exchange {
         return $this->parse_positions($result, $symbols);
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         // fetchPosition
         //
@@ -1651,7 +1658,7 @@ class delta extends Exchange {
                 $side = 'sell';
             }
         }
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -1675,7 +1682,9 @@ class delta extends Exchange {
             'initialMarginPercentage' => null,
             'leverage' => null,
             'marginRatio' => null,
-        );
+            'stopLossPrice' => null,
+            'takeProfitPrice' => null,
+        ));
     }
 
     public function parse_order_status($status) {
@@ -1688,7 +1697,7 @@ class delta extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -1783,7 +1792,7 @@ class delta extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the delta api endpoint
          * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1865,7 +1874,7 @@ class delta extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the delta api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1874,8 +1883,8 @@ class delta extends Exchange {
         $request = array(
             'id' => intval($id),
             'product_id' => $market['numericId'],
-            // 'limit_price' => $this->price_to_precision($symbol, $price),
-            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // "limit_price" => $this->price_to_precision($symbol, $price),
+            // "size" => $this->amount_to_precision($symbol, $amount),
         );
         if ($amount !== null) {
             $request['size'] = intval($this->amount_to_precision($symbol, $amount));
@@ -1914,7 +1923,9 @@ class delta extends Exchange {
          * @param {array} [$params] extra parameters specific to the delta api endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
-        $this->check_required_symbol('cancelOrder', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1970,7 +1981,9 @@ class delta extends Exchange {
          * @param {array} [$params] extra parameters specific to the delta api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
-        $this->check_required_symbol('cancelAllOrders', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1988,7 +2001,7 @@ class delta extends Exchange {
         return $response;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://docs.delta.exchange/#get-active-orders
@@ -2001,7 +2014,7 @@ class delta extends Exchange {
         return $this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://docs.delta.exchange/#get-order-history-cancelled-and-closed
@@ -2214,7 +2227,7 @@ class delta extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, $currency = null) {
+    public function parse_ledger_entry($item, ?array $currency = null) {
         //
         //     {
         //         "amount":"29.889184",
@@ -2311,7 +2324,7 @@ class delta extends Exchange {
         return $this->parse_deposit_address($result, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //    {
         //        "id" => 1915615,
@@ -2471,7 +2484,7 @@ class delta extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "close" => 30600.5,
@@ -2602,7 +2615,7 @@ class delta extends Exchange {
         return $this->parse_margin_modification($result, $market);
     }
 
-    public function parse_margin_modification($data, $market = null) {
+    public function parse_margin_modification($data, ?array $market = null) {
         //
         //     {
         //         "auto_topup" => false,
@@ -2642,7 +2655,7 @@ class delta extends Exchange {
          * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2709,7 +2722,7 @@ class delta extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest($interest, $market = null) {
+    public function parse_open_interest($interest, ?array $market = null) {
         //
         //     {
         //         "close" => 894.0,
@@ -2761,7 +2774,7 @@ class delta extends Exchange {
         //
         $timestamp = $this->safe_integer_product($interest, 'timestamp', 0.001);
         $marketId = $this->safe_string($interest, 'symbol');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($marketId, $market),
             'baseVolume' => $this->safe_number($interest, 'oi_value'),
             'quoteVolume' => $this->safe_number($interest, 'oi_value_usd'),
@@ -2770,7 +2783,7 @@ class delta extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function fetch_leverage(string $symbol, $params = array ()) {
@@ -2811,7 +2824,9 @@ class delta extends Exchange {
          * @param {array} [$params] extra parameters specific to the delta api endpoint
          * @return {array} response from the exchange
          */
-        $this->check_required_symbol('setLeverage', $symbol);
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2840,7 +2855,7 @@ class delta extends Exchange {
          * @param {int} [$since] timestamp in ms
          * @param {int} [$limit] number of records
          * @param {array} [$params] exchange specific $params
-         * @return {array[]} a list of [settlement history objects]
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
          */
         $this->load_markets();
         $market = null;
@@ -2989,6 +3004,154 @@ class delta extends Exchange {
             $result[] = $this->parse_settlement($settlements[$i], $market);
         }
         return $result;
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+        /**
+         * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+         * @param {array} [$params] extra parameters specific to the delta api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetTickersSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "result" => array(
+        //             "close" => 6793.0,
+        //             "contract_type" => "call_options",
+        //             "greeks" => array(
+        //                 "delta" => "0.94739174",
+        //                 "gamma" => "0.00002206",
+        //                 "rho" => "11.00890725",
+        //                 "spot" => "36839.58124652",
+        //                 "theta" => "-18.18365310",
+        //                 "vega" => "7.85209698"
+        //             ),
+        //             "high" => 7556.0,
+        //             "low" => 6793.0,
+        //             "mark_price" => "6955.70698909",
+        //             "mark_vol" => "0.66916863",
+        //             "oi" => "1.8980",
+        //             "oi_change_usd_6h" => "110.4600",
+        //             "oi_contracts" => "1898",
+        //             "oi_value" => "1.8980",
+        //             "oi_value_symbol" => "BTC",
+        //             "oi_value_usd" => "69940.7319",
+        //             "open" => 7.2e3,
+        //             "price_band" => array(
+        //                 "lower_limit" => "5533.89814767",
+        //                 "upper_limit" => "11691.37688371"
+        //             ),
+        //             "product_id" => 129508,
+        //             "quotes" => array(
+        //                 "ask_iv" => "0.90180438",
+        //                 "ask_size" => "1898",
+        //                 "best_ask" => "7210",
+        //                 "best_bid" => "6913",
+        //                 "bid_iv" => "0.60881706",
+        //                 "bid_size" => "3163",
+        //                 "impact_mid_price" => null,
+        //                 "mark_iv" => "0.66973549"
+        //             ),
+        //             "size" => 5,
+        //             "spot_price" => "36839.58153868",
+        //             "strike_price" => "30000",
+        //             "symbol" => "C-BTC-30000-241123",
+        //             "timestamp" => 1699584998504530,
+        //             "turnover" => 184.41206804,
+        //             "turnover_symbol" => "USDT",
+        //             "turnover_usd" => 184.41206804,
+        //             "volume" => 0.005
+        //         ),
+        //         "success" => true
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_greeks($result, $market);
+    }
+
+    public function parse_greeks($greeks, ?array $market = null) {
+        //
+        //     {
+        //         "close" => 6793.0,
+        //         "contract_type" => "call_options",
+        //         "greeks" => array(
+        //             "delta" => "0.94739174",
+        //             "gamma" => "0.00002206",
+        //             "rho" => "11.00890725",
+        //             "spot" => "36839.58124652",
+        //             "theta" => "-18.18365310",
+        //             "vega" => "7.85209698"
+        //         ),
+        //         "high" => 7556.0,
+        //         "low" => 6793.0,
+        //         "mark_price" => "6955.70698909",
+        //         "mark_vol" => "0.66916863",
+        //         "oi" => "1.8980",
+        //         "oi_change_usd_6h" => "110.4600",
+        //         "oi_contracts" => "1898",
+        //         "oi_value" => "1.8980",
+        //         "oi_value_symbol" => "BTC",
+        //         "oi_value_usd" => "69940.7319",
+        //         "open" => 7.2e3,
+        //         "price_band" => array(
+        //             "lower_limit" => "5533.89814767",
+        //             "upper_limit" => "11691.37688371"
+        //         ),
+        //         "product_id" => 129508,
+        //         "quotes" => array(
+        //             "ask_iv" => "0.90180438",
+        //             "ask_size" => "1898",
+        //             "best_ask" => "7210",
+        //             "best_bid" => "6913",
+        //             "bid_iv" => "0.60881706",
+        //             "bid_size" => "3163",
+        //             "impact_mid_price" => null,
+        //             "mark_iv" => "0.66973549"
+        //         ),
+        //         "size" => 5,
+        //         "spot_price" => "36839.58153868",
+        //         "strike_price" => "30000",
+        //         "symbol" => "C-BTC-30000-241123",
+        //         "timestamp" => 1699584998504530,
+        //         "turnover" => 184.41206804,
+        //         "turnover_symbol" => "USDT",
+        //         "turnover_usd" => 184.41206804,
+        //         "volume" => 0.005
+        //     }
+        //
+        $timestamp = $this->safe_integer_product($greeks, 'timestamp', 0.001);
+        $marketId = $this->safe_string($greeks, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $stats = $this->safe_value($greeks, 'greeks', array());
+        $quotes = $this->safe_value($greeks, 'quotes', array());
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'delta' => $this->safe_number($stats, 'delta'),
+            'gamma' => $this->safe_number($stats, 'gamma'),
+            'theta' => $this->safe_number($stats, 'theta'),
+            'vega' => $this->safe_number($stats, 'vega'),
+            'rho' => $this->safe_number($stats, 'rho'),
+            'bidSize' => $this->safe_number($quotes, 'bid_size'),
+            'askSize' => $this->safe_number($quotes, 'ask_size'),
+            'bidImpliedVolatility' => $this->safe_number($quotes, 'bid_iv'),
+            'askImpliedVolatility' => $this->safe_number($quotes, 'ask_iv'),
+            'markImpliedVolatility' => $this->safe_number($quotes, 'mark_iv'),
+            'bidPrice' => $this->safe_number($quotes, 'best_bid'),
+            'askPrice' => $this->safe_number($quotes, 'best_ask'),
+            'markPrice' => $this->safe_number($greeks, 'mark_price'),
+            'lastPrice' => null,
+            'underlyingPrice' => $this->safe_number($greeks, 'spot_price'),
+            'info' => $greeks,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

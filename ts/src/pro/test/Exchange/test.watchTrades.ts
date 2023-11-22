@@ -28,6 +28,7 @@ export default async (exchange, symbol) => {
         'coinflex', // to illiquid
         'woo',
         'independentreserve',
+        'bingx', // side is undefined and we don't have the skip logic for ws yet
     ];
 
     if (skippedExchanges.includes (exchange.id)) {

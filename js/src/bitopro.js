@@ -37,11 +37,11 @@ export default class bitopro extends Exchange {
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
@@ -53,6 +53,8 @@ export default class bitopro extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -114,42 +116,43 @@ export default class bitopro extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'order-book/{pair}',
-                        'tickers',
-                        'tickers/{pair}',
-                        'trades/{pair}',
-                        'provisioning/currencies',
-                        'provisioning/trading-pairs',
-                        'provisioning/limitations-and-fees',
-                        'trading-history/{pair}',
-                    ],
+                    'get': {
+                        'order-book/{pair}': 1,
+                        'tickers': 1,
+                        'tickers/{pair}': 1,
+                        'trades/{pair}': 1,
+                        'provisioning/currencies': 1,
+                        'provisioning/trading-pairs': 1,
+                        'provisioning/limitations-and-fees': 1,
+                        'trading-history/{pair}': 1,
+                        'price/otc/{currency}': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts/balance',
-                        'orders/history',
-                        'orders/all/{pair}',
-                        'orders/trades/{pair}',
-                        'orders/{pair}/{orderId}',
-                        'wallet/withdraw/{currency}/{serial}',
-                        'wallet/withdraw/{currency}/id/{id}',
-                        'wallet/depositHistory/{currency}',
-                        'wallet/withdrawHistory/{currency}',
-                    ],
-                    'post': [
-                        'orders/{pair}',
-                        'orders/batch',
-                        'wallet/withdraw/{currency}',
-                    ],
-                    'put': [
-                        'orders',
-                    ],
-                    'delete': [
-                        'orders/{pair}/{id}',
-                        'orders/all',
-                        'orders/{pair}',
-                    ],
+                    'get': {
+                        'accounts/balance': 1,
+                        'orders/history': 1,
+                        'orders/all/{pair}': 1,
+                        'orders/trades/{pair}': 1,
+                        'orders/{pair}/{orderId}': 1,
+                        'wallet/withdraw/{currency}/{serial}': 1,
+                        'wallet/withdraw/{currency}/id/{id}': 1,
+                        'wallet/depositHistory/{currency}': 1,
+                        'wallet/withdrawHistory/{currency}': 1,
+                    },
+                    'post': {
+                        'orders/{pair}': 1 / 2,
+                        'orders/batch': 20 / 3,
+                        'wallet/withdraw/{currency}': 10, // 60/m => 1/s => 10/1 = 10
+                    },
+                    'put': {
+                        'orders': 5, // 2/s => 10/2 = 5
+                    },
+                    'delete': {
+                        'orders/{pair}/{id}': 2 / 3,
+                        'orders/all': 5,
+                        'orders/{pair}': 5, // 2/s => 10/2 = 5
+                    },
                 },
             },
             'fees': {
@@ -214,6 +217,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -276,6 +280,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchMarkets
          * @description retrieves data on all markets for bitopro
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -301,70 +306,68 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const active = !this.safeValue(market, 'maintain');
-            const id = this.safeString(market, 'pair');
-            const uppercaseId = id.toUpperCase();
-            const baseId = this.safeString(market, 'base');
-            const quoteId = this.safeString(market, 'quote');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber(market, 'minLimitBaseAmount'),
-                    'max': this.safeNumber(market, 'maxLimitBaseAmount'),
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            result.push({
-                'id': id,
-                'uppercaseId': uppercaseId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
-                'settle': undefined,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'derivative': false,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'limits': limits,
-                'precision': {
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
-                },
-                'active': active,
-                'info': market,
-            });
-        }
-        return result;
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const active = !this.safeValue(market, 'maintain');
+        const id = this.safeString(market, 'pair');
+        const uppercaseId = id.toUpperCase();
+        const baseId = this.safeString(market, 'base');
+        const quoteId = this.safeString(market, 'quote');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const symbol = base + '/' + quote;
+        const limits = {
+            'amount': {
+                'min': this.safeNumber(market, 'minLimitBaseAmount'),
+                'max': this.safeNumber(market, 'maxLimitBaseAmount'),
+            },
+            'price': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'cost': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'leverage': {
+                'min': undefined,
+                'max': undefined,
+            },
+        };
+        return {
+            'id': id,
+            'uppercaseId': uppercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': base,
+            'quoteId': quote,
+            'settle': undefined,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'limits': limits,
+            'precision': {
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
+            },
+            'active': active,
+            'created': undefined,
+            'info': market,
+        };
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -409,6 +412,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -440,6 +444,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -469,6 +474,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_orderbook_data.md
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
@@ -599,11 +605,12 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trades_data.md
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -631,6 +638,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -730,6 +738,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ohlc_data.md
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -852,8 +861,9 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_account_balance.md
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetAccountsBalance(params);
@@ -889,12 +899,12 @@ export default class bitopro extends Exchange {
         //
         // createOrder
         //         {
-        //             orderId: '2220595581',
-        //             timestamp: '1644896744886',
-        //             action: 'SELL',
-        //             amount: '0.01',
-        //             price: '15000',
-        //             timeInForce: 'GTC'
+        //             "orderId": "2220595581",
+        //             "timestamp": "1644896744886",
+        //             "action": "SELL",
+        //             "amount": "0.01",
+        //             "price": "15000",
+        //             "timeInForce": "GTC"
         //         }
         //
         // fetchOrder
@@ -979,11 +989,12 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#createOrder
          * @description create a trade order
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_order.md
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1025,12 +1036,12 @@ export default class bitopro extends Exchange {
         const response = await this.privatePostOrdersPair(this.extend(request, params));
         //
         //     {
-        //         orderId: '2220595581',
-        //         timestamp: '1644896744886',
-        //         action: 'SELL',
-        //         amount: '0.01',
-        //         price: '15000',
-        //         timeInForce: 'GTC'
+        //         "orderId": "2220595581",
+        //         "timestamp": "1644896744886",
+        //         "action": "SELL",
+        //         "amount": "0.01",
+        //         "price": "15000",
+        //         "timeInForce": "GTC"
         //     }
         //
         return this.parseOrder(response, market);
@@ -1040,13 +1051,14 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#cancelOrder
          * @description cancels an open order
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_an_order.md
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelOrder() requires the symbol argument');
+            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1071,6 +1083,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#cancelOrders
          * @description cancel multiple orders
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_batch_orders.md
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
@@ -1102,6 +1115,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#cancelAllOrders
          * @description cancel all open orders
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1110,14 +1124,15 @@ export default class bitopro extends Exchange {
         const request = {
         // 'pair': market['id'], // optional
         };
-        // privateDeleteOrdersAll or privateDeleteOrdersPair
-        let method = this.safeString(this.options, 'privateDeleteOrdersPair', 'privateDeleteOrdersAll');
+        let response = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
             request['pair'] = market['id'];
-            method = 'privateDeleteOrdersPair';
+            response = await this.privateDeleteOrdersPair(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.privateDeleteOrdersAll(this.extend(request, params));
+        }
         const result = this.safeValue(response, 'data', {});
         //
         //     {
@@ -1136,12 +1151,13 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrder() requires the symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1180,14 +1196,15 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrders() requires the symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1248,6 +1265,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -1264,6 +1282,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_trades_data.md
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1271,7 +1290,7 @@ export default class bitopro extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires the symbol argument');
+            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1389,6 +1408,7 @@ export default class bitopro extends Exchange {
             'tagTo': tag,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.safeNumber(transaction, 'fee'),
@@ -1401,6 +1421,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_deposit_invoices_data.md
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1452,6 +1473,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_withdraw_invoices_data.md
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1502,6 +1524,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchWithdrawal
          * @description fetch data on a currency withdrawal via the withdrawal id
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_withdraw_invoice_data.md
          * @param {string} id withdrawal id
          * @param {string} code unified currency code of the currency withdrawn, default is undefined
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
@@ -1541,6 +1564,7 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#withdraw
          * @description make a withdrawal
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_withdraw_invoice.md
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1616,10 +1640,10 @@ export default class bitopro extends Exchange {
          * @method
          * @name bitopro#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
+         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const response = await this.publicGetProvisioningCurrencies(params);
@@ -1669,7 +1693,7 @@ export default class bitopro extends Exchange {
                 };
                 const data = this.json(rawData);
                 const payload = this.stringToBase64(data);
-                const signature = this.hmac(payload, this.encode(this.secret), sha384);
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;

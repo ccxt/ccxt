@@ -439,6 +439,7 @@ export default class cex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -467,7 +468,7 @@ export default class cex extends Exchange {
          * @name cex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostBalance(params);
@@ -618,7 +619,7 @@ export default class cex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -681,7 +682,7 @@ export default class cex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -703,11 +704,11 @@ export default class cex extends Exchange {
         const response = await this.privatePostGetMyfee(params);
         //
         //      {
-        //          e: 'get_myfee',
-        //          ok: 'ok',
-        //          data: {
-        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
-        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
+        //          "e": "get_myfee",
+        //          "ok": "ok",
+        //          "data": {
+        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15" },
+        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15" },
         //            ..
         //          }
         //      }
@@ -737,11 +738,12 @@ export default class cex extends Exchange {
          * @method
          * @name cex#createOrder
          * @description create a trade order
+         * @see https://cex.io/rest-api#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -752,7 +754,10 @@ export default class cex extends Exchange {
                     throw new InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 }
                 else {
-                    amount = amount * price;
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const baseAmount = Precise.stringMul(amountString, priceString);
+                    amount = this.parseNumber(baseAmount);
                 }
             }
         }
@@ -781,16 +786,16 @@ export default class cex extends Exchange {
         //         "complete": false
         //     }
         //
-        const placedAmount = this.safeNumber(response, 'amount');
-        const remaining = this.safeNumber(response, 'pending');
+        const placedAmount = this.safeString(response, 'amount');
+        const remaining = this.safeString(response, 'pending');
         const timestamp = this.safeValue(response, 'time');
         const complete = this.safeValue(response, 'complete');
         const status = complete ? 'closed' : 'open';
         let filled = undefined;
         if ((placedAmount !== undefined) && (remaining !== undefined)) {
-            filled = Math.max(placedAmount - remaining, 0);
+            filled = Precise.stringMax(Precise.stringSub(placedAmount, remaining), '0');
         }
-        return {
+        return this.safeOrder({
             'id': this.safeString(response, 'id'),
             'info': response,
             'clientOrderId': undefined,
@@ -801,7 +806,7 @@ export default class cex extends Exchange {
             'side': this.safeString(response, 'type'),
             'symbol': market['symbol'],
             'status': status,
-            'price': this.safeNumber(response, 'price'),
+            'price': this.safeString(response, 'price'),
             'amount': placedAmount,
             'cost': undefined,
             'average': undefined,
@@ -809,7 +814,7 @@ export default class cex extends Exchange {
             'filled': filled,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -825,7 +830,9 @@ export default class cex extends Exchange {
         const request = {
             'id': id,
         };
-        return await this.privatePostCancelOrder(this.extend(request, params));
+        const response = await this.privatePostCancelOrder(this.extend(request, params));
+        // 'true'
+        return this.extend(this.parseOrder({}), { 'info': response, 'type': undefined, 'id': id, 'status': 'canceled' });
     }
     parseOrder(order, market = undefined) {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
@@ -835,7 +842,7 @@ export default class cex extends Exchange {
             // ISO8601 string
             timestamp = this.parse8601(timestamp);
         }
-        else {
+        else if (timestamp !== undefined) {
             // either integer or string integer
             timestamp = parseInt(timestamp);
         }
@@ -845,44 +852,50 @@ export default class cex extends Exchange {
             const quoteId = this.safeString(order, 'symbol2');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
             if (symbol in this.markets) {
                 market = this.market(symbol);
             }
         }
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
-        const price = this.safeNumber(order, 'price');
-        let amount = this.safeNumber(order, 'amount');
+        const price = this.safeString(order, 'price');
+        let amount = this.omitZero(this.safeString(order, 'amount'));
         // sell orders can have a negative amount
         // https://github.com/ccxt/ccxt/issues/5338
         if (amount !== undefined) {
-            amount = Math.abs(amount);
+            amount = Precise.stringAbs(amount);
         }
-        const remaining = this.safeNumber2(order, 'pending', 'remains');
-        const filled = amount - remaining;
+        else if (market !== undefined) {
+            const amountKey = 'a:' + market['base'] + 'cds:';
+            amount = Precise.stringAbs(this.safeString(order, amountKey));
+        }
+        const remaining = this.safeString2(order, 'pending', 'remains');
+        const filled = Precise.stringSub(amount, remaining);
         let fee = undefined;
         let cost = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-            const taCost = this.safeNumber(order, 'ta:' + market['quote']);
-            const ttaCost = this.safeNumber(order, 'tta:' + market['quote']);
-            cost = this.sum(taCost, ttaCost);
+            const taCost = this.safeString(order, 'ta:' + market['quote']);
+            const ttaCost = this.safeString(order, 'tta:' + market['quote']);
+            cost = Precise.stringAdd(taCost, ttaCost);
             const baseFee = 'fa:' + market['base'];
             const baseTakerFee = 'tfa:' + market['base'];
             const quoteFee = 'fa:' + market['quote'];
             const quoteTakerFee = 'tfa:' + market['quote'];
-            let feeRate = this.safeNumber(order, 'tradingFeeMaker');
+            let feeRate = this.safeString(order, 'tradingFeeMaker');
             if (!feeRate) {
-                feeRate = this.safeNumber(order, 'tradingFeeTaker', feeRate);
+                feeRate = this.safeString(order, 'tradingFeeTaker', feeRate);
             }
             if (feeRate) {
-                feeRate = feeRate / 100.0; // convert to mathematically-correct percentage coefficients: 1.0 = 100%
+                feeRate = Precise.stringDiv(feeRate, '100'); // convert to mathematically-correct percentage coefficients: 1.0 = 100%
             }
             if ((baseFee in order) || (baseTakerFee in order)) {
                 const baseFeeCost = this.safeNumber2(order, baseFee, baseTakerFee);
                 fee = {
                     'currency': market['base'],
-                    'rate': feeRate,
+                    'rate': this.parseNumber(feeRate),
                     'cost': baseFeeCost,
                 };
             }
@@ -890,17 +903,17 @@ export default class cex extends Exchange {
                 const quoteFeeCost = this.safeNumber2(order, quoteFee, quoteTakerFee);
                 fee = {
                     'currency': market['quote'],
-                    'rate': feeRate,
+                    'rate': this.parseNumber(feeRate),
                     'cost': quoteFeeCost,
                 };
             }
         }
         if (!cost) {
-            cost = price * filled;
+            cost = Precise.stringMul(price, filled);
         }
-        const side = order['type'];
+        const side = this.safeString(order, 'type');
         let trades = undefined;
-        const orderId = order['id'];
+        const orderId = this.safeString(order, 'id');
         if ('vtx' in order) {
             trades = [];
             for (let i = 0; i < order['vtx'].length; i++) {
@@ -908,26 +921,26 @@ export default class cex extends Exchange {
                 const tradeSide = this.safeString(item, 'type');
                 if (tradeSide === 'cancel') {
                     // looks like this might represent the cancelled part of an order
-                    //   { id: '4426729543',
-                    //     type: 'cancel',
-                    //     time: '2017-09-22T00:24:30.476Z',
-                    //     user: 'up106404164',
-                    //     c: 'user:up106404164:a:BCH',
-                    //     d: 'order:4426728375:a:BCH',
-                    //     a: '0.09935956',
-                    //     amount: '0.09935956',
-                    //     balance: '0.42580261',
-                    //     symbol: 'BCH',
-                    //     order: '4426728375',
-                    //     buy: null,
-                    //     sell: null,
-                    //     pair: null,
-                    //     pos: null,
-                    //     cs: '0.42580261',
-                    //     ds: 0 }
+                    //   { "id": "4426729543",
+                    //     "type": "cancel",
+                    //     "time": "2017-09-22T00:24:30.476Z",
+                    //     "user": "up106404164",
+                    //     "c": "user:up106404164:a:BCH",
+                    //     "d": "order:4426728375:a:BCH",
+                    //     "a": "0.09935956",
+                    //     "amount": "0.09935956",
+                    //     "balance": "0.42580261",
+                    //     "symbol": "BCH",
+                    //     "order": "4426728375",
+                    //     "buy": null,
+                    //     "sell": null,
+                    //     "pair": null,
+                    //     "pos": null,
+                    //     "cs": "0.42580261",
+                    //     "ds": 0 }
                     continue;
                 }
-                const tradePrice = this.safeNumber(item, 'price');
+                const tradePrice = this.safeString(item, 'price');
                 if (tradePrice === undefined) {
                     // this represents the order
                     //   {
@@ -1031,16 +1044,16 @@ export default class cex extends Exchange {
                 //     "fee_amount": "0.03"
                 //   }
                 const tradeTimestamp = this.parse8601(this.safeString(item, 'time'));
-                const tradeAmount = this.safeNumber(item, 'amount');
-                const feeCost = this.safeNumber(item, 'fee_amount');
-                let absTradeAmount = (tradeAmount < 0) ? -tradeAmount : tradeAmount;
+                const tradeAmount = this.safeString(item, 'amount');
+                const feeCost = this.safeString(item, 'fee_amount');
+                let absTradeAmount = Precise.stringAbs(tradeAmount);
                 let tradeCost = undefined;
                 if (tradeSide === 'sell') {
                     tradeCost = absTradeAmount;
-                    absTradeAmount = this.sum(feeCost, tradeCost) / tradePrice;
+                    absTradeAmount = Precise.stringDiv(Precise.stringAdd(feeCost, tradeCost), tradePrice);
                 }
                 else {
-                    tradeCost = absTradeAmount * tradePrice;
+                    tradeCost = Precise.stringMul(absTradeAmount, tradePrice);
                 }
                 trades.push({
                     'id': this.safeString(item, 'id'),
@@ -1048,12 +1061,12 @@ export default class cex extends Exchange {
                     'datetime': this.iso8601(tradeTimestamp),
                     'order': orderId,
                     'symbol': symbol,
-                    'price': tradePrice,
-                    'amount': absTradeAmount,
-                    'cost': tradeCost,
+                    'price': this.parseNumber(tradePrice),
+                    'amount': this.parseNumber(absTradeAmount),
+                    'cost': this.parseNumber(tradeCost),
                     'side': tradeSide,
                     'fee': {
-                        'cost': feeCost,
+                        'cost': this.parseNumber(feeCost),
                         'currency': market['quote'],
                     },
                     'info': item,
@@ -1062,7 +1075,8 @@ export default class cex extends Exchange {
                 });
             }
         }
-        return {
+        return this.safeOrder({
+            'info': order,
             'id': orderId,
             'clientOrderId': undefined,
             'datetime': this.iso8601(timestamp),
@@ -1083,9 +1097,8 @@ export default class cex extends Exchange {
             'remaining': remaining,
             'trades': trades,
             'fee': fee,
-            'info': order,
             'average': undefined,
-        };
+        });
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1120,15 +1133,15 @@ export default class cex extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
-        const method = 'privatePostArchivedOrdersPair';
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
+        await this.loadMarkets();
+        const method = 'privatePostArchivedOrdersPair';
         const market = this.market(symbol);
         const request = { 'pair': market['id'] };
         const response = await this[method](this.extend(request, params));
@@ -1273,95 +1286,95 @@ export default class cex extends Exchange {
         const results = [];
         for (let i = 0; i < response.length; i++) {
             // cancelled (unfilled):
-            //    { id: '4005785516',
-            //     type: 'sell',
-            //     time: '2017-07-18T19:08:34.223Z',
-            //     lastTxTime: '2017-07-18T19:08:34.396Z',
-            //     lastTx: '4005785522',
-            //     pos: null,
-            //     status: 'c',
-            //     symbol1: 'ETH',
-            //     symbol2: 'GBP',
-            //     amount: '0.20000000',
-            //     price: '200.5625',
-            //     remains: '0.20000000',
-            //     'a:ETH:cds': '0.20000000',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '10155061217',
-            //     orderId: '4005785516' }
+            //    { "id": "4005785516",
+            //     "type": "sell",
+            //     "time": "2017-07-18T19:08:34.223Z",
+            //     "lastTxTime": "2017-07-18T19:08:34.396Z",
+            //     "lastTx": "4005785522",
+            //     "pos": null,
+            //     "status": "c",
+            //     "symbol1": "ETH",
+            //     "symbol2": "GBP",
+            //     "amount": "0.20000000",
+            //     "price": "200.5625",
+            //     "remains": "0.20000000",
+            //     'a:ETH:cds': "0.20000000",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.16",
+            //     "tradingFeeUserVolumeAmount": "10155061217",
+            //     "orderId": "4005785516" }
             // --
             // cancelled (partially filled buy):
-            //    { id: '4084911657',
-            //     type: 'buy',
-            //     time: '2017-08-05T03:18:39.596Z',
-            //     lastTxTime: '2019-03-19T17:37:46.404Z',
-            //     lastTx: '8459265833',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BTC',
-            //     symbol2: 'GBP',
-            //     amount: '0.05000000',
-            //     price: '2241.4692',
-            //     tfacf: '1',
-            //     remains: '0.03910535',
-            //     'tfa:GBP': '0.04',
-            //     'tta:GBP': '24.39',
-            //     'a:BTC:cds': '0.01089465',
-            //     'a:GBP:cds': '112.26',
-            //     'f:GBP:cds': '0.04',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '13336396963',
-            //     orderId: '4084911657' }
+            //    { "id": "4084911657",
+            //     "type": "buy",
+            //     "time": "2017-08-05T03:18:39.596Z",
+            //     "lastTxTime": "2019-03-19T17:37:46.404Z",
+            //     "lastTx": "8459265833",
+            //     "pos": null,
+            //     "status": "cd",
+            //     "symbol1": "BTC",
+            //     "symbol2": "GBP",
+            //     "amount": "0.05000000",
+            //     "price": "2241.4692",
+            //     "tfacf": "1",
+            //     "remains": "0.03910535",
+            //     'tfa:GBP': "0.04",
+            //     'tta:GBP': "24.39",
+            //     'a:BTC:cds': "0.01089465",
+            //     'a:GBP:cds': "112.26",
+            //     'f:GBP:cds': "0.04",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.16",
+            //     "tradingFeeUserVolumeAmount": "13336396963",
+            //     "orderId": "4084911657" }
             // --
             // cancelled (partially filled sell):
-            //    { id: '4426728375',
-            //     type: 'sell',
-            //     time: '2017-09-22T00:24:20.126Z',
-            //     lastTxTime: '2017-09-22T00:24:30.476Z',
-            //     lastTx: '4426729543',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     price: '0.11757182',
-            //     tfacf: '1',
-            //     remains: '0.09935956',
-            //     'tfa:BTC': '0.00000014',
-            //     'tta:BTC': '0.00007537',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.00007537',
-            //     'f:BTC:cds': '0.00000014',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.18',
-            //     tradingFeeUserVolumeAmount: '3466715450',
-            //     orderId: '4426728375' }
+            //    { "id": "4426728375",
+            //     "type": "sell",
+            //     "time": "2017-09-22T00:24:20.126Z",
+            //     "lastTxTime": "2017-09-22T00:24:30.476Z",
+            //     "lastTx": "4426729543",
+            //     "pos": null,
+            //     "status": "cd",
+            //     "symbol1": "BCH",
+            //     "symbol2": "BTC",
+            //     "amount": "0.10000000",
+            //     "price": "0.11757182",
+            //     "tfacf": "1",
+            //     "remains": "0.09935956",
+            //     'tfa:BTC': "0.00000014",
+            //     'tta:BTC': "0.00007537",
+            //     'a:BCH:cds': "0.10000000",
+            //     'a:BTC:cds': "0.00007537",
+            //     'f:BTC:cds': "0.00000014",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.18",
+            //     "tradingFeeUserVolumeAmount": "3466715450",
+            //     "orderId": "4426728375" }
             // --
             // filled:
-            //    { id: '5342275378',
-            //     type: 'sell',
-            //     time: '2018-01-04T00:28:12.992Z',
-            //     lastTxTime: '2018-01-04T00:28:12.992Z',
-            //     lastTx: '5342275393',
-            //     pos: null,
-            //     status: 'd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     kind: 'api',
-            //     price: '0.17',
-            //     remains: '0.00000000',
-            //     'tfa:BTC': '0.00003902',
-            //     'tta:BTC': '0.01699999',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.01699999',
-            //     'f:BTC:cds': '0.00003902',
-            //     tradingFeeMaker: '0.15',
-            //     tradingFeeTaker: '0.23',
-            //     tradingFeeUserVolumeAmount: '1525951128',
-            //     orderId: '5342275378' }
+            //    { "id": "5342275378",
+            //     "type": "sell",
+            //     "time": "2018-01-04T00:28:12.992Z",
+            //     "lastTxTime": "2018-01-04T00:28:12.992Z",
+            //     "lastTx": "5342275393",
+            //     "pos": null,
+            //     "status": "d",
+            //     "symbol1": "BCH",
+            //     "symbol2": "BTC",
+            //     "amount": "0.10000000",
+            //     "kind": "api",
+            //     "price": "0.17",
+            //     "remains": "0.00000000",
+            //     'tfa:BTC': "0.00003902",
+            //     'tta:BTC': "0.01699999",
+            //     'a:BCH:cds': "0.10000000",
+            //     'a:BTC:cds': "0.01699999",
+            //     'f:BTC:cds': "0.00003902",
+            //     "tradingFeeMaker": "0.15",
+            //     "tradingFeeTaker": "0.23",
+            //     "tradingFeeUserVolumeAmount": "1525951128",
+            //     "orderId": "5342275378" }
             // --
             // market order (buy):
             //    { "id": "6281946200",
@@ -1416,10 +1429,10 @@ export default class cex extends Exchange {
             const baseAmount = this.safeNumber(order, 'a:' + baseId + ':cds');
             const quoteAmount = this.safeNumber(order, 'a:' + quoteId + ':cds');
             const fee = this.safeNumber(order, 'f:' + quoteId + ':cds');
-            const amount = this.safeNumber(order, 'amount');
-            const price = this.safeNumber(order, 'price');
-            const remaining = this.safeNumber(order, 'remains');
-            const filled = amount - remaining;
+            const amount = this.safeString(order, 'amount');
+            const price = this.safeString(order, 'price');
+            const remaining = this.safeString(order, 'remains');
+            const filled = Precise.stringSub(amount, remaining);
             let orderAmount = undefined;
             let cost = undefined;
             let average = undefined;
@@ -1428,27 +1441,28 @@ export default class cex extends Exchange {
                 type = 'market';
                 orderAmount = baseAmount;
                 cost = quoteAmount;
-                average = orderAmount / cost;
+                average = Precise.stringDiv(orderAmount, cost);
             }
             else {
-                const ta = this.safeNumber(order, 'ta:' + quoteId, 0);
-                const tta = this.safeNumber(order, 'tta:' + quoteId, 0);
-                const fa = this.safeNumber(order, 'fa:' + quoteId, 0);
-                const tfa = this.safeNumber(order, 'tfa:' + quoteId, 0);
+                const ta = this.safeString(order, 'ta:' + quoteId, '0');
+                const tta = this.safeString(order, 'tta:' + quoteId, '0');
+                const fa = this.safeString(order, 'fa:' + quoteId, '0');
+                const tfa = this.safeString(order, 'tfa:' + quoteId, '0');
                 if (side === 'sell') {
-                    cost = this.sum(this.sum(ta, tta), this.sum(fa, tfa));
+                    cost = Precise.stringAdd(Precise.stringAdd(ta, tta), Precise.stringAdd(fa, tfa));
                 }
                 else {
-                    cost = this.sum(ta, tta) - this.sum(fa, tfa);
+                    cost = Precise.stringSub(Precise.stringAdd(ta, tta), Precise.stringAdd(fa, tfa));
                 }
                 type = 'limit';
                 orderAmount = amount;
-                average = cost / filled;
+                average = Precise.stringDiv(cost, filled);
             }
             const time = this.safeString(order, 'time');
             const lastTxTime = this.safeString(order, 'lastTxTime');
             const timestamp = this.parse8601(time);
-            results.push({
+            const safeOrder = this.safeOrder({
+                'info': order,
                 'id': this.safeString(order, 'id'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
@@ -1467,8 +1481,8 @@ export default class cex extends Exchange {
                     'cost': fee,
                     'currency': quote,
                 },
-                'info': order,
             });
+            results.push(safeOrder);
         }
         return results;
     }

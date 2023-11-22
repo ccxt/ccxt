@@ -13,9 +13,8 @@ include_once __DIR__ . '/../base/test_account.php';
 function test_fetch_accounts($exchange, $skipped_properties) {
     $method = 'fetchAccounts';
     $accounts = $exchange->fetch_accounts();
-    assert(is_array($accounts), $exchange->id . ' ' . $method . ' must return an object. ' . $exchange->json($accounts));
-    $account_values = is_array($accounts) ? array_values($accounts) : array();
-    for ($i = 0; $i < count($account_values); $i++) {
+    assert(gettype($accounts) === 'array' && array_keys($accounts) === array_keys(array_keys($accounts)), $exchange->id . ' ' . $method . ' must return an object. ' . $exchange->json($accounts));
+    for ($i = 0; $i < count($accounts); $i++) {
         test_account($exchange, $skipped_properties, $method, $accounts[$i]);
     }
 }

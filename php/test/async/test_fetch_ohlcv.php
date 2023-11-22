@@ -16,7 +16,7 @@ function test_fetch_ohlcv($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchOHLCV';
         $timeframe_keys = is_array($exchange->timeframes) ? array_keys($exchange->timeframes) : array();
-        assert(count($timeframe_keys) > 0, $exchange->id . ' ' . $method . ' - no timeframes found');
+        assert(count($timeframe_keys), $exchange->id . ' ' . $method . ' - no timeframes found');
         // prefer 1m timeframe if available, otherwise return the first one
         $chosen_timeframe_key = '1m';
         if (!$exchange->in_array($chosen_timeframe_key, $timeframe_keys)) {

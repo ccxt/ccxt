@@ -38,12 +38,11 @@ class indodax extends indodax$1 {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDeposit': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
@@ -52,6 +51,8 @@ class indodax extends indodax$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -279,6 +280,7 @@ class indodax extends indodax$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -311,7 +313,7 @@ class indodax extends indodax$1 {
          * @name indodax#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the indodax api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostGetInfo(params);
@@ -496,7 +498,7 @@ class indodax extends indodax$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the indodax api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -602,7 +604,7 @@ class indodax extends indodax$1 {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol');
+            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -613,7 +615,8 @@ class indodax extends indodax$1 {
         const response = await this.privatePostGetOrder(this.extend(request, params));
         const orders = response['return'];
         const order = this.parseOrder(this.extend({ 'id': id }, orders['order']), market);
-        return this.extend({ 'info': response }, order);
+        order['info'] = response;
+        return order;
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -662,7 +665,7 @@ class indodax extends indodax$1 {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the indodax api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -670,13 +673,10 @@ class indodax extends indodax$1 {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets();
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-            symbol = market['symbol'];
-            request['pair'] = market['id'];
-        }
+        const market = this.market(symbol);
+        const request = {
+            'pair': market['id'],
+        };
         const response = await this.privatePostOrderHistory(this.extend(request, params));
         let orders = this.parseOrders(response['return']['orders'], market);
         orders = this.filterBy(orders, 'status', 'closed');
@@ -691,7 +691,7 @@ class indodax extends indodax$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the indodax api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1003,6 +1003,7 @@ class indodax extends indodax$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString(transaction, 'withdraw_memo'),
+            'internal': undefined,
             'fee': fee,
             'info': transaction,
         };

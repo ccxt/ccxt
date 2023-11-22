@@ -7,10 +7,12 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 import json
+from ccxt.base.types import Int, Str
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 
 
 class bittrex(ccxt.async_support.bittrex):
@@ -19,6 +21,15 @@ class bittrex(ccxt.async_support.bittrex):
         return self.deep_extend(super(bittrex, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchBalance': True,
                 'watchHeartbeat': True,
                 'watchMyTrades': True,
@@ -48,6 +59,15 @@ class bittrex(ccxt.async_support.bittrex):
                 'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': self.milliseconds(),
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'INVALID_APIKEY': AuthenticationError,
+                    'UNAUTHORIZED_USER': AuthenticationError,
+                },
             },
         })
 
@@ -99,6 +119,7 @@ class bittrex(ccxt.async_support.bittrex):
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def authenticate(self, params={}):
+        self.check_required_credentials()
         await self.load_markets()
         request = await self.negotiate()
         return await self.send_request_to_authenticate(request, False, params)
@@ -119,7 +140,7 @@ class bittrex(ccxt.async_support.bittrex):
                 'negotiation': negotiation,
                 'method': self.handle_authenticate,
             }
-            self.spawn(self.watch, url, messageHash, request, requestId, subscription)
+            self.watch(url, messageHash, request, requestId, subscription)
         return await future
 
     async def send_authenticated_request_to_subscribe(self, authentication, messageHash, params={}):
@@ -140,8 +161,8 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_authentication_expiring(self, client: Client, message):
         #
         #     {
-        #         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
-        #         M: [{H: 'C3', M: 'authenticationExpiring', A: []}]
+        #         "C": "d-B1733F58-B,0|vT7,1|vT8,2|vBR,3",
+        #         "M": [{H: "C3", M: "authenticationExpiring", A: []}]
         #     }
         #
         # resend the authentication request and refresh the subscription
@@ -173,16 +194,16 @@ class bittrex(ccxt.async_support.bittrex):
             response = await self.signalrGetNegotiate(self.extend(request, params))
             #
             #     {
-            #         Url: '/signalr/v1.1/signalr',
-            #         ConnectionToken: 'lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O',
-            #         ConnectionId: 'a2afb0f7-346f-4f32-b7c7-01e04584b86a',
-            #         KeepAliveTimeout: 20,
-            #         DisconnectTimeout: 30,
-            #         ConnectionTimeout: 110,
-            #         TryWebSockets: True,
-            #         ProtocolVersion: '1.5',
-            #         TransportConnectTimeout: 5,
-            #         LongPollDelay: 0
+            #         "Url": "/signalr/v1.1/signalr",
+            #         "ConnectionToken": "lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O",
+            #         "ConnectionId": "a2afb0f7-346f-4f32-b7c7-01e04584b86a",
+            #         "KeepAliveTimeout": 20,
+            #         "DisconnectTimeout": 30,
+            #         "ConnectionTimeout": 110,
+            #         "TryWebSockets": True,
+            #         "ProtocolVersion": "1.5",
+            #         "TransportConnectTimeout": 5,
+            #         "LongPollDelay": 0
             #     }
             #
             result = {
@@ -199,7 +220,7 @@ class bittrex(ccxt.async_support.bittrex):
         }))
         return await self.signalrGetStart(request)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -224,22 +245,22 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_order(self, client: Client, message):
         #
         #     {
-        #         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        #         sequence: 41,
-        #         delta: {
-        #             id: 'b91eff76-10eb-4382-834a-b753b770283e',
-        #             marketSymbol: 'BTC-USDT',
-        #             direction: 'BUY',
-        #             type: 'LIMIT',
-        #             quantity: '0.01000000',
-        #             limit: '3000.00000000',
-        #             timeInForce: 'GOOD_TIL_CANCELLED',
-        #             fillQuantity: '0.00000000',
-        #             commission: '0.00000000',
-        #             proceeds: '0.00000000',
-        #             status: 'OPEN',
-        #             createdAt: '2020-10-07T12:51:43.16Z',
-        #             updatedAt: '2020-10-07T12:51:43.16Z'
+        #         "accountId": "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        #         "sequence": 41,
+        #         "delta": {
+        #             "id": "b91eff76-10eb-4382-834a-b753b770283e",
+        #             "marketSymbol": "BTC-USDT",
+        #             "direction": "BUY",
+        #             "type": "LIMIT",
+        #             "quantity": "0.01000000",
+        #             "limit": "3000.00000000",
+        #             "timeInForce": "GOOD_TIL_CANCELLED",
+        #             "fillQuantity": "0.00000000",
+        #             "commission": "0.00000000",
+        #             "proceeds": "0.00000000",
+        #             "status": "OPEN",
+        #             "createdAt": "2020-10-07T12:51:43.16Z",
+        #             "updatedAt": "2020-10-07T12:51:43.16Z"
         #         }
         #     }
         #
@@ -257,7 +278,7 @@ class bittrex(ccxt.async_support.bittrex):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bittrex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         authentication = await self.authenticate()
@@ -270,13 +291,13 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_balance(self, client: Client, message):
         #
         #     {
-        #         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        #         sequence: 9,
-        #         delta: {
-        #             currencySymbol: 'USDT',
-        #             total: '32.88918476',
-        #             available: '2.82918476',
-        #             updatedAt: '2020-10-06T13:49:20.29Z'
+        #         "accountId": "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        #         "sequence": 9,
+        #         "delta": {
+        #             "currencySymbol": "USDT",
+        #             "total": "32.88918476",
+        #             "available": "2.82918476",
+        #             "updatedAt": "2020-10-06T13:49:20.29Z"
         #         }
         #     }
         #
@@ -352,10 +373,10 @@ class bittrex(ccxt.async_support.bittrex):
         # ticker subscription update
         #
         #     {
-        #         symbol: 'BTC-USDT',
-        #         lastTradeRate: '10701.02140008',
-        #         bidRate: '10701.02140007',
-        #         askRate: '10705.71049998'
+        #         "symbol": "BTC-USDT",
+        #         "lastTradeRate": "10701.02140008",
+        #         "bidRate": "10701.02140007",
+        #         "askRate": "10705.71049998"
         #     }
         #
         ticker = self.parse_ticker(message)
@@ -366,7 +387,7 @@ class bittrex(ccxt.async_support.bittrex):
         messageHash = name + '_' + market['id']
         client.resolve(ticker, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -401,17 +422,17 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
-        #         sequence: 28286,
-        #         marketSymbol: 'BTC-USD',
-        #         interval: 'MINUTE_1',
-        #         delta: {
-        #             startsAt: '2020-10-05T18:52:00Z',
-        #             open: '10706.62600000',
-        #             high: '10706.62600000',
-        #             low: '10703.25900000',
-        #             close: '10703.26000000',
-        #             volume: '0.86822264',
-        #             quoteVolume: '9292.84594774'
+        #         "sequence": 28286,
+        #         "marketSymbol": "BTC-USD",
+        #         "interval": "MINUTE_1",
+        #         "delta": {
+        #             "startsAt": "2020-10-05T18:52:00Z",
+        #             "open": "10706.62600000",
+        #             "high": "10706.62600000",
+        #             "low": "10703.25900000",
+        #             "close": "10703.26000000",
+        #             "volume": "0.86822264",
+        #             "quoteVolume": "9292.84594774"
         #         }
         #     }
         #
@@ -432,14 +453,14 @@ class bittrex(ccxt.async_support.bittrex):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bittrex api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -464,17 +485,17 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_trades(self, client: Client, message):
         #
         #     {
-        #         deltas: [
+        #         "deltas": [
         #             {
-        #                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
-        #                 executedAt: '2020-10-05T23:02:17.49Z',
-        #                 quantity: '0.00166790',
-        #                 rate: '10763.97000000',
-        #                 takerSide: 'BUY'
+        #                 "id": "5bf67885-a0a8-4c62-b73d-534e480e3332",
+        #                 "executedAt": "2020-10-05T23:02:17.49Z",
+        #                 "quantity": "0.00166790",
+        #                 "rate": "10763.97000000",
+        #                 "takerSide": "BUY"
         #             }
         #         ],
-        #         sequence: 24391,
-        #         marketSymbol: 'BTC-USD'
+        #         "sequence": 24391,
+        #         "marketSymbol": "BTC-USD"
         #     }
         #
         deltas = self.safe_value(message, 'deltas', [])
@@ -493,7 +514,7 @@ class bittrex(ccxt.async_support.bittrex):
         self.trades[symbol] = stored
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
@@ -503,7 +524,8 @@ class bittrex(ccxt.async_support.bittrex):
         :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         await self.load_markets()
-        symbol = self.symbol(symbol)
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         authentication = await self.authenticate()
         trades = await self.subscribe_to_my_trades(authentication, params)
         if self.newUpdates:
@@ -517,18 +539,18 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_my_trades(self, client: Client, message):
         #
         #     {
-        #         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        #         sequence: 42,
-        #         deltas: [
+        #         "accountId": "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        #         "sequence": 42,
+        #         "deltas": [
         #             {
-        #                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
-        #                 marketSymbol: 'BTC-USDT',
-        #                 executedAt: '2020-10-05T23:02:17.49Z',
-        #                 quantity: '0.00166790',
-        #                 rate: '10763.97000000',
-        #                 orderId: "string(uuid)",
-        #                 commission: '0.00000000',
-        #                 isTaker: False
+        #                 "id": "5bf67885-a0a8-4c62-b73d-534e480e3332",
+        #                 "marketSymbol": "BTC-USDT",
+        #                 "executedAt": "2020-10-05T23:02:17.49Z",
+        #                 "quantity": "0.00166790",
+        #                 "rate": "10763.97000000",
+        #                 "orderId": "string(uuid)",
+        #                 "commission": "0.00000000",
+        #                 "isTaker": False
         #             }
         #         ]
         #     }
@@ -545,7 +567,7 @@ class bittrex(ccxt.async_support.bittrex):
         messageHash = 'execution'
         client.resolve(stored, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -589,7 +611,7 @@ class bittrex(ccxt.async_support.bittrex):
         try:
             # 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             # todo: self is a synch blocking call in ccxt.php - make it async
-            snapshot = await self.fetch_order_book(symbol, limit)
+            snapshot = await self.fetch_rest_order_book_safe(symbol, limit)
             orderbook = self.orderbooks[symbol]
             messages = orderbook.cache
             # make sure we have at least one delta before fetching the snapshot
@@ -603,8 +625,7 @@ class bittrex(ccxt.async_support.bittrex):
             # then we cannot align it with the cached deltas and we need to
             # retry synchronizing in maxAttempts
             if (sequence is not None) and (nonce < sequence):
-                options = self.safe_value(self.options, 'fetchOrderBookSnapshot', {})
-                maxAttempts = self.safe_integer(options, 'maxAttempts', 3)
+                maxAttempts = self.handle_option('watchOrderBook', 'maxRetries', 3)
                 numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
                 # retry to syncrhonize if we haven't reached maxAttempts yet
                 if numAttempts < maxAttempts:
@@ -622,8 +643,8 @@ class bittrex(ccxt.async_support.bittrex):
                 # unroll the accumulated deltas
                 # 3. Playback the cached Level 2 data flow.
                 for i in range(0, len(messages)):
-                    message = messages[i]
-                    self.handle_order_book_message(client, message, orderbook)
+                    messageItem = messages[i]
+                    self.handle_order_book_message(client, messageItem, orderbook)
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:
@@ -640,8 +661,8 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_delta(self, bookside, delta):
         #
         #     {
-        #         quantity: '0.05100000',
-        #         rate: '10694.86410031'
+        #         "quantity": "0.05100000",
+        #         "rate": "10694.86410031"
         #     }
         #
         price = self.safe_float(delta, 'rate')
@@ -651,8 +672,8 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_deltas(self, bookside, deltas):
         #
         #     [
-        #         {quantity: '0.05100000', rate: '10694.86410031'},
-        #         {quantity: '0', rate: '10665.72578226'}
+        #         {quantity: '0.05100000', rate: "10694.86410031"},
+        #         {quantity: "0", rate: "10665.72578226"}
         #     ]
         #
         for i in range(0, len(deltas)):
@@ -661,14 +682,14 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_order_book(self, client: Client, message):
         #
         #     {
-        #         marketSymbol: 'BTC-USDT',
-        #         depth: 25,
-        #         sequence: 3009387,
-        #         bidDeltas: [
-        #             {quantity: '0.05100000', rate: '10694.86410031'},
-        #             {quantity: '0', rate: '10665.72578226'}
+        #         "marketSymbol": "BTC-USDT",
+        #         "depth": 25,
+        #         "sequence": 3009387,
+        #         "bidDeltas": [
+        #             {quantity: '0.05100000', rate: "10694.86410031"},
+        #             {quantity: "0", rate: "10665.72578226"}
         #         ],
-        #         askDeltas: []
+        #         "askDeltas": []
         #     }
         #
         marketId = self.safe_string(message, 'marketSymbol')
@@ -685,14 +706,14 @@ class bittrex(ccxt.async_support.bittrex):
     def handle_order_book_message(self, client: Client, message, orderbook):
         #
         #     {
-        #         marketSymbol: 'BTC-USDT',
-        #         depth: 25,
-        #         sequence: 3009387,
-        #         bidDeltas: [
-        #             {quantity: '0.05100000', rate: '10694.86410031'},
-        #             {quantity: '0', rate: '10665.72578226'}
+        #         "marketSymbol": "BTC-USDT",
+        #         "depth": 25,
+        #         "sequence": 3009387,
+        #         "bidDeltas": [
+        #             {quantity: '0.05100000', rate: "10694.86410031"},
+        #             {quantity: "0", rate: "10665.72578226"}
         #         ],
-        #         askDeltas: []
+        #         "askDeltas": []
         #     }
         #
         marketId = self.safe_string(message, 'marketSymbol')
@@ -720,14 +741,14 @@ class bittrex(ccxt.async_support.bittrex):
         #
         # success
         #
-        #     {R: [{Success: True, ErrorCode: null}], I: '1601891513224'}
+        #     {R: [{Success: True, ErrorCode: null}], I: "1601891513224"}
         #
         # failure
         # todo add error handling and future rejections
         #
         #     {
-        #         I: '1601942374563',
-        #         E: "There was an error invoking Hub method 'c3.Authenticate'."
+        #         "I": "1601942374563",
+        #         "E": "There was an error invoking Hub method "c3.Authenticate"."
         #     }
         #
         I = self.safe_string(message, 'I')  # noqa: E741
@@ -745,23 +766,66 @@ class bittrex(ccxt.async_support.bittrex):
             method(client, message, subscription)
         return message
 
+    def handle_error_message(self, client: Client, message):
+        #
+        #    {
+        #        "R": [{Success: False, ErrorCode: "UNAUTHORIZED_USER"}, ...],
+        #        "I": "1698601759267"
+        #    }
+        #    {
+        #        "R": {Success: False, ErrorCode: "INVALID_APIKEY"},
+        #        "I": "1698601759266"
+        #    }
+        #
+        R = self.safe_value(message, 'R')
+        if R is None:
+            # Return there is no error
+            return False
+        I = self.safe_string(message, 'I')
+        errorCode = None
+        if isinstance(R, list):
+            for i in range(0, len(R)):
+                response = self.safe_value(R, i)
+                success = self.safe_value(response, 'Success', True)
+                if not success:
+                    errorCode = self.safe_string(response, 'ErrorCode')
+                    break
+        else:
+            success = self.safe_value(R, 'Success', True)
+            if not success:
+                errorCode = self.safe_string(R, 'ErrorCode')
+        if errorCode is None:
+            # Return there is no error
+            return False
+        feedback = self.id + ' ' + errorCode
+        try:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            if message is not None:
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
+            raise ExchangeError(feedback)
+        except Exception as e:
+            if isinstance(e, AuthenticationError):
+                client.reject(e, 'authenticate')
+            client.reject(e, I)
+        return True
+
     def handle_message(self, client: Client, message):
         #
         # subscription confirmation
         #
         #     {
-        #         R: [
+        #         "R": [
         #             {Success: True, ErrorCode: null}
         #         ],
-        #         I: '1601899375696'
+        #         "I": "1601899375696"
         #     }
         #
         # heartbeat subscription update
         #
         #     {
-        #         C: 'd-6010FB90-B,0|o_b,0|o_c,2|8,1F4E',
-        #         M: [
-        #             {H: 'C3', M: 'heartbeat', A: []}
+        #         "C": "d-6010FB90-B,0|o_b,0|o_c,2|8,1F4E",
+        #         "M": [
+        #             {H: "C3", M: "heartbeat", A: []}
         #         ]
         #     }
         #
@@ -772,13 +836,13 @@ class bittrex(ccxt.async_support.bittrex):
         # subscription update
         #
         #     {
-        #         C: 'd-ED78B69D-E,0|rq4,0|rq5,2|puI,60C',
-        #         M: [
+        #         "C": "d-ED78B69D-E,0|rq4,0|rq5,2|puI,60C",
+        #         "M": [
         #             {
-        #                 H: 'C3',
-        #                 M: 'ticker',  # orderBook, trade, candle, balance, order
-        #                 A: [
-        #                     'q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=='
+        #                 "H": "C3",
+        #                 "M": "ticker",  # orderBook, trade, candle, balance, order
+        #                 "A": [
+        #                     "q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=="
         #                 ]
         #             }
         #         ]
@@ -787,10 +851,12 @@ class bittrex(ccxt.async_support.bittrex):
         # authentication expiry notification
         #
         #     {
-        #         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
-        #         M: [{H: 'C3', M: 'authenticationExpiring', A: []}]
+        #         "C": "d-B1733F58-B,0|vT7,1|vT8,2|vBR,3",
+        #         "M": [{H: "C3", M: "authenticationExpiring", A: []}]
         #     }
         #
+        if self.handle_error_message(client, message):
+            return
         methods = {
             'authenticationExpiring': self.handle_authentication_expiring,
             'order': self.handle_order,

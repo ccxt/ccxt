@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bit2c extends Exchange {
 
@@ -21,6 +22,7 @@ class bit2c extends Exchange {
             'name' => 'Bit2C',
             'countries' => array( 'IL' ), // Israel
             'rateLimit' => 3000,
+            'pro' => false,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -33,17 +35,18 @@ class bit2c extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchDepositAddress' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -69,6 +72,7 @@ class bit2c extends Exchange {
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
+                'ws' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -118,10 +122,10 @@ class bit2c extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/NIS' => array( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS', 'baseId' => 'Btc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
-                'ETH/NIS' => array( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS', 'baseId' => 'Eth', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
-                'LTC/NIS' => array( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS', 'baseId' => 'Ltc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
-                'USDC/NIS' => array( 'id' => 'UsdcNis', 'symbol' => 'USDC/NIS', 'base' => 'USDC', 'quote' => 'NIS', 'baseId' => 'Usdc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
+                'BTC/NIS' => $this->safe_market_structure(array( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS', 'baseId' => 'Btc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true )),
+                'ETH/NIS' => $this->safe_market_structure(array( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS', 'baseId' => 'Eth', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true )),
+                'LTC/NIS' => $this->safe_market_structure(array( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS', 'baseId' => 'Ltc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true )),
+                'USDC/NIS' => $this->safe_market_structure(array( 'id' => 'UsdcNis', 'symbol' => 'USDC/NIS', 'base' => 'USDC', 'quote' => 'NIS', 'baseId' => 'Usdc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true )),
             ),
             'fees' => array(
                 'trading' => array(
@@ -180,7 +184,7 @@ class bit2c extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -201,12 +205,12 @@ class bit2c extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bit2c api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetAccountBalanceV2 ($params));
@@ -256,7 +260,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -275,7 +279,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
         $averagePrice = $this->safe_string($ticker, 'av');
@@ -305,7 +309,7 @@ class bit2c extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -323,7 +327,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -331,7 +335,7 @@ class bit2c extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the bit2c api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -417,7 +421,7 @@ class bit2c extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bit2c api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -458,13 +462,13 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
-             * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bit2c api endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -516,7 +520,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, ?array $market = null): array {
         //
         //      createOrder
         //      {
@@ -708,7 +712,7 @@ class bit2c extends Exchange {
         return $newString;
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -831,19 +835,19 @@ class bit2c extends Exchange {
             $response = Async\await($this->privatePostFundsAddCoinFundsRequest (array_merge($request, $params)));
             //
             //     {
-            //         'address' => '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-            //         'hasTx' => False
+            //         "address" => "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+            //         "hasTx" => False
             //     }
             //
             return $this->parse_deposit_address($response, $currency);
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     {
-        //         'address' => '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        //         'hasTx' => False
+        //         "address" => "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        //         "hasTx" => False
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');

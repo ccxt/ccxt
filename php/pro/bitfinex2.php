@@ -205,7 +205,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             $trades = Async\await($this->subscribe('trades', $symbol, $params));
             if ($this->newUpdates) {
@@ -254,10 +254,10 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function handle_my_trade(Client $client, $message, $subscription = array ()) {
         //
         // $trade execution
-        // $array(
+        // array(
         //     0,
         //     "te", // or tu
-        //     $array(
+        //     array(
         //        1133411090,
         //        "tLTCUST",
         //        1655110144598,
@@ -283,13 +283,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheBySymbolById ($limit);
         }
-        $array = $this->myTrades;
-        $array->append ($trade);
-        $this->myTrades = $array;
+        $tradesArray = $this->myTrades;
+        $tradesArray->append ($trade);
+        $this->myTrades = $tradesArray;
         // generic $subscription
-        $client->resolve ($array, $name);
+        $client->resolve ($tradesArray, $name);
         // specific $subscription
-        $client->resolve ($array, $messageHash);
+        $client->resolve ($tradesArray, $messageHash);
     }
 
     public function handle_trades(Client $client, $message, $subscription) {
@@ -313,7 +313,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //
         //    array(
         //        360141,
-        //        'te',
+        //        "te",
         //        array(
         //            1128060969, // id
         //            1654702500098, // mts
@@ -566,7 +566,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // first $message (snapshot)
         //
         //     array(
-        //         18691, // $channel $id
+        //         18691, // $channel id
         //         array(
         //             array( 7364.8, 10, 4.354802 ), // $price, count, $size > 0 = bid
         //             array( 7364.7, 1, 0.00288831 ),
@@ -580,7 +580,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // subsequent updates
         //
         //     array(
-        //         358169, // $channel $id
+        //         358169, // $channel id
         //         array(
         //            1807.1, // $price
         //            0, // cound
@@ -594,7 +594,6 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $messageHash = $channel . ':' . $marketId;
         $prec = $this->safe_string($subscription, 'prec', 'P0');
         $isRaw = ($prec === 'R0');
-        $id = $this->safe_string($message, 0);
         // if it is an initial snapshot
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -614,9 +613,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     $size = ($delta[2] < 0) ? -$delta[2] : $delta[2];
                     $side = ($delta[2] < 0) ? 'asks' : 'bids';
                     $bookside = $orderbook[$side];
-                    $id = $this->safe_string($delta, 0);
+                    $idString = $this->safe_string($delta, 0);
                     $price = $this->safe_float($delta, 1);
-                    $bookside->store ($price, $size, $id);
+                    $bookside->store ($price, $size, $idString);
                 }
             } else {
                 $deltas = $message[1];
@@ -631,25 +630,27 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                     $bookside->store ($price, $size, $counter);
                 }
             }
+            $orderbook['symbol'] = $symbol;
             $client->resolve ($orderbook, $messageHash);
         } else {
             $deltas = $message[1];
-            $orderbook = $this->orderbooks[$symbol];
+            $orderbookItem = $this->orderbooks[$symbol];
             if ($isRaw) {
                 $price = $this->safe_string($deltas, 1);
                 $size = ($deltas[2] < 0) ? -$deltas[2] : $deltas[2];
                 $side = ($deltas[2] < 0) ? 'asks' : 'bids';
-                $bookside = $orderbook[$side];
+                $bookside = $orderbookItem[$side];
                 // $price = 0 means that you have to remove the order from your book
                 $amount = Precise::string_gt($price, '0') ? $size : '0';
-                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $id);
+                $idString = $this->safe_string($deltas, 0);
+                $bookside->store ($this->parse_number($price), $this->parse_number($amount), $idString);
             } else {
                 $amount = $this->safe_string($deltas, 2);
                 $counter = $this->safe_string($deltas, 1);
                 $price = $this->safe_string($deltas, 0);
                 $size = Precise::string_lt($amount, '0') ? Precise::string_neg($amount) : $amount;
                 $side = Precise::string_lt($amount, '0') ? 'asks' : 'bids';
-                $bookside = $orderbook[$side];
+                $bookside = $orderbookItem[$side];
                 $bookside->store ($this->parse_number($price), $this->parse_number($size), $this->parse_number($counter));
             }
             $client->resolve ($orderbook, $messageHash);
@@ -658,7 +659,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
 
     public function handle_checksum(Client $client, $message, $subscription) {
         //
-        // array( 173904, 'cs', -890884919 )
+        // array( 173904, "cs", -890884919 )
         //
         $marketId = $this->safe_string($subscription, 'symbol');
         $symbol = $this->safe_symbol($marketId);
@@ -672,16 +673,19 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $stringArray = array();
         $bids = $book['bids'];
         $asks = $book['asks'];
+        $prec = $this->safe_string($subscription, 'prec', 'P0');
+        $isRaw = ($prec === 'R0');
+        $idToCheck = $isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for ($i = 0; $i < $depth; $i++) {
             $bid = $this->safe_value($bids, $i);
             $ask = $this->safe_value($asks, $i);
             if ($bid !== null) {
-                $stringArray[] = $this->number_to_string($bids[$i][0]);
+                $stringArray[] = $this->number_to_string($bids[$i][$idToCheck]);
                 $stringArray[] = $this->number_to_string($bids[$i][1]);
             }
             if ($ask !== null) {
-                $stringArray[] = $this->number_to_string($asks[$i][0]);
+                $stringArray[] = $this->number_to_string($asks[$i][$idToCheck]);
                 $stringArray[] = $this->number_to_string(-$asks[$i][1]);
             }
         }
@@ -700,7 +704,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
              * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $balanceType = $this->safe_string($params, 'wallet', 'exchange'); // exchange, margin
@@ -715,24 +719,24 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // snapshot (exchange . margin together)
         //   array(
         //       0,
-        //       'ws',
+        //       "ws",
         //       array(
         //           array(
-        //               'exchange',
-        //               'LTC',
+        //               "exchange",
+        //               "LTC",
         //               0.05479727,
         //               0,
         //               null,
-        //               'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //               "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //               null,
         //           )
         //           array(
-        //               'margin',
-        //               'USTF0',
+        //               "margin",
+        //               "USTF0",
         //               11.960650700086292,
         //               0,
         //               null,
-        //               'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //               "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //               null,
         //           ),
         //       ),
@@ -741,22 +745,22 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // spot
         //   array(
         //       0,
-        //       'wu',
+        //       "wu",
         //       array(
-        //         'exchange',
-        //         'LTC', // currency
+        //         "exchange",
+        //         "LTC", // currency
         //         0.06729727, // wallet $balance
         //         0, // unsettled $balance
         //         0.06729727, // available $balance might be null
-        //         'Exchange 0.4 LTC for UST @ 65.075',
+        //         "Exchange 0.4 LTC for UST @ 65.075",
         //         {
-        //           reason => 'TRADE',
-        //           order_id => 96596397973,
-        //           order_id_oppo => 96596632735,
-        //           trade_price => '65.075',
-        //           trade_amount => '-0.4',
-        //           order_cid => 1654636218766,
-        //           order_gid => null
+        //           "reason" => "TRADE",
+        //           "order_id" => 96596397973,
+        //           "order_id_oppo" => 96596632735,
+        //           "trade_price" => "65.075",
+        //           "trade_amount" => "-0.4",
+        //           "order_cid" => 1654636218766,
+        //           "order_gid" => null
         //         }
         //       )
         //   )
@@ -764,12 +768,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         // margin
         //
         //   array(
-        //       'margin',
-        //       'USTF0',
+        //       "margin",
+        //       "USTF0",
         //       11.960650700086292, // total
         //       0,
         //       6.776250700086292, // available
-        //       'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //       "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //       null
         //   )
         //
@@ -804,12 +808,12 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function parse_ws_balance($balance) {
         //
         //     array(
-        //         'exchange',
-        //         'LTC',
+        //         "exchange",
+        //         "LTC",
         //         0.05479727, // $balance
         //         0,
         //         null, // available null if not calculated yet
-        //         'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //         "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //         null,
         //     )
         //
@@ -826,10 +830,10 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function handle_system_status(Client $client, $message) {
         //
         //     {
-        //         event => 'info',
-        //         version => 2,
-        //         serverId => 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        //         platform => array( status => 1 ), // 1 for operative, 0 for maintenance
+        //         "event" => "info",
+        //         "version" => 2,
+        //         "serverId" => "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        //         "platform" => array( status => 1 ), // 1 for operative, 0 for maintenance
         //     }
         //
         return $message;
@@ -838,14 +842,14 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
-        //         event => 'subscribed',
-        //         channel => 'book',
-        //         chanId => 67473,
-        //         symbol => 'tBTCUSD',
-        //         prec => 'P0',
-        //         freq => 'F0',
-        //         len => '25',
-        //         pair => 'BTCUSD'
+        //         "event" => "subscribed",
+        //         "channel" => "book",
+        //         "chanId" => 67473,
+        //         "symbol" => "tBTCUSD",
+        //         "prec" => "P0",
+        //         "freq" => "F0",
+        //         "len" => "25",
+        //         "pair" => "BTCUSD"
         //     }
         //
         $channelId = $this->safe_string($message, 'chanId');
@@ -857,8 +861,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $url = $this->urls['api']['ws']['private'];
         $client = $this->client($url);
         $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $nonce = $this->milliseconds();
             $payload = 'AUTH' . (string) $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
@@ -871,8 +876,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'event' => $event,
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -881,8 +885,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $messageHash = 'authenticated';
         $status = $this->safe_string($message, 'status');
         if ($status === 'OK') {
-            // we resolve the future here permanently so authentication only happens once
-            $client->resolve ($message, $messageHash);
+            // we resolve the $future here permanently so authentication only happens once
+            $future = $this->safe_value($client->futures, $messageHash);
+            $future->resolve (true);
         } else {
             $error = new AuthenticationError ($this->json($message));
             $client->reject ($error, $messageHash);
@@ -1011,17 +1016,17 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //       97084883506, // $order $id
         //       null,
         //       1655110144596, // $clientOrderId
-        //       'tLTCUST', // $symbol
+        //       "tLTCUST", // $symbol
         //       1655110144596, // created $timestamp
         //       1655110144598, // updated $timestamp
         //       0, // $amount
         //       0.1, // amount_orig negative if sell $order
-        //       'EXCHANGE MARKET', // $type
+        //       "EXCHANGE MARKET", // $type
         //       null,
         //       null,
         //       null,
         //       0,
-        //       'EXECUTED @ 42.821(0.1)', // $status
+        //       "EXECUTED @ 42.821(0.1)", // $status
         //       null,
         //       null,
         //       42.799, // $price
@@ -1036,7 +1041,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //       null,
         //       null,
         //       null,
-        //       'BFX',
+        //       "BFX",
         //       null,
         //       null,
         //       array()
@@ -1097,25 +1102,25 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         //
         //     array(
         //         1231,
-        //         'hb',
+        //         "hb",
         //     )
         //
         // auth $message
         //    {
-        //        $event => 'auth',
-        //        status => 'OK',
-        //        chanId => 0,
-        //        userId => 3159883,
-        //        auth_id => 'ac7108e7-2f26-424d-9982-c24700dc02ca',
-        //        caps => {
-        //          orders => array( read => 1, write => 1 ),
-        //          account => array( read => 1, write => 1 ),
-        //          funding => array( read => 1, write => 1 ),
-        //          history => array( read => 1, write => 0 ),
-        //          wallets => array( read => 1, write => 1 ),
-        //          withdraw => array( read => 0, write => 1 ),
-        //          positions => array( read => 1, write => 1 ),
-        //          ui_withdraw => array( read => 0, write => 0 )
+        //        "event" => "auth",
+        //        "status" => "OK",
+        //        "chanId" => 0,
+        //        "userId" => 3159883,
+        //        "auth_id" => "ac7108e7-2f26-424d-9982-c24700dc02ca",
+        //        "caps" => {
+        //          "orders" => array( read => 1, write => 1 ),
+        //          "account" => array( read => 1, write => 1 ),
+        //          "funding" => array( read => 1, write => 1 ),
+        //          "history" => array( read => 1, write => 0 ),
+        //          "wallets" => array( read => 1, write => 1 ),
+        //          "withdraw" => array( read => 0, write => 1 ),
+        //          "positions" => array( read => 1, write => 1 ),
+        //          "ui_withdraw" => array( read => 0, write => 0 )
         //        }
         //    }
         //

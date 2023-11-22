@@ -36,12 +36,11 @@ export default class btcmarkets extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -49,6 +48,8 @@ export default class btcmarkets extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -313,13 +314,13 @@ export default class btcmarkets extends Exchange {
         const tagTo = tag;
         const addressFrom = undefined;
         const tagFrom = undefined;
-        const fee = this.safeNumber(transaction, 'fee');
+        const fee = this.safeString(transaction, 'fee');
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
         const currencyId = this.safeString(transaction, 'assetName');
         const code = this.safeCurrencyCode(currencyId);
-        let amount = this.safeNumber(transaction, 'amount');
+        let amount = this.safeString(transaction, 'amount');
         if (fee) {
-            amount -= fee;
+            amount = Precise.stringSub(amount, fee);
         }
         return {
             'id': this.safeString(transaction, 'id'),
@@ -334,14 +335,15 @@ export default class btcmarkets extends Exchange {
             'tagTo': tagTo,
             'tagFrom': tagFrom,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber(amount),
             'currency': code,
             'status': status,
             'updated': lastUpdate,
-            'comment': undefined,
+            'comment': this.safeString(transaction, 'description'),
+            'internal': undefined,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': this.parseNumber(fee),
                 'rate': undefined,
             },
             'info': transaction,
@@ -369,75 +371,74 @@ export default class btcmarkets extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const baseId = this.safeString(market, 'baseAssetName');
-            const quoteId = this.safeString(market, 'quoteAssetName');
-            const id = this.safeString(market, 'marketId');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
-            const fees = this.safeValue(this.safeValue(this.options, 'fees', {}), quote, this.fees);
-            const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
-            const minAmount = this.safeNumber(market, 'minOrderAmount');
-            const maxAmount = this.safeNumber(market, 'maxOrderAmount');
-            let minPrice = undefined;
-            if (quote === 'AUD') {
-                minPrice = pricePrecision;
-            }
-            result.push({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': fees['taker'],
-                'maker': fees['maker'],
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amountDecimals'))),
-                    'price': pricePrecision,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            });
+        return this.parseMarkets(response);
+    }
+    parseMarket(market) {
+        const baseId = this.safeString(market, 'baseAssetName');
+        const quoteId = this.safeString(market, 'quoteAssetName');
+        const id = this.safeString(market, 'marketId');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const symbol = base + '/' + quote;
+        const fees = this.safeValue(this.safeValue(this.options, 'fees', {}), quote, this.fees);
+        const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
+        const minAmount = this.safeNumber(market, 'minOrderAmount');
+        const maxAmount = this.safeNumber(market, 'maxOrderAmount');
+        let minPrice = undefined;
+        if (quote === 'AUD') {
+            minPrice = pricePrecision;
         }
-        return result;
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': fees['taker'],
+            'maker': fees['maker'],
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amountDecimals'))),
+                'price': pricePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchTime(params = {}) {
         /**
@@ -474,7 +475,7 @@ export default class btcmarkets extends Exchange {
          * @name btcmarkets#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the btcmarkets api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetAccountsMeBalances(params);
@@ -743,7 +744,7 @@ export default class btcmarkets extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the btcmarkets api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -770,7 +771,7 @@ export default class btcmarkets extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the btcmarkets api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

@@ -37,12 +37,11 @@ export default class btcalpha extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDeposit': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
@@ -50,6 +49,8 @@ export default class btcalpha extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchL2OrderBook': true,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
@@ -172,67 +173,66 @@ export default class btcalpha extends Exchange {
         //        },
         //    ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString(market, 'name');
-            const baseId = this.safeString(market, 'currency1');
-            const quoteId = this.safeString(market, 'currency2');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const pricePrecision = this.safeString(market, 'price_precision');
-            const priceLimit = this.parsePrecision(pricePrecision);
-            const amountLimit = this.safeString(market, 'minimum_order_size');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
-                    'price': this.parseNumber(this.parsePrecision((pricePrecision))),
+        return this.parseMarkets(response);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'name');
+        const baseId = this.safeString(market, 'currency1');
+        const quoteId = this.safeString(market, 'currency2');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const pricePrecision = this.safeString(market, 'price_precision');
+        const priceLimit = this.parsePrecision(pricePrecision);
+        const amountLimit = this.safeString(market, 'minimum_order_size');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'amount_precision'))),
+                'price': this.parseNumber(this.parsePrecision((pricePrecision))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.parseNumber(amountLimit),
-                        'max': this.safeNumber(market, 'maximum_order_size'),
-                    },
-                    'price': {
-                        'min': this.parseNumber(priceLimit),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.parseNumber(Precise.stringMul(priceLimit, amountLimit)),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.parseNumber(amountLimit),
+                    'max': this.safeNumber(market, 'maximum_order_size'),
                 },
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': this.parseNumber(priceLimit),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.parseNumber(Precise.stringMul(priceLimit, amountLimit)),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -249,15 +249,15 @@ export default class btcalpha extends Exchange {
         //
         //    [
         //        {
-        //            timestamp: '1674658.445272',
-        //            pair: 'BTC_USDT',
-        //            last: '22476.85',
-        //            diff: '458.96',
-        //            vol: '6660.847784',
-        //            high: '23106.08',
-        //            low: '22348.29',
-        //            buy: '22508.46',
-        //            sell: '22521.11'
+        //            "timestamp": "1674658.445272",
+        //            "pair": "BTC_USDT",
+        //            "last": "22476.85",
+        //            "diff": "458.96",
+        //            "vol": "6660.847784",
+        //            "high": "23106.08",
+        //            "low": "22348.29",
+        //            "buy": "22508.46",
+        //            "sell": "22521.11"
         //        },
         //        ...
         //    ]
@@ -282,15 +282,15 @@ export default class btcalpha extends Exchange {
         const response = await this.publicGetTicker(this.extend(request, params));
         //
         //    {
-        //        timestamp: '1674658.445272',
-        //        pair: 'BTC_USDT',
-        //        last: '22476.85',
-        //        diff: '458.96',
-        //        vol: '6660.847784',
-        //        high: '23106.08',
-        //        low: '22348.29',
-        //        buy: '22508.46',
-        //        sell: '22521.11'
+        //        "timestamp": "1674658.445272",
+        //        "pair": "BTC_USDT",
+        //        "last": "22476.85",
+        //        "diff": "458.96",
+        //        "vol": "6660.847784",
+        //        "high": "23106.08",
+        //        "low": "22348.29",
+        //        "buy": "22508.46",
+        //        "sell": "22521.11"
         //    }
         //
         return this.parseTicker(response, market);
@@ -298,18 +298,19 @@ export default class btcalpha extends Exchange {
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //        timestamp: '1674658.445272',
-        //        pair: 'BTC_USDT',
-        //        last: '22476.85',
-        //        diff: '458.96',
-        //        vol: '6660.847784',
-        //        high: '23106.08',
-        //        low: '22348.29',
-        //        buy: '22508.46',
-        //        sell: '22521.11'
+        //        "timestamp": "1674658.445272",
+        //        "pair": "BTC_USDT",
+        //        "last": "22476.85",
+        //        "diff": "458.96",
+        //        "vol": "6660.847784",
+        //        "high": "23106.08",
+        //        "low": "22348.29",
+        //        "buy": "22508.46",
+        //        "sell": "22521.11"
         //    }
         //
-        const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 1000000);
+        const timestampStr = this.safeString(ticker, 'timestamp');
+        const timestamp = parseInt(Precise.stringMul(timestampStr, '1000000'));
         const marketId = this.safeString(ticker, 'pair');
         market = this.safeMarket(marketId, market, '_');
         const last = this.safeString(ticker, 'last');
@@ -340,6 +341,7 @@ export default class btcalpha extends Exchange {
         /**
          * @method
          * @name btcalpha#fetchOrderBook
+         * @see https://btc-alpha.github.io/api-docs/#get-orderbook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -426,7 +428,7 @@ export default class btcalpha extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the btcalpha api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -542,6 +544,7 @@ export default class btcalpha extends Exchange {
             'type': undefined,
             'status': this.parseTransactionStatus(statusId),
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'updated': undefined,
         };
@@ -629,7 +632,7 @@ export default class btcalpha extends Exchange {
          * @name btcalpha#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the btcalpha api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetWallets(params);
@@ -720,15 +723,19 @@ export default class btcalpha extends Exchange {
         /**
          * @method
          * @name btcalpha#createOrder
+         * @see https://btc-alpha.github.io/api-docs/#create-order
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the btcalpha api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (type === 'market') {
+            throw new InvalidOrder(this.id + ' only limits orders are supported');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -744,14 +751,14 @@ export default class btcalpha extends Exchange {
         const order = this.parseOrder(response, market);
         const orderAmount = order['amount'].toString();
         amount = Precise.stringGt(orderAmount, '0') ? order['amount'] : amount;
-        return this.extend(order, {
-            'amount': this.parseNumber(amount),
-        });
+        order['amount'] = this.parseNumber(amount);
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name btcalpha#cancelOrder
+         * @see https://btc-alpha.github.io/api-docs/#cancel-order
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -768,6 +775,7 @@ export default class btcalpha extends Exchange {
         /**
          * @method
          * @name btcalpha#fetchOrder
+         * @see https://btc-alpha.github.io/api-docs/#retrieve-single-order
          * @description fetches information on an order made by the user
          * @param {string} symbol not used by btcalpha fetchOrder
          * @param {object} [params] extra parameters specific to the btcalpha api endpoint
@@ -784,6 +792,7 @@ export default class btcalpha extends Exchange {
         /**
          * @method
          * @name btcalpha#fetchOrders
+         * @see https://btc-alpha.github.io/api-docs/#list-own-orders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for

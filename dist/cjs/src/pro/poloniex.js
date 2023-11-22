@@ -184,7 +184,7 @@ class poloniex extends poloniex$1 {
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -199,7 +199,7 @@ class poloniex extends poloniex$1 {
          * @see https://docs.poloniex.com/#public-channels-market-data-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const name = 'ticker';
@@ -220,7 +220,7 @@ class poloniex extends poloniex$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -240,7 +240,7 @@ class poloniex extends poloniex$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] not used by poloniex watchOrderBook
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const watchOrderBookOptions = this.safeValue(this.options, 'watchOrderBook');
@@ -259,7 +259,7 @@ class poloniex extends poloniex$1 {
          * @param {int} [since] not used by poloniex watchOrders
          * @param {int} [limit] not used by poloniex watchOrders
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const name = 'orders';
@@ -307,7 +307,7 @@ class poloniex extends poloniex$1 {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const name = 'balances';
@@ -317,17 +317,17 @@ class poloniex extends poloniex$1 {
     parseWsOHLCV(ohlcv, market = undefined) {
         //
         //    {
-        //        symbol: 'BTC_USDT',
-        //        amount: '840.7240416',
-        //        high: '24832.35',
-        //        quantity: '0.033856',
-        //        tradeCount: 1,
-        //        low: '24832.35',
-        //        closeTime: 1676942519999,
-        //        startTime: 1676942460000,
-        //        close: '24832.35',
-        //        open: '24832.35',
-        //        ts: 1676942492072
+        //        "symbol": "BTC_USDT",
+        //        "amount": "840.7240416",
+        //        "high": "24832.35",
+        //        "quantity": "0.033856",
+        //        "tradeCount": 1,
+        //        "low": "24832.35",
+        //        "closeTime": 1676942519999,
+        //        "startTime": 1676942460000,
+        //        "close": "24832.35",
+        //        "open": "24832.35",
+        //        "ts": 1676942492072
         //    }
         //
         return [
@@ -342,20 +342,20 @@ class poloniex extends poloniex$1 {
     handleOHLCV(client, message) {
         //
         //    {
-        //        channel: 'candles_minute_1',
-        //        data: [
+        //        "channel": "candles_minute_1",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                amount: '840.7240416',
-        //                high: '24832.35',
-        //                quantity: '0.033856',
-        //                tradeCount: 1,
-        //                low: '24832.35',
-        //                closeTime: 1676942519999,
-        //                startTime: 1676942460000,
-        //                close: '24832.35',
-        //                open: '24832.35',
-        //                ts: 1676942492072
+        //                "symbol": "BTC_USDT",
+        //                "amount": "840.7240416",
+        //                "high": "24832.35",
+        //                "quantity": "0.033856",
+        //                "tradeCount": 1,
+        //                "low": "24832.35",
+        //                "closeTime": 1676942519999,
+        //                "startTime": 1676942460000,
+        //                "close": "24832.35",
+        //                "open": "24832.35",
+        //                "ts": 1676942492072
         //            }
         //        ]
         //    }
@@ -385,17 +385,17 @@ class poloniex extends poloniex$1 {
     handleTrade(client, message) {
         //
         //    {
-        //        channel: 'trades',
-        //        data: [
+        //        "channel": "trades",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                amount: '13.41634893',
-        //                quantity: '0.000537',
-        //                takerSide: 'buy',
-        //                createTime: 1676950548834,
-        //                price: '24983.89',
-        //                id: '62486976',
-        //                ts: 1676950548839
+        //                "symbol": "BTC_USDT",
+        //                "amount": "13.41634893",
+        //                "quantity": "0.000537",
+        //                "takerSide": "buy",
+        //                "createTime": 1676950548834,
+        //                "price": "24983.89",
+        //                "id": "62486976",
+        //                "ts": 1676950548839
         //            }
         //        ]
         //    }
@@ -426,14 +426,14 @@ class poloniex extends poloniex$1 {
         // handleTrade
         //
         //    {
-        //        symbol: 'BTC_USDT',
-        //        amount: '13.41634893',
-        //        quantity: '0.000537',
-        //        takerSide: 'buy',
-        //        createTime: 1676950548834,
-        //        price: '24983.89',
-        //        id: '62486976',
-        //        ts: 1676950548839
+        //        "symbol": "BTC_USDT",
+        //        "amount": "13.41634893",
+        //        "quantity": "0.000537",
+        //        "takerSide": "buy",
+        //        "createTime": 1676950548834,
+        //        "price": "24983.89",
+        //        "id": "62486976",
+        //        "ts": 1676950548839
         //    }
         //
         // private trade
@@ -556,8 +556,8 @@ class poloniex extends poloniex$1 {
         // Order is created
         //
         //    {
-        //        channel: 'orders',
-        //        data: [
+        //        "channel": "orders",
+        //        "data": [
         //            {
         //                "symbol": "BTC_USDT",
         //                "type": "LIMIT",
@@ -620,8 +620,8 @@ class poloniex extends poloniex$1 {
                     let totalCost = '0';
                     let totalAmount = '0';
                     const previousOrderTrades = previousOrder['trades'];
-                    for (let i = 0; i < previousOrderTrades.length; i++) {
-                        const previousOrderTrade = previousOrderTrades[i];
+                    for (let j = 0; j < previousOrderTrades.length; j++) {
+                        const previousOrderTrade = previousOrderTrades[j];
                         const cost = this.numberToString(previousOrderTrade['cost']);
                         const amount = this.numberToString(previousOrderTrade['amount']);
                         totalCost = Precise["default"].stringAdd(totalCost, cost);
@@ -658,8 +658,8 @@ class poloniex extends poloniex$1 {
                     previousOrder['status'] = state;
                     // update the newUpdates count
                     orders.append(previousOrder);
-                    marketIds.push(marketId);
                 }
+                marketIds.push(marketId);
             }
         }
         for (let i = 0; i < marketIds.length; i++) {
@@ -667,7 +667,7 @@ class poloniex extends poloniex$1 {
             const market = this.market(marketId);
             const symbol = market['symbol'];
             const messageHash = 'orders::' + symbol;
-            client.resolve(orders[symbol], messageHash);
+            client.resolve(orders, messageHash);
         }
         client.resolve(orders, 'orders');
         return message;
@@ -745,22 +745,22 @@ class poloniex extends poloniex$1 {
     handleTicker(client, message) {
         //
         //    {
-        //        channel: 'ticker',
-        //        data: [
+        //        "channel": "ticker",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                startTime: 1677280800000,
-        //                open: '23154.32',
-        //                high: '23212.21',
-        //                low: '22761.01',
-        //                close: '23148.86',
-        //                quantity: '105.179566',
-        //                amount: '2423161.17436702',
-        //                tradeCount: 17582,
-        //                dailyChange: '-0.0002',
-        //                markPrice: '23151.09',
-        //                closeTime: 1677367197924,
-        //                ts: 1677367251090
+        //                "symbol": "BTC_USDT",
+        //                "startTime": 1677280800000,
+        //                "open": "23154.32",
+        //                "high": "23212.21",
+        //                "low": "22761.01",
+        //                "close": "23148.86",
+        //                "quantity": "105.179566",
+        //                "amount": "2423161.17436702",
+        //                "tradeCount": 17582,
+        //                "dailyChange": "-0.0002",
+        //                "markPrice": "23151.09",
+        //                "closeTime": 1677367197924,
+        //                "ts": 1677367251090
         //            }
         //        ]
         //    }
@@ -796,11 +796,11 @@ class poloniex extends poloniex$1 {
         // snapshot
         //
         //    {
-        //        channel: 'book_lv2',
-        //        data: [
+        //        "channel": "book_lv2",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                createTime: 1677368876253,
+        //                "symbol": "BTC_USDT",
+        //                "createTime": 1677368876253,
         //                "asks": [
         //                    ["5.65", "0.02"],
         //                    ...
@@ -809,34 +809,34 @@ class poloniex extends poloniex$1 {
         //                    ["6.16", "0.6"],
         //                    ...
         //                ],
-        //                lastId: 164148724,
-        //                id: 164148725,
-        //                ts: 1677368876316
+        //                "lastId": 164148724,
+        //                "id": 164148725,
+        //                "ts": 1677368876316
         //            }
         //        ],
-        //        action: 'snapshot'
+        //        "action": "snapshot"
         //    }
         //
         // update
         //
         //    {
-        //        channel: 'book_lv2',
-        //        data: [
+        //        "channel": "book_lv2",
+        //        "data": [
         //            {
-        //                symbol: 'BTC_USDT',
-        //                createTime: 1677368876882,
+        //                "symbol": "BTC_USDT",
+        //                "createTime": 1677368876882,
         //                "asks": [
         //                    ["6.35", "3"]
         //                ],
         //                "bids": [
         //                    ["5.65", "0.02"]
         //                ],
-        //                lastId: 164148725,
-        //                id: 164148726,
-        //                ts: 1677368876890
+        //                "lastId": 164148725,
+        //                "id": 164148726,
+        //                "ts": 1677368876890
         //            }
         //        ],
-        //        action: 'update'
+        //        "action": "update"
         //    }
         //
         const data = this.safeValue(message, 'data', []);
@@ -861,16 +861,16 @@ class poloniex extends poloniex$1 {
                 }
                 const orderbook = this.orderbooks[symbol];
                 if (bids !== undefined) {
-                    for (let i = 0; i < bids.length; i++) {
-                        const bid = this.safeValue(bids, i);
+                    for (let j = 0; j < bids.length; j++) {
+                        const bid = this.safeValue(bids, j);
                         const price = this.safeNumber(bid, 0);
                         const amount = this.safeNumber(bid, 1);
                         orderbook['bids'].store(price, amount);
                     }
                 }
                 if (asks !== undefined) {
-                    for (let i = 0; i < asks.length; i++) {
-                        const ask = this.safeValue(asks, i);
+                    for (let j = 0; j < asks.length; j++) {
+                        const ask = this.safeValue(asks, j);
                         const price = this.safeNumber(ask, 0);
                         const amount = this.safeNumber(ask, 1);
                         orderbook['asks'].store(price, amount);
@@ -1013,10 +1013,10 @@ class poloniex extends poloniex$1 {
     handleAuthenticate(client, message) {
         //
         //    {
-        //        success: true,
-        //        ret_msg: '',
-        //        op: 'auth',
-        //        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        //        "success": true,
+        //        "ret_msg": '',
+        //        "op": "auth",
+        //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
         const data = this.safeValue(message, 'data');
