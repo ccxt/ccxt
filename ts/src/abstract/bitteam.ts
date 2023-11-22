@@ -82,6 +82,7 @@ interface Exchange {
     privatePostTradeApiUserFavouriteRemovePair (params?: {}): Promise<implicitReturnType>;
     privatePostTradeApiUserPayFeeBtt (params?: {}): Promise<implicitReturnType>;
     privatePostTradeApiWebhookDeposit (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeApiWithdrawCreate (params?: {}): Promise<implicitReturnType>;
     privateDeleteTradeApiDevAllOrdersCancel (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
