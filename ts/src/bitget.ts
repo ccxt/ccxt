@@ -2966,16 +2966,26 @@ export default class bitget extends Exchange {
          * @description fetch the trading fees for multiple markets
          * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
          * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
+         * @see https://www.bitget.com/api-doc/margin/common/support-currencies
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+         * @param {boolean} [params.margin] set to true for spot margin
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         let response = undefined;
+        let marginMode = undefined;
         let marketType = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFees', params);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         if (marketType === 'spot') {
-            response = await this.publicSpotGetV2SpotPublicSymbols (params);
+            const margin = this.safeValue (params, 'margin', false);
+            params = this.omit (params, 'margin');
+            if ((marginMode !== undefined) || margin) {
+                response = await this.publicMarginGetV2MarginCurrencies (params);
+            } else {
+                response = await this.publicSpotGetV2SpotPublicSymbols (params);
+            }
         } else if ((marketType === 'swap') || (marketType === 'future')) {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
@@ -2985,7 +2995,7 @@ export default class bitget extends Exchange {
             throw new NotSupported (this.id + ' does not support ' + marketType + ' market');
         }
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "code": "00000",
