@@ -340,6 +340,14 @@
                 "input": [
                   "BTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "inverse swap",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.bitget.com/api/mix/v1/position/singlePosition?marginCoin=BTC&symbol=BTCUSD_DMCBL",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
             }
         ],
         "fetchPositions": [
