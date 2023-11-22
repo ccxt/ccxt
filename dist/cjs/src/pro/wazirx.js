@@ -44,7 +44,7 @@ class wazirx extends wazirx$1 {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.wazirx.com/#account-update
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const token = await this.authenticate(params);
@@ -85,8 +85,8 @@ class wazirx extends wazirx$1 {
             const balance = balances[i];
             const currencyId = this.safeString(balance, 'a');
             const code = this.safeCurrencyCode(currencyId);
-            const available = this.safeNumber(balance, 'b');
-            const locked = this.safeNumber(balance, 'l');
+            const available = this.safeString(balance, 'b');
+            const locked = this.safeString(balance, 'l');
             const account = this.account();
             account['free'] = available;
             account['used'] = locked;
@@ -288,7 +288,7 @@ class wazirx extends wazirx$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -354,7 +354,7 @@ class wazirx extends wazirx$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const token = await this.authenticate(params);
@@ -648,8 +648,8 @@ class wazirx extends wazirx$1 {
         //             "a": 114144050,
         //             "b": 114144121,
         //             "f": "0.2",
-        //             "ga": '0.0',
-        //             "gc": 'usdt',
+        //             "ga": "0.0",
+        //             "gc": "usdt",
         //             "m": true,
         //             "o": 26946170,
         //             "p": "5.0",
@@ -679,10 +679,10 @@ class wazirx extends wazirx$1 {
     handleConnected(client, message) {
         //
         //     {
-        //         data: {
-        //             timeout_duration: 1800
+        //         "data": {
+        //             "timeout_duration": 1800
         //         },
-        //         event: 'connected'
+        //         "event": "connected"
         //     }
         //
         return message;
@@ -690,11 +690,11 @@ class wazirx extends wazirx$1 {
     handleSubscribed(client, message) {
         //
         //     {
-        //         data: {
-        //             streams: ['!ticker@arr']
+        //         "data": {
+        //             "streams": ["!ticker@arr"]
         //         },
-        //         event: 'subscribed',
-        //         id: 0
+        //         "event": "subscribed",
+        //         "id": 0
         //     }
         //
         return message;
@@ -711,8 +711,8 @@ class wazirx extends wazirx$1 {
         //     }
         //
         //     {
-        //         message: 'HeartBeat message not received, closing the connection',
-        //         status: 'error'
+        //         "message": "HeartBeat message not received, closing the connection",
+        //         "status": "error"
         //     }
         //
         throw new errors.ExchangeError(this.id + ' ' + this.json(message));

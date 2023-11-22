@@ -5,9 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.timex import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -50,12 +48,11 @@ class timex(Exchange, ImplicitAPI):
                 'createStopOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDeposits': True,
@@ -64,6 +61,8 @@ class timex(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -305,10 +304,7 @@ class timex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            result.append(self.parse_market(response[i]))
-        return result
+        return self.parse_markets(response)
 
     async def fetch_currencies(self, params={}):
         """
@@ -348,7 +344,7 @@ class timex(Exchange, ImplicitAPI):
             result.append(self.parse_currency(currency))
         return self.index_by(result, 'code')
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -380,7 +376,7 @@ class timex(Exchange, ImplicitAPI):
         currency = self.safe_currency(code)
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made to an account
         :param str code: unified currency code
@@ -422,7 +418,7 @@ class timex(Exchange, ImplicitAPI):
                 return currency
         return None
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         #     {
         #         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -454,10 +450,12 @@ class timex(Exchange, ImplicitAPI):
             'currency': self.safe_currency_code(None, currency),
             'status': 'ok',
             'updated': None,
+            'internal': None,
+            'comment': None,
             'fee': None,
         }
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -489,7 +487,7 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -524,7 +522,7 @@ class timex(Exchange, ImplicitAPI):
         ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -567,14 +565,14 @@ class timex(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
         return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount')
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the timex api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -610,7 +608,7 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -653,7 +651,7 @@ class timex(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -669,11 +667,11 @@ class timex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the timex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.tradingGetBalances(params)
@@ -695,7 +693,7 @@ class timex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the timex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -805,7 +803,7 @@ class timex(Exchange, ImplicitAPI):
         order = self.safe_value(firstOrder, 'newOrder', {})
         return self.parse_order(order, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -816,7 +814,7 @@ class timex(Exchange, ImplicitAPI):
         await self.load_markets()
         return await self.cancel_orders([id], symbol, params)
 
-    async def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
+    async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -855,7 +853,7 @@ class timex(Exchange, ImplicitAPI):
         #     }
         return response
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: not used by timex fetchOrder
@@ -904,7 +902,7 @@ class timex(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_order(self.extend(order, {'trades': trades}))
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -923,7 +921,7 @@ class timex(Exchange, ImplicitAPI):
             # page: 0,  # results page you want to retrieve(0 .. N)
             'sort': sort,  # sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -954,7 +952,7 @@ class timex(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -975,7 +973,7 @@ class timex(Exchange, ImplicitAPI):
             'side': 'BUY',  # or 'SELL'
             # 'till': self.iso8601(self.milliseconds()),
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1008,7 +1006,7 @@ class timex(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1035,7 +1033,7 @@ class timex(Exchange, ImplicitAPI):
             # 'takerOrderId': '1234',
             # 'till': self.iso8601(self.milliseconds()),
         }
-        market = None
+        market: Market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1065,7 +1063,7 @@ class timex(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trading_fee(self, fee, market=None):
+    def parse_trading_fee(self, fee, market: Market = None):
         #
         #     {
         #         "fee": 0.0075,
@@ -1105,7 +1103,7 @@ class timex(Exchange, ImplicitAPI):
         result = self.safe_value(response, 0, {})
         return self.parse_trading_fee(result, market)
 
-    def parse_market(self, market):
+    def parse_market(self, market) -> Market:
         #
         #     {
         #         "symbol": "ETHBTC",
@@ -1135,7 +1133,7 @@ class timex(Exchange, ImplicitAPI):
         minBase = self.safe_string(market, 'baseMinSize')
         minAmount = Precise.string_max(amountIncrement, minBase)
         priceIncrement = self.safe_string(market, 'tickSize')
-        minCost = self.safe_string(market, 'quoteMinSize')
+        minCost = self.safe_number(market, 'quoteMinSize')
         return {
             'id': id,
             'symbol': base + '/' + quote,
@@ -1184,6 +1182,7 @@ class timex(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
+            'created': None,
             'info': market,
         }
 
@@ -1266,7 +1265,7 @@ class timex(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
         #         "ask": 0.017,
@@ -1310,7 +1309,7 @@ class timex(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'volumeQuote'),
         }, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1349,7 +1348,7 @@ class timex(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'id')
         side = self.safe_string_lower_2(trade, 'direction', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'makerOrTaker')
-        orderId = None
+        orderId: Str = None
         if takerOrMaker is not None:
             orderId = self.safe_string(trade, takerOrMaker + 'OrderId')
         fee = None
@@ -1376,7 +1375,7 @@ class timex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         "timestamp":"2019-12-04T23:00:00",
@@ -1397,7 +1396,7 @@ class timex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         #
@@ -1428,7 +1427,7 @@ class timex(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'quantity')
         filled = self.safe_string(order, 'filledQuantity')
         canceledQuantity = self.omit_zero(self.safe_string(order, 'cancelledQuantity'))
-        status = None
+        status: str
         if Precise.string_equals(filled, amount):
             status = 'closed'
         elif canceledQuantity is not None:

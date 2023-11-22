@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/alpaca.js';
-import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------xs
 /**
@@ -205,7 +205,8 @@ export default class alpaca extends Exchange {
                     '40410000': InvalidOrder,
                     '40010001': BadRequest,
                     '40110000': PermissionDenied,
-                    '40310000': InsufficientFunds, // {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
+                    '40310000': InsufficientFunds,
+                    '42910000': RateLimitExceeded, // {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
                     'Invalid format for parameter': BadRequest,
@@ -247,71 +248,70 @@ export default class alpaca extends Exchange {
         //        }
         //    ]
         //
-        const markets = [];
-        for (let i = 0; i < assets.length; i++) {
-            const asset = assets[i];
-            const marketId = this.safeString(asset, 'symbol');
-            const parts = marketId.split('/');
-            const baseId = this.safeString(parts, 0);
-            const quoteId = this.safeString(parts, 1);
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
-            const status = this.safeString(asset, 'status');
-            const active = (status === 'active');
-            const minAmount = this.safeNumber(asset, 'min_order_size');
-            const amount = this.safeNumber(asset, 'min_trade_increment');
-            const price = this.safeNumber(asset, 'price_increment');
-            markets.push({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': undefined,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': amount,
-                    'price': price,
+        return this.parseMarkets(assets);
+    }
+    parseMarket(asset) {
+        const marketId = this.safeString(asset, 'symbol');
+        const parts = marketId.split('/');
+        const baseId = this.safeString(parts, 0);
+        const quoteId = this.safeString(parts, 1);
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const symbol = base + '/' + quote;
+        const status = this.safeString(asset, 'status');
+        const active = (status === 'active');
+        const minAmount = this.safeNumber(asset, 'min_order_size');
+        const amount = this.safeNumber(asset, 'min_trade_increment');
+        const price = this.safeNumber(asset, 'price_increment');
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': undefined,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amount,
+                'price': price,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': minAmount,
+                    'max': undefined,
                 },
-                'info': asset,
-            });
-        }
-        return markets;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': asset,
+        };
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -322,7 +322,7 @@ export default class alpaca extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -509,7 +509,7 @@ export default class alpaca extends Exchange {
          * @param {string} type 'market', 'limit' or 'stop_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the alpaca api endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -764,7 +764,7 @@ export default class alpaca extends Exchange {
         const datetime = this.safeString(trade, 't');
         const timestamp = this.parse8601(datetime);
         const alpacaSide = this.safeString(trade, 'tks');
-        let side = undefined;
+        let side;
         if (alpacaSide === 'B') {
             side = 'buy';
         }

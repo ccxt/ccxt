@@ -22,6 +22,7 @@ export default class btcturk extends Exchange {
             'name': 'BTCTurk',
             'countries': ['TR'],
             'rateLimit': 100,
+            'pro': false,
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -34,16 +35,17 @@ export default class btcturk extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -66,6 +68,7 @@ export default class btcturk extends Exchange {
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'ws': false,
             },
             'timeframes': {
                 '1m': 1,
@@ -93,6 +96,7 @@ export default class btcturk extends Exchange {
                         'orderbook': 1,
                         'ticker': 0.1,
                         'trades': 1,
+                        'ohlc': 1,
                         'server/exchangeinfo': 1,
                     },
                 },
@@ -104,6 +108,8 @@ export default class btcturk extends Exchange {
                         'users/transactions/trade': 1,
                     },
                     'post': {
+                        'users/transactions/crypto': 1,
+                        'users/transactions/fiat': 1,
                         'order': 1,
                         'cancelOrder': 1,
                     },
@@ -188,82 +194,81 @@ export default class btcturk extends Exchange {
         //
         const data = this.safeValue(response, 'data');
         const markets = this.safeValue(data, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const entry = markets[i];
-            const id = this.safeString(entry, 'name');
-            const baseId = this.safeString(entry, 'numerator');
-            const quoteId = this.safeString(entry, 'denominator');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const filters = this.safeValue(entry, 'filters', []);
-            let minPrice = undefined;
-            let maxPrice = undefined;
-            let minAmount = undefined;
-            let maxAmount = undefined;
-            let minCost = undefined;
-            for (let j = 0; j < filters.length; j++) {
-                const filter = filters[j];
-                const filterType = this.safeString(filter, 'filterType');
-                if (filterType === 'PRICE_FILTER') {
-                    minPrice = this.safeNumber(filter, 'minPrice');
-                    maxPrice = this.safeNumber(filter, 'maxPrice');
-                    minAmount = this.safeNumber(filter, 'minAmount');
-                    maxAmount = this.safeNumber(filter, 'maxAmount');
-                    minCost = this.safeNumber(filter, 'minExchangeValue');
-                }
+        return this.parseMarkets(markets);
+    }
+    parseMarket(entry) {
+        const id = this.safeString(entry, 'name');
+        const baseId = this.safeString(entry, 'numerator');
+        const quoteId = this.safeString(entry, 'denominator');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const filters = this.safeValue(entry, 'filters', []);
+        let minPrice = undefined;
+        let maxPrice = undefined;
+        let minAmount = undefined;
+        let maxAmount = undefined;
+        let minCost = undefined;
+        for (let j = 0; j < filters.length; j++) {
+            const filter = filters[j];
+            const filterType = this.safeString(filter, 'filterType');
+            if (filterType === 'PRICE_FILTER') {
+                minPrice = this.safeNumber(filter, 'minPrice');
+                maxPrice = this.safeNumber(filter, 'maxPrice');
+                minAmount = this.safeNumber(filter, 'minAmount');
+                maxAmount = this.safeNumber(filter, 'maxAmount');
+                minCost = this.safeNumber(filter, 'minExchangeValue');
             }
-            const status = this.safeString(entry, 'status');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'TRADING'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(entry, 'numeratorScale'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(entry, 'denominatorScale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': undefined,
-                    },
-                },
-                'info': entry,
-            });
         }
-        return result;
+        const status = this.safeString(entry, 'status');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'TRADING'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(entry, 'numeratorScale'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(entry, 'denominatorScale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': maxPrice,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': entry,
+        };
     }
     parseBalance(response) {
         const data = this.safeValue(response, 'data', []);
@@ -290,7 +295,7 @@ export default class btcturk extends Exchange {
          * @name btcturk#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the btcturk api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privateGetUsersBalances(params);
@@ -490,7 +495,7 @@ export default class btcturk extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the btcturk api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -525,12 +530,12 @@ export default class btcturk extends Exchange {
     parseOHLCV(ohlcv, market = undefined) {
         //
         //    {
-        //        'timestamp': 1661990400,
-        //        'high': 368388.0,
-        //        'open': 368388.0,
-        //        'low': 368388.0,
-        //        'close': 368388.0,
-        //        'volume': 0.00035208,
+        //        "timestamp": 1661990400,
+        //        "high": 368388.0,
+        //        "open": 368388.0,
+        //        "low": 368388.0,
+        //        "close": 368388.0,
+        //        "volume": 0.00035208,
         //    }
         //
         return [
@@ -653,7 +658,7 @@ export default class btcturk extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the btcturk api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

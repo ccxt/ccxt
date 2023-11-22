@@ -16,14 +16,23 @@ class coinbase extends \ccxt\async\coinbase {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'cancelAllOrdersWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelOrderWs' => false,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchBalanceWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'fetchTradesWs' => false,
+                'watchBalance' => false,
+                'watchMyTrades' => false,
                 'watchOHLCV' => false,
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
-                'watchBalance' => false,
-                'watchOrders' => true,
-                'watchMyTrades' => false,
             ),
             'urls' => array(
                 'api' => array(
@@ -90,7 +99,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
              * @param {string} [$symbol] unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $name = 'ticker';
             return Async\await($this->subscribe($name, $symbol, $params));
@@ -104,7 +113,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
              * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchTickers requires a $symbols argument');
@@ -248,7 +257,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -270,7 +279,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $name = 'user';
@@ -290,7 +299,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $name = 'level2';
@@ -339,12 +348,11 @@ class coinbase extends \ccxt\async\coinbase {
             $this->trades[$symbol] = $tradesArray;
         }
         for ($i = 0; $i < count($events); $i++) {
-            $event = $events[$i];
-            $trades = $this->safe_value($event, 'trades');
-            for ($i = 0; $i < count($trades); $i++) {
-                $item = $trades[$i];
-                $trade = $this->parse_trade($item);
-                $tradesArray->append ($trade);
+            $currentEvent = $events[$i];
+            $currentTrades = $this->safe_value($currentEvent, 'trades');
+            for ($j = 0; $j < count($currentTrades); $j++) {
+                $item = $currentTrades[$i];
+                $tradesArray->append ($this->parse_trade($item));
             }
         }
         $client->resolve ($tradesArray, $messageHash);
@@ -533,11 +541,11 @@ class coinbase extends \ccxt\async\coinbase {
     public function handle_subscription_status($client, $message) {
         //
         //     {
-        //         type => 'subscriptions',
-        //         channels => array(
+        //         "type" => "subscriptions",
+        //         "channels" => array(
         //             {
-        //                 name => 'level2',
-        //                 product_ids => array( 'ETH-BTC' )
+        //                 "name" => "level2",
+        //                 "product_ids" => array( "ETH-BTC" )
         //             }
         //         )
         //     }

@@ -30,16 +30,20 @@ class bingx extends bingx$1 {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createOrders': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchLeverage': true,
+                'fetchLiquidations': false,
                 'fetchMarkets': true,
+                'fetchMyLiquidations': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
@@ -53,7 +57,7 @@ class bingx extends bingx$1 {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
-                'setMagin': true,
+                'setMargin': true,
                 'setMarginMode': true,
                 'transfer': true,
             },
@@ -65,6 +69,9 @@ class bingx extends bingx$1 {
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
                     'wallets': 'https://open-api.{hostname}/openApi',
+                    'user': 'https://open-api.{hostname}/openApi',
+                    'subAccount': 'https://open-api.{hostname}/openApi',
+                    'account': 'https://open-api.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -87,6 +94,8 @@ class bingx extends bingx$1 {
                                 'common/symbols': 3,
                                 'market/trades': 3,
                                 'market/depth': 3,
+                                'market/kline': 3,
+                                'ticker/24hr': 1,
                             },
                         },
                         'private': {
@@ -99,6 +108,8 @@ class bingx extends bingx$1 {
                             'post': {
                                 'trade/order': 3,
                                 'trade/cancel': 3,
+                                'trade/batchOrders': 3,
+                                'trade/cancelOrders': 3,
                             },
                         },
                     },
@@ -109,6 +120,9 @@ class bingx extends bingx$1 {
                                 'asset/transfer': 3,
                                 'capital/deposit/hisrec': 3,
                                 'capital/withdraw/history': 3,
+                            },
+                            'post': {
+                                'post/asset/transfer': 3,
                             },
                         },
                     },
@@ -127,6 +141,7 @@ class bingx extends bingx$1 {
                                 'quote/klines': 1,
                                 'quote/openInterest': 1,
                                 'quote/ticker': 1,
+                                'quote/bookTicker': 1,
                             },
                         },
                         'private': {
@@ -161,6 +176,13 @@ class bingx extends bingx$1 {
                             },
                         },
                     },
+                    'v3': {
+                        'public': {
+                            'get': {
+                                'quote/klines': 1,
+                            },
+                        },
+                    },
                 },
                 'contract': {
                     'v1': {
@@ -178,9 +200,83 @@ class bingx extends bingx$1 {
                         'private': {
                             'get': {
                                 'capital/config/getall': 3,
+                                'capital/deposit/address': 1,
+                                'capital/innerTransfer/records': 1,
+                                'capital/subAccount/deposit/address': 1,
+                                'capital/deposit/subHisrec': 1,
+                                'capital/subAccount/innerTransfer/records': 1,
                             },
                             'post': {
                                 'capital/withdraw/apply': 3,
+                                'capital/innerTransfer/apply': 3,
+                                'capital/subAccountInnerTransfer/apply': 3,
+                                'capital/deposit/createSubAddress': 1,
+                            },
+                        },
+                    },
+                },
+                'subAccount': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'list': 3,
+                                'assets': 3,
+                                'apiKey/query': 1,
+                            },
+                            'post': {
+                                'create': 3,
+                                'apiKey/create': 3,
+                                'apiKey/edit': 3,
+                                'apiKey/del': 3,
+                                'updateStatus': 3,
+                            },
+                        },
+                    },
+                },
+                'account': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'uid': 1,
+                            },
+                            'post': {
+                                'innerTransfer/authorizeSubAccount': 3,
+                            },
+                        },
+                    },
+                },
+                'user': {
+                    'auth': {
+                        'private': {
+                            'post': {
+                                'userDataStream': 1,
+                            },
+                        },
+                    },
+                },
+                'copyTrading': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'swap/trace/currentTrack': 1,
+                            },
+                            'post': {
+                                'swap/trace/closeTrackOrder': 1,
+                                'swap/trace/setTPSL': 1,
+                            },
+                        },
+                    },
+                },
+                'api': {
+                    'v3': {
+                        'private': {
+                            'get': {
+                                'asset/transfer': 1,
+                                'capital/deposit/hisrec': 1,
+                                'capital/withdraw/history': 1,
+                            },
+                            'post': {
+                                'post/asset/transfer': 1,
                             },
                         },
                     },
@@ -217,7 +313,9 @@ class bingx extends bingx$1 {
                     '500': errors.ExchangeError,
                     '504': errors.ExchangeError,
                     '100001': errors.AuthenticationError,
+                    '100412': errors.AuthenticationError,
                     '100202': errors.InsufficientFunds,
+                    '100204': errors.BadRequest,
                     '100400': errors.BadRequest,
                     '100440': errors.ExchangeError,
                     '100500': errors.ExchangeError,
@@ -233,6 +331,7 @@ class bingx extends bingx$1 {
             },
             'commonCurrencies': {},
             'options': {
+                'defaultType': 'spot',
                 'accountsByType': {
                     'spot': 'FUND',
                     'swap': 'PFUTURES',
@@ -243,6 +342,8 @@ class bingx extends bingx$1 {
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
+                'recvWindow': 5 * 1000,
+                'broker': 'CCXT',
             },
         });
     }
@@ -283,32 +384,32 @@ class bingx extends bingx$1 {
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
         //
         //    {
-        //        'code': 0,
-        //        'timestamp': 1688045966616,
-        //        'data': [
+        //        "code": 0,
+        //        "timestamp": 1688045966616,
+        //        "data": [
         //            {
-        //              coin: 'BTC',
-        //              name: 'BTC',
-        //              networkList: [
+        //              "coin": "BTC",
+        //              "name": "BTC",
+        //              "networkList": [
         //                {
-        //                  name: 'BTC',
-        //                  network: 'BTC',
-        //                  isDefault: true,
-        //                  minConfirm: '2',
-        //                  withdrawEnable: true,
-        //                  withdrawFee: '0.00035',
-        //                  withdrawMax: '1.62842',
-        //                  withdrawMin: '0.0005'
+        //                  "name": "BTC",
+        //                  "network": "BTC",
+        //                  "isDefault": true,
+        //                  "minConfirm": "2",
+        //                  "withdrawEnable": true,
+        //                  "withdrawFee": "0.00035",
+        //                  "withdrawMax": "1.62842",
+        //                  "withdrawMin": "0.0005"
         //                },
         //                {
-        //                  name: 'BTC',
-        //                  network: 'BEP20',
-        //                  isDefault: false,
-        //                  minConfirm: '15',
-        //                  withdrawEnable: true,
-        //                  withdrawFee: '0.00001',
-        //                  withdrawMax: '1.62734',
-        //                  withdrawMin: '0.0001'
+        //                  "name": "BTC",
+        //                  "network": "BEP20",
+        //                  "isDefault": false,
+        //                  "minConfirm": "15",
+        //                  "withdrawEnable": true,
+        //                  "withdrawFee": "0.00001",
+        //                  "withdrawMax": "1.62734",
+        //                  "withdrawMin": "0.0001"
         //                }
         //              ]
         //          },
@@ -395,13 +496,9 @@ class bingx extends bingx$1 {
         //         }
         //    }
         //
-        const result = [];
         const data = this.safeValue(response, 'data');
         const markets = this.safeValue(data, 'symbols', []);
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
-        }
-        return result;
+        return this.parseMarkets(markets);
     }
     async fetchSwapMarkets(params) {
         const response = await this.swapV2PublicGetQuoteContracts(params);
@@ -428,12 +525,8 @@ class bingx extends bingx$1 {
         //        ]
         //    }
         //
-        const result = [];
-        const markets = this.safeValue(response, 'data');
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
-        }
-        return result;
+        const markets = this.safeValue(response, 'data', []);
+        return this.parseMarkets(markets);
     }
     parseMarket(market) {
         const id = this.safeString(market, 'symbol');
@@ -463,7 +556,7 @@ class bingx extends bingx$1 {
         const isActive = this.safeString(market, 'status') === '1';
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : swap;
-        const entry = {
+        return {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -492,8 +585,6 @@ class bingx extends bingx$1 {
             'precision': {
                 'amount': quantityPrecision,
                 'price': pricePrecision,
-                'base': undefined,
-                'quote': undefined,
             },
             'limits': {
                 'leverage': {
@@ -513,9 +604,9 @@ class bingx extends bingx$1 {
                     'max': this.safeNumber(market, 'maxNotional'),
                 },
             },
+            'created': undefined,
             'info': market,
         };
-        return entry;
     }
     async fetchMarkets(params = {}) {
         /**
@@ -525,7 +616,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
          * @param {object} [params] extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @returns {object[]} an array of objects representing market data
          */
         const requests = [this.fetchSpotMarkets(params), this.fetchSwapMarkets(params)];
         const promises = await Promise.all(requests);
@@ -539,16 +630,23 @@ class bingx extends bingx$1 {
          * @name bingx#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
+         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
+         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -560,13 +658,18 @@ class bingx extends bingx$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        else {
-            request['limit'] = 50;
+        const until = this.safeInteger2(params, 'until', 'endTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['endTime'] = until;
         }
+        let response = undefined;
         if (market['spot']) {
-            throw new errors.NotSupported(this.id + ' fetchOHLCV is not supported for spot markets');
+            response = await this.spotV1PublicGetMarketKline(this.extend(request, params));
         }
-        const response = await this.swapV2PublicGetQuoteKlines(this.extend(request, params));
+        else {
+            response = await this.swapV3PublicGetQuoteKlines(this.extend(request, params));
+        }
         //
         //    {
         //        "code": 0,
@@ -585,7 +688,7 @@ class bingx extends bingx$1 {
         //    }
         //
         let ohlcvs = this.safeValue(response, 'data', []);
-        if (typeof ohlcvs === 'object') {
+        if (!Array.isArray(ohlcvs)) {
             ohlcvs = [ohlcvs];
         }
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
@@ -600,7 +703,28 @@ class bingx extends bingx$1 {
         //        "volume": "167.44",
         //        "time": 1666584000000
         //    }
+        // spot
+        //    [
+        //        1691402580000,
+        //        29093.61,
+        //        29093.93,
+        //        29087.73,
+        //        29093.24,
+        //        0.59,
+        //        1691402639999,
+        //        17221.07
+        //    ]
         //
+        if (Array.isArray(ohlcv)) {
+            return [
+                this.safeInteger(ohlcv, 0),
+                this.safeNumber(ohlcv, 1),
+                this.safeNumber(ohlcv, 2),
+                this.safeNumber(ohlcv, 3),
+                this.safeNumber(ohlcv, 4),
+                this.safeNumber(ohlcv, 5),
+            ];
+        }
         return [
             this.safeInteger(ohlcv, 'time'),
             this.safeNumber(ohlcv, 'open'),
@@ -621,7 +745,7 @@ class bingx extends bingx$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -629,7 +753,7 @@ class bingx extends bingx$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100); // avoid API exception "limit should less than 100"
         }
         let response = undefined;
         let marketType = undefined;
@@ -704,42 +828,79 @@ class bingx extends bingx$1 {
         // fetchMyTrades
         //
         //    {
-        //        volume: '0.1',
-        //        price: '106.75',
-        //        amount: '10.6750',
-        //        commission: '-0.0053',
-        //        currency: 'USDT',
-        //        orderId: '1676213270274379776',
-        //        liquidatedPrice: '0.00',
-        //        liquidatedMarginRatio: '0.00',
-        //        filledTime: '2023-07-04T20:56:01.000+0800'
+        //        "volume": "0.1",
+        //        "price": "106.75",
+        //        "amount": "10.6750",
+        //        "commission": "-0.0053",
+        //        "currency": "USDT",
+        //        "orderId": "1676213270274379776",
+        //        "liquidatedPrice": "0.00",
+        //        "liquidatedMarginRatio": "0.00",
+        //        "filledTime": "2023-07-04T20:56:01.000+0800"
         //    }
         //
-        let time = this.safeInteger2(trade, 'time', 'filledTm');
+        //
+        // ws
+        //
+        // spot
+        //
+        //    {
+        //        "E": 1690214529432,
+        //        "T": 1690214529386,
+        //        "e": "trade",
+        //        "m": true,
+        //        "p": "29110.19",
+        //        "q": "0.1868",
+        //        "s": "BTC-USDT",
+        //        "t": "57903921"
+        //    }
+        //
+        // swap
+        //
+        //    {
+        //        "q": "0.0421",
+        //        "p": "29023.5",
+        //        "T": 1690221401344,
+        //        "m": false,
+        //        "s": "BTC-USDT"
+        //    }
+        //
+        let time = this.safeIntegerN(trade, ['time', 'filledTm', 'T']);
         const datetimeId = this.safeString(trade, 'filledTm');
         if (datetimeId !== undefined) {
             time = this.parse8601(datetimeId);
         }
-        const isBuyerMaker = this.safeValue2(trade, 'buyerMaker', 'isBuyerMaker');
+        if (time === 0) {
+            time = undefined;
+        }
         const cost = this.safeString(trade, 'quoteQty');
         const type = (cost === undefined) ? 'spot' : 'swap';
-        const currencyId = this.safeString(trade, 'currency');
+        const currencyId = this.safeString2(trade, 'currency', 'N');
         const currencyCode = this.safeCurrencyCode(currencyId);
+        const m = this.safeValue(trade, 'm', false);
+        const marketId = this.safeString(trade, 's');
+        const isBuyerMaker = this.safeValue2(trade, 'buyerMaker', 'isBuyerMaker');
+        let takeOrMaker = (isBuyerMaker || m) ? 'maker' : 'taker';
+        let side = this.safeStringLower2(trade, 'side', 'S');
+        if (side === undefined) {
+            side = (isBuyerMaker || m) ? 'sell' : 'buy';
+            takeOrMaker = 'taker';
+        }
         return this.safeTrade({
-            'id': this.safeString2(trade, 'id', 'orderId'),
+            'id': this.safeStringN(trade, ['id', 't']),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601(time),
-            'symbol': this.safeSymbol(undefined, market, '-', type),
-            'order': undefined,
-            'type': undefined,
-            'side': undefined,
-            'takerOrMaker': (isBuyerMaker === true) ? 'maker' : 'taker',
-            'price': this.safeString(trade, 'price'),
-            'amount': this.safeString2(trade, 'qty', 'amount'),
+            'symbol': this.safeSymbol(marketId, market, '-', type),
+            'order': this.safeString2(trade, 'orderId', 'i'),
+            'type': this.safeStringLower(trade, 'o'),
+            'side': this.parseOrderSide(side),
+            'takerOrMaker': takeOrMaker,
+            'price': this.safeString2(trade, 'price', 'p'),
+            'amount': this.safeStringN(trade, ['qty', 'amount', 'q']),
             'cost': cost,
             'fee': {
-                'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString(trade, 'commission'))),
+                'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString2(trade, 'commission', 'n'))),
                 'currency': currencyCode,
                 'rate': undefined,
             },
@@ -910,12 +1071,21 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
-        this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -925,6 +1095,11 @@ class bingx extends bingx$1 {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        const until = this.safeInteger2(params, 'until', 'startTime');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['startTime'] = until;
         }
         const response = await this.swapV2PublicGetQuoteFundingRate(this.extend(request, params));
         //
@@ -967,7 +1142,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1001,14 +1176,16 @@ class bingx extends bingx$1 {
         const id = this.safeString(interest, 'symbol');
         const symbol = this.safeSymbol(id, market, '-', 'swap');
         const openInterest = this.safeNumber(interest, 'openInterest');
-        return {
+        return this.safeOpenInterest({
             'symbol': symbol,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
             'openInterestAmount': undefined,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
-        };
+        }, market);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1016,19 +1193,23 @@ class bingx extends bingx$1 {
          * @name bingx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
+         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap']) {
-            throw new errors.BadRequest(this.id + ' fetchTicker is only supported for swap markets.');
-        }
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+        }
+        else {
+            response = await this.swapV2PublicGetQuoteTicker(this.extend(request, params));
+        }
         //
         //    {
         //        "code": 0,
@@ -1045,12 +1226,22 @@ class bingx extends bingx$1 {
         //          "quoteVolume": "4151395117.73",
         //          "openPrice": "16832.0",
         //          "openTime": 1672026667803,
-        //          "closeTime": 1672026648425
+        //          "closeTime": 1672026648425,
+        //  added some time ago:
+        //          "firstId": 12345,
+        //          "lastId": 12349,
+        //          "count": 5,
+        //  added 2023-11-10:
+        //          "bidPrice": 16726.0,
+        //          "bidQty": 0.05,
+        //          "askPrice": 16726.0,
+        //          "askQty": 0.05,
         //        }
         //    }
         //
         const data = this.safeValue(response, 'data');
-        return this.parseTicker(data, market);
+        const ticker = this.safeValue(data, 0, data);
+        return this.parseTicker(ticker, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -1058,20 +1249,26 @@ class bingx extends bingx$1 {
          * @name bingx#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
+        let market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
             const firstSymbol = this.safeString(symbols, 0);
-            const market = this.market(firstSymbol);
-            if (!market['swap']) {
-                throw new errors.BadRequest(this.id + ' fetchTicker is only supported for swap markets.');
-            }
+            market = this.market(firstSymbol);
         }
-        const response = await this.swapV2PublicGetQuoteTicker(params);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.spotV1PublicGetTicker24hr(params);
+        }
+        else {
+            response = await this.swapV2PublicGetQuoteTicker(params);
+        }
         //
         //    {
         //        "code": 0,
@@ -1089,7 +1286,16 @@ class bingx extends bingx$1 {
         //                "quoteVolume": "4151395117.73",
         //                "openPrice": "16832.0",
         //                "openTime": 1672026667803,
-        //                "closeTime": 1672026648425
+        //                "closeTime": 1672026648425,
+        //  added some time ago:
+        //                "firstId": 12345,
+        //                "lastId": 12349,
+        //                "count": 5,
+        //  added 2023-11-10:
+        //                "bidPrice": 16726.0,
+        //                "bidQty": 0.05,
+        //                "askPrice": 16726.0,
+        //                "askQty": 0.05,
         //            },
         //        ]
         //    }
@@ -1098,6 +1304,29 @@ class bingx extends bingx$1 {
         return this.parseTickers(tickers, symbols);
     }
     parseTicker(ticker, market = undefined) {
+        //
+        // spot
+        //    {
+        //        "symbol": "BTC-USDT",
+        //        "openPrice": "26032.08",
+        //        "highPrice": "26178.86",
+        //        "lowPrice": "25968.18",
+        //        "lastPrice": "26113.60",
+        //        "volume": "1161.79",
+        //        "quoteVolume": "30288466.44",
+        //        "openTime": "1693081020762",
+        //        "closeTime": "1693167420762",
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
+        //    }
+        // swap
         //
         //    {
         //        "symbol": "BTC-USDT",
@@ -1111,30 +1340,45 @@ class bingx extends bingx$1 {
         //        "quoteVolume": "4151395117.73",
         //        "openPrice": "16832.0",
         //        "openTime": 1672026667803,
-        //        "closeTime": 1672026648425
+        //        "closeTime": 1672026648425,
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
         //    }
         //
         const marketId = this.safeString(ticker, 'symbol');
-        const defaultType = this.safeString(this.options, 'defaultType', 'swap');
-        const symbol = this.safeSymbol(marketId, market, '-', defaultType);
+        const change = this.safeString(ticker, 'priceChange');
+        const type = (change === undefined) ? 'spot' : 'swap';
+        const symbol = this.safeSymbol(marketId, market, undefined, type);
         const open = this.safeString(ticker, 'openPrice');
         const high = this.safeString(ticker, 'highPrice');
         const low = this.safeString(ticker, 'lowPrice');
         const close = this.safeString(ticker, 'lastPrice');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
         const baseVolume = this.safeString(ticker, 'volume');
-        const change = this.safeString(ticker, 'chapriceChangenge');
         const percentage = this.safeString(ticker, 'priceChangePercent');
+        const ts = this.safeInteger(ticker, 'closeTime');
+        const datetime = this.iso8601(ts);
+        const bid = this.safeString(ticker, 'bidPrice');
+        const bidVolume = this.safeString(ticker, 'bidQty');
+        const ask = this.safeString(ticker, 'askPrice');
+        const askVolume = this.safeString(ticker, 'askQty');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': ts,
+            'datetime': datetime,
             'high': high,
             'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': open,
             'close': close,
@@ -1155,13 +1399,20 @@ class bingx extends bingx$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
+         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {boolean} [params.standard] whether to fetch standard contract balances
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         let response = undefined;
+        let standard = undefined;
+        [standard, params] = this.handleOptionAndParams(params, 'fetchBalance', 'standard', false);
         const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
-        if (marketType === 'spot') {
+        if (standard) {
+            response = await this.contractV1PrivateGetBalance(marketTypeQuery);
+        }
+        else if (marketType === 'spot') {
             response = await this.spotV1PrivateGetAccountBalance(marketTypeQuery);
         }
         else {
@@ -1203,12 +1454,39 @@ class bingx extends bingx$1 {
         //          }
         //        }
         //    }
+        // standard futures
+        //    {
+        //        "code":"0",
+        //        "timestamp":"1691148990942",
+        //        "data":[
+        //           {
+        //              "asset":"VST",
+        //              "balance":"100000.00000000000000000000",
+        //              "crossWalletBalance":"100000.00000000000000000000",
+        //              "crossUnPnl":"0",
+        //              "availableBalance":"100000.00000000000000000000",
+        //              "maxWithdrawAmount":"100000.00000000000000000000",
+        //              "marginAvailable":false,
+        //              "updateTime":"1691148990902"
+        //           },
+        //           {
+        //              "asset":"USDT",
+        //              "balance":"0",
+        //              "crossWalletBalance":"0",
+        //              "crossUnPnl":"0",
+        //              "availableBalance":"0",
+        //              "maxWithdrawAmount":"0",
+        //              "marginAvailable":false,
+        //              "updateTime":"1691148990902"
+        //           },
+        //        ]
+        //     }
         //
         return this.parseBalance(response);
     }
     parseBalance(response) {
         const data = this.safeValue(response, 'data');
-        const balances = this.safeValue2(data, 'balance', 'balances');
+        const balances = this.safeValue2(data, 'balance', 'balances', data);
         const result = { 'info': response };
         if (Array.isArray(balances)) {
             for (let i = 0; i < balances.length; i++) {
@@ -1216,8 +1494,9 @@ class bingx extends bingx$1 {
                 const currencyId = this.safeString(balance, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
-                account['free'] = this.safeString(balance, 'free');
+                account['free'] = this.safeString2(balance, 'free', 'availableBalance');
                 account['used'] = this.safeString(balance, 'locked');
+                account['total'] = this.safeString(balance, 'balance');
                 result[code] = account;
             }
         }
@@ -1237,13 +1516,23 @@ class bingx extends bingx$1 {
          * @name bingx#fetchPositions
          * @description fetch all open positions
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @param {boolean} [params.standard] whether to fetch standard contract positions
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const response = await this.swapV2PrivateGetUserPositions(params);
+        let standard = undefined;
+        [standard, params] = this.handleOptionAndParams(params, 'fetchPositions', 'standard', false);
+        let response = undefined;
+        if (standard) {
+            response = await this.contractV1PrivateGetAllPosition(params);
+        }
+        else {
+            response = await this.swapV2PrivateGetUserPositions(params);
+        }
         //
         //    {
         //        "code": 0,
@@ -1283,21 +1572,35 @@ class bingx extends bingx$1 {
         //         "avgPrice": "2.2",
         //         "leverage": 10,
         //     }
+        // standard position
+        //     {
+        //         "currentPrice":"82.91",
+        //         "symbol":"LTC/USDT",
+        //         "initialMargin":"5.00000000000000000000",
+        //         "unrealizedProfit":"-0.26464500",
+        //         "leverage":"20.000000000",
+        //         "isolated":true,
+        //         "entryPrice":"83.13",
+        //         "positionSide":"LONG",
+        //         "positionAmt":"1.20365912",
+        //     }
         //
-        const marketId = this.safeString(position, 'symbol');
+        let marketId = this.safeString(position, 'symbol');
+        marketId = marketId.replace('/', '-'); // standard return different format
         const isolated = this.safeValue(position, 'isolated');
         const marginMode = isolated ? 'isolated' : 'cross';
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'positionId'),
             'symbol': this.safeSymbol(marketId, market, '-', 'swap'),
-            'notional': this.safeString(position, 'positionAmt'),
+            'notional': this.safeNumber(position, 'positionAmt'),
             'marginMode': marginMode,
             'liquidationPrice': undefined,
-            'entryPrice': this.safeNumber(position, 'avgPrice'),
+            'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
+            'realizedPnl': this.safeNumber(position, 'realisedProfit'),
             'percentage': undefined,
-            'contracts': undefined,
+            'contracts': this.safeNumber(position, 'positionAmt'),
             'contractSize': undefined,
             'markPrice': undefined,
             'lastPrice': undefined,
@@ -1308,12 +1611,138 @@ class bingx extends bingx$1 {
             'lastUpdateTimestamp': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'collateral': this.safeString(position, 'positionAmt'),
+            'collateral': this.safeNumber(position, 'positionAmt'),
             'initialMargin': this.safeNumber(position, 'initialMargin'),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber(position, 'leverage'),
             'marginRatio': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
         });
+    }
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name bingx#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} request to be sent to the exchange
+         */
+        const market = this.market(symbol);
+        let postOnly = undefined;
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
+        type = type.toUpperCase();
+        const request = {
+            'symbol': market['id'],
+            'type': type,
+            'side': side.toUpperCase(),
+        };
+        const isMarketOrder = type === 'MARKET';
+        const isSpot = marketType === 'spot';
+        const timeInForce = this.safeStringUpper(params, 'timeInForce');
+        if (timeInForce === 'IOC') {
+            request['timeInForce'] = 'IOC';
+        }
+        if (isSpot) {
+            [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'POC', params);
+            if (postOnly || (timeInForce === 'POC')) {
+                request['timeInForce'] = 'POC';
+            }
+            const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
+            if (isMarketOrder && (side === 'buy')) {
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                    }
+                    else {
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
+                        request['quoteOrderQty'] = this.parseToNumeric(this.priceToPrecision(symbol, cost));
+                    }
+                }
+                else {
+                    request['quoteOrderQty'] = this.parseToNumeric(this.priceToPrecision(symbol, amount));
+                }
+            }
+            else {
+                request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            }
+            if (!isMarketOrder) {
+                request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+            }
+        }
+        else {
+            [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'PostOnly', params);
+            if (postOnly || (timeInForce === 'PostOnly')) {
+                request['timeInForce'] = 'PostOnly';
+            }
+            else if (timeInForce === 'GTC') {
+                request['timeInForce'] = 'GTC';
+            }
+            else if (timeInForce === 'FOK') {
+                request['timeInForce'] = 'FOK';
+            }
+            if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) {
+                request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+            }
+            const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
+            const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
+            const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
+            const isTriggerOrder = triggerPrice !== undefined;
+            const isStopLossPriceOrder = stopLossPrice !== undefined;
+            const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
+            let reduceOnly = this.safeValue(params, 'reduceOnly', false);
+            if (isTriggerOrder) {
+                request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
+                if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
+                    request['type'] = 'TRIGGER_MARKET';
+                }
+                else if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT')) {
+                    request['type'] = 'TRIGGER_LIMIT';
+                }
+            }
+            else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
+                // This can be used to set the stop loss and take profit, but the position needs to be opened first
+                reduceOnly = true;
+                if (isStopLossPriceOrder) {
+                    request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
+                    if (isMarketOrder || (type === 'STOP_MARKET')) {
+                        request['type'] = 'STOP_MARKET';
+                    }
+                    else if ((type === 'LIMIT') || (type === 'STOP')) {
+                        request['type'] = 'STOP';
+                    }
+                }
+                else if (isTakeProfitPriceOrder) {
+                    request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
+                    if (isMarketOrder || (type === 'TAKE_PROFIT_MARKET')) {
+                        request['type'] = 'TAKE_PROFIT_MARKET';
+                    }
+                    else if ((type === 'LIMIT') || (type === 'TAKE_PROFIT')) {
+                        request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+            let positionSide = undefined;
+            if (reduceOnly) {
+                positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
+            }
+            else {
+                positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
+            }
+            request['positionSide'] = positionSide;
+            request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        }
+        return this.extend(request, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
@@ -1325,113 +1754,30 @@ class bingx extends bingx$1 {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {bool} [params.postOnly] true to place a post only order
-         * @param {object} [params.triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered (swap markets only)
-         * @param {float} [params.stopLossPrice] stop loss trigger price (swap markets only)
-         * @param {float} [params.takeProfitPrice] take profit trigger price (swap markets only)
+         * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+         * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
+         * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+         * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
+         * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response = undefined;
-        const [marketType, query] = this.handleMarketTypeAndParams('createOrder', market, params);
-        type = type.toUpperCase();
-        const request = {
-            'symbol': market['id'],
-            'type': type,
-            'side': side.toUpperCase(),
-        };
-        const isMarketOrder = type === 'MARKET';
-        const isSpotMarket = marketType === 'spot';
-        let stopPriceRaw = undefined;
-        let stopPrice = undefined;
-        let stopLossPrice = undefined;
-        let takeProfitPrice = undefined;
-        if (!isSpotMarket) {
-            stopPriceRaw = this.safeValue2(params, 'stopPrice', 'triggerPrice');
-            if (stopPriceRaw !== undefined) {
-                stopPrice = this.priceToPrecision(symbol, stopPriceRaw);
-            }
-            stopLossPrice = this.safeValue(params, 'stopLossPrice');
-            takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
-        }
-        if ((stopLossPrice !== undefined) && (takeProfitPrice !== undefined)) {
-            throw new errors.InvalidOrder('Order is either a takeProfit order or a stopLoss order');
-        }
-        if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT')) {
-            request['price'] = this.priceToPrecision(symbol, price);
-            if ((stopPrice !== undefined)) {
-                request['type'] = 'TRIGGER_LIMIT';
-                request['stopPrice'] = stopPrice;
-            }
-            if (type === 'TRIGGER_LIMIT') {
-                if (stopPrice === undefined) {
-                    throw new errors.InvalidOrder('TRIGGER_LIMIT requires a triggerPrice / stopPrice');
-                }
-                request['stopPrice'] = stopPrice;
-            }
-        }
-        if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
-            if ((stopPrice !== undefined)) {
-                request['type'] = 'TRIGGER_MARKET';
-                request['stopPrice'] = stopPrice;
-            }
-            if (type === 'TRIGGER_MARKET') {
-                if (stopPrice === undefined) {
-                    throw new errors.InvalidOrder('TRIGGER_MARKET requires a triggerPrice / stopPrice');
-                }
-                request['stopPrice'] = stopPrice;
-            }
-        }
-        const exchangeSpecificTifParam = this.safeStringUpperN(params, ['force', 'timeInForce']);
-        let postOnly = undefined;
-        [postOnly, params] = this.handlePostOnly(isMarketOrder, exchangeSpecificTifParam === 'POC', params);
-        if (isSpotMarket) {
-            const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
-            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
-                if (price === undefined) {
-                    throw new errors.InvalidOrder(this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
-                }
-                else {
-                    const amountString = this.numberToString(amount);
-                    const priceString = this.numberToString(price);
-                    const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                    request['quoteOrderQty'] = this.priceToPrecision(symbol, cost);
-                }
-            }
-            else {
-                request['quantity'] = this.amountToPrecision(symbol, amount);
-            }
+        if (market['swap']) {
+            response = await this.swapV2PrivatePostTradeOrder(request);
         }
         else {
-            request['quantity'] = this.amountToPrecision(symbol, amount);
-        }
-        if ((stopLossPrice !== undefined)) {
-            request['type'] = 'STOP_MARKET';
-            request['stopPrice'] = this.priceToPrecision(symbol, stopLossPrice);
-        }
-        if ((takeProfitPrice !== undefined)) {
-            request['type'] = 'TAKE_PROFIT_MARKET';
-            request['stopPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
-        }
-        request['timeInForce'] = 'IOC';
-        if (postOnly) {
-            request['timeInForce'] = 'POC';
-        }
-        else if (exchangeSpecificTifParam === 'POC') {
-            request['timeInForce'] = 'POC';
-        }
-        if (isSpotMarket) {
-            response = await this.spotV1PrivatePostTradeOrder(this.extend(request, query));
-        }
-        else {
-            response = await this.swapV2PrivatePostTradeOrder(this.extend(request, query));
+            response = await this.spotV1PrivatePostTradeOrder(request);
         }
         //
         // spot
+        //
         //    {
         //        "code": 0,
         //        "msg": "",
@@ -1451,28 +1797,132 @@ class bingx extends bingx$1 {
         //
         // swap
         //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "order": {
-        //            "symbol": "BTC-USDT",
-        //            "orderId": 1590973236294713344,
-        //            "side": "BUY",
-        //            "positionSide": "LONG",
-        //            "type": "LIMIT"
-        //          }
-        //        }
-        //    }
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "order": {
+        //                 "symbol": "BTC-USDT",
+        //                 "orderId": 1709036527545438208,
+        //                 "side": "BUY",
+        //                 "positionSide": "LONG",
+        //                 "type": "TRIGGER_LIMIT",
+        //                 "clientOrderID": "",
+        //                 "workingType": ""
+        //             }
+        //         }
+        //     }
         //
-        const data = this.safeValue(response, 'data');
-        const first = this.safeValue(data, 'order', data);
-        return this.parseOrder(first, market);
+        const data = this.safeValue(response, 'data', {});
+        const order = this.safeValue(data, 'order', data);
+        return this.parseOrder(order, market);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name bingx#createOrders
+         * @description create a list of trade orders
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const market = this.market(symbol);
+        const request = {};
+        let response = undefined;
+        if (market['swap']) {
+            request['batchOrders'] = this.json(ordersRequests);
+            response = await this.swapV2PrivatePostTradeBatchOrders(request);
+        }
+        else {
+            request['data'] = this.json(ordersRequests);
+            response = await this.spotV1PrivatePostTradeBatchOrders(request);
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "debugMsg": "",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "symbol": "BTC-USDT",
+        //                     "orderId": 1720661389564968960,
+        //                     "transactTime": 1699072618272,
+        //                     "price": "25000",
+        //                     "origQty": "0.0002",
+        //                     "executedQty": "0",
+        //                     "cummulativeQuoteQty": "0",
+        //                     "status": "PENDING",
+        //                     "type": "LIMIT",
+        //                     "side": "BUY"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "symbol": "BTC-USDT",
+        //                     "orderId": 1720657081994006528,
+        //                     "side": "BUY",
+        //                     "positionSide": "LONG",
+        //                     "type": "LIMIT",
+        //                     "clientOrderID": "",
+        //                     "workingType": ""
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const result = this.safeValue(data, 'orders', []);
+        return this.parseOrders(result, market);
+    }
+    parseOrderSide(side) {
+        const sides = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+            'SHORT': 'sell',
+            'LONG': 'buy',
+        };
+        return this.safeString(sides, side, side);
     }
     parseOrder(order, market = undefined) {
         //
         // spot
-        // createOrder, cancelOrder
+        // createOrder, createOrders, cancelOrder
         //
         //    {
         //        "symbol": "XRP-USDT",
@@ -1490,20 +1940,20 @@ class bingx extends bingx$1 {
         // fetchOrder
         //
         //    {
-        //        symbol: 'ETH-USDT',
-        //        orderId: '1660602123001266176',
-        //        price: '1700',
-        //        origQty: '0.003',
-        //        executedQty: '0',
-        //        cummulativeQuoteQty: '0',
-        //        status: 'PENDING',
-        //        type: 'LIMIT',
-        //        side: 'BUY',
-        //        time: '1684753373276',
-        //        updateTime: '1684753373276',
-        //        origQuoteOrderQty: '0',
-        //        fee: '0',
-        //        feeAsset: 'ETH'
+        //        "symbol": "ETH-USDT",
+        //        "orderId": "1660602123001266176",
+        //        "price": "1700",
+        //        "origQty": "0.003",
+        //        "executedQty": "0",
+        //        "cummulativeQuoteQty": "0",
+        //        "status": "PENDING",
+        //        "type": "LIMIT",
+        //        "side": "BUY",
+        //        "time": "1684753373276",
+        //        "updateTime": "1684753373276",
+        //        "origQuoteOrderQty": "0",
+        //        "fee": "0",
+        //        "feeAsset": "ETH"
         //    }
         //
         // fetchOpenOrders, fetchClosedOrders
@@ -1525,7 +1975,7 @@ class bingx extends bingx$1 {
         //
         //
         // swap
-        // createOrder
+        // createOrder, createOrders
         //
         //    {
         //      "symbol": "BTC-USDT",
@@ -1537,58 +1987,72 @@ class bingx extends bingx$1 {
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
-        //    {
-        //        "symbol": "LINK-USDT",
-        //        "orderId": 1585839271162413056,
-        //        "side": "BUY",
-        //        "positionSide": "LONG",
-        //        "type": "TRIGGER_MARKET",
-        //        "origQty": "5.0",
-        //        "price": "9",
-        //        "executedQty": "0.0",
-        //        "avgPrice": "0",
-        //        "cumQuote": "0",
-        //        "stopPrice": "5",
-        //        "profit": "0.0000",
-        //        "commission": "0.000000",
-        //        "status": "CANCELLED",
-        //        "time": 1667631605000,
-        //        "updateTime": 1667631605000
-        //    }
+        //     {
+        //         "symbol": "BTC-USDT",
+        //         "orderId": 1709036527545438208,
+        //         "side": "BUY",
+        //         "positionSide": "LONG",
+        //         "type": "TRIGGER_LIMIT",
+        //         "origQty": "0.0010",
+        //         "price": "22000.0",
+        //         "executedQty": "0.0000",
+        //         "avgPrice": "0.0",
+        //         "cumQuote": "",
+        //         "stopPrice": "23000.0",
+        //         "profit": "",
+        //         "commission": "",
+        //         "status": "NEW",
+        //         "time": 1696301035187,
+        //         "updateTime": 1696301035187,
+        //         "clientOrderId": "",
+        //         "leverage": "",
+        //         "takeProfit": "",
+        //         "stopLoss": "",
+        //         "advanceAttr": 0,
+        //         "positionID": 0,
+        //         "takeProfitEntrustPrice": 0,
+        //         "stopLossEntrustPrice": 0,
+        //         "orderType": "",
+        //         "workingType": "MARK_PRICE"
+        //     }
         //
-        const positionSide = this.safeString(order, 'positionSide');
+        const positionSide = this.safeString2(order, 'positionSide', 'ps');
         const marketType = (positionSide === undefined) ? 'spot' : 'swap';
-        const marketId = this.safeString(order, 'symbol');
+        const marketId = this.safeString2(order, 'symbol', 's');
         const symbol = this.safeSymbol(marketId, market, '-', marketType);
-        const orderId = this.safeString(order, 'orderId');
-        const side = this.safeStringLower(order, 'side');
-        const type = this.safeStringLower(order, 'type');
-        const timestamp = this.safeInteger2(order, 'time', 'transactTime');
-        const lastTradeTimestamp = this.safeInteger(order, 'updateTime');
-        const price = this.safeString(order, 'price');
-        const average = this.safeString(order, 'avgPrice');
-        const amount = this.safeString(order, 'origQty');
-        const filled = this.safeString(order, 'executedQty');
-        const statusId = this.safeString(order, 'status');
+        const orderId = this.safeString2(order, 'orderId', 'i');
+        const side = this.safeStringLower2(order, 'side', 'S');
+        const type = this.safeStringLower2(order, 'type', 'o');
+        const timestamp = this.safeIntegerN(order, ['time', 'transactTime', 'E']);
+        const lastTradeTimestamp = this.safeInteger2(order, 'updateTime', 'T');
+        const price = this.safeString2(order, 'price', 'p');
+        const average = this.safeString2(order, 'avgPrice', 'ap');
+        const amount = this.safeString2(order, 'origQty', 'q');
+        const filled = this.safeString2(order, 'executedQty', 'z');
+        const statusId = this.safeString2(order, 'status', 'X');
         const fee = {
-            'currency': this.safeString(order, 'feeAsset'),
-            'rate': this.safeString2(order, 'fee', 'commission'),
+            'currency': this.safeString2(order, 'feeAsset', 'N'),
+            'rate': this.safeStringN(order, ['fee', 'commission', 'n']),
         };
+        const clientOrderId = this.safeString2(order, 'clientOrderId', 'c');
         return this.safeOrder({
             'info': order,
             'id': orderId,
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': this.safeInteger(order, 'updateTime'),
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
+            'side': this.parseOrderSide(side),
             'price': price,
-            'stopPrice': this.safeNumber(order, 'triggerPrice'),
-            'triggerPrice': this.safeNumber(order, 'triggerPrice'),
+            'stopPrice': this.safeNumber(order, 'stopPrice'),
+            'triggerPrice': this.safeNumber(order, 'stopPrice'),
+            'stopLossPrice': this.safeNumber(order, 'stopLoss'),
+            'takeProfitPrice': this.safeNumber(order, 'takeProfit'),
             'average': average,
             'cost': undefined,
             'amount': amount,
@@ -1605,6 +2069,7 @@ class bingx extends bingx$1 {
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
+            'CANCELED': 'canceled',
             'CANCELLED': 'canceled',
             'FAILED': 'failed',
         };
@@ -1622,7 +2087,9 @@ class bingx extends bingx$1 {
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('cancelOrder', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1695,9 +2162,11 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
          * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('cancelAllOrders', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['type'] !== 'swap') {
@@ -1744,22 +2213,35 @@ class bingx extends bingx$1 {
          * @name bingx#cancelOrders
          * @description cancel multiple orders
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
-         * @param {[string]} ids order ids
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+         * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('cancelOrders', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (market['type'] !== 'swap') {
-            throw new errors.BadRequest(this.id + ' cancelOrders is only supported for swap markets.');
-        }
         const request = {
             'symbol': market['id'],
-            'ids': ids,
         };
-        const response = await this.swapV2PrivateDeleteTradeBatchOrders(this.extend(request, params));
+        const parsedIds = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const stringId = id.toString();
+            parsedIds.push(stringId);
+        }
+        let response = undefined;
+        if (market['spot']) {
+            request['orderIds'] = parsedIds.join(',');
+            response = await this.spotV1PrivatePostTradeCancelOrders(this.extend(request, params));
+        }
+        else {
+            request['orderIdList'] = parsedIds;
+            response = await this.swapV2PrivateDeleteTradeBatchOrders(this.extend(request, params));
+        }
         //
         //    {
         //        "code": 0,
@@ -1802,7 +2284,9 @@ class bingx extends bingx$1 {
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('fetchOrders', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1883,9 +2367,11 @@ class bingx extends bingx$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('fetchOrders', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1965,22 +2451,31 @@ class bingx extends bingx$1 {
          * @description fetches information on multiple closed orders made by the user
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Order%20History
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {boolean} [params.standard] whether to fetch standard contract orders
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol('fetchOrders', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
-        const [marketType, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        if (marketType === 'spot') {
+        let standard = undefined;
+        [standard, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'standard', false);
+        const [marketType, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
+        if (standard) {
+            response = await this.contractV1PrivateGetAllOrders(this.extend(request, query));
+        }
+        else if (marketType === 'spot') {
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, query));
         }
         else {
@@ -2096,7 +2591,7 @@ class bingx extends bingx$1 {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -2123,8 +2618,8 @@ class bingx extends bingx$1 {
         const response = await this.spotV3PrivateGetAssetTransfer(this.extend(request, params));
         //
         //     {
-        //         total: 3,
-        //         rows: [
+        //         "total": 3,
+        //         "rows": [
         //             {
         //                 "asset":"USDT",
         //                 "amount":"-100.00000000000000000000",
@@ -2163,6 +2658,74 @@ class bingx extends bingx$1 {
             'status': status,
         };
     }
+    async fetchDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://bingx-api.github.io/docs/#/common/sub-account#Query%20Main%20Account%20Deposit%20Address
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
+        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const request = {
+            'coin': currency['id'],
+            'offset': 0,
+            'limit': 1000,
+            'recvWindow': recvWindow,
+        };
+        const response = await this.walletsV1PrivateGetCapitalDepositAddress(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "timestamp": "1695200226859",
+        //         "data": {
+        //           "data": [
+        //             {
+        //               "coinId": "799",
+        //               "coin": "USDT",
+        //               "network": "BEP20",
+        //               "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        //               "tag": ''
+        //             }
+        //           ],
+        //           "total": "1"
+        //         }
+        //     }
+        //
+        const data = this.safeValue(this.safeValue(response, 'data'), 'data');
+        const parsed = this.parseDepositAddresses(data, [currency['code']], false);
+        return this.indexBy(parsed, 'network');
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "coinId": "799",
+        //         "coin": "USDT",
+        //         "network": "BEP20",
+        //         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        //         "tag": ''
+        //     }
+        //
+        const address = this.safeString(depositAddress, 'address');
+        const tag = this.safeString(depositAddress, 'tag');
+        const currencyId = this.safeString(depositAddress, 'coin');
+        currency = this.safeCurrency(currencyId, currency);
+        const code = currency['code'];
+        const network = this.safeString(depositAddress, 'network');
+        this.checkAddress(address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': depositAddress,
+        };
+    }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -2173,7 +2736,7 @@ class bingx extends bingx$1 {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2218,7 +2781,7 @@ class bingx extends bingx$1 {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2302,8 +2865,10 @@ class bingx extends bingx$1 {
         const network = this.safeString(transaction, 'network');
         const currencyId = this.safeString(transaction, 'coin');
         let code = this.safeCurrencyCode(currencyId, currency);
-        if (code !== undefined && code.indexOf(network) >= 0) {
-            code = code.replace(network, '');
+        if ((code !== undefined) && (code !== network) && code.indexOf(network) >= 0) {
+            if (network !== undefined) {
+                code = code.replace(network, '');
+            }
         }
         const rawType = this.safeString(transaction, 'transferType');
         const type = (rawType === '0') ? 'deposit' : 'withdrawal';
@@ -2331,6 +2896,7 @@ class bingx extends bingx$1 {
                 'cost': this.safeNumber(transaction, 'transactionFee'),
                 'rate': undefined,
             },
+            'internal': undefined,
         };
     }
     parseTransactionStatus(status) {
@@ -2362,7 +2928,9 @@ class bingx extends bingx$1 {
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol('setMarginMode', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['type'] !== 'swap') {
@@ -2456,7 +3024,9 @@ class bingx extends bingx$1 {
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
+        }
         const side = this.safeStringUpper(params, 'side');
         this.checkRequiredArgument('setLeverage', side, 'side', ['LONG', 'SHORT']);
         await this.loadMarkets();
@@ -2489,10 +3059,14 @@ class bingx extends bingx$1 {
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredArgument('fetchMyTrades', symbol, 'symbol');
-        this.checkRequiredArgument('fetchMyTrades', since, 'since');
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        if (since === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a since argument');
+        }
         const tradingUnit = this.safeStringUpper(params, 'tradingUnit', 'CONT');
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -2509,19 +3083,19 @@ class bingx extends bingx$1 {
         const response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, query));
         //
         //    {
-        //       code: '0',
-        //       msg: '',
-        //       data: { fill_orders: [
+        //       "code": "0",
+        //       "msg": '',
+        //       "data": { fill_orders: [
         //          {
-        //              volume: '0.1',
-        //              price: '106.75',
-        //              amount: '10.6750',
-        //              commission: '-0.0053',
-        //              currency: 'USDT',
-        //              orderId: '1676213270274379776',
-        //              liquidatedPrice: '0.00',
-        //              liquidatedMarginRatio: '0.00',
-        //              filledTime: '2023-07-04T20:56:01.000+0800'
+        //              "volume": "0.1",
+        //              "price": "106.75",
+        //              "amount": "10.6750",
+        //              "commission": "-0.0053",
+        //              "currency": "USDT",
+        //              "orderId": "1676213270274379776",
+        //              "liquidatedPrice": "0.00",
+        //              "liquidatedMarginRatio": "0.00",
+        //              "filledTime": "2023-07-04T20:56:01.000+0800"
         //          }
         //        ]
         //      }
@@ -2534,28 +3108,28 @@ class bingx extends bingx$1 {
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         //    {
-        //        coin: 'BTC',
-        //        name: 'BTC',
-        //        networkList: [
+        //        "coin": "BTC",
+        //        "name": "BTC",
+        //        "networkList": [
         //          {
-        //            name: 'BTC',
-        //            network: 'BTC',
-        //            isDefault: true,
-        //            minConfirm: '2',
-        //            withdrawEnable: true,
-        //            withdrawFee: '0.00035',
-        //            withdrawMax: '1.62842',
-        //            withdrawMin: '0.0005'
+        //            "name": "BTC",
+        //            "network": "BTC",
+        //            "isDefault": true,
+        //            "minConfirm": "2",
+        //            "withdrawEnable": true,
+        //            "withdrawFee": "0.00035",
+        //            "withdrawMax": "1.62842",
+        //            "withdrawMin": "0.0005"
         //          },
         //          {
-        //            name: 'BTC',
-        //            network: 'BEP20',
-        //            isDefault: false,
-        //            minConfirm: '15',
-        //            withdrawEnable: true,
-        //            withdrawFee: '0.00001',
-        //            withdrawMax: '1.62734',
-        //            withdrawMin: '0.0001'
+        //            "name": "BTC",
+        //            "network": "BEP20",
+        //            "isDefault": false,
+        //            "minConfirm": "15",
+        //            "withdrawEnable": true,
+        //            "withdrawFee": "0.00001",
+        //            "withdrawMax": "1.62734",
+        //            "withdrawMin": "0.0001"
         //          }
         //        ]
         //    }
@@ -2599,9 +3173,9 @@ class bingx extends bingx$1 {
          * @name bingx#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
-         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
@@ -2653,6 +3227,131 @@ class bingx extends bingx$1 {
         //    }
         this.parseTransaction(data);
     }
+    parseParams(params) {
+        const sortedParams = this.keysort(params);
+        const keys = Object.keys(sortedParams);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = sortedParams[key];
+            if (Array.isArray(value)) {
+                let arrStr = '[';
+                for (let j = 0; j < value.length; j++) {
+                    const arrayElement = value[j];
+                    if (j > 0) {
+                        arrStr += ',';
+                    }
+                    arrStr += arrayElement.toString();
+                }
+                arrStr += ']';
+                sortedParams[key] = arrStr;
+            }
+        }
+        return sortedParams;
+    }
+    async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchMyLiquidations
+         * @description retrieves the users liquidated positions
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+         * @param {string} [symbol] unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bingx api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         */
+        await this.loadMarkets();
+        let request = {
+            'autoCloseType': 'LIQUIDATION',
+        };
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = symbol;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.swapV2PrivateGetTradeForceOrders(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "time": "int64",
+        //                     "symbol": "string",
+        //                     "side": "string",
+        //                      "type": "string",
+        //                     "positionSide": "string",
+        //                     "cumQuote": "string",
+        //                     "status": "string",
+        //                     "stopPrice": "string",
+        //                     "price": "string",
+        //                     "origQty": "string",
+        //                     "avgPrice": "string",
+        //                     "executedQty": "string",
+        //                     "orderId": "int64",
+        //                     "profit": "string",
+        //                     "commission": "string",
+        //                     "workingType": "string",
+        //                     "updateTime": "int64"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const liquidations = this.safeValue(data, 'orders', []);
+        return this.parseLiquidations(liquidations, market, since, limit);
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        //
+        //     {
+        //         "time": "int64",
+        //         "symbol": "string",
+        //         "side": "string",
+        //         "type": "string",
+        //         "positionSide": "string",
+        //         "cumQuote": "string",
+        //         "status": "string",
+        //         "stopPrice": "string",
+        //         "price": "string",
+        //         "origQty": "string",
+        //         "avgPrice": "string",
+        //         "executedQty": "string",
+        //         "orderId": "int64",
+        //         "profit": "string",
+        //         "commission": "string",
+        //         "workingType": "string",
+        //         "updateTime": "int64"
+        //     }
+        //
+        const marketId = this.safeString(liquidation, 'symbol');
+        const timestamp = this.safeInteger(liquidation, 'time');
+        const contractsString = this.safeString(liquidation, 'executedQty');
+        const contractSizeString = this.safeString(market, 'contractSize');
+        const priceString = this.safeString(liquidation, 'avgPrice');
+        const baseValueString = Precise["default"].stringMul(contractsString, contractSizeString);
+        const quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
+        return this.safeLiquidation({
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.parseNumber(contractsString),
+            'contractSize': this.parseNumber(contractSizeString),
+            'price': this.parseNumber(priceString),
+            'baseValue': this.parseNumber(baseValueString),
+            'quoteValue': this.parseNumber(quoteValueString),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        });
+    }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];
         const version = section[1];
@@ -2670,6 +3369,7 @@ class bingx extends bingx$1 {
         params = this.omit(params, this.extractParams(path));
         params = this.keysort(params);
         if (access === 'public') {
+            params['timestamp'] = this.nonce();
             if (Object.keys(params).length) {
                 url += '?' + this.urlencode(params);
             }
@@ -2677,8 +3377,9 @@ class bingx extends bingx$1 {
         else if (access === 'private') {
             this.checkRequiredCredentials();
             params['timestamp'] = this.nonce();
-            let query = this.urlencode(params);
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+            const parsedParams = this.parseParams(params);
+            let query = this.urlencode(parsedParams);
+            const signature = this.hmac(this.encode(this.rawencode(parsedParams)), this.encode(this.secret), sha256.sha256);
             if (Object.keys(params).length) {
                 query = '?' + query + '&';
             }
@@ -2688,7 +3389,7 @@ class bingx extends bingx$1 {
             query += 'signature=' + signature;
             headers = {
                 'X-BX-APIKEY': this.apiKey,
-                'X-SOURCE-KEY': 'CCXT',
+                'X-SOURCE-KEY': this.safeString(this.options, 'broker', 'CCXT'),
             };
             url += query;
         }
@@ -2704,7 +3405,7 @@ class bingx extends bingx$1 {
         //
         //    {
         //        "code": 80014,
-        //        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for 'Symbol' failed on the 'len=0|endswith=-USDT' tag",
+        //        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for "Symbol" failed on the "len=0|endswith=-USDT" tag",
         //        "data": {
         //        }
         //    }

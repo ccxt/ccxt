@@ -1,0 +1,122 @@
+{
+    "exchange": "coinbase",
+    "skipKeys": ["client_order_id"],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders",
+                "input": [
+                  "ADA/USDT",
+                  "limit",
+                  "buy",
+                  4,
+                  0.2
+                ],
+                "output": "{\"client_order_id\":\"26b6d2f3-1cb1-4d4a-8b58-c33e087e0d28\",\"product_id\":\"ADA-USDT\",\"side\":\"BUY\",\"order_configuration\":{\"limit_limit_gtc\":{\"base_size\":\"4\",\"limit_price\":\"0.2\",\"post_only\":false}}}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.coinbase.com/v2/accounts?limit=100&type=spot",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "fetch spot balance v3",
+                "method": "fetchBalance",
+                "url": "https://api.coinbase.com/api/v3/brokerage/accounts?limit=100",
+                "input": [
+                  {
+                    "v3": true
+                  }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.coinbase.com/v2/accounts?limit=100&type=swap",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/historical/9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                "input": [
+                    "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                    "DOGE-USDT"
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "edit order",
+                "method": "editOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/edit",
+                "input": [
+                    "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                    "DOGE-USDT",
+                    null,
+                    null,
+                    20,
+                    0.08
+                ],
+                "output": "{\"order_id\":\"9fd0cadc-2ccc-45e8-b254-ea511c34e5b2\",\"size\":\"20\",\"price\":\"0.08\"}"
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "editOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/edit_preview",
+                "input": [
+                  "269df5b9-c9d8-43e7-8908-a51fa050101e",
+                  "ADA/USDT",
+                  "limit",
+                  "buy",
+                  4,
+                  0.21,
+                  {
+                    "preview": true
+                  }
+                ],
+                "output": "{\"order_id\":\"269df5b9-c9d8-43e7-8908-a51fa050101e\",\"size\":\"4\",\"price\":\"0.21\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel",
+                "input": [
+                    "9fd0cadc-2ccc-45e8-b254-ea511c34e5b2",
+                    "DOGE-USDT"
+                ],
+                "output": "{\"order_ids\":[\"9fd0cadc-2ccc-45e8-b254-ea511c34e5b2\"]}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders",
+                "method": "cancelOrders",
+                "url": "https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel",
+                "input": [
+                    ["9fd0cadc-2ccc-45e8-b254-ea511c34e5b2"],
+                    "DOGE-USDT"
+                ],
+                "output": "{\"order_ids\":[\"9fd0cadc-2ccc-45e8-b254-ea511c34e5b2\"]}"
+            }
+        ]
+    }
+}
