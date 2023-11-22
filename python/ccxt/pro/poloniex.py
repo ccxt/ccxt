@@ -6,11 +6,9 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, OrderSide, OrderType, Str, Strings
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
@@ -31,15 +29,6 @@ class poloniex(ccxt.async_support.poloniex):
                 'watchStatus': False,
                 'watchOrders': True,
                 'watchMyTrades': True,
-                'createOrderWs': True,
-                'editOrderWs': False,
-                'fetchOpenOrdersWs': False,
-                'fetchOrderWs': False,
-                'cancelOrderWs': None,
-                'cancelOrdersWs': None,
-                'cancelAllOrdersWs': None,
-                'fetchTradesWs': False,
-                'fetchBalanceWs': False,
             },
             'urls': {
                 'api': {
@@ -162,140 +151,6 @@ class poloniex(ccxt.async_support.poloniex):
             subscribe['symbols'] = marketIds
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
-
-    async def trade_request(self, name: str, params={}):
-        """
-         * @ignore
-        Connects to a websocket channel
-        :param str name: name of the channel
-        :param str[]|None symbols: CCXT market symbols
-        :param dict [params]: extra parameters specific to the poloniex api
-        :returns dict: data from the websocket stream
-        """
-        url = self.urls['api']['ws']['private']
-        messageHash = self.nonce()
-        subscribe = {
-            'id': messageHash,
-            'event': name,
-            'params': params,
-        }
-        print(messageHash)
-        return await self.watch(url, messageHash, subscribe, messageHash)
-
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}):
-        """
-        :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
-        create a trade order
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :param str [params.timeInForce]: GTC(default), IOC, FOK
-        :param str [params.clientOrderId]: Maximum 64-character length.*
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-        :param str [params.amount]: quote units for the order
-        :param boolean [params.allowBorrow]: allow order to be placed by borrowing funds(Default: False)
-        :param str [params.stpMode]: self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
-        :param str [params.slippageTolerance]: used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-       """
-        await self.load_markets()
-        await self.authenticate()
-        market = self.market(symbol)
-        uppercaseType = type.upper()
-        uppercaseSide = side.upper()
-        isPostOnly = self.is_post_only(uppercaseType == 'MARKET', uppercaseType == 'LIMIT_MAKER', params)
-        if isPostOnly:
-            uppercaseType = 'LIMIT_MAKER'
-        request = {
-            'symbol': market['id'],
-            'side': side.upper(),
-            'type': type.upper(),
-        }
-        if (uppercaseType == 'MARKET') and (uppercaseSide == 'BUY'):
-            quoteAmount = self.safe_string(params, 'amount')
-            if quoteAmount is None:
-                if price is None:
-                    raise ArgumentsRequired(self.id + ' createOrderWs() requires a price argument for market buy orders')
-                priceString = str(price)
-                amountString = str(amount)
-                quoteAmount = Precise.string_mul(priceString, amountString)
-            request['amount'] = self.amount_to_precision(market['symbol'], quoteAmount)
-        else:
-            request['quantity'] = self.amount_to_precision(market['symbol'], amount)
-            if price is not None:
-                request['price'] = self.price_to_precision(symbol, price)
-        return await self.trade_request('createOrder', self.extend(request, params))
-
-    async def cancel_order_ws(self, id: str, symbol: str = None, params={}):
-        """
-        :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
-        cancel multiple orders
-        :param str id: order id
-        :param str [symbol]: unified market symbol
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :param str [params.clientOrderId]: client order id
-        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
-        clientOrderId = self.safe_string(params, 'clientOrderId')
-        if clientOrderId is not None:
-            clientOrderIds = self.safe_value(params, 'clientOrderId', [])
-            params['clientOrderIds'] = self.array_concat(clientOrderIds, [clientOrderId])
-        return await self.cancel_orders_ws([id], symbol, params)
-
-    async def cancel_orders_ws(self, ids: List[str], symbol: str = None, params={}):
-        """
-        :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
-        cancel multiple orders
-        :param str[] ids: order ids
-        :param str symbol: unified market symbol, default is None
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :param str[] [params.clientOrderIds]: client order ids
-        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
-        await self.load_markets()
-        await self.authenticate()
-        request = {
-            'orderIds': ids,
-        }
-        return await self.trade_request('cancelOrders', self.extend(request, params))
-
-    async def cancel_all_orders_ws(self, symbol: str = None, params={}):
-        """
-        :see: https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
-        cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
-        await self.load_markets()
-        await self.authenticate()
-        return await self.trade_request('cancelAllOrders', params)
-
-    def handle_order_request(self, client: Client, message):
-        #
-        #    {
-        #        "id": "1234567",
-        #        "data": [{
-        #           "orderId": 205343650954092544,
-        #           "clientOrderId": "",
-        #           "message": "",
-        #           "code": 200
-        #        }]
-        #    }
-        #
-        messageHash = self.safe_string(message, 'id')
-        data = self.safe_value(message, 'data', [])
-        orders = []
-        for i in range(0, len(data)):
-            order = data[i]
-            parsedOrder = self.parse_ws_order(order)
-            orders.append(parsedOrder)
-        print(messageHash)
-        client.resolve(orders, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
@@ -1047,9 +902,6 @@ class poloniex(ccxt.async_support.poloniex):
         symbolMessageHash = messageHash + ':' + symbol
         client.resolve(trades, symbolMessageHash)
 
-    def handle_pong(self, client: Client):
-        client.lastPong = self.milliseconds()
-
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
@@ -1078,22 +930,10 @@ class poloniex(ccxt.async_support.poloniex):
             'trades': self.handle_trade,
             'orders': self.handle_order,
             'balances': self.handle_balance,
-            'createOrder': self.handle_order_request,
-            'cancelOrder': self.handle_order_request,
-            'cancelAllOrders': self.handle_order_request,
-            'auth': self.handle_authenticate,
         }
         method = self.safe_value(methods, type)
         if type == 'auth':
             self.handle_authenticate(client, message)
-        elif type is None:
-            data = self.safe_value(message, 'data')
-            item = self.safe_value(data, 0)
-            orderId = self.safe_string(item, 'orderId')
-            if orderId == '0':
-                self.handle_error_message(client, item)
-            else:
-                return self.handle_order_request(client, message)
         else:
             data = self.safe_value(message, 'data', [])
             dataLength = len(data)
@@ -1102,26 +942,9 @@ class poloniex(ccxt.async_support.poloniex):
 
     def handle_error_message(self, client: Client, message):
         #
-        #    {
-        #        message: 'Invalid channel value ["ordersss"]',
-        #        event: 'error'
-        #    }
-        #
-        #    {
-        #        "orderId": 0,
-        #        "clientOrderId": null,
-        #        "message": "Currency trade disabled",
-        #        "code": 21352
-        #    }
-        #
-        #    {
-        #       "event": "error",
-        #       "message": "Platform in maintenance mode"
-        #    }
-        #
+        # {message: 'Invalid channel value ["ordersss"]', event: 'error'}
         event = self.safe_string(message, 'event')
-        orderId = self.safe_string(message, 'orderId')
-        if (event == 'error') or (orderId == '0'):
+        if event == 'error':
             error = self.safe_string(message, 'message')
             raise ExchangeError(self.id + ' error: ' + self.json(error))
         return False
