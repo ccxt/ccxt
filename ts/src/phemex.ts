@@ -2718,17 +2718,18 @@ export default class phemex extends Exchange {
         } else {
             request['orderID'] = id;
         }
-        let method = 'privateDeleteSpotOrders';
+        let response = undefined;
         if (market['settle'] === 'USDT') {
-            method = 'privateDeleteGOrdersCancel';
             const posSide = this.safeString (params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+            response = await this.privateDeleteGOrdersCancel (this.extend (request, params));
         } else if (market['swap']) {
-            method = 'privateDeleteOrdersCancel';
+            response = await this.privateDeleteOrdersCancel (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteSpotOrders (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
