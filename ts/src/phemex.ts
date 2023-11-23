@@ -2780,7 +2780,6 @@ export default class phemex extends Exchange {
         if (market['settle'] === 'USDT') {
             throw new NotSupported (this.id + 'fetchOrder() is not supported yet for USDT settled swap markets'); // https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-order-by-orderid-or-query-user-order-by-client-order-id
         }
-        const method = market['spot'] ? 'privateGetSpotOrdersActive' : 'privateGetExchangeOrder';
         const request = {
             'symbol': market['id'],
         };
@@ -2791,7 +2790,12 @@ export default class phemex extends Exchange {
         } else {
             request['orderID'] = id;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privateGetSpotOrdersActive (this.extend (request, params));
+        } else {
+            response = await this.privateGetExchangeOrder (this.extend (request, params));
+        }
         const data = this.safeValue (response, 'data', {});
         let order = data;
         if (Array.isArray (data)) {
