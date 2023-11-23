@@ -2529,14 +2529,15 @@ export default class phemex extends Exchange {
             }
             params = this.omit (params, 'stopLossPrice');
         }
-        let method = 'privatePostSpotOrders';
-        if (market['settle'] === 'USDT') {
-            method = 'privatePostGOrders';
-        } else if (market['contract']) {
-            method = 'privatePostOrders';
-        }
         params = this.omit (params, 'reduceOnly');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['settle'] === 'USDT') {
+            response = await this.privatePostGOrders (this.extend (request, params));
+        } else if (market['contract']) {
+            response = await this.privatePostOrders (this.extend (request, params));
+        } else {
+            response = await this.privatePostSpotOrders (this.extend (request, params));
+        }
         //
         // spot
         //
