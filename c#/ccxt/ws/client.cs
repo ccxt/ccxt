@@ -328,7 +328,7 @@ public partial class Exchange
 
         private async Task Receiving(ClientWebSocket webSocket)
         {
-            var buffer = new byte[1024 * 4];
+            var buffer = new byte[1024 * 4 * 10];
             try
             {
                 while (webSocket.State == WebSocketState.Open)
