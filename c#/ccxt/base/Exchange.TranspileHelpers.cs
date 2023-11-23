@@ -682,7 +682,7 @@ public partial class Exchange
         }
 
 
-        if (value.GetType() == typeof(dict))
+        if (value is dict)
         {
             var dictValue = (dict)value;
             if (dictValue.ContainsKey((string)key))
@@ -694,7 +694,7 @@ public partial class Exchange
                 return null;
             }
         }
-        else if (value.GetType() == typeof(List<object>))
+        else if (value is List<object>)
         {
             // check here if index is out of bounds
             int parsed = Convert.ToInt32(key);
@@ -705,7 +705,7 @@ public partial class Exchange
             }
             return ((List<object>)value)[parsed];
         }
-        else if (value.GetType() == typeof(List<dict>))
+        else if (value is List<dict>)
         {
             // check here if index is out of bounds
             int parsed = Convert.ToInt32(key);
@@ -726,7 +726,7 @@ public partial class Exchange
             }
             return ((List<string>)value)[parsed];
         }
-        else if (value.GetType() == typeof(List<Int64>))
+        else if (value is List<Int64>)
         {
             int parsed = Convert.ToInt32(key);
             return ((List<Int64>)value)[parsed];

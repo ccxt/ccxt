@@ -265,13 +265,13 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = Convert.ToDouble(result); // altough the name is float right now it is double
+            parsedValue = Convert.ToDouble(result, CultureInfo.InvariantCulture); // altough the name is float right now it is double
         }
         catch (Exception e)
         {
 
         }
-        return parsedValue == null ? defaultValue : Convert.ToDouble(result);
+        return parsedValue == null ? defaultValue : Convert.ToDouble(result, CultureInfo.InvariantCulture);
     }
     public object safeValueN(object obj, object keys2, object defaultValue = null) => SafeValueN(obj, keys2, defaultValue);
     public static object SafeValueN(object obj, object keys2, object defaultValue = null)
@@ -287,7 +287,7 @@ public partial class Exchange
             obj = new List<object>((object[])obj);
         }
 
-        if (obj.GetType() == typeof(dict))
+        if (obj is dict)
         {
             var dict = (dict)obj;
             foreach (var key2 in keys)
@@ -317,7 +317,7 @@ public partial class Exchange
             }
         }
         // duplicated code for now, check this later
-        if (obj.GetType() == typeof(List<object>))
+        if (obj is List<object>)
         {
             var list = (List<object>)obj;
             foreach (var key in keys)
@@ -342,7 +342,7 @@ public partial class Exchange
         }
 
 
-        if (obj.GetType() == typeof(List<string>))
+        if (obj is List<string>)
         {
             var list = (List<string>)obj;
             foreach (var key in keys)
@@ -361,7 +361,7 @@ public partial class Exchange
             }
         }
 
-        if (obj.GetType() == typeof(List<int>))
+        if (obj is List<int>)
         {
             var list = (List<int>)obj;
             foreach (var key in keys)
