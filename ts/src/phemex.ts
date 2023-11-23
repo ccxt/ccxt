@@ -1823,18 +1823,20 @@ export default class phemex extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
          * @param {object} [params] extra parameters specific to the phemex api endpoint
+         * @param {string} [params.type] spot or swap
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = 'privateGetSpotWallets';
+        const code = this.safeString (params, 'code');
+        params = this.omit (params, [ 'type', 'code' ]);
+        let response = undefined;
         const request = {};
         if ((type !== 'spot') && (type !== 'swap')) {
             throw new BadRequest (this.id + ' does not support ' + type + ' markets, only spot and swap');
         }
         if (type === 'swap') {
-            const code = this.safeString (params, 'code');
             let settle = undefined;
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle');
             if (code !== undefined || settle !== undefined) {
@@ -1847,19 +1849,20 @@ export default class phemex extends Exchange {
                 const currency = this.currency (coin);
                 request['currency'] = currency['id'];
                 if (currency['id'] === 'USDT') {
-                    method = 'privateGetGAccountsAccountPositions';
+                    response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
                 } else {
-                    method = 'privateGetAccountsAccountPositions';
+                    response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
                 }
             } else {
                 const currency = this.safeString (params, 'currency');
                 if (currency === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchBalance() requires a code parameter or a currency or settle parameter for ' + type + ' type');
                 }
+                response = await this.privateGetSpotWallets (this.extend (request, params));
             }
+        } else {
+            response = await this.privateGetSpotWallets (this.extend (request, params));
         }
-        params = this.omit (params, [ 'type', 'code' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         // usdt
         //   {
