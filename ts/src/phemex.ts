@@ -1390,16 +1390,14 @@ export default class phemex extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const query = this.omit (params, 'type');
-        let defaultMethod: string;
+        let response = undefined;
         if (type === 'spot') {
-            defaultMethod = 'v1GetMdSpotTicker24hrAll';
+            response = await this.v1GetMdSpotTicker24hrAll (query);
         } else if (subType === 'inverse') {
-            defaultMethod = 'v1GetMdTicker24hrAll';
+            response = await this.v1GetMdTicker24hrAll (query);
         } else {
-            defaultMethod = 'v2GetMdV2Ticker24hrAll';
+            response = await this.v2GetMdV2Ticker24hrAll (query);
         }
-        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
-        const response = await this[method] (query);
         const result = this.safeValue (response, 'result', []);
         return this.parseTickers (result, symbols);
     }
