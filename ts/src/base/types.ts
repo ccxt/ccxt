@@ -7,6 +7,11 @@ export type Strings = string[] | undefined;
 export type Num = number | undefined;
 
 export type Bool = boolean | undefined;
+// must be an integer in other langs
+export type IndexType = number | string;
+export type OrderSide = 'buy' | 'sell' | string;
+export type OrderType = 'limit' | 'market' | string;
+export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
 
 export interface Dictionary<T> {
     [key: string]: T;
@@ -19,11 +24,10 @@ export interface MinMax {
     max: Num;
 }
 
-export interface Fee {
-    type?: 'taker' | 'maker' | string;
-    currency: string;
-    rate?: number;
-    cost: number;
+export interface FeeInterface {
+    currency: Str;
+    cost: Num;
+    rate?: Num;
 }
 
 export enum CustomThrottlePriority {
@@ -31,6 +35,7 @@ export enum CustomThrottlePriority {
     MEDIUM = 2,
     LOW = 3,
 }
+export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
     id: string;
@@ -42,7 +47,7 @@ export interface MarketInterface {
     baseId: string;
     quoteId: string;
     active: Bool;
-    type: string;
+    type: MarketType;
     spot: boolean;
     margin: boolean;
     swap: boolean;
@@ -77,8 +82,6 @@ export interface MarketInterface {
     created: Int;
     info: any;
 }
-
-export type Market = MarketInterface | undefined;
 
 export interface Trade {
     info: any;                        // the original decoded JSON as is
@@ -186,12 +189,17 @@ export interface CurrencyInterface {
     precision: number;
 }
 
-export type Currency = CurrencyInterface | undefined;
-
 export interface Balance {
-    free: number | string;
-    used: number | string;
-    total: number | string;
+    free: Num,
+    used: Num,
+    total: Num,
+    debt?: Num,
+}
+
+export interface Account {
+    free: Str,
+    used: Str,
+    total: Str,
 }
 
 export interface PartialBalances extends Dictionary<number> {
@@ -338,9 +346,5 @@ export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 
 export type implicitReturnType = any;
 
-// must be an integer in other langs
-export type IndexType = number | string;
-
-export type OrderSide = 'buy' | 'sell' | string;
-
-export type OrderType = 'limit' | 'market' | string;
+export type Market = MarketInterface | undefined;
+export type Currency = CurrencyInterface | undefined;

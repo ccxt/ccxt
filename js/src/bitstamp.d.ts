@@ -102,7 +102,7 @@ export default class bitstamp extends Exchange {
         before: any;
         after: any;
         status: string;
-        fee: import("./base/types.js").Fee;
+        fee: import("./base/types.js").FeeInterface;
     } | {
         id: string;
         info: any;
@@ -118,7 +118,7 @@ export default class bitstamp extends Exchange {
         before: any;
         after: any;
         status: string;
-        fee: import("./base/types.js").Fee;
+        fee: import("./base/types.js").FeeInterface;
     };
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

@@ -299,6 +299,7 @@ class Transpiler {
             [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
+            [ /\.isRoundNumber\s/g, '.is_round_number'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -544,7 +545,7 @@ class Transpiler {
             [ /Number\.isInteger\s*\(([^\)]+)\)/g, "is_int($1)" ],
             [ /([^\(\s]+)\s+instanceof\s+String/g, 'is_string($1)' ],
             // we want to remove type hinting variable lines
-            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|string|number);\n/mg, '' ],
+            [ /^\s+(?:let|const|var)\s+\w+:\s+(?:Str|Int|Num|MarketType|string|number);\n/mg, '' ],
             [ /(^|[^a-zA-Z0-9_])(let|const|var)(\s+\w+):\s+(?:Str|Int|Num|Bool|Market|Currency|string|number)(\s+=\s+\w+)/g, '$1$2$3$4' ],
 
             [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
@@ -922,11 +923,13 @@ class Transpiler {
             libraries.push ('import numbers')
         }
         const matchObject = {
+            'Account': /-> Account:/,
             'Balances': /-> Balances:/,
             'Currency': /(-> Currency:|: Currency)/,
             'Greeks': /-> Greeks:/,
             'Int': /: Int =/,
             'MarginMode': /-> MarginMode:/,
+            'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,
             'OrderBook': /-> OrderBook:/,
@@ -1575,6 +1578,7 @@ class Transpiler {
             const phpTypes = {
                 'any': 'mixed',
                 'string': 'string',
+                'MarketType': 'string',
                 'Str': '?string',
                 'Strings': '?array',
                 'number': 'float',
@@ -1584,7 +1588,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /^(?:Market|Currency|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -2729,6 +2733,9 @@ class Transpiler {
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
+        if (transpilingSingleExchange) {
+            force = true; // when transpiling single exchange, we always force
+        }
         if (!transpilingSingleExchange && !child) {
             createFolderRecursively (python2Folder)
             createFolderRecursively (python3Folder)

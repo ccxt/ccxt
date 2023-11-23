@@ -55,7 +55,7 @@ class blockchaincom extends blockchaincom$1 {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange.blockchain.com/api/#balances
          * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.authenticate(params);
         const messageHash = 'balance';
@@ -108,12 +108,12 @@ class blockchaincom extends blockchaincom$1 {
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            account['free'] = this.safeNumber(entry, 'available');
-            account['total'] = this.safeNumber(entry, 'balance');
+            account['free'] = this.safeString(entry, 'available');
+            account['total'] = this.safeString(entry, 'balance');
             result[code] = account;
         }
         const messageHash = 'balance';
-        this.balance = result;
+        this.balance = this.safeBalance(result);
         client.resolve(this.balance, messageHash);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -205,7 +205,7 @@ class blockchaincom extends blockchaincom$1 {
          * @see https://exchange.blockchain.com/api/#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -314,7 +314,7 @@ class blockchaincom extends blockchaincom$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of    trades to fetch
          * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -413,7 +413,7 @@ class blockchaincom extends blockchaincom$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the blockchaincom api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -627,7 +627,7 @@ class blockchaincom extends blockchaincom$1 {
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {objectConstructor} [params] extra parameters specific to the blockchaincom api endpoint
          * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);

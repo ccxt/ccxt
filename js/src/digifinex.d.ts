@@ -107,7 +107,7 @@ export default class digifinex extends Exchange {
         datetime: any;
         info: any;
     };
-    fetchBorrowRate(code: string, params?: {}): Promise<{
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
         currency: string;
         rate: number;
         period: number;
@@ -115,7 +115,7 @@ export default class digifinex extends Exchange {
         datetime: string;
         info: any;
     }>;
-    fetchBorrowRates(params?: {}): Promise<{}>;
+    fetchCrossBorrowRates(params?: {}): Promise<{}>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
         rate: number;

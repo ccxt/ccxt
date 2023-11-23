@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
@@ -20,6 +21,15 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         return self.deep_extend(super(krakenfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchTicker': True,
@@ -144,7 +154,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         options = self.safe_value(self.options, 'watchTicker')
         method = self.safe_string(options, 'method', 'ticker')  # or ticker_lite
@@ -158,7 +168,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         method = self.safe_string(self.options, 'watchTickerMethod', 'ticker')  # or ticker_lite
         name = self.safe_string_2(params, 'method', 'watchTickerMethod', method)
@@ -174,7 +184,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         name = 'trade'
@@ -190,7 +200,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by krakenfutures watchOrderBook
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         orderbook = await self.subscribe_public('book', [symbol], params)
         return orderbook.limit()
@@ -323,7 +333,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [since]: not used by krakenfutures watchOrders
         :param int [limit]: not used by krakenfutures watchOrders
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         name = 'open_orders'
@@ -344,7 +354,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the kucoin api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         name = 'fills'
@@ -366,7 +376,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param int [limit]: not used by krakenfutures watchBalance
         :param dict [params]: extra parameters specific to the krakenfutures api endpoint
         :param str [params.account]: can be either 'futures' or 'flex_futures'
-        :returns dict[]: a list of `balance structures <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         name = 'balances'
@@ -1195,10 +1205,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 key = holdingKeys[i]
                 code = self.safe_currency_code(key)
                 newAccount = self.account()
-                amount = self.safe_number(holding, key)
-                newAccount['free'] = amount
-                newAccount['total'] = amount
-                newAccount['used'] = 0
+                newAccount['total'] = self.safe_string(holding, key)
                 holdingResult[code] = newAccount
             self.balance['cash'] = holdingResult
             client.resolve(holdingResult, messageHash)
@@ -1216,9 +1223,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 future = self.safe_value(futures, key)
                 currencyId = self.safe_string(future, 'unit')
                 code = self.safe_currency_code(currencyId)
-                newAccount['free'] = self.safe_number(future, 'available')
-                newAccount['used'] = self.safe_number(future, 'initial_margin')
-                newAccount['total'] = self.safe_number(future, 'balance')
+                newAccount['free'] = self.safe_string(future, 'available')
+                newAccount['used'] = self.safe_string(future, 'initial_margin')
+                newAccount['total'] = self.safe_string(future, 'balance')
                 futuresResult[symbol] = {}
                 futuresResult[symbol][code] = newAccount
             self.balance['margin'] = futuresResult
@@ -1236,9 +1243,9 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 flexFuture = self.safe_value(flexFutureCurrencies, key)
                 code = self.safe_currency_code(key)
                 newAccount = self.account()
-                newAccount['free'] = self.safe_number(flexFuture, 'available')
-                newAccount['used'] = self.safe_number(flexFuture, 'collateral_value')
-                newAccount['total'] = self.safe_number(flexFuture, 'quantity')
+                newAccount['free'] = self.safe_string(flexFuture, 'available')
+                newAccount['used'] = self.safe_string(flexFuture, 'collateral_value')
+                newAccount['total'] = self.safe_string(flexFuture, 'quantity')
                 flexFuturesResult[code] = newAccount
             self.balance['flex'] = flexFuturesResult
             client.resolve(self.balance['flex'], messageHash + 'flex_futures')
@@ -1333,10 +1340,25 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             },
         })
 
+    def handle_error_message(self, client: Client, message):
+        #
+        #    {
+        #        event: 'alert',
+        #        message: 'Failed to subscribe to authenticated feed'
+        #    }
+        #
+        errMsg = self.safe_string(message, 'message')
+        try:
+            raise ExchangeError(self.id + ' ' + errMsg)
+        except Exception as error:
+            client.reject(error)
+
     def handle_message(self, client, message):
         event = self.safe_string(message, 'event')
         if event == 'challenge':
             self.handle_authenticate(client, message)
+        elif event == 'alert':
+            return self.handle_error_message(client, message)
         elif event == 'pong':
             client.lastPong = self.milliseconds()
         elif event is None:

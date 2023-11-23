@@ -614,8 +614,6 @@ class testMainClass(baseMainTestClass):
             'fetchTransactions': [code],
             'fetchDeposits': [code],
             'fetchWithdrawals': [code],
-            'fetchBorrowRates': [],
-            'fetchBorrowRate': [code],
             'fetchBorrowInterest': [code, symbol],
             'cancelAllOrders': [symbol],
             'fetchCanceledOrders': [symbol],
@@ -626,7 +624,6 @@ class testMainClass(baseMainTestClass):
             'fetchDepositAddresses': [code],
             'fetchDepositAddressesByNetwork': [code],
             'fetchBorrowRateHistory': [code],
-            'fetchBorrowRatesPerSymbol': [],
             'fetchLedgerEntry': [code],
         }
         market = exchange.market(symbol)
@@ -835,6 +832,13 @@ class testMainClass(baseMainTestClass):
         elif type == 'urlencoded':
             stored_output = self.urlencoded_to_dict(stored_output)
             new_output = self.urlencoded_to_dict(new_output)
+        elif type == 'both':
+            if stored_output.startswith('{') or stored_output.startswith('['):
+                stored_output = json_parse(stored_output)
+                new_output = json_parse(new_output)
+            else:
+                stored_output = self.urlencoded_to_dict(stored_output)
+                new_output = self.urlencoded_to_dict(new_output)
         self.assert_new_and_stored_output(exchange, skip_keys, new_output, stored_output)
 
     def assert_static_response_output(self, exchange, skip_keys, computed_result, stored_result):
