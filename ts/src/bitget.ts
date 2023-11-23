@@ -3489,22 +3489,6 @@ export default class bitget extends Exchange {
         //         "cTime": "1652745674488"
         //     }
         //
-        // swap, isolated and cross margin: cancelOrder
-        //
-        //     {
-        //         "orderId": "1098749943604719616",
-        //         "clientOid": "0ec8d262b3d2436aa651095a745b9b8d"
-        //     }
-        //
-        // spot: cancelOrder
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1697689270716,
-        //         "data": "1098753830701928448"
-        //     }
-        //
         // isolated and cross margin: fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders
         //
         //     {
@@ -3553,6 +3537,19 @@ export default class bitget extends Exchange {
         //             "errorCode": "45110"
         //         },
         //     ]
+        //
+        // spot, swap, future and spot margin: cancelOrder
+        //
+        //     {
+        //         "orderId": "1098758604547850241",
+        //         "clientOid": "1098758604585598977"
+        //     }
+        //
+        // spot trigger: cancelOrder
+        //
+        //     {
+        //         "result": "success"
+        //     }
         //
         const errorMessage = this.safeString (order, 'errorMsg');
         if (errorMessage !== undefined) {
@@ -3728,7 +3725,7 @@ export default class bitget extends Exchange {
         if (this.sum (isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder) > 1) {
             throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice');
         }
-        if ((type === 'limit') && (triggerPrice === undefined)) {
+        if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const triggerType = this.safeString (params, 'triggerType', 'mark_price');
@@ -3770,10 +3767,7 @@ export default class bitget extends Exchange {
                 if (marginMode === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a marginMode parameter for ' + marketType + ' markets');
                 }
-                let marginModeRequest = marginMode;
-                if (!isTriggerOrder) {
-                    marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
-                }
+                const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
                 request['side'] = side;
                 if (reduceOnly) {
@@ -4125,16 +4119,17 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#cancelOrder
          * @description cancels an open order
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-plan-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-plan-order-tpsl
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-cancel-order
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-cancel-order
+         * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Order
+         * @see https://www.bitget.com/api-doc/spot/plan/Cancel-Plan-Order
+         * @see https://www.bitget.com/api-doc/contract/trade/Cancel-Order
+         * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+         * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order
+         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+         * @param {boolean} [params.stop] set to true for canceling trigger orders
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -4142,92 +4137,52 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marketType = undefined;
         let marginMode = undefined;
         let response = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
-        const symbolRequest = (marginMode !== undefined) ? (market['info']['symbolName']) : (market['id']);
-        const request = {
-            'symbol': symbolRequest,
-            'orderId': id,
-        };
+        const request = {};
         const stop = this.safeValue (params, 'stop');
-        const planType = this.safeString (params, 'planType');
-        params = this.omit (params, [ 'stop', 'planType' ]);
-        if ((marketType === 'swap') || (marketType === 'future')) {
-            request['marginCoin'] = market['settleId'];
+        params = this.omit (params, 'stop');
+        if (!(market['spot'] && stop)) {
+            request['symbol'] = market['id'];
+        }
+        if (!((market['swap'] || market['future']) && stop)) {
+            request['orderId'] = id;
+        }
+        if ((market['swap']) || (market['future'])) {
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
             if (stop) {
-                if (planType === undefined) {
-                    throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan');
-                }
-                request['planType'] = planType;
-                response = await this.privateMixPostMixV1PlanCancelPlan (this.extend (request, params));
+                const orderIdList = [];
+                const orderId = {
+                    'orderId': id,
+                };
+                orderIdList.push (orderId);
+                request['orderIdList'] = orderIdList;
+                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
             } else {
-                response = await this.privateMixPostMixV1OrderCancelOrder (this.extend (request, params));
+                response = await this.privateMixPostV2MixOrderCancelOrder (this.extend (request, params));
             }
-        } else if (marketType === 'spot') {
+        } else if (market['spot']) {
             if (marginMode !== undefined) {
                 if (marginMode === 'isolated') {
-                    response = await this.privateMarginPostMarginV1IsolatedOrderCancelOrder (this.extend (request, params));
+                    response = await this.privateMarginPostV2MarginIsolatedCancelOrder (this.extend (request, params));
                 } else if (marginMode === 'cross') {
-                    response = await this.privateMarginPostMarginV1CrossOrderCancelOrder (this.extend (request, params));
+                    response = await this.privateMarginPostV2MarginCrossedCancelOrder (this.extend (request, params));
                 }
             } else {
                 if (stop) {
-                    response = await this.privateSpotPostSpotV1PlanCancelPlan (this.extend (request, params));
+                    response = await this.privateSpotPostV2SpotTradeCancelPlanOrder (this.extend (request, params));
                 } else {
-                    response = await this.privateSpotPostSpotV1TradeCancelOrder (this.extend (request, params));
+                    response = await this.privateSpotPostV2SpotTradeCancelOrder (this.extend (request, params));
                 }
             }
         } else {
-            throw new NotSupported (this.id + ' cancelOrder() does not support ' + marketType + ' orders');
+            throw new NotSupported (this.id + ' cancelOrder() does not support ' + market['type'] + ' orders');
         }
         //
-        // spot
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1697689270716,
-        //         "data": "1098753830701928448"
-        //     }
-        //
-        // isolated margin
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1697688367859,
-        //         "data": {
-        //             "resultList": [
-        //                 {
-        //                     "orderId": "1098749943604719616",
-        //                     "clientOid": "0ec8d262b3d2436aa651095a745b9b8d"
-        //                 }
-        //             ],
-        //             "failure": []
-        //         }
-        //     }
-        //
-        // cross margin
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": :1697689028972,
-        //         "data": {
-        //             "resultList": [
-        //                 {
-        //                     "orderId": "1098751730051067906",
-        //                     "clientOid": "ecb50ca373374c5bb814bc724e36b0eb"
-        //                 }
-        //             ],
-        //             "failure": []
-        //         }
-        //     }
-        //
-        // swap
+        // spot, swap, future and spot margin
         //
         //     {
         //         "code": "00000",
@@ -4239,13 +4194,41 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        let order = response;
-        if ((marketType === 'swap') || (marketType === 'future')) {
-            order = this.safeValue (response, 'data', {});
-        } else if (marginMode !== undefined) {
-            const data = this.safeValue (response, 'data', {});
-            const resultList = this.safeValue (data, 'resultList', []);
-            order = resultList[0];
+        // swap trigger
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700711311791,
+        //         "data": {
+        //             "successList": [
+        //                 {
+        //                     "clientOid": "1111428059067125760",
+        //                     "orderId": "1111428059067125761"
+        //                 }
+        //             ],
+        //             "failureList": []
+        //         }
+        //     }
+        //
+        // spot trigger
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700711728063,
+        //         "data": {
+        //             "result": "success"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        let order = undefined;
+        if ((market['swap'] || market['future']) && stop) {
+            const orderInfo = this.safeValue (data, 'successList', []);
+            order = orderInfo[0];
+        } else {
+            order = data;
         }
         return this.parseOrder (order, market);
     }
