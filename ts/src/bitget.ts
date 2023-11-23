@@ -3422,99 +3422,12 @@ export default class bitget extends Exchange {
             'cancel': 'canceled',
             'cancelled': 'canceled',
             'canceled': 'canceled',
+            'live': 'open',
         };
         return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market: Market = undefined): Order {
-        //
-        // spot
-        //     {
-        //         "accountId": "222222222",
-        //         "symbol": "TRXUSDT_SPBL",
-        //         "orderId": "1041901704004947968",
-        //         "clientOrderId": "c5e8a5e1-a07f-4202-8061-b88bd598b264",
-        //         "price": "0",
-        //         "quantity": "10.0000000000000000",
-        //         "orderType": "market",
-        //         "side": "buy",
-        //         "status": "full_fill",
-        //         "fillPrice": "0.0699782527055350",
-        //         "fillQuantity": "142.9015000000000000",
-        //         "fillTotalAmount": "9.9999972790000000",
-        //         "enterPointSource": "API",
-        //         "feeDetail": "{\"BGB\":{\"deduction\":true,\"feeCoinCode\":\"BGB\",\"totalDeductionFee\":-0.017118519726,\"totalFee\":-0.017118519726}}",
-        //         "orderSource": "market",
-        //         "cTime": "1684134644509"
-        //     }
-        //
-        // swap
-        //     {
-        //       "symbol": "BTCUSDT_UMCBL",
-        //       "size": 0.001,
-        //       "orderId": "881640729145409536",
-        //       "clientOid": "881640729204129792",
-        //       "filledQty": 0.001,
-        //       "fee": 0,
-        //       "price": null,
-        //       "priceAvg": 38429.5,
-        //       "state": "filled",
-        //       "side": "open_long",
-        //       "timeInForce": "normal",
-        //       "totalProfits": 0,
-        //       "posSide": "long",
-        //       "marginCoin": "USDT",
-        //       "filledAmount": 38.4295,
-        //       "orderType": "market",
-        //       "cTime": "1645925450611",
-        //       "uTime": "1645925450746"
-        //     }
-        //
-        // stop
-        //
-        //     {
-        //         "orderId": "910246821491617792",
-        //         "symbol": "BTCUSDT_UMCBL",
-        //         "marginCoin": "USDT",
-        //         "size": "16",
-        //         "executePrice": "20000",
-        //         "triggerPrice": "24000",
-        //         "status": "not_trigger",
-        //         "orderType": "limit",
-        //         "planType": "normal_plan",
-        //         "side": "open_long",
-        //         "triggerType": "market_price",
-        //         "presetTakeProfitPrice": "0",
-        //         "presetTakeLossPrice": "0",
-        //         "cTime": "1652745674488"
-        //     }
-        //
-        // isolated and cross margin: fetchOpenOrders, fetchCanceledOrders, fetchClosedOrders
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "orderType": "limit",
-        //         "source": "WEB",
-        //         "orderId": "1099108898629627904",
-        //         "clientOid": "f9b55416029e4cc2bbbe2f40ac368c38",
-        //         "loanType": "autoLoan",
-        //         "price": "25000",
-        //         "side": "buy",
-        //         "status": "new",
-        //         "baseQuantity": "0.0002",
-        //         "quoteAmount": "5",
-        //         "fillPrice": "0",
-        //         "fillQuantity": "0",
-        //         "fillTotalAmount": "0",
-        //         "ctime": "1697773902588"
-        //     }
-        // cancelOrders failing
-        //
-        //         {
-        //           "orderId": "1627293504611",
-        //           "clientOid": "BITGET#1627293504611",
-        //           "errorMsg":"Duplicate clientOid"
-        //         }
         //
         // createOrder, editOrder
         //
@@ -3551,6 +3464,60 @@ export default class bitget extends Exchange {
         //         "result": "success"
         //     }
         //
+        // spot: fetchOrder
+        //
+        //     {
+        //         "userId": "7264631750",
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "1111461743123927040",
+        //         "clientOid": "63f95110-93b5-4309-8f77-46339f1bcf3c",
+        //         "price": "25000.0000000000000000",
+        //         "size": "0.0002000000000000",
+        //         "orderType": "limit",
+        //         "side": "buy",
+        //         "status": "live",
+        //         "priceAvg": "0",
+        //         "baseVolume": "0.0000000000000000",
+        //         "quoteVolume": "0.0000000000000000",
+        //         "enterPointSource": "API",
+        //         "feeDetail": "",
+        //         "orderSource": "normal",
+        //         "cTime": "1700719050198",
+        //         "uTime": "1700719050198"
+        //     }
+        //
+        // swap and future: fetchOrder
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "size": "0.001",
+        //         "orderId": "1111465253393825792",
+        //         "clientOid": "1111465253431574529",
+        //         "baseVolume": "0",
+        //         "fee": "0",
+        //         "price": "27000",
+        //         "priceAvg": "",
+        //         "state": "live",
+        //         "side": "buy",
+        //         "force": "gtc",
+        //         "totalProfits": "0",
+        //         "posSide": "long",
+        //         "marginCoin": "USDT",
+        //         "presetStopSurplusPrice": "",
+        //         "presetStopLossPrice": "",
+        //         "quoteVolume": "0",
+        //         "orderType": "limit",
+        //         "leverage": "20",
+        //         "marginMode": "crossed",
+        //         "reduceOnly": "NO",
+        //         "enterPointSource": "API",
+        //         "tradeSide": "open",
+        //         "posMode": "hedge_mode",
+        //         "orderSource": "normal",
+        //         "cTime": "1700719887120",
+        //         "uTime": "1700719887120"
+        //     }
+        //
         const errorMessage = this.safeString (order, 'errorMsg');
         if (errorMessage !== undefined) {
             return this.safeOrder ({
@@ -3565,12 +3532,6 @@ export default class bitget extends Exchange {
         const timestamp = this.safeInteger2 (order, 'cTime', 'ctime');
         const updateTimestamp = this.safeInteger (order, 'uTime');
         const rawStatus = this.safeString2 (order, 'status', 'state');
-        let side = this.safeString2 (order, 'side', 'posSide');
-        if ((side === 'open_long') || (side === 'close_short')) {
-            side = 'buy';
-        } else if ((side === 'close_long') || (side === 'open_short')) {
-            side = 'sell';
-        }
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
@@ -3590,6 +3551,17 @@ export default class bitget extends Exchange {
                 'currency': this.safeCurrencyCode (this.safeString (first, 'feeCoinCode')),
             };
         }
+        let postOnly = undefined;
+        let timeInForce = this.safeStringUpper (order, 'force');
+        if (timeInForce === 'POST_ONLY') {
+            postOnly = true;
+            timeInForce = 'PO';
+        }
+        let reduceOnly = undefined;
+        const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
+        if (reduceOnlyRaw !== undefined) {
+            reduceOnly = (reduceOnlyRaw === 'NO') ? false : true;
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'orderId', 'data'),
@@ -3600,17 +3572,20 @@ export default class bitget extends Exchange {
             'lastUpdateTimestamp': updateTimestamp,
             'symbol': market['symbol'],
             'type': this.safeString (order, 'orderType'),
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': this.safeString2 (order, 'price', 'executePrice'),
-            'stopPrice': this.safeNumber (order, 'triggerPrice'),
-            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
-            'average': this.safeString2 (order, 'fillPrice', 'priceAvg'),
-            'cost': this.safeString2 (order, 'fillTotalAmount', 'filledAmount'),
-            'amount': this.safeStringN (order, [ 'quantity', 'size', 'baseQuantity' ]),
-            'filled': this.safeString2 (order, 'fillQuantity', 'filledQty'),
+            'side': this.safeString (order, 'side'),
+            'price': this.safeString (order, 'price'),
+            'amount': this.safeString (order, 'size'),
+            'cost': this.safeString (order, 'quoteVolume'),
+            'average': this.safeString (order, 'priceAvg'),
+            'filled': this.safeString (order, 'baseVolume'),
             'remaining': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'takeProfitPrice': this.safeNumber (order, 'presetStopSurplusPrice'),
+            'stopLossPrice': this.safeNumber (order, 'presetStopLossPrice'),
             'status': this.parseOrderStatus (rawStatus),
             'fee': fee,
             'trades': undefined,
@@ -4419,8 +4394,8 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchOrder
          * @description fetches information on an order made by the user
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-details
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-details
+         * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
+         * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -4430,74 +4405,88 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const request = {
-            'symbol': market['id'],
             'orderId': id,
         };
         let response = undefined;
-        if (marketType === 'spot') {
-            response = await this.privateSpotPostSpotV1TradeOrderInfo (this.extend (request, query));
-        } else if ((marketType === 'swap') || (marketType === 'future')) {
-            response = await this.privateMixGetMixV1OrderDetail (this.extend (request, query));
+        if (market['spot']) {
+            response = await this.privateSpotGetV2SpotTradeOrderInfo (this.extend (request, params));
+        } else if (market['swap'] || market['future']) {
+            request['symbol'] = market['id'];
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            response = await this.privateMixGetV2MixOrderDetail (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' fetchOrder() does not support ' + marketType + ' market');
+            throw new NotSupported (this.id + ' fetchOrder() does not support ' + market['type'] + ' orders');
         }
+        //
         // spot
+        //
         //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": "1645926849436",
-        //       "data": [
-        //         {
-        //           "accountId": "6394957606",
-        //           "symbol": "BTCUSDT_SPBL",
-        //           "orderId": "881626139738935296",
-        //           "clientOrderId": "525890c8-767e-4cd6-8585-38160ed7bb5e",
-        //           "price": "38000.000000000000",
-        //           "quantity": "0.000700000000",
-        //           "orderType": "limit",
-        //           "side": "buy",
-        //           "status": "new",
-        //           "fillPrice": "0.000000000000",
-        //           "fillQuantity": "0.000000000000",
-        //           "fillTotalAmount": "0.000000000000",
-        //           "cTime": "1645921972212"
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700719076263,
+        //         "data": [
+        //             {
+        //                 "userId": "7264631750",
+        //                 "symbol": "BTCUSDT",
+        //                 "orderId": "1111461743123927040",
+        //                 "clientOid": "63f95110-93b5-4309-8f77-46339f1bcf3c",
+        //                 "price": "25000.0000000000000000",
+        //                 "size": "0.0002000000000000",
+        //                 "orderType": "limit",
+        //                 "side": "buy",
+        //                 "status": "live",
+        //                 "priceAvg": "0",
+        //                 "baseVolume": "0.0000000000000000",
+        //                 "quoteVolume": "0.0000000000000000",
+        //                 "enterPointSource": "API",
+        //                 "feeDetail": "",
+        //                 "orderSource": "normal",
+        //                 "cTime": "1700719050198",
+        //                 "uTime": "1700719050198"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700719918781,
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "size": "0.001",
+        //             "orderId": "1111465253393825792",
+        //             "clientOid": "1111465253431574529",
+        //             "baseVolume": "0",
+        //             "fee": "0",
+        //             "price": "27000",
+        //             "priceAvg": "",
+        //             "state": "live",
+        //             "side": "buy",
+        //             "force": "gtc",
+        //             "totalProfits": "0",
+        //             "posSide": "long",
+        //             "marginCoin": "USDT",
+        //             "presetStopSurplusPrice": "",
+        //             "presetStopLossPrice": "",
+        //             "quoteVolume": "0",
+        //             "orderType": "limit",
+        //             "leverage": "20",
+        //             "marginMode": "crossed",
+        //             "reduceOnly": "NO",
+        //             "enterPointSource": "API",
+        //             "tradeSide": "open",
+        //             "posMode": "hedge_mode",
+        //             "orderSource": "normal",
+        //             "cTime": "1700719887120",
+        //             "uTime": "1700719887120"
         //         }
-        //       ]
         //     }
         //
-        // swap
-        //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": "1645926587877",
-        //       "data": {
-        //         "symbol": "BTCUSDT_UMCBL",
-        //         "size": "0.001",
-        //         "orderId": "881640729145409536",
-        //         "clientOid": "881640729204129792",
-        //         "filledQty": "0.001",
-        //         "fee": "0E-8",
-        //         "price": null,
-        //         "priceAvg": "38429.50",
-        //         "state": "filled",
-        //         "side": "open_long",
-        //         "timeInForce": "normal",
-        //         "totalProfits": "0E-8",
-        //         "posSide": "long",
-        //         "marginCoin": "USDT",
-        //         "filledAmount": "38.4295",
-        //         "orderType": "market",
-        //         "cTime": "1645925450611",
-        //         "uTime": "1645925450746"
-        //       }
-        //     }
-        //
-        // response will be string after filled, see: ccxt/ccxt#17900
-        if (typeof response === 'string') {
-            response = JSON.parse (response);
-        }
         const data = this.safeValue (response, 'data');
         const first = this.safeValue (data, 0, data);
         return this.parseOrder (first, market);
