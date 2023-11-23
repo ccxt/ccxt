@@ -1885,8 +1885,8 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papi_get_cm_account($params = array()) {
         return $this->request('cm/account', 'papi', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function papi_get_portfolio_repay_futures_switch($params = array()) {
-        return $this->request('portfolio/repay-futures-switch', 'papi', 'GET', $params, null, null, array("cost" => 3));
+    public function papi_get_repay_futures_switch($params = array()) {
+        return $this->request('repay-futures-switch', 'papi', 'GET', $params, null, null, array("cost" => 3));
     }
     public function papi_get_um_adlquantile($params = array()) {
         return $this->request('um/adlQuantile', 'papi', 'GET', $params, null, null, array("cost" => 5));
@@ -1936,11 +1936,11 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papi_post_bnb_transfer($params = array()) {
         return $this->request('bnb-transfer', 'papi', 'POST', $params, null, null, array("cost" => 0.6667));
     }
-    public function papi_post_portfolio_repay_futures_switch($params = array()) {
-        return $this->request('portfolio/repay-futures-switch', 'papi', 'POST', $params, null, null, array("cost" => 150));
+    public function papi_post_repay_futures_switch($params = array()) {
+        return $this->request('repay-futures-switch', 'papi', 'POST', $params, null, null, array("cost" => 150));
     }
-    public function papi_post_portfolio_repay_futures_negative_balance($params = array()) {
-        return $this->request('portfolio/repay-futures-negative-balance', 'papi', 'POST', $params, null, null, array("cost" => 150));
+    public function papi_post_repay_futures_negative_balance($params = array()) {
+        return $this->request('repay-futures-negative-balance', 'papi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function papi_post_listenkey($params = array()) {
         return $this->request('listenKey', 'papi', 'POST', $params, null, null, array("cost" => 1));
@@ -3865,8 +3865,8 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papiGetCmAccount($params = array()) {
         return $this->request('cm/account', 'papi', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function papiGetPortfolioRepayFuturesSwitch($params = array()) {
-        return $this->request('portfolio/repay-futures-switch', 'papi', 'GET', $params, null, null, array("cost" => 3));
+    public function papiGetRepayFuturesSwitch($params = array()) {
+        return $this->request('repay-futures-switch', 'papi', 'GET', $params, null, null, array("cost" => 3));
     }
     public function papiGetUmAdlQuantile($params = array()) {
         return $this->request('um/adlQuantile', 'papi', 'GET', $params, null, null, array("cost" => 5));
@@ -3916,11 +3916,11 @@ abstract class binanceus extends \ccxt\async\binance {
     public function papiPostBnbTransfer($params = array()) {
         return $this->request('bnb-transfer', 'papi', 'POST', $params, null, null, array("cost" => 0.6667));
     }
-    public function papiPostPortfolioRepayFuturesSwitch($params = array()) {
-        return $this->request('portfolio/repay-futures-switch', 'papi', 'POST', $params, null, null, array("cost" => 150));
+    public function papiPostRepayFuturesSwitch($params = array()) {
+        return $this->request('repay-futures-switch', 'papi', 'POST', $params, null, null, array("cost" => 150));
     }
-    public function papiPostPortfolioRepayFuturesNegativeBalance($params = array()) {
-        return $this->request('portfolio/repay-futures-negative-balance', 'papi', 'POST', $params, null, null, array("cost" => 150));
+    public function papiPostRepayFuturesNegativeBalance($params = array()) {
+        return $this->request('repay-futures-negative-balance', 'papi', 'POST', $params, null, null, array("cost" => 150));
     }
     public function papiPostListenKey($params = array()) {
         return $this->request('listenKey', 'papi', 'POST', $params, null, null, array("cost" => 1));
