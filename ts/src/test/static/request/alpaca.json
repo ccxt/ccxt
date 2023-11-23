@@ -63,11 +63,31 @@
                 ]
             }
         ],
+        "fetchOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOrders",
+                "url": "https://api.alpaca.markets/v2/orders?status=all&symbols=LTC%2FUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.alpaca.markets/v2/orders",
+                "url": "https://api.alpaca.markets/v2/orders?status=open&symbols=LTC%2FUSDT",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.alpaca.markets/v2/orders?status=closed&symbols=LTC%2FUSDT",
                 "input": [
                     "LTC/USDT"
                 ]
