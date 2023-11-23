@@ -3538,7 +3538,7 @@ export default class bitget extends Exchange {
         //         },
         //     ]
         //
-        // spot, swap, future and spot margin: cancelOrder
+        // spot, swap, future and spot margin: cancelOrder, cancelOrders
         //
         //     {
         //         "orderId": "1098758604547850241",
@@ -4238,82 +4238,83 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#cancelOrders
          * @description cancel multiple orders
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order-in-batch-v2-single-instruments
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-cancel-order
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
+         * @see https://www.bitget.com/api-doc/spot/trade/Batch-Cancel-Orders
+         * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
+         * @see https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order
+         * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order
+         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {boolean} [params.stop] *contract only* set to true for canceling trigger orders
+         * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
-        const request = {};
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
+        const orderIdList = [];
+        for (let i = 0; i < ids.length; i++) {
+            const individualId = ids[i];
+            const orderId = {
+                'orderId': individualId,
+            };
+            orderIdList.push (orderId);
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        if (market['spot'] && (marginMode === undefined)) {
+            request['orderList'] = orderIdList;
+        } else {
+            request['orderIdList'] = orderIdList;
+        }
         let response = undefined;
-        if (type === 'spot') {
-            request['symbol'] = market['info']['symbolName']; // regular id like LTCUSDT_SPBL does not work here
-            request['orderIds'] = ids;
+        if (market['spot']) {
             if (marginMode !== undefined) {
                 if (marginMode === 'cross') {
-                    response = await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder (this.extend (request, params));
+                    response = await this.privateMarginPostV2MarginCrossedBatchCancelOrder (this.extend (request, params));
                 } else {
-                    response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder (this.extend (request, params));
+                    response = await this.privateMarginPostV2MarginIsolatedBatchCancelOrder (this.extend (request, params));
                 }
             } else {
-                response = await this.privateSpotPostSpotV1TradeCancelBatchOrdersV2 (this.extend (request, params));
+                response = await this.privateSpotPostV2SpotTradeBatchCancelOrder (this.extend (request, params));
             }
         } else {
-            request['symbol'] = market['id'];
-            request['marginCoin'] = market['quote'];
-            request['orderIds'] = ids;
-            response = await this.privateMixPostMixV1OrderCancelBatchOrders (this.extend (request, params));
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            if (stop) {
+                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
+            } else {
+                response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, params));
+            }
         }
-        //
-        //     spot
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
         //         "requestTime": "1680008815965",
         //         "data": {
-        //             "resultList": [
+        //             "successList": [
         //                 {
         //                     "orderId": "1024598257429823488",
-        //                     "clientOrderId": "876493ce-c287-4bfc-9f4a-8b1905881313"
+        //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
         //                 },
         //             ],
-        //             "failed": []
+        //             "failureList": []
         //         }
         //     }
         //
-        //     swap
-        //
-        //     {
-        //         "result":true,
-        //         "symbol":"cmt_btcusdt",
-        //         "order_ids":[
-        //             "258414711",
-        //             "478585558"
-        //         ],
-        //         "fail_infos":[
-        //             {
-        //                 "order_id":"258414711",
-        //                 "err_code":"401",
-        //                 "err_msg":""
-        //             }
-        //         ]
-        //     }
-        //
-        return response;
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'successList', []);
+        return this.parseOrders (orders, market);
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
