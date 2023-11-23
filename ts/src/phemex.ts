@@ -2868,18 +2868,18 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'privateGetSpotOrders';
-        if (market['settle'] === 'USDT') {
-            method = 'privateGetGOrdersActiveList';
-        } else if (market['swap']) {
-            method = 'privateGetOrdersActiveList';
-        }
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
         try {
-            response = await this[method] (this.extend (request, params));
+            if (market['settle'] === 'USDT') {
+                response = await this.privateGetGOrdersActiveList (this.extend (request, params));
+            } else if (market['swap']) {
+                response = await this.privateGetOrdersActiveList (this.extend (request, params));
+            } else {
+                response = await this.privateGetSpotOrders (this.extend (request, params));
+            }
         } catch (e) {
             if (e instanceof OrderNotFound) {
                 return [];
