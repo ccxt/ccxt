@@ -40,6 +40,8 @@ export default class bitmex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePositions': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
@@ -2781,6 +2783,40 @@ export default class bitmex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         });
+    }
+
+    async closePositions (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name okx#closePositions
+         * @description closes open positions for a market
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} side 'buy' or 'sell'
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.clientOrderId] 'cross' or 'isolated'
+         * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
+        // const qty = this.parseToInt (this.amountToPrecision (symbol, amount));
+        const request = {
+            'symbol': market['id'],
+            'side': this.capitalize (side),
+            // 'orderQty': qty, // lot size multiplied by the number of contracts
+            'ordType': 'Market',
+            'execInst': 'Close',
+            'text': brokerId,
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdID'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId' ]);
+        }
+        const response = await this.privatePostOrder (this.extend (request, params));
+        const parsedOrder = this.parseOrder (response, market);
+        return [ parsedOrder ];
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
