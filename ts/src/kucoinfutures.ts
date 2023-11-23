@@ -1288,8 +1288,13 @@ export default class kucoinfutures extends kucoin {
             request['symbol'] = this.marketId (symbol);
         }
         const stop = this.safeValue (params, 'stop');
-        const method = stop ? 'futuresPrivateDeleteStopOrders' : 'futuresPrivateDeleteOrders';
-        const response = await this[method] (this.extend (request, params));
+        params = this.omit (params, 'stop');
+        let response = undefined;
+        if (stop) {
+            response = await this.futuresPrivateDeleteStopOrders (this.extend (request, params));
+        } else {
+            response = await this.futuresPrivateDeleteOrders (this.extend (request, params));
+        }
         //
         //   {
         //       "code": "200000",
@@ -1492,8 +1497,12 @@ export default class kucoinfutures extends kucoin {
         if (until !== undefined) {
             request['endAt'] = until;
         }
-        const method = stop ? 'futuresPrivateGetStopOrders' : 'futuresPrivateGetOrders';
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (stop) {
+            response = await this.futuresPrivateGetStopOrders (this.extend (request, params));
+        } else {
+            response = await this.futuresPrivateGetOrders (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "200000",
@@ -1587,19 +1596,19 @@ export default class kucoinfutures extends kucoin {
          */
         await this.loadMarkets ();
         const request = {};
-        let method = 'futuresPrivateGetOrdersOrderId';
+        let response = undefined;
         if (id === undefined) {
             const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
             if (clientOrderId === undefined) {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires parameter id or params.clientOid');
             }
             request['clientOid'] = clientOrderId;
-            method = 'futuresPrivateGetOrdersByClientOid';
             params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+            response = await this.futuresPrivateGetOrdersByClientOid (this.extend (request, params));
         } else {
             request['orderId'] = id;
+            response = await this.futuresPrivateGetOrdersOrderId (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "200000",
