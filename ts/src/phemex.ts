@@ -2747,20 +2747,21 @@ export default class phemex extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            // 'symbol': market['id'],
+            'symbol': market['id'],
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
-        const market = this.market (symbol);
-        let method = 'privateDeleteSpotOrdersAll';
+        let response = undefined;
         if (market['settle'] === 'USDT') {
-            method = 'privateDeleteGOrdersAll';
+            response = await this.privateDeleteGOrdersAll (this.extend (request, params));
         } else if (market['swap']) {
-            method = 'privateDeleteOrdersAll';
+            response = await this.privateDeleteOrdersAll (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteSpotOrdersAll (this.extend (request, params));
         }
-        request['symbol'] = market['id'];
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
