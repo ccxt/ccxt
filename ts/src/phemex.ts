@@ -1422,11 +1422,12 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let method = 'v1GetMdTrade';
+        let response = undefined;
         if (market['linear'] && market['settle'] === 'USDT') {
-            method = 'v2GetMdV2Trade';
+            response = await this.v2GetMdV2Trade (this.extend (request, params));
+        } else {
+            response = await this.v1GetMdTrade (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": null,
