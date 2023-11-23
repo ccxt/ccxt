@@ -2993,13 +2993,6 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'privateGetExchangeSpotOrderTrades';
-        if (market['swap']) {
-            method = 'privateGetExchangeOrderTrade';
-            if (market['settle'] === 'USDT') {
-                method = 'privateGetExchangeOrderV2TradingList';
-            }
-        }
         const request = {};
         if (limit !== undefined) {
             limit = Math.min (200, limit);
@@ -3020,7 +3013,16 @@ export default class phemex extends Exchange {
         if (market['swap'] && (limit !== undefined)) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            if (market['settle'] === 'USDT') {
+                response = await this.privateGetExchangeOrderV2TradingList (this.extend (request, params));
+            } else {
+                response = await this.privateGetExchangeOrderTrade (this.extend (request, params));
+            }
+        } else {
+            response = await this.privateGetExchangeSpotOrderTrades (this.extend (request, params));
+        }
         //
         // spot
         //
