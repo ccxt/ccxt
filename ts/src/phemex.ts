@@ -2675,17 +2675,18 @@ export default class phemex extends Exchange {
             }
         }
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
-        let method = 'privatePutSpotOrders';
+        let response = undefined;
         if (isUSDTSettled) {
-            method = 'privatePutGOrdersReplace';
             const posSide = this.safeString (params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+            response = await this.privatePutGOrdersReplace (this.extend (request, params));
         } else if (market['swap']) {
-            method = 'privatePutOrdersReplace';
+            response = await this.privatePutOrdersReplace (this.extend (request, params));
+        } else {
+            response = await this.privatePutSpotOrders (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
