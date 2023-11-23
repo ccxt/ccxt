@@ -1309,15 +1309,16 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let method = 'v1GetMdSpotTicker24hr';
+        let response = undefined;
         if (market['swap']) {
             if (market['inverse'] || market['settle'] === 'USD') {
-                method = 'v1GetMdTicker24hr';
+                response = await this.v1GetMdTicker24hr (this.extend (request, params));
             } else {
-                method = 'v2GetMdV2Ticker24hr';
+                response = await this.v2GetMdV2Ticker24hr (this.extend (request, params));
             }
+        } else {
+            response = await this.v1GetMdSpotTicker24hr (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
