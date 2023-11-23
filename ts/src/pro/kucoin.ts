@@ -14,6 +14,13 @@ export default class kucoin extends kucoinRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchMyTrades': true,

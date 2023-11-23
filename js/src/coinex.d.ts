@@ -190,8 +190,8 @@ export default class coinex extends Exchange {
         datetime: string;
         info: any;
     };
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
+    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
+    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
         id: number;
         currency: string;

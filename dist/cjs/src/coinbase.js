@@ -287,12 +287,17 @@ class coinbase extends coinbase$1 {
                     'fiat',
                     // 'vault',
                 ],
+                'v3Accounts': [
+                    'ACCOUNT_TYPE_CRYPTO',
+                    'ACCOUNT_TYPE_FIAT',
+                ],
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true,
                 'fetchMarkets': 'fetchMarketsV3',
                 'fetchTicker': 'fetchTickerV3',
                 'fetchTickers': 'fetchTickersV3',
                 'fetchAccounts': 'fetchAccountsV3',
+                'fetchBalance': 'v2PrivateGetAccounts',
                 'user_native_currency': 'USD', // needed to get fees for v3
             },
         });
@@ -302,6 +307,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -322,6 +328,8 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
@@ -525,6 +533,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#createDepositAddress
          * @description create a currency deposit address
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -599,6 +608,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchMySells
          * @description fetch sells
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-sells#list-sells
          * @param {string} symbol not used by coinbase fetchMySells ()
          * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
          * @param {int} [limit] max number of sells to return, default is undefined
@@ -617,6 +627,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchMyBuys
          * @description fetch buys
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-buys#list-buys
          * @param {string} symbol not used by coinbase fetchMyBuys ()
          * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
          * @param {int} [limit] max number of buys to return, default is undefined
@@ -642,6 +653,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -656,6 +668,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -914,6 +927,8 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchMarkets
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * @description retrieves data on all markets for coinbase
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
@@ -1137,6 +1152,8 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1212,6 +1229,8 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1313,6 +1332,10 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1503,8 +1526,9 @@ class coinbase extends coinbase$1 {
         }, market);
     }
     parseBalance(response, params = {}) {
-        const balances = this.safeValue(response, 'data', []);
+        const balances = this.safeValue2(response, 'data', 'accounts', []);
         const accounts = this.safeValue(params, 'type', this.options['accounts']);
+        const v3Accounts = this.safeValue(params, 'type', this.options['v3Accounts']);
         const result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
             const balance = balances[b];
@@ -1529,6 +1553,30 @@ class coinbase extends coinbase$1 {
                     result[code] = account;
                 }
             }
+            else if (this.inArray(type, v3Accounts)) {
+                const available = this.safeValue(balance, 'available_balance');
+                const hold = this.safeValue(balance, 'hold');
+                if (available !== undefined && hold !== undefined) {
+                    const currencyId = this.safeString(available, 'currency');
+                    const code = this.safeCurrencyCode(currencyId);
+                    const used = this.safeString(hold, 'value');
+                    const free = this.safeString(available, 'value');
+                    const total = Precise["default"].stringAdd(used, free);
+                    let account = this.safeValue(result, code);
+                    if (account === undefined) {
+                        account = this.account();
+                        account['free'] = free;
+                        account['used'] = used;
+                        account['total'] = total;
+                    }
+                    else {
+                        account['free'] = Precise["default"].stringAdd(account['free'], free);
+                        account['used'] = Precise["default"].stringAdd(account['used'], used);
+                        account['total'] = Precise["default"].stringAdd(account['total'], total);
+                    }
+                    result[code] = account;
+                }
+            }
         }
         return this.safeBalance(result);
     }
@@ -1537,15 +1585,28 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const request = {
             'limit': 100,
         };
-        const response = await this.v2PrivateGetAccounts(this.extend(request, params));
+        let response = undefined;
+        const isV3 = this.safeValue(params, 'v3', false);
+        params = this.omit(params, 'v3');
+        const method = this.safeString(this.options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
+        if ((isV3) || (method === 'v3PrivateGetBrokerageAccounts')) {
+            response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, params));
+        }
+        else {
+            response = await this.v2PrivateGetAccounts(this.extend(request, params));
+        }
         //
+        // v2PrivateGetAccounts
         //     {
         //         "pagination":{
         //             "ending_before":null,
@@ -1585,6 +1646,36 @@ class coinbase extends coinbase$1 {
         //         ]
         //     }
         //
+        // v3PrivateGetBrokerageAccounts
+        //     {
+        //         "accounts": [
+        //             {
+        //                 "uuid": "11111111-1111-1111-1111-111111111111",
+        //                 "name": "USDC Wallet",
+        //                 "currency": "USDC",
+        //                 "available_balance": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
+        //                 },
+        //                 "default": true,
+        //                 "active": true,
+        //                 "created_at": "2023-01-04T06:20:06.456Z",
+        //                 "updated_at": "2023-01-04T06:20:07.181Z",
+        //                 "deleted_at": null,
+        //                 "type": "ACCOUNT_TYPE_CRYPTO",
+        //                 "ready": false,
+        //                 "hold": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
+        //                 }
+        //             },
+        //             ...
+        //         ],
+        //         "has_next": false,
+        //         "cursor": "",
+        //         "size": 9
+        //     }
+        //
         return this.parseBalance(response, params);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1592,6 +1683,7 @@ class coinbase extends coinbase$1 {
          * @method
          * @name coinbase#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined

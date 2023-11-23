@@ -16,6 +16,15 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'cancelOrderWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelAllOrdersWs' => false,
+                'fetchTradesWs' => false,
+                'fetchBalanceWs' => false,
                 'watchOrderBook' => true,
                 'watchTrades' => true,
                 'watchTicker' => true,

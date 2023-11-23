@@ -117,6 +117,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchPermissions': None,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchPositionsForSymbol': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': True,
@@ -139,7 +140,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
                 'reduceMargin': True,
-                'repayMargin': True,
+                'repayCrossMargin': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': True,
@@ -4726,7 +4727,7 @@ class okx(Exchange, ImplicitAPI):
         position = self.safe_value(data, 0)
         if position is None:
             return None
-        return self.parse_position(position)
+        return self.parse_position(position, market)
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
@@ -4806,6 +4807,17 @@ class okx(Exchange, ImplicitAPI):
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
+
+    async def fetch_positions_for_symbol(self, symbol: str, params={}):
+        """
+        :see: https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
+        fetch all open positions for specific symbol
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.instType]: MARGIN(if needed)
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        return await self.fetch_positions([symbol], params)
 
     def parse_position(self, position, market: Market = None):
         #
@@ -5999,13 +6011,12 @@ class okx(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_cross_margin(self, code: str, amount, params={}):
         """
-        create a loan to borrow margin
-        :see: https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+        create a loan to borrow margin(need to be VIP 5 and above)
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: not used by okx.borrowMargin()
         :param dict [params]: extra parameters specific to the okx api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
@@ -6023,12 +6034,10 @@ class okx(Exchange, ImplicitAPI):
         #         "data": [
         #             {
         #                 "amt": "102",
-        #                 "availLoan": "97",
         #                 "ccy": "USDT",
-        #                 "loanQuota": "6000000",
-        #                 "posLoan": "0",
+        #                 "ordId": "544199684697214976",
         #                 "side": "borrow",
-        #                 "usedLoan": "97"
+        #                 "state": "1"
         #             }
         #         ],
         #         "msg": ""
@@ -6036,27 +6045,29 @@ class okx(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         loan = self.safe_value(data, 0)
-        transaction = self.parse_margin_loan(loan, currency)
-        return self.extend(transaction, {
-            'symbol': symbol,
-        })
+        return self.parse_margin_loan(loan, currency)
 
-    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+        :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: not used by okx.repayMargin()
         :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.id]: the order ID of borrowing, it is necessary while repaying
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         await self.load_markets()
+        id = self.safe_string_2(params, 'id', 'ordId')
+        params = self.omit(params, 'id')
+        if id is None:
+            raise ArgumentsRequired(self.id + ' repayCrossMargin() requires an id parameter')
         currency = self.currency(code)
         request = {
             'ccy': currency['id'],
             'amt': self.currency_to_precision(code, amount),
             'side': 'repay',
+            'ordId': id,
         }
         response = await self.privatePostAccountBorrowRepay(self.extend(request, params))
         #
@@ -6065,12 +6076,10 @@ class okx(Exchange, ImplicitAPI):
         #         "data": [
         #             {
         #                 "amt": "102",
-        #                 "availLoan": "97",
         #                 "ccy": "USDT",
-        #                 "loanQuota": "6000000",
-        #                 "posLoan": "0",
+        #                 "ordId": "544199684697214976",
         #                 "side": "repay",
-        #                 "usedLoan": "97"
+        #                 "state": "1"
         #             }
         #         ],
         #         "msg": ""
@@ -6078,10 +6087,7 @@ class okx(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', [])
         loan = self.safe_value(data, 0)
-        transaction = self.parse_margin_loan(loan, currency)
-        return self.extend(transaction, {
-            'symbol': symbol,
-        })
+        return self.parse_margin_loan(loan, currency)
 
     def parse_margin_loan(self, info, currency: Currency = None):
         #

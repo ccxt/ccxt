@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.58'
+__version__ = '4.1.63'
 
 # -----------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ import sys
 import yarl
 import math
 from typing import Any, List
-from ccxt.base.types import Int
+from ccxt.base.types import Int, Str
 
 # -----------------------------------------------------------------------------
 
@@ -580,6 +580,27 @@ class Exchange(BaseExchange):
     async def set_leverage(self, leverage, symbol: str = None, params={}):
         raise NotSupported(self.id + ' setLeverage() is not supported yet')
 
+    async def fetch_borrow_rate(self, code: str, amount, params={}):
+        raise NotSupported(self.id + ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead')
+
+    async def repay_cross_margin(self, code: str, amount, params={}):
+        raise NotSupported(self.id + ' repayCrossMargin is not support yet')
+
+    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        raise NotSupported(self.id + ' repayIsolatedMargin is not support yet')
+
+    async def borrow_cross_margin(self, code: str, amount, params={}):
+        raise NotSupported(self.id + ' borrowCrossMargin is not support yet')
+
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
+        raise NotSupported(self.id + ' borrowIsolatedMargin is not support yet')
+
+    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead')
+
+    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead')
+
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         message = ''
         if self.has['fetchTrades']:
@@ -704,14 +725,14 @@ class Exchange(BaseExchange):
     async def watch_position_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
         return self.watchPositions(symbols, since, limit, params)
 
-    async def fetch_positions_by_symbol(self, symbol: str, params={}):
+    async def fetch_positions_for_symbol(self, symbol: str, params={}):
         """
-        specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
-        :param str symbol: unified market symbol of the market the position is held in
+        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
+        :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
-        raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
+        raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
 
     async def fetch_positions(self, symbols: List[str] = None, params={}):
         raise NotSupported(self.id + ' fetchPositions() is not supported yet')

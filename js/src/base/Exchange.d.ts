@@ -352,7 +352,7 @@ export default class Exchange {
             fetchPermissions: any;
             fetchPosition: any;
             fetchPositions: any;
-            fetchPositionsBySymbol: any;
+            fetchPositionsForSymbol: any;
             fetchPositionsRisk: any;
             fetchPremiumIndexOHLCV: any;
             fetchStatus: string;
@@ -632,6 +632,13 @@ export default class Exchange {
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: object, market?: Market): Ticker;
+    fetchBorrowRate(code: string, amount: any, params?: {}): Promise<any>;
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
+    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<any>;
+    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
+    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
+    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     convertTradingViewToOHLCV(ohlcvs: any, timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): any[];
@@ -684,7 +691,7 @@ export default class Exchange {
     watchPosition(symbol?: string, params?: {}): Promise<Position>;
     watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     watchPositionForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    fetchPositionsBySymbol(symbol: string, params?: {}): Promise<Position[]>;
+    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<Position[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;

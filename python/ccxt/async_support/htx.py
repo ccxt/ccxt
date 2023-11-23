@@ -51,7 +51,8 @@ class htx(Exchange, ImplicitAPI):
                 'future': True,
                 'option': None,
                 'addMargin': None,
-                'borrowMargin': True,
+                'borrowCrossMargin': True,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -131,7 +132,8 @@ class htx(Exchange, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'reduceMargin': None,
-                'repayMargin': True,
+                'repayCrossMargin': True,
+                'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
                 'setPositionMode': False,
@@ -1180,10 +1182,6 @@ class htx(Exchange, ImplicitAPI):
                     'grid-trading': 'grid-trading',
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
-                },
-                'marginAccounts': {
-                    'cross': 'super-margin',
-                    'isolated': 'margin',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
@@ -3552,7 +3550,11 @@ class htx(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('end-time', request, params)
         if limit is not None:
             request['size'] = limit
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'spot_private_get_v1_order_orders':
+            response = await self.spotPrivateGetV1OrderOrders(self.extend(request, params))
+        else:
+            response = await self.spotPrivateGetV1OrderHistory(self.extend(request, params))
         #
         # spot_private_get_v1_order_orders GET /v1/order/orders
         #
@@ -7482,43 +7484,26 @@ class htx(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    async def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
         :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+        :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: unified market symbol, required for isolated margin
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
+        market = self.market(symbol)
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
         }
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
-        marginMode = 'cross' if (marginMode is None) else marginMode
-        method = None
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            method = 'privatePostMarginOrders'
-        elif marginMode == 'cross':
-            method = 'privatePostCrossMarginOrders'
-        response = await getattr(self, method)(self.extend(request, params))
-        #
-        # Cross
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": null
-        #     }
+        response = await self.privatePostMarginOrders(self.extend(request, params))
         #
         # Isolated
         #
@@ -7532,7 +7517,37 @@ class htx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def borrow_cross_margin(self, code: str, amount, params={}):
+        """
+        create a loan to borrow margin
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = await self.privatePostCrossMarginOrders(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": null
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+        })
+
+    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
@@ -7544,12 +7559,7 @@ class htx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
-        marginMode = 'cross' if (marginMode is None) else marginMode
-        marginAccounts = self.safe_value(self.options, 'marginAccounts', {})
-        accountType = self.get_supported_mapping(marginMode, marginAccounts)
-        accountId = await self.fetch_account_id_by_type(accountType, marginMode, symbol, params)
+        accountId = await self.fetch_account_id_by_type('spot', 'isolated', symbol, params)
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
@@ -7573,6 +7583,42 @@ class htx(Exchange, ImplicitAPI):
         return self.extend(transaction, {
             'amount': amount,
             'symbol': symbol,
+        })
+
+    async def repay_cross_margin(self, code: str, amount, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        accountId = await self.fetch_account_id_by_type('spot', 'cross', None, params)
+        request = {
+            'currency': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'accountId': accountId,
+        }
+        response = await self.v2PrivatePostAccountRepayment(self.extend(request, params))
+        #
+        #     {
+        #         "code":200,
+        #         "data": [
+        #             {
+        #                 "repayId":1174424,
+        #                 "repayTime":1600747722018
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'Data', [])
+        loan = self.safe_value(data, 0)
+        transaction = self.parse_margin_loan(loan, currency)
+        return self.extend(transaction, {
+            'amount': amount,
         })
 
     def parse_margin_loan(self, info, currency: Currency = None):
@@ -7599,7 +7645,7 @@ class htx(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(info, 'repayTime')
         return {
-            'id': self.safe_integer_2(info, 'repayId', 'data'),
+            'id': self.safe_string_2(info, 'repayId', 'data'),
             'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'symbol': None,

@@ -17,6 +17,13 @@ class bitmart(ccxt.async_support.bitmart):
     def describe(self):
         return self.deep_extend(super(bitmart, self).describe(), {
             'has': {
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
                 'ws': True,
                 'watchTicker': True,
                 'watchOrderBook': True,

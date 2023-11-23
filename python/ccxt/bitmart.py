@@ -48,7 +48,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'borrowMargin': True,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
@@ -110,7 +111,8 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
-                'repayMargin': True,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
                 'transfer': True,
@@ -3003,19 +3005,16 @@ class bitmart(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
         :see: https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+        :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to repay
         :param str amount: the amount to repay
-        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitmart api endpoint
-        :param str [params.marginMode]: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -3024,7 +3023,6 @@ class bitmart(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        params = self.omit(params, 'marginMode')
         response = self.privatePostSpotV1MarginIsolatedRepay(self.extend(request, params))
         #
         #     {
@@ -3043,19 +3041,16 @@ class bitmart(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def borrow_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         create a loan to borrow margin
         :see: https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+        :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to borrow
         :param str amount: the amount to borrow
-        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitmart api endpoint
-        :param str [params.marginMode]: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -3064,7 +3059,6 @@ class bitmart(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        params = self.omit(params, 'marginMode')
         response = self.privatePostSpotV1MarginIsolatedBorrow(self.extend(request, params))
         #
         #     {

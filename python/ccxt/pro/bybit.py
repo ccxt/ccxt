@@ -22,6 +22,15 @@ class bybit(ccxt.async_support.bybit):
         return self.deep_extend(super(bybit, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
+                'fetchTradesWs': False,
+                'fetchBalanceWs': False,
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
@@ -1580,7 +1589,7 @@ class bybit(ccxt.async_support.bybit):
             'args': topics,
         }
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, subscriptionHash)
+        return await self.watch(url, messageHash, message, messageHash, subscriptionHash)
 
     async def authenticate(self, url, params={}):
         self.check_required_credentials()

@@ -18,6 +18,15 @@ class mexc(ccxt.async_support.mexc):
         return self.deep_extend(super(mexc, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,

@@ -32,7 +32,7 @@ export default class mexc extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': true,
-                'borrowMargin': true,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
@@ -104,7 +104,7 @@ export default class mexc extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
-                'repayMargin': true,
+                'repayMargin': false,
                 'setLeverage': true,
                 'setMarginMode': undefined,
                 'setPositionMode': true,
@@ -215,10 +215,6 @@ export default class mexc extends Exchange {
                             'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'capital/convert': 1,
-                            'margin/tradeMode': 1,
-                            'margin/order': 1,
-                            'margin/loan': 1,
-                            'margin/repay': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -438,18 +434,18 @@ export default class mexc extends Exchange {
                 'networks': {
                     'BTC': 'BTC',
                     'BCH': 'BCH',
-                    'TRC20': 'TRC20',
-                    'ERC20': 'ERC20',
-                    'BEP20': 'BEP20(BSC)',
-                    'OPTIMISM': 'OP',
-                    'SOL': 'SOL',
+                    'TRC20': 'Tron(TRC20)',
+                    'ERC20': 'Ethereum(ERC20)',
+                    'BEP20': 'BNBSmartChain(BEP20)',
+                    'OPTIMISM': 'Optimism(OP)',
+                    'SOL': 'Solana(SOL)',
                     'CRC20': 'CRONOS',
-                    'ALGO': 'ALGO',
+                    'ALGO': 'Algorand(ALGO)',
                     'XRP': 'XRP',
-                    'MATIC': 'MATIC',
+                    'MATIC': 'Polygon(MATIC)',
                     'AVAXX': 'AVAX_XCHAIN',
-                    'AVAXC': 'AVAX_CCHAIN',
-                    'ARBONE': 'Arbitrum One',
+                    'AVAXC': 'AvalancheCChain(AVAXCCHAIN)',
+                    'ARBONE': 'ArbitrumOne(ARB)',
                     'ARBNOVA': 'ARBNOVA',
                     'FTM': 'FTM',
                     'WAVES': 'WAVES',
@@ -1036,10 +1032,15 @@ export default class mexc extends Exchange {
         networkId = parts.join ('');
         networkId = networkId.replace ('-20', '20');
         const networksById = {
-            'ETH': 'ETH',
-            'ERC20': 'ERC20',
-            'BEP20(BSC)': 'BEP20',
-            'TRX': 'TRC20',
+            'Ethereum(ERC20)': 'ERC20',
+            'Algorand(ALGO)': 'ALGO',
+            'ArbitrumOne(ARB)': 'ARBONE',
+            'AvalancheCChain(AVAXCCHAIN)': 'AVAXC',
+            'BNBSmartChain(BEP20)': 'BEP20',
+            'Polygon(MATIC)': 'MATIC',
+            'Optimism(OP)': 'OPTIMISM',
+            'Solana(SOL)': 'SOL',
+            'Tron(TRC20)': 'TRC20',
         };
         return this.safeString (networksById, networkId, networkId);
     }
@@ -2138,12 +2139,7 @@ export default class mexc extends Exchange {
     async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         await this.loadMarkets ();
         const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
-        let response = undefined;
-        if (marginMode !== undefined) {
-            response = await this.spotPrivatePostMarginOrder (this.extend (request, params));
-        } else {
-            response = await this.spotPrivatePostOrder (this.extend (request, params));
-        }
+        const response = await this.spotPrivatePostOrder (this.extend (request, params));
         //
         // spot
         //
@@ -5054,84 +5050,6 @@ export default class mexc extends Exchange {
         };
     }
 
-    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#borrowMargin
-         * @description create a loan to borrow margin
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#loan
-         * @param {string} code unified currency code of the currency to borrow
-         * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const currency = this.currency (code);
-        const request = {
-            'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
-            'symbol': market['id'],
-        };
-        const response = await this.spotPrivatePostMarginLoan (this.extend (request, params));
-        //
-        //     {
-        //         "tranId": "762407666453712896"
-        //     }
-        //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
-    }
-
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name mexc3#repayMargin
-         * @description repay borrowed margin and interest
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#repayment
-         * @param {string} code unified currency code of the currency to repay
-         * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @param {string} [params.borrowId] transaction id '762407666453712896'
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const id = this.safeString2 (params, 'id', 'borrowId');
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' repayMargin() requires a borrowId argument in the params');
-        }
-        const market = this.market (symbol);
-        const currency = this.currency (code);
-        const request = {
-            'asset': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
-            'borrowId': id,
-            'symbol': market['id'],
-        };
-        const response = await this.spotPrivatePostMarginRepay (this.extend (request, params));
-        //
-        //     {
-        //         "tranId": "762407666453712896"
-        //     }
-        //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
-    }
-
     async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
@@ -5322,23 +5240,6 @@ export default class mexc extends Exchange {
             };
         }
         return this.assignDefaultDepositWithdrawFees (result);
-    }
-
-    parseMarginLoan (info, currency: Currency = undefined) {
-        //
-        //     {
-        //         "tranId": "762407666453712896"
-        //     }
-        //
-        return {
-            'id': this.safeString (info, 'tranId'),
-            'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
-            'symbol': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'info': info,
-        };
     }
 
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {

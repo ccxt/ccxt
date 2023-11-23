@@ -78,7 +78,7 @@ class kuna extends kuna$1 {
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
-                'fetchPositionsBySymbol': false,
+                'fetchPositionsForSymbol': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -956,7 +956,7 @@ class kuna extends kuna$1 {
         const request = {
             'pair': market['id'],
             'orderSide': (side === 'buy') ? 'Bid' : 'Ask',
-            'quantity': amount.toString(),
+            'quantity': this.numberToString(amount),
             'type': capitalizedType,
         };
         if (capitalizedType === 'Limit') {
@@ -1822,7 +1822,8 @@ class kuna extends kuna$1 {
         let url = undefined;
         if (Array.isArray(api)) {
             const isGet = method === 'GET';
-            const [version, access] = api;
+            const version = this.safeString(api, 0);
+            const access = this.safeString(api, 1);
             if (version === 'v3') {
                 url = this.urls['api'][version] + '/' + version + '/' + this.implodeParams(path, params);
                 if (access === 'public') {

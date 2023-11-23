@@ -231,6 +231,7 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -301,6 +302,7 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#fetchMarkets
          * @description retrieves data on all markets for coinbasepro
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -421,6 +423,7 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
@@ -486,6 +489,7 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -618,6 +622,7 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -853,6 +858,7 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -1351,6 +1357,8 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#deposit
          * @description Creates a new deposit address, as required by coinbasepro
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositpaymentmethod
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount
          * @param {string} code Unified CCXT currency code (e.g. `"USDT"`)
          * @param {float} amount The amount of currency to send in the deposit (e.g. `20`)
          * @param {string} address Not used by coinbasepro
@@ -1392,6 +1400,8 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#withdraw
          * @description make a withdrawal
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1675,6 +1685,8 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -1688,6 +1700,8 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -1798,6 +1812,7 @@ class coinbasepro extends coinbasepro$1 {
          * @method
          * @name coinbasepro#createDepositAddress
          * @description create a currency deposit address
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}

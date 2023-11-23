@@ -37,7 +37,8 @@ class bitmart extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'borrowMargin' => true,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -99,7 +100,8 @@ class bitmart extends Exchange {
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
-                'repayMargin' => true,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
@@ -3213,21 +3215,17 @@ class bitmart extends Exchange {
         );
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
              * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+             * @param {string} $symbol unified $market $symbol
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {string} $amount the $amount to repay
-             * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitmart api endpoint
-             * @param {string} [$params->marginMode] 'isolated' is the default and 'cross' is unavailable
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $currency = $this->currency($code);
@@ -3236,7 +3234,6 @@ class bitmart extends Exchange {
                 'currency' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $params = $this->omit($params, 'marginMode');
             $response = Async\await($this->privatePostSpotV1MarginIsolatedRepay (array_merge($request, $params)));
             //
             //     {
@@ -3257,21 +3254,17 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
+    public function borrow_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
              * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+             * @param {string} $symbol unified $market $symbol
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {string} $amount the $amount to borrow
-             * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bitmart api endpoint
-             * @param {string} [$params->marginMode] 'isolated' is the default and 'cross' is unavailable
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $currency = $this->currency($code);
@@ -3280,7 +3273,6 @@ class bitmart extends Exchange {
                 'currency' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $params = $this->omit($params, 'marginMode');
             $response = Async\await($this->privatePostSpotV1MarginIsolatedBorrow (array_merge($request, $params)));
             //
             //     {

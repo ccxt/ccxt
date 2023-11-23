@@ -33,7 +33,8 @@ export default class bitmart extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'borrowMargin': true,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -95,7 +96,8 @@ export default class bitmart extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayMargin': true,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -3205,22 +3207,18 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name bitmart#repayMargin
+         * @name bitmart#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+         * @param {string} symbol unified market symbol
          * @param {string} code unified currency code of the currency to repay
          * @param {string} amount the amount to repay
-         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @param {string} [params.marginMode] 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
@@ -3229,7 +3227,6 @@ export default class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedRepay (this.extend (request, params));
         //
         //     {
@@ -3249,22 +3246,18 @@ export default class bitmart extends Exchange {
         });
     }
 
-    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name bitmart#borrowMargin
+         * @name bitmart#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+         * @param {string} symbol unified market symbol
          * @param {string} code unified currency code of the currency to borrow
          * @param {string} amount the amount to borrow
-         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
-         * @param {string} [params.marginMode] 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
@@ -3273,7 +3266,6 @@ export default class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedBorrow (this.extend (request, params));
         //
         //     {

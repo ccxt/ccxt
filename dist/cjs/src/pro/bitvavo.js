@@ -12,6 +12,15 @@ class bitvavo extends bitvavo$1 {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
+                'fetchTradesWs': false,
+                'fetchBalanceWs': false,
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTicker': true,

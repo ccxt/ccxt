@@ -25,6 +25,13 @@ class bitget(ccxt.async_support.bitget):
         return self.deep_extend(super(bitget, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'cancelOrderWs': False,
+                'cancelOrdersWs': False,
+                'cancelAllOrdersWs': False,
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,

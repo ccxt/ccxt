@@ -32,6 +32,7 @@ class bybit extends bybit$1 {
                 'swap': true,
                 'future': true,
                 'option': true,
+                'borrowCrossMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -94,6 +95,7 @@ class bybit extends bybit$1 {
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': true,
                 'fetchWithdrawals': true,
+                'repayCrossMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': true,
@@ -3431,7 +3433,9 @@ class bybit extends bybit$1 {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            throw new errors.OrderNotFound('Order ' + id.toString() + ' does not exist.');
+            const isTrigger = this.safeValueN(params, ['trigger', 'stop'], false);
+            const extra = isTrigger ? '' : 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
+            throw new errors.OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
         if (length > 1) {
             throw new errors.InvalidOrder(this.id + ' returned more than one order');
@@ -3457,7 +3461,7 @@ class bybit extends bybit$1 {
          * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
          * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
          * @param {string} [params.mmp] *option only* market maker protection
-         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'up' or 'down'
+         * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -3589,21 +3593,30 @@ class bybit extends bybit$1 {
         const isStopLoss = stopLoss !== undefined;
         const isTakeProfit = takeProfit !== undefined;
         const isBuy = side === 'buy';
-        const setTriggerDirection = (stopLossTriggerPrice || triggerPrice) ? !isBuy : isBuy;
-        const defaultTriggerDirection = setTriggerDirection ? 2 : 1;
-        const triggerDirection = this.safeString(params, 'triggerDirection');
-        params = this.omit(params, 'triggerDirection');
-        let selectedDirection = defaultTriggerDirection;
-        if (triggerDirection !== undefined) {
-            const isAsending = ((triggerDirection === 'up') || (triggerDirection === '1'));
-            selectedDirection = isAsending ? 1 : 2;
-        }
         if (triggerPrice !== undefined) {
-            request['triggerDirection'] = selectedDirection;
+            const triggerDirection = this.safeString(params, 'triggerDirection');
+            params = this.omit(params, ['triggerPrice', 'stopPrice', 'triggerDirection']);
+            if (market['spot']) {
+                if (triggerDirection !== undefined) {
+                    throw new errors.NotSupported(this.id + ' createOrder() : trigger order does not support triggerDirection for spot markets yet');
+                }
+            }
+            else {
+                if (triggerDirection === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' stop/trigger orders require a triggerDirection parameter, either "above" or "below" to determine the direction of the trigger.');
+                }
+                const isAsending = ((triggerDirection === 'above') || (triggerDirection === '1'));
+                request['triggerDirection'] = isAsending ? 1 : 2;
+            }
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-            request['triggerDirection'] = selectedDirection;
+            if (isBuy) {
+                request['triggerDirection'] = isStopLossTriggerOrder ? 1 : 2;
+            }
+            else {
+                request['triggerDirection'] = isStopLossTriggerOrder ? 2 : 1;
+            }
             triggerPrice = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
@@ -4403,8 +4416,8 @@ class bybit extends bybit$1 {
             return await this.fetchUsdcOrders(symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeValue(params, 'stop', false);
-        params = this.omit(params, ['stop']);
+        const isStop = this.safeValueN(params, ['trigger', 'stop'], false);
+        params = this.omit(params, ['trigger', 'stop']);
         if (isStop) {
             if (type === 'spot') {
                 request['orderFilter'] = 'tpslOrder';
@@ -5688,7 +5701,7 @@ class bybit extends bybit$1 {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         let symbol = undefined;
-        if (Array.isArray(symbols)) {
+        if ((symbols !== undefined) && Array.isArray(symbols)) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 1) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchPositions() does not accept an array with more than one symbol');
@@ -6607,29 +6620,24 @@ class bybit extends bybit$1 {
         const data = this.addPaginationCursorToResult(response);
         return this.parseTransfers(data, currency, since, limit);
     }
-    async borrowMargin(code, amount, symbol = undefined, params = {}) {
+    async borrowCrossMargin(code, amount, params = {}) {
         /**
          * @method
-         * @name bybit#borrowMargin
+         * @name bybit#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string} symbol not used by bybit.borrowMargin ()
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const [marginMode, query] = this.handleMarginModeAndParams('borrowMargin', params);
-        if (marginMode === 'isolated') {
-            throw new errors.NotSupported(this.id + ' borrowMargin () cannot use isolated margin');
-        }
         const request = {
             'coin': currency['id'],
             'qty': this.currencyToPrecision(code, amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeLoan(this.extend(request, query));
+        const response = await this.privatePostV5SpotCrossMarginTradeLoan(this.extend(request, params));
         //
         //     {
         //         "retCode": 0,
@@ -6644,33 +6652,28 @@ class bybit extends bybit$1 {
         const result = this.safeValue(response, 'result', {});
         const transaction = this.parseMarginLoan(result, currency);
         return this.extend(transaction, {
-            'symbol': symbol,
+            'symbol': undefined,
             'amount': amount,
         });
     }
-    async repayMargin(code, amount, symbol = undefined, params = {}) {
+    async repayCrossMargin(code, amount, params = {}) {
         /**
          * @method
-         * @name bybit#repayMargin
+         * @name bybit#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string} symbol not used by bybit.repayMargin ()
          * @param {object} [params] extra parameters specific to the bybit api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const [marginMode, query] = this.handleMarginModeAndParams('repayMargin', params);
-        if (marginMode === 'isolated') {
-            throw new errors.NotSupported(this.id + ' repayMargin () cannot use isolated margin');
-        }
         const request = {
             'coin': currency['id'],
             'qty': this.numberToString(amount),
         };
-        const response = await this.privatePostV5SpotCrossMarginTradeRepay(this.extend(request, query));
+        const response = await this.privatePostV5SpotCrossMarginTradeRepay(this.extend(request, params));
         //
         //     {
         //         "retCode": 0,
@@ -6685,7 +6688,7 @@ class bybit extends bybit$1 {
         const result = this.safeValue(response, 'result', {});
         const transaction = this.parseMarginLoan(result, currency);
         return this.extend(transaction, {
-            'symbol': symbol,
+            'symbol': undefined,
             'amount': amount,
         });
     }

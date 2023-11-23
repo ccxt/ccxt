@@ -19,6 +19,15 @@ class bybit extends \ccxt\async\bybit {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'cancelOrderWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelAllOrdersWs' => false,
+                'fetchTradesWs' => false,
+                'fetchBalanceWs' => false,
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
@@ -1720,7 +1729,7 @@ class bybit extends \ccxt\async\bybit {
                 'args' => $topics,
             );
             $message = array_merge($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash));
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscriptionHash));
         }) ();
     }
 
