@@ -1393,7 +1393,7 @@ export default class phemex extends Exchange {
         let response = undefined;
         if (type === 'spot') {
             response = await this.v1GetMdSpotTicker24hrAll (query);
-        } else if (subType === 'inverse') {
+        } else if (subType === 'inverse' || market['settle'] === 'USD') {
             response = await this.v1GetMdTicker24hrAll (query);
         } else {
             response = await this.v2GetMdV2Ticker24hrAll (query);
@@ -3015,9 +3015,10 @@ export default class phemex extends Exchange {
         if (market['swap'] && (limit !== undefined)) {
             request['limit'] = limit;
         }
+        const isUSDTSettled = market['settle'] === 'USDT';
         let response = undefined;
         if (market['swap']) {
-            if (market['settle'] === 'USDT') {
+            if (isUSDTSettled) {
                 response = await this.privateGetExchangeOrderV2TradingList (this.extend (request, params));
             } else {
                 response = await this.privateGetExchangeOrderTrade (this.extend (request, params));
@@ -3129,10 +3130,12 @@ export default class phemex extends Exchange {
         //     }
         // }
         //
-        const data = this.safeValue (response, 'data', {});
-        if (method !== 'privateGetExchangeOrderV2TradingList') {
-            const rows = this.safeValue (data, 'rows', []);
-            return this.parseTrades (rows, market, since, limit);
+        let data = undefined;
+        if (isUSDTSettled) {
+            data = this.safeValue (response, 'data', []);
+        } else {
+            data = this.safeValue (response, 'data', {});
+            data = this.safeValue (data, 'rows', []);
         }
         return this.parseTrades (data, market, since, limit);
     }
