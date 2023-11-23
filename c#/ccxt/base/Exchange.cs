@@ -619,10 +619,10 @@ public partial class Exchange
         return false;
     }
 
-    public void spawn(object methodName, object[] args = null)
+    public void spawn(object action, object[] args = null)
     {
         // stub to implement later
-        Task.Run(() => callDynamicallyAsync(methodName, args));
+        Task.Run(() => DynamicInvoker.InvokeMethod(action, args));
     }
 
     public void delay(object timeout2, object methodName, object[] args = null)

@@ -17,7 +17,7 @@ public class OrderBook : dict
     {
         // this.snapshot = snapshot;
         // this.depth = depth;
-        var depth = (depth2 == null) ? Int32.MaxValue : (int)depth2;
+        var depth = (depth2 == null) ? Int32.MaxValue : Convert.ToInt32(depth2);
 
         var defaults = new dict
         {

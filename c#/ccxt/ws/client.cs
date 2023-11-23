@@ -48,7 +48,7 @@ public partial class Exchange
             binance.verbose = true;
             while (true)
             {
-                var message = await binance.watchTrades("BTC/USDT");
+                var message = await binance.watchOrderBook("BTC/USDT");
                 Console.WriteLine("message" + this.json(message));
             }
 
