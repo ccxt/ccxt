@@ -3532,12 +3532,27 @@ export default class bitget extends Exchange {
         //           "errorMsg":"Duplicate clientOid"
         //         }
         //
+        // createOrders
+        //
+        //     [
+        //         {
+        //             "orderId": "1111397214281175046",
+        //             "clientOid": "766d3fc3-7321-4406-a689-15c9987a2e75"
+        //         },
+        //         {
+        //             "orderId": "",
+        //             "clientOid": "d1b75cb3-cc15-4ede-ad4c-3937396f75ab",
+        //             "errorMsg": "less than the minimum amount 5 USDT",
+        //             "errorCode": "45110"
+        //         },
+        //     ]
+        //
         const errorMessage = this.safeString (order, 'errorMsg');
         if (errorMessage !== undefined) {
             return this.safeOrder ({
                 'info': order,
                 'id': this.safeString (order, 'orderId'),
-                'clientOrderId': this.safeString (order, 'clientOrderId'),
+                'clientOrderId': this.safeString2 (order, 'clientOrderId', 'clientOid'),
                 'status': 'rejected',
             }, market);
         }
@@ -3857,10 +3872,10 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#createOrders
          * @description create a list of trade orders (all orders should be of the same symbol)
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#batch-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#batch-order
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-order
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-order
+         * @see https://www.bitget.com/api-doc/spot/trade/Batch-Place-Orders
+         * @see https://www.bitget.com/api-doc/contract/trade/Batch-Order
+         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order
+         * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order
          * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3899,52 +3914,57 @@ export default class bitget extends Exchange {
             ordersRequests.push (orderRequest);
         }
         const market = this.market (symbol);
-        const symbolRequest = (marginMode !== undefined) ? (market['info']['symbolName']) : (market['id']);
         const request = {
-            'symbol': symbolRequest,
+            'symbol': market['id'],
+            'orderList': ordersRequests,
         };
         let response = undefined;
-        if (market['spot']) {
-            request['orderList'] = ordersRequests;
-        }
         if ((market['swap']) || (market['future'])) {
-            request['orderDataList'] = ordersRequests;
+            if (marginMode === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a marginMode parameter for ' + market['type'] + ' markets');
+            }
+            const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
+            request['marginMode'] = marginModeRequest;
             request['marginCoin'] = market['settleId'];
-            response = await this.privateMixPostMixV1OrderBatchOrders (request);
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            response = await this.privateMixPostV2MixOrderBatchPlaceOrder (request);
         } else if (marginMode === 'isolated') {
-            response = await this.privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder (request);
+            response = await this.privateMarginPostV2MarginIsolatedBatchPlaceOrder (request);
         } else if (marginMode === 'cross') {
-            response = await this.privateMarginPostMarginV1CrossOrderBatchPlaceOrder (request);
+            response = await this.privateMarginPostV2MarginCrossedBatchPlaceOrder (request);
         } else {
-            response = await this.privateSpotPostSpotV1TradeBatchOrders (request);
+            response = await this.privateSpotPostV2SpotTradeBatchOrders (request);
         }
         //
-        // {
-        //     "code": "00000",
-        //     "data": {
-        //       "orderInfo": [
-        //         {
-        //           "orderId": "1627293504612",
-        //           "clientOid": "BITGET#1627293504612"
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700703539416,
+        //         "data": {
+        //             "successList": [
+        //                 {
+        //                     "orderId": "1111397214281175046",
+        //                     "clientOid": "766d3fc3-7321-4406-a689-15c9987a2e75"
+        //                 },
+        //             ],
+        //             "failureList": [
+        //                 {
+        //                     "orderId": "",
+        //                     "clientOid": "d1b75cb3-cc15-4ede-ad4c-3937396f75ab",
+        //                     "errorMsg": "less than the minimum amount 5 USDT",
+        //                     "errorCode": "45110"
+        //                 },
+        //             ]
         //         }
-        //       ],
-        //       "failure":[
-        //         {
-        //           "orderId": "1627293504611",
-        //           "clientOid": "BITGET#1627293504611",
-        //           "errorMsg":"Duplicate clientOid"
-        //         }
-        //       ]
-        //     },
-        //     "msg": "success",
-        //     "requestTime": 1627293504612
-        //   }
+        //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const failure = this.safeValue (data, 'failure', []);
-        const orderInfo = this.safeValue2 (data, 'orderInfo', 'resultList', []);
+        const failure = this.safeValue (data, 'failureList', []);
+        const orderInfo = this.safeValue (data, 'successList', []);
         const both = this.arrayConcat (orderInfo, failure);
-        return this.parseOrders (both);
+        return this.parseOrders (both, market);
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
