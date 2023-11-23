@@ -15,10 +15,10 @@ public class BaseCache : List<object>
     public int? maxSize;
 
     // public int? length;
-    public BaseCache(object maxSixe = null) : base()
+    public BaseCache(object maxCapacity = null) : base()
     {
         // this.maxSize = maxSixe;
-        this.maxSize = (maxSixe == null) ? null : Convert.ToInt32(maxSize);
+        this.maxSize = (maxCapacity == null) ? null : Convert.ToInt32(maxCapacity);
 
     }
 
@@ -145,7 +145,7 @@ public class ArrayCacheByTimestamp : BaseCache
         else
         {
             this.hashmap[firstValue.ToString()] = item;
-            if (this.maxSize != null && (this.Count == this.maxSize))
+            if (this.maxSize != null && this.maxSize != 0 && (this.Count == this.maxSize))
             {
                 var deletedReference = this[0];
                 var deletedFirstValue = Exchange.SafeValue(deletedReference, 0);

@@ -10,6 +10,8 @@ using dict = Dictionary<string, object>;
 using System.Net.WebSockets;
 using System.Data;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
+
 
 public partial class Exchange
 {
@@ -48,7 +50,8 @@ public partial class Exchange
             binance.verbose = true;
             while (true)
             {
-                var message = await binance.watchOrderBook("BTC/USDT");
+                var message = await binance.watchOHLCV("BTC/USDT");
+                Console.WriteLine(JsonConvert.SerializeObject(message, Formatting.Indented));
                 Console.WriteLine("message" + this.json(message));
             }
 
@@ -164,6 +167,7 @@ public partial class Exchange
         public Dictionary<string, object> subscriptions = new Dictionary<string, object>();
         public Dictionary<string, object> rejections = new Dictionary<string, object>();
 
+        public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
         private ManualResetEvent waitHandle = new ManualResetEvent(false);
@@ -338,8 +342,15 @@ public partial class Exchange
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
                         var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        // Console.WriteLine($"Received: {message}");
-                        this.handleMessage(this, JsonHelper.Deserialize(message));
+                        var deserializedMessages = JsonHelper.Deserialize(message);
+
+                        if (this.verbose || true) // remove || true
+                        {
+                            Console.WriteLine($"On message: {message}");
+                        }
+
+                        this.handleMessage(this, deserializedMessages);
+
                     }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {
