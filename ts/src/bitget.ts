@@ -3532,6 +3532,13 @@ export default class bitget extends Exchange {
         //           "errorMsg":"Duplicate clientOid"
         //         }
         //
+        // createOrder, editOrder
+        //
+        //     {
+        //         "clientOid": "abe95dbe-6081-4a6f-a2d3-ae49601cd479",
+        //         "orderId": null
+        //     }
+        //
         // createOrders
         //
         //     [
@@ -3972,25 +3979,34 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#editOrder
          * @description edit a trade order
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#modify-plan-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#modify-plan-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#modify-plan-order-tpsl
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#modify-stop-order
+         * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
+         * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
+         * @see https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order
+         * @see https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order
          * @param {string} id cancel order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+         * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
+         * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
+         * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
+         * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'fill_price', 'index_price' or 'mark_price', default is 'mark_price'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
         const request = {
             'orderId': id,
-            'orderType': type,
         };
         const isMarketOrder = type === 'market';
         const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
@@ -3999,26 +4015,20 @@ export default class bitget extends Exchange {
         const isStopLossOrder = stopLossPrice !== undefined;
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const isStopLoss = stopLoss !== undefined;
+        const isTakeProfit = takeProfit !== undefined;
         if (this.sum (isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1) {
             throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice');
         }
-        if (!isStopOrder && !isTriggerOrder) {
-            throw new InvalidOrder (this.id + ' editOrder() only support plan orders');
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOid'] = clientOrderId;
         }
-        if (triggerPrice !== undefined) {
-            // default triggerType to market price for unification
-            const triggerType = this.safeString (params, 'triggerType', 'market_price');
-            request['triggerType'] = triggerType;
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            request['executePrice'] = this.priceToPrecision (symbol, price);
-        }
-        const omitted = this.omit (query, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId' ]);
         let response = undefined;
-        if (marketType === 'spot') {
-            if (isStopOrder) {
-                throw new InvalidOrder (this.id + ' editOrder() does not support stop orders on spot markets, only swap markets');
-            }
+        if (market['spot']) {
             const editMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
                 if (price === undefined) {
@@ -4032,43 +4042,81 @@ export default class bitget extends Exchange {
             } else {
                 request['size'] = this.amountToPrecision (symbol, amount);
             }
-            response = await this.privateSpotPostSpotV1PlanModifyPlan (this.extend (request, omitted));
+            request['orderType'] = type;
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['executePrice'] = this.priceToPrecision (symbol, price);
+            response = await this.privateSpotPostV2SpotTradeModifyPlanOrder (this.extend (request, params));
         } else {
-            request['symbol'] = market['id'];
-            request['size'] = this.amountToPrecision (symbol, amount);
-            if ((marketType !== 'swap') && (marketType !== 'future')) {
-                throw new NotSupported (this.id + ' editOrder() does not support ' + marketType + ' market');
+            if ((!market['swap']) && (!market['future'])) {
+                throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders');
             }
-            request['marginCoin'] = market['settleId'];
-            if (isStopOrder) {
-                if (!isMarketOrder) {
-                    throw new ExchangeError (this.id + ' editOrder() bitget stopLoss or takeProfit orders must be market orders');
+            request['symbol'] = market['id'];
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            if (!isTakeProfitOrder && !isStopLossOrder) {
+                request['newSize'] = this.amountToPrecision (symbol, amount);
+                if (price !== undefined) {
+                    request['newPrice'] = this.priceToPrecision (symbol, price);
                 }
+            }
+            if (isTakeProfitOrder || isStopLossOrder) {
+                request['marginCoin'] = market['settleId'];
+                request['size'] = this.amountToPrecision (symbol, amount);
+                request['executePrice'] = this.priceToPrecision (symbol, price);
                 if (isStopLossOrder) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
-                    request['planType'] = 'loss_plan';
                 } else if (isTakeProfitOrder) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
-                    request['planType'] = 'profit_plan';
                 }
-                response = await this.privateMixPostMixV1PlanModifyTPSLPlan (this.extend (request, omitted));
+                response = await this.privateMixPostV2MixOrderModifyTpslOrder (this.extend (request, params));
+            } else if (isTriggerOrder) {
+                request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+                if (isStopLoss) {
+                    const slTriggerPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'stopPrice');
+                    request['newStopLossTriggerPrice'] = this.priceToPrecision (symbol, slTriggerPrice);
+                    const slPrice = this.safeNumber (stopLoss, 'price');
+                    request['newStopLossExecutePrice'] = this.priceToPrecision (symbol, slPrice);
+                    const slType = this.safeString (stopLoss, 'type', 'mark_price');
+                    request['newStopLossTriggerType'] = slType;
+                }
+                if (isTakeProfit) {
+                    const tpTriggerPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'stopPrice');
+                    request['newSurplusTriggerPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                    const tpPrice = this.safeNumber (takeProfit, 'price');
+                    request['newStopSurplusExecutePrice'] = this.priceToPrecision (symbol, tpPrice);
+                    const tpType = this.safeString (takeProfit, 'type', 'mark_price');
+                    request['newStopSurplusTriggerType'] = tpType;
+                }
+                response = await this.privateMixPostV2MixOrderModifyPlanOrder (this.extend (request, params));
             } else {
-                response = await this.privateMixPostMixV1PlanModifyPlan (this.extend (request, omitted));
+                const defaultNewClientOrderId = this.uuid ();
+                const newClientOrderId = this.safeString2 (params, 'newClientOid', 'newClientOrderId', defaultNewClientOrderId);
+                params = this.omit (params, 'newClientOrderId');
+                request['newClientOid'] = newClientOrderId;
+                if (isStopLoss) {
+                    const slTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
+                    request['newPresetStopLossPrice'] = this.priceToPrecision (symbol, slTriggerPrice);
+                }
+                if (isTakeProfit) {
+                    const tpTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
+                    request['newPresetStopSurplusPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                }
+                response = await this.privateMixPostV2MixOrderModifyOrder (this.extend (request, params));
             }
         }
         //
-        // spot
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1668136575920,
+        //         "requestTime": 1700708275737,
         //         "data": {
-        //         "orderId": "974792060738441216",
-        //         "clientOrderId": "974792554995224576"
+        //             "clientOid": "abe95dbe-6081-4a6f-a2d3-ae49601cd459",
+        //             "orderId": null
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
