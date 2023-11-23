@@ -3518,6 +3518,131 @@ export default class bitget extends Exchange {
         //         "uTime": "1700719887120"
         //     }
         //
+        // spot: fetchOpenOrders
+        //
+        //     {
+        //         "userId": "7264631750",
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "1111499608327360513",
+        //         "clientOid": "d0d4dad5-18d0-4869-a074-ec40bb47cba6",
+        //         "priceAvg": "25000.0000000000000000",
+        //         "size": "0.0002000000000000",
+        //         "orderType": "limit",
+        //         "side": "buy",
+        //         "status": "live",
+        //         "basePrice": "0",
+        //         "baseVolume": "0.0000000000000000",
+        //         "quoteVolume": "0.0000000000000000",
+        //         "enterPointSource": "WEB",
+        //         "orderSource": "normal",
+        //         "cTime": "1700728077966",
+        //         "uTime": "1700728077966"
+        //     }
+        //
+        // spot stop: fetchOpenOrders
+        //
+        //     {
+        //         "orderId": "1111503385931620352",
+        //         "clientOid": "1111503385910648832",
+        //         "symbol": "BTCUSDT",
+        //         "size": "0.0002",
+        //         "planType": "AMOUNT",
+        //         "executePrice": "25000",
+        //         "triggerPrice": "26000",
+        //         "status": "live",
+        //         "orderType": "limit",
+        //         "side": "buy",
+        //         "triggerType": "fill_price",
+        //         "enterPointSource": "API",
+        //         "cTime": "1700728978617",
+        //         "uTime": "1700728978617"
+        //     }
+        //
+        // spot margin: fetchOpenOrders
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderType": "limit",
+        //         "enterPointSource": "WEB",
+        //         "orderId": "1111506377509580801",
+        //         "clientOid": "2043a3b59a60445f9d9f7365bf3e960c",
+        //         "loanType": "autoLoanAndRepay",
+        //         "price": "25000",
+        //         "side": "buy",
+        //         "status": "live",
+        //         "baseSize": "0.0002",
+        //         "quoteSize": "5",
+        //         "priceAvg": "0",
+        //         "size": "0",
+        //         "amount": "0",
+        //         "force": "gtc",
+        //         "cTime": "1700729691866",
+        //         "uTime": "1700729691866"
+        //     }
+        //
+        // swap: fetchOpenOrders
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "size": "0.002",
+        //         "orderId": "1111488897767604224",
+        //         "clientOid": "1111488897805352960",
+        //         "baseVolume": "0",
+        //         "fee": "0",
+        //         "price": "25000",
+        //         "priceAvg": "",
+        //         "status": "live",
+        //         "side": "buy",
+        //         "force": "gtc",
+        //         "totalProfits": "0",
+        //         "posSide": "long",
+        //         "marginCoin": "USDT",
+        //         "quoteVolume": "0",
+        //         "leverage": "20",
+        //         "marginMode": "crossed",
+        //         "enterPointSource": "web",
+        //         "tradeSide": "open",
+        //         "posMode": "hedge_mode",
+        //         "orderType": "limit",
+        //         "orderSource": "normal",
+        //         "presetStopSurplusPrice": "",
+        //         "presetStopLossPrice": "",
+        //         "reduceOnly": "NO",
+        //         "cTime": "1700725524378",
+        //         "uTime": "1700725524378"
+        //     }
+        //
+        // swap stop: fetchOpenOrders
+        //
+        //     {
+        //         "planType": "normal_plan",
+        //         "symbol": "BTCUSDT",
+        //         "size": "0.001",
+        //         "orderId": "1111491399869075457",
+        //         "clientOid": "1111491399869075456",
+        //         "price": "27000",
+        //         "callbackRatio": "",
+        //         "triggerPrice": "24000",
+        //         "triggerType": "mark_price",
+        //         "planStatus": "live",
+        //         "side": "buy",
+        //         "posSide": "long",
+        //         "marginCoin": "USDT",
+        //         "marginMode": "crossed",
+        //         "enterPointSource": "API",
+        //         "tradeSide": "open",
+        //         "posMode": "hedge_mode",
+        //         "orderType": "limit",
+        //         "stopSurplusTriggerPrice": "",
+        //         "stopSurplusExecutePrice": "",
+        //         "stopSurplusTriggerType": "fill_price",
+        //         "stopLossTriggerPrice": "",
+        //         "stopLossExecutePrice": "",
+        //         "stopLossTriggerType": "fill_price",
+        //         "cTime": "1700726120917",
+        //         "uTime": "1700726120917"
+        //     }
+        //
         const errorMessage = this.safeString (order, 'errorMsg');
         if (errorMessage !== undefined) {
             return this.safeOrder ({
@@ -3562,6 +3687,28 @@ export default class bitget extends Exchange {
         if (reduceOnlyRaw !== undefined) {
             reduceOnly = (reduceOnlyRaw === 'NO') ? false : true;
         }
+        let price = undefined;
+        let average = undefined;
+        const basePrice = this.safeString (order, 'basePrice');
+        if (basePrice !== undefined) {
+            // for spot fetchOpenOrders, the price is priceAvg and the filled price is basePrice
+            price = this.safeString (order, 'priceAvg');
+            average = this.safeString (order, 'basePrice');
+        } else {
+            price = this.safeString2 (order, 'price', 'executePrice');
+            average = this.safeString (order, 'priceAvg');
+        }
+        let size = undefined;
+        let filled = undefined;
+        const baseSize = this.safeString (order, 'baseSize');
+        if (baseSize !== undefined) {
+            // for spot margin fetchOpenOrders, the order size is baseSize and the filled amount is size
+            size = baseSize;
+            filled = this.safeString (order, 'size');
+        } else {
+            size = this.safeString (order, 'size');
+            filled = this.safeString (order, 'baseVolume');
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'orderId', 'data'),
@@ -3573,19 +3720,19 @@ export default class bitget extends Exchange {
             'symbol': market['symbol'],
             'type': this.safeString (order, 'orderType'),
             'side': this.safeString (order, 'side'),
-            'price': this.safeString (order, 'price'),
-            'amount': this.safeString (order, 'size'),
-            'cost': this.safeString (order, 'quoteVolume'),
-            'average': this.safeString (order, 'priceAvg'),
-            'filled': this.safeString (order, 'baseVolume'),
+            'price': price,
+            'amount': size,
+            'cost': this.safeString2 (order, 'quoteVolume', 'quoteSize'),
+            'average': average,
+            'filled': filled,
             'remaining': undefined,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'takeProfitPrice': this.safeNumber (order, 'presetStopSurplusPrice'),
-            'stopLossPrice': this.safeNumber (order, 'presetStopLossPrice'),
+            'stopPrice': this.safeNumber (order, 'triggerPrice'),
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
+            'takeProfitPrice': this.safeNumber2 (order, 'presetStopSurplusPrice', 'stopSurplusTriggerPrice'),
+            'stopLossPrice': this.safeNumber2 (order, 'presetStopLossPrice', 'stopLossTriggerPrice'),
             'status': this.parseOrderStatus (rawStatus),
             'fee': fee,
             'trades': undefined,
@@ -4497,236 +4644,268 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-current-plan-orders
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-open-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-plan-order-tpsl-list
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-order
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-open-orders
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-open-orders
+         * @see https://www.bitget.com/api-doc/spot/trade/Get-Unfilled-Orders
+         * @see https://www.bitget.com/api-doc/spot/plan/Get-Current-Plan-Order
+         * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-Pending
+         * @see https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending
+         * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders
+         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'track_plan': trailing stop order, default is 'normal_plan'
+         * @param {boolean} [params.stop] set to true for fetching trigger orders
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        let marketType = undefined;
-        let marginMode = undefined;
-        let response = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            const symbolRequest = (marginMode !== undefined) ? (market['info']['symbolName']) : (market['id']);
-            request['symbol'] = symbolRequest;
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, 'idLessThan', 'idLessThan') as Order[];
+        }
+        const market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         const stop = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (stop) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if ((market['swap']) || (market['future']) || (marginMode !== undefined)) {
+            const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+            params = this.omit (params, 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                request['clientOid'] = clientOrderId;
             }
-            if (marketType === 'spot') {
-                if (limit !== undefined) {
-                    request['pageSize'] = limit;
+        }
+        if (market['spot']) {
+            if (marginMode !== undefined) {
+                if (since === undefined) {
+                    since = this.milliseconds () - 7776000000;
+                    request['startTime'] = since;
                 }
-                response = await this.privateSpotPostSpotV1PlanCurrentPlan (this.extend (request, params));
+                if (marginMode === 'isolated') {
+                    response = await this.privateMarginGetV2MarginIsolatedOpenOrders (this.extend (request, params));
+                } else if (marginMode === 'cross') {
+                    response = await this.privateMarginGetV2MarginCrossedOpenOrders (this.extend (request, params));
+                }
             } else {
-                response = await this.privateMixGetMixV1PlanCurrentPlan (this.extend (request, params));
+                if (stop) {
+                    response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder (this.extend (request, params));
+                } else {
+                    response = await this.privateSpotGetV2SpotTradeUnfilledOrders (this.extend (request, params));
+                }
             }
         } else {
-            if (marketType === 'spot') {
-                if (marginMode !== undefined) {
-                    const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-                    const endTime = this.safeIntegerN (params, [ 'endTime', 'until', 'till' ]);
-                    params = this.omit (params, [ 'until', 'till', 'clientOrderId' ]);
-                    if (clientOrderId !== undefined) {
-                        request['clientOid'] = clientOrderId;
-                    }
-                    if (endTime !== undefined) {
-                        request['endTime'] = endTime;
-                    }
-                    if (since !== undefined) {
-                        request['startTime'] = since;
-                    }
-                    if (limit !== undefined) {
-                        request['pageSize'] = limit;
-                    }
-                    if (marginMode === 'isolated') {
-                        response = await this.privateMarginGetMarginV1IsolatedOrderOpenOrders (this.extend (request, params));
-                    } else if (marginMode === 'cross') {
-                        response = await this.privateMarginGetMarginV1CrossOrderOpenOrders (this.extend (request, params));
-                    }
-                } else {
-                    response = await this.privateSpotPostSpotV1TradeOpenOrders (this.extend (request, params));
-                }
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            if (stop) {
+                const planType = this.safeString (params, 'planType', 'normal_plan');
+                request['planType'] = planType;
+                response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, params));
             } else {
-                if (market === undefined) {
-                    let subType = undefined;
-                    [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', undefined, params);
-                    let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
-                    const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-                    if (sandboxMode) {
-                        productType = 'S' + productType;
-                    }
-                    request['productType'] = productType;
-                    response = await this.privateMixGetMixV1OrderMarginCoinCurrent (this.extend (request, params));
-                } else {
-                    if (symbol === undefined) {
-                        throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-                    }
-                    response = await this.privateMixGetMixV1OrderCurrent (this.extend (request, params));
-                }
+                response = await this.privateMixGetV2MixOrderOrdersPending (this.extend (request, params));
             }
         }
         //
-        //  spot
-        //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": 1645921640193,
-        //       "data": [
-        //         {
-        //           "accountId": "6394957606",
-        //           "symbol": "BTCUSDT_SPBL",
-        //           "orderId": "881623995442958336",
-        //           "clientOrderId": "135335e9-b054-4e43-b00a-499f11d3a5cc",
-        //           "price": "39000.000000000000",
-        //           "quantity": "0.000700000000",
-        //           "orderType": "limit",
-        //           "side": "buy",
-        //           "status": "new",
-        //           "fillPrice": "0.000000000000",
-        //           "fillQuantity": "0.000000000000",
-        //           "fillTotalAmount": "0.000000000000",
-        //           "cTime": "1645921460972"
-        //         }
-        //       ]
-        //     }
-        //
-        // swap
-        //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": 1645922324630,
-        //       "data": [
-        //         {
-        //           "symbol": "BTCUSDT_UMCBL",
-        //           "size": 0.001,
-        //           "orderId": "881627074081226752",
-        //           "clientOid": "881627074160918528",
-        //           "filledQty": 0,
-        //           "fee": 0,
-        //           "price": 38000,
-        //           "state": "new",
-        //           "side": "open_long",
-        //           "timeInForce": "normal",
-        //           "totalProfits": 0,
-        //           "posSide": "long",
-        //           "marginCoin": "USDT",
-        //           "filledAmount": 0,
-        //           "orderType": "limit",
-        //           "cTime": "1645922194995",
-        //           "uTime": "1645922194995"
-        //         }
-        //       ]
-        //     }
-        //
-        // stop
+        // spot
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1652745815697,
+        //         "requestTime": 1700728123994,
         //         "data": [
         //             {
-        //                 "orderId": "910246821491617792",
-        //                 "symbol": "BTCUSDT_UMCBL",
-        //                 "marginCoin": "USDT",
-        //                 "size": "16",
-        //                 "executePrice": "20000",
-        //                 "triggerPrice": "24000",
-        //                 "status": "not_trigger",
+        //                 "userId": "7264631750",
+        //                 "symbol": "BTCUSDT",
+        //                 "orderId": "1111499608327360513",
+        //                 "clientOid": "d0d4dad5-18d0-4869-a074-ec40bb47cba6",
+        //                 "priceAvg": "25000.0000000000000000",
+        //                 "size": "0.0002000000000000",
         //                 "orderType": "limit",
-        //                 "planType": "normal_plan",
-        //                 "side": "open_long",
-        //                 "triggerType": "market_price",
-        //                 "presetTakeProfitPrice": "0",
-        //                 "presetTakeLossPrice": "0",
-        //                 "cTime": "1652745674488"
+        //                 "side": "buy",
+        //                 "status": "live",
+        //                 "basePrice": "0",
+        //                 "baseVolume": "0.0000000000000000",
+        //                 "quoteVolume": "0.0000000000000000",
+        //                 "enterPointSource": "WEB",
+        //                 "orderSource": "normal",
+        //                 "cTime": "1700728077966",
+        //                 "uTime": "1700728077966"
         //             }
         //         ]
         //     }
         //
-        // spot plan order
+        // spot stop
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1668134581006,
+        //         "requestTime": 1700729361609,
         //         "data": {
         //             "nextFlag": false,
-        //             "endId": 974792555020390400,
-        //             "orderList": [{
-        //                 "orderId": "974792555020390400",
-        //                 "symbol": "TRXUSDT_SPBL",
-        //                 "size": "151",
-        //                 "executePrice": "0.041572",
-        //                 "triggerPrice": "0.041572",
-        //                 "status": "not_trigger",
-        //                 "orderType": "limit",
-        //                 "side": "buy",
-        //                 "triggerType": "fill_price",
-        //                 "cTime": "1668134576563"
-        //             }]
+        //             "idLessThan": "1111503385931620352",
+        //             "orderList": [
+        //                 {
+        //                     "orderId": "1111503385931620352",
+        //                     "clientOid": "1111503385910648832",
+        //                     "symbol": "BTCUSDT",
+        //                     "size": "0.0002",
+        //                     "planType": "AMOUNT",
+        //                     "executePrice": "25000",
+        //                     "triggerPrice": "26000",
+        //                     "status": "live",
+        //                     "orderType": "limit",
+        //                     "side": "buy",
+        //                     "triggerType": "fill_price",
+        //                     "enterPointSource": "API",
+        //                     "cTime": "1700728978617",
+        //                     "uTime": "1700728978617"
+        //                 }
+        //             ]
         //         }
         //     }
         //
-        // isolated and cross margin
+        // spot margin
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1697773997250,
+        //         "requestTime": 1700729887686,
         //         "data": {
         //             "orderList": [
         //                 {
         //                     "symbol": "BTCUSDT",
         //                     "orderType": "limit",
-        //                     "source": "WEB",
-        //                     "orderId": "1099108898629627904",
-        //                     "clientOid": "f9b55416029e4cc2bbbe2f40ac368c38",
-        //                     "loanType": "autoLoan",
+        //                     "enterPointSource": "WEB",
+        //                     "orderId": "1111506377509580801",
+        //                     "clientOid": "2043a3b59a60445f9d9f7365bf3e960c",
+        //                     "loanType": "autoLoanAndRepay",
         //                     "price": "25000",
         //                     "side": "buy",
-        //                     "status": "new",
-        //                     "baseQuantity": "0.0002",
-        //                     "quoteAmount": "5",
-        //                     "fillPrice": "0",
-        //                     "fillQuantity": "0",
-        //                     "fillTotalAmount": "0",
-        //                     "ctime": "1697773902588"
+        //                     "status": "live",
+        //                     "baseSize": "0.0002",
+        //                     "quoteSize": "5",
+        //                     "priceAvg": "0",
+        //                     "size": "0",
+        //                     "amount": "0",
+        //                     "force": "gtc",
+        //                     "cTime": "1700729691866",
+        //                     "uTime": "1700729691866"
         //                 }
         //             ],
-        //             "maxId": "1099108898629627904",
-        //             "minId": "1099108898629627904"
+        //             "maxId": "1111506377509580801",
+        //             "minId": "1111506377509580801"
         //         }
         //     }
         //
-        if (typeof response === 'string') {
-            response = JSON.parse (response);
-        }
-        const data = this.safeValue (response, 'data', []);
-        if (marginMode !== undefined) {
-            const resultList = this.safeValue (data, 'orderList', []);
-            return this.parseOrders (resultList, market, since, limit);
-        }
-        if (!Array.isArray (data)) {
-            const result = this.safeValue (data, 'orderList', []);
-            return this.addPaginationCursorToResult (data, result) as Order[];
+        // swap and future
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700725609065,
+        //         "data": {
+        //             "entrustedList": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "size": "0.002",
+        //                     "orderId": "1111488897767604224",
+        //                     "clientOid": "1111488897805352960",
+        //                     "baseVolume": "0",
+        //                     "fee": "0",
+        //                     "price": "25000",
+        //                     "priceAvg": "",
+        //                     "status": "live",
+        //                     "side": "buy",
+        //                     "force": "gtc",
+        //                     "totalProfits": "0",
+        //                     "posSide": "long",
+        //                     "marginCoin": "USDT",
+        //                     "quoteVolume": "0",
+        //                     "leverage": "20",
+        //                     "marginMode": "crossed",
+        //                     "enterPointSource": "web",
+        //                     "tradeSide": "open",
+        //                     "posMode": "hedge_mode",
+        //                     "orderType": "limit",
+        //                     "orderSource": "normal",
+        //                     "presetStopSurplusPrice": "",
+        //                     "presetStopLossPrice": "",
+        //                     "reduceOnly": "NO",
+        //                     "cTime": "1700725524378",
+        //                     "uTime": "1700725524378"
+        //                 }
+        //             ],
+        //             "endId": "1111488897767604224"
+        //         }
+        //     }
+        //
+        // swap and future stop
+        //
+        //     {
+        //         "code": "00000",\
+        //         "msg": "success",
+        //         "requestTime": 1700726417495,
+        //         "data": {
+        //             "entrustedList": [
+        //                 {
+        //                     "planType": "normal_plan",
+        //                     "symbol": "BTCUSDT",
+        //                     "size": "0.001",
+        //                     "orderId": "1111491399869075457",
+        //                     "clientOid": "1111491399869075456",
+        //                     "price": "27000",
+        //                     "callbackRatio": "",
+        //                     "triggerPrice": "24000",
+        //                     "triggerType": "mark_price",
+        //                     "planStatus": "live",
+        //                     "side": "buy",
+        //                     "posSide": "long",
+        //                     "marginCoin": "USDT",
+        //                     "marginMode": "crossed",
+        //                     "enterPointSource": "API",
+        //                     "tradeSide": "open",
+        //                     "posMode": "hedge_mode",
+        //                     "orderType": "limit",
+        //                     "stopSurplusTriggerPrice": "",
+        //                     "stopSurplusExecutePrice": "",
+        //                     "stopSurplusTriggerType": "fill_price",
+        //                     "stopLossTriggerPrice": "",
+        //                     "stopLossExecutePrice": "",
+        //                     "stopLossTriggerType": "fill_price",
+        //                     "cTime": "1700726120917",
+        //                     "uTime": "1700726120917"
+        //                 }
+        //             ],
+        //             "endId": "1111491399869075457"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        if (market['spot']) {
+            if ((marginMode !== undefined) || stop) {
+                const resultList = this.safeValue (data, 'orderList', []);
+                return this.parseOrders (resultList, market, since, limit);
+            }
+        } else {
+            const result = this.safeValue (data, 'entrustedList', []);
+            return this.parseOrders (result, market, since, limit);
         }
         return this.parseOrders (data, market, since, limit);
     }
