@@ -28,9 +28,9 @@ export default class poloniex extends poloniexRest {
                 'editOrderWs': false,
                 'fetchOpenOrdersWs': false,
                 'fetchOrderWs': false,
-                'cancelOrderWs': undefined,
-                'cancelOrdersWs': undefined,
-                'cancelAllOrdersWs': undefined,
+                'cancelOrderWs': true,
+                'cancelOrdersWs': true,
+                'cancelAllOrdersWs': true,
                 'fetchTradesWs': false,
                 'fetchBalanceWs': false,
             },
@@ -43,6 +43,7 @@ export default class poloniex extends poloniexRest {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -222,13 +223,20 @@ export default class poloniex extends poloniexRest {
         };
         if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
             let quoteAmount = this.safeString (params, 'amount');
-            if (quoteAmount === undefined) {
-                if (price === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrderWs () requires a price argument for market buy orders');
+            if ((quoteAmount === undefined) && (this.options['createMarketBuyOrderRequiresPrice'])) {
+                const cost = this.safeNumber (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (price === undefined && cost === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the amount argument (the exchange-specific behaviour)');
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const quote = Precise.stringMul (amountString, priceString);
+                    amount = (cost !== undefined) ? cost : this.parseNumber (quote);
+                    quoteAmount = this.costToPrecision (symbol, amount);
                 }
-                const priceString = price.toString ();
-                const amountString = amount.toString ();
-                quoteAmount = Precise.stringMul (priceString, amountString);
+            } else {
+                quoteAmount = this.costToPrecision (symbol, amount);
             }
             request['amount'] = this.amountToPrecision (market['symbol'], quoteAmount);
         } else {
