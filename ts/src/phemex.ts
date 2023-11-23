@@ -2830,20 +2830,21 @@ export default class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'privateGetSpotOrders';
-        if (market['settle'] === 'USDT') {
-            request['currency'] = market['settle'];
-            method = 'privateGetExchangeOrderV2OrderList';
-        } else if (market['swap']) {
-            method = 'privateGetExchangeOrderList';
-        }
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['settle'] === 'USDT') {
+            request['currency'] = market['settle'];
+            response = await this.privateGetExchangeOrderV2OrderList (this.extend (request, params));
+        } else if (market['swap']) {
+            response = await this.privateGetExchangeOrderList (this.extend (request, params));
+        } else {
+            response = await this.privateGetSpotOrders (this.extend (request, params));
+        }
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeValue (data, 'rows', data);
         return this.parseOrders (rows, market, since, limit);
