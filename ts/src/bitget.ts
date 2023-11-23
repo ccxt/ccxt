@@ -4322,78 +4322,92 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
+         * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders
+         * @see https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders
          * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
+         * @param {boolean} [params.stop] *contract only* set to true for canceling trigger orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
-        let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
-        if (sandboxMode) {
-            productType = 'S' + productType;
-        }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const market = this.market (symbol);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
-        if (marketType === 'spot') {
-            if (marginMode === undefined) {
-                throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets, only spot-margin');
-            }
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-            }
-            const spotMarginRequest = {
-                'symbol': market['info']['symbolName'], // regular id like LTCUSDT_SPBL does not work here
-            };
-            if (marginMode === 'cross') {
-                return await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder (this.extend (spotMarginRequest, params));
-            } else {
-                return await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder (this.extend (spotMarginRequest, params));
-            }
-        }
         const request = {
-            'productType': productType,
-            'marginCoin': this.safeString (market, 'settleId', 'USDT'),
+            'symbol': market['id'],
         };
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
-        const planType = this.safeString (params, 'planType');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, 'stop');
         let response = undefined;
-        if (stop !== undefined || planType !== undefined) {
-            if (planType === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
+        if (market['spot']) {
+            if (marginMode !== undefined) {
+                if (marginMode === 'cross') {
+                    response = await this.privateMarginPostMarginV1CrossOrderBatchCancelOrder (this.extend (request, params));
+                } else {
+                    response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder (this.extend (request, params));
+                }
+            } else {
+                response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, params));
             }
-            response = await this.privateMixPostMixV1PlanCancelAllPlan (this.extend (request, params));
         } else {
-            response = await this.privateMixPostMixV1OrderCancelAllOrders (this.extend (request, params));
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            if (stop) {
+                response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
+            } else {
+                response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, params));
+            }
         }
+        //
+        // spot
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1663312535998,
+        //         "requestTime": 1700716953996,
         //         "data": {
-        //             "result": true,
-        //             "order_ids": ["954564352813969409"],
-        //             "fail_infos": [
+        //             "symbol": "BTCUSDT"
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": "1680008815965",
+        //         "data": {
+        //             "successList": [
         //                 {
-        //                     "order_id": "",
-        //                     "err_code": "",
-        //                     "err_msg": ""
-        //                 }
-        //             ]
+        //                     "orderId": "1024598257429823488",
+        //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
+        //                 },
+        //             ],
+        //             "failureList": []
+        //         }
+        //     }
+        //
+        // spot margin
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700717155622,
+        //         "data": {
+        //             "resultList": [
+        //                 {
+        //                     "orderId": "1111453253721796609",
+        //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
+        //                 },
+        //             ],
+        //             "failure": []
         //         }
         //     }
         //
