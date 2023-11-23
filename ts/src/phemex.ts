@@ -3367,7 +3367,6 @@ export default class phemex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let subType = undefined;
-        let method = 'privateGetAccountsAccountPositions';
         let code = this.safeString (params, 'currency');
         let settle = undefined;
         let market = undefined;
@@ -3380,9 +3379,9 @@ export default class phemex extends Exchange {
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USD');
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
-        if (settle === 'USDT') {
+        const isUSDTSettled = settle === 'USDT';
+        if (isUSDTSettled) {
             code = 'USDT';
-            method = 'privateGetGAccountsAccountPositions';
         } else if (code === undefined) {
             code = (subType === 'linear') ? 'USD' : 'BTC';
         } else {
@@ -3392,7 +3391,12 @@ export default class phemex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (isUSDTSettled) {
+            response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
+        } else {
+            response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
+        }
         //
         //     {
         //         "code":0,"msg":"",
