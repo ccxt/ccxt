@@ -993,11 +993,12 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let method = 'v1GetMdOrderbook';
+        let response = undefined;
         if (market['linear'] && market['settle'] === 'USDT') {
-            method = 'v2GetMdV2Orderbook';
+            response = await this.v2GetMdV2Orderbook (this.extend (request, params));
+        } else {
+            response = await this.v1GetMdOrderbook (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": null,
