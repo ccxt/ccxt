@@ -35,7 +35,7 @@ export default class cryptocom extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
-                'closePositions': true,
+                'closePosition': true,
                 'createOrder': true,
                 'createOrders': true,
                 'fetchAccounts': true,
@@ -2893,7 +2893,7 @@ export default class cryptocom extends Exchange {
         return returnString;
     }
 
-    async closePositions (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cryptocom#closePositions

@@ -2440,7 +2440,7 @@ export default class kucoinfutures extends kucoin {
         };
     }
 
-    async closePositions (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okx#closePositions

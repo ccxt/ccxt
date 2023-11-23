@@ -40,7 +40,7 @@ export default class htx extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
-                'closePositions': true,
+                'closePosition': true,
                 'createDepositAddress': undefined,
                 'createOrder': true,
                 'createOrders': true,
@@ -8593,7 +8593,7 @@ export default class htx extends Exchange {
         });
     }
 
-    async closePositions (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name htx#closePositions
@@ -8636,7 +8636,7 @@ export default class htx extends Exchange {
             }
         } else {  // USDT-M
             let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('closePositions', params);
+            [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params);
             if (marginMode === 'cross') {
                 response = await this.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition (this.extend (request, params));
             } else {  // isolated

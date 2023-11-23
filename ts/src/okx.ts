@@ -7156,7 +7156,7 @@ export default class okx extends Exchange {
         };
     }
 
-    async closePositions (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okx#closePositions
@@ -7177,7 +7177,7 @@ export default class okx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('closePositions', params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params);
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const code = this.safeString (params, 'code');
         if (marginMode === undefined) {

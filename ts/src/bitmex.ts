@@ -41,7 +41,7 @@ export default class bitmex extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
-                'closePositions': true,
+                'closePosition': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
@@ -2785,7 +2785,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    async closePositions (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okx#closePositions
