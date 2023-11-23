@@ -97,7 +97,7 @@ The CCXT library currently supports the following 95 cryptocurrency exchange mar
 | [![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)](https://www.bitmex.com/register/upZpOX)                                                      | bitmex             | [BitMEX](https://www.bitmex.com/register/upZpOX)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.bitmex.com/app/apiOverview)                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitopro](https://user-images.githubusercontent.com/1294454/158227251-3a92a220-9222-453c-9277-977c6677fe71.jpg)](https://www.bitopro.com)                                                                   | bitopro            | [BitoPro](https://www.bitopro.com)                                                                    | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md) |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitpanda](https://user-images.githubusercontent.com/51840849/87591171-9a377d80-c6f0-11ea-94ac-97a126eac3bc.jpg)](https://www.bitpanda.com/en/pro)                                                          | bitpanda           | [Bitpanda Pro](https://www.bitpanda.com/en/pro)                                                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://developers.bitpanda.com/exchange/)                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bitrue](https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg)](https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000)             | bitrue             | [Bitrue](https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000)              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Bitrue-exchange/bitrue-official-api-docs)                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bitrue](https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg)](https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE)                      | bitrue             | [Bitrue](https://www.bitrue.com/affiliate/landing?cn=600000&inviteCode=EZWETQE)                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Bitrue-exchange/bitrue-official-api-docs)                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitso](https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg)](https://bitso.com/?ref=itej)                                                                 | bitso              | [Bitso](https://bitso.com/?ref=itej)                                                                  | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bitso.com/api_info)                                                         |                                                                                                                             |                                                                              |
 | [![bitstamp](https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg)](https://www.bitstamp.net)                                                                  | bitstamp           | [Bitstamp](https://www.bitstamp.net)                                                                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.bitstamp.net/api)                                                       |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bittrex](https://user-images.githubusercontent.com/51840849/87153921-edf53180-c2c0-11ea-96b9-f2a9a95a455b.jpg)](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                             | bittrex            | [Bittrex](https://bittrex.com/Account/Register?referralCode=1ZE-G0G-M3B)                              | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bittrex.github.io/api/v3)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -152,7 +152,7 @@ The CCXT library currently supports the following 95 cryptocurrency exchange mar
 | [![oceanex](https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg)](https://oceanex.pro/signup?referral=VE24QX)                                                 | oceanex            | [OceanEx](https://oceanex.pro/signup?referral=VE24QX)                                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.oceanex.pro/doc/v1)                                                     |                                                                                                                             |                                                                              |
 | [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                  | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                   | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okcoin.com/docs/en/)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                         | okx                | [OKX](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                          | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![p2b](https://cdn.worldvectorlogo.com/logos/p2b-1.svg)](https://p2pb2b.com?referral=ee784c53)                                                                                                               | p2b                | [p2b](https://p2pb2b.com?referral=ee784c53)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md)                    |                                                                                                                             |                                                                              |
+| [![p2b](https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755)](https://p2pb2b.com?referral=ee784c53)                                                                             | p2b                | [p2b](https://p2pb2b.com?referral=ee784c53)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md)                    |                                                                                                                             |                                                                              |
 | [![paymium](https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg)](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                        | paymium            | [Paymium](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Paymium/api-documentation)                                       |                                                                                                                             |                                                                              |
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                              | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                                    | poloniex           | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.poloniex.com)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -1634,6 +1634,10 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchLiquidations (symbol, since, limit, params)`
 - `fetchMyLiquidations (symbol, since, limit, params)`
 - `fetchGreeks (symbol, params)`
+- `fetchCrossBorrowRate (code, params)`
+- `fetchCrossBorrowRates (params)`
+- `fetchIsolatedBorrowRate (symbol, params)`
+- `fetchIsolatedBorrowRates (params)`
 - ...
 
 ```text
@@ -2676,46 +2680,77 @@ When short trading or trading with leverage on a spot market, currency must be b
 
 Data on the borrow rate for a currency can be retrieved using
 
-- `fetchBorrowRate ()` for a single currencies borrow rate
-- `fetchBorrowRates ()` for all currencies borrow rates
+- `fetchCrossBorrowRate ()` for a single currencies borrow rate
+- `fetchCrossBorrowRates ()` for all currencies borrow rates
+- `fetchIsolatedBorrowRate ()` for a trading pairs borrow rate
+- `fetchIsolatedBorrowRates ()` for all trading pairs borrow rates
 - `fetchBorrowRatesPerSymbol ()` for the borrow rates of currencies in individual markets
 
 ```javascript
-fetchBorrowRate (code, params = {})
+fetchCrossBorrowRate (code, params = {})
 ```
 
 Parameters
 
 - **code** (String) Unified CCXT currency code, required (e.g. `"USDT"`)
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "USDT"}`)
 
 Returns
 
-- A [transaction structure](#transaction-structure)
+- A [borrow rate structure](#borrow-rate-structure)
 
 ```javascript
-fetchBorrowRates (params = {})
+fetchCrossBorrowRates (params = {})
 ```
 
 Parameters
 
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"startTime": 1610248118000}`)
 
 Returns
 
 - A dictionary of [borrow rate structures](#borrow-rate-structure) with unified currency codes as keys
 
 ```javascript
-fetchBorrowRatesPerSymbol (params = {})
+fetchIsolatedBorrowRate (symbol, params = {})
 ```
 
 Parameters
 
-- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"marginMode": "cross"}`)
+- **symbol** (String) Unified CCXT market symbol, required (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"settle": "USDT"}`)
 
 Returns
 
-- A dictionary of [borrow rate structures](#borrow-rate-structure) with unified market symbols as keys
+- An [isolated borrow rate structure](#isolated-borrow-rate-structure)
+
+```javascript
+fetchIsolatedBorrowRates (params = {})
+```
+
+Parameters
+
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"startTime": 1610248118000}`)
+
+Returns
+
+- A dictionary of [isolated borrow rate structures](#isolated-borrow-rate-structure) with unified market symbols as keys
+
+### Isolated Borrow Rate Structure
+
+```javascript
+{
+  symbol: 'BTC/USDT',  // Unified market symbol
+  base: 'BTC',  // Unified currency code of the base currency
+  baseRate: 0.00025,  // A decimal value rate that interest is accrued at
+  quote: 'USDT',  // Unified currency code of the quote currency
+  quoteRate: 0.00025,  // A decimal value rate that interest is accrued at
+  period: 86400000,  // The amount of time in milliseconds that is required to accrue the interest amount specified by rate
+  timestamp: 1646956800000,  // Timestamp for when the currency had this rate
+  datetime: '2022-03-11T00:00:00.000Z',  // Datetime for when the currency had this rate
+  info: [ ... ]
+}
+```
 
 ### Borrow Rate Structure
 
@@ -3731,7 +3766,7 @@ if exchange.has['fetchOrder']:
     order = exchange.fetch_order(id)
     print(order)
 
-# Python 3.5+ asyncio (asynchronous)
+# Python 3.7+ asyncio (asynchronous)
 import asyncio
 import ccxt.async_support as ccxt
 if exchange.has['fetchOrder']:
@@ -3837,7 +3872,7 @@ There are different types of orders that a user can send to the exchange, regula
 - [Market Orders](#market-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell)
   - [Market Buys](#market-buys) – some exchanges require market buy orders with an `amount` in quote currency (how much you want to spend for buying)
 - [Trigger Orders](#trigger-orders) – an advanced type of order used to wait for a certain condition on a market and then react automatically: when a `triggerPrice` is reached, the trigger order gets triggered and then a regular limit `price` or market price order is placed, that eventually results in entering a position or exiting a position
-- [Stop Loss Orders](#stop-loss-orders) – almost the same as trigger orders, but used to close a position to stop further losses on that position: when the price eaches `triggerPrice` then the stop loss order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a stop loss order attached to it).
+- [Stop Loss Orders](#stop-loss-orders) – almost the same as trigger orders, but used to close a position to stop further losses on that position: when the price reaches `triggerPrice` then the stop loss order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a stop loss order attached to it).
 - [Take Profit Orders](#take-profit-orders) – a counterpart to stop loss orders, this type of order is used to close a position to take existing profits on that position: when the price reaches `triggerPrice` then the take profit order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a take profit order attached to it).
 - [StopLoss And TakeProfit Orders Attached To A Position](#stoploss-and-takeprofit-orders-attached-to-a-position) – advanced orders, consisting of three orders of types listed above: a regular limit or market order placed to enter a position with stop loss and/or take profit orders that will be placed upon opening that position and will be used to close that position later (when a stop loss is reached, it will close the position and will cancel its take profit counterpart, and vice versa, when a take profit is reached, it will close the position and will cancel its stop loss counterpart, these two counterparts are also known as "OCO orders – one cancels the other), apart from the `amount` (and `price` for the limit order) to open a position it will also require a `triggerPrice` for a stop loss order (with a limit `price` if it's a stop loss limit order) and/or a `triggerPrice` for a take profit order (with a limit `price` if it's a take profit limit order).
 
@@ -4101,61 +4136,55 @@ exchange.create_limit_sell_order (symbol, amount, price[, params])
 
 #### Stop Orders
 
-Stop orders, are placed onto the order book when the price of the underlying asset reaches the trigger price.
+Coming from traditional trading, the term "Stop" order has been a bit ambigious, so instead of it, in CCXT we use term "Trigger" order. When symbol's price reaches your "trigger"("stop") price, the order is activated - if you had chosen *market* order, then it will be executed immediately, if you have chosen limit order, it will be placed in the orderbook.
 
-* They can be used to close positions when a certain profit level is reached, or to mitigate a large loss.
-* They can be stand-alone orders ([Trigger](#trigger-order), [Stop Loss](#stop-loss-orders), [Take Profit](#take-profit-orders)).
-* Or they can be attached to a primary order ([Conditional Stop Orders](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
-* Stop Orders can be limit or market orders
+We have different classification of trigger orders:
+* stand-alone [Trigger order](#trigger-orders) to buy/sell coin (open/close position)
+* stand-alone [Stop-Loss](#stop-loss-orders) or [Take-Profit](#take-profit-orders) order which are only designed to close an open position.
+* an attached Stop-Loss or Take-Profit order into a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
+
 
 ##### Trigger Orders
 
-Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open and close a position.
+Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open or close a position.
 
-* Activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**
+* Typically, it is activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**. However, some exchanges' API require to set `triggerDirection` too, which triggers order depending whether price is above or below `triggerPrice`. For example, if you want to trigger  limit order (buy 0.1 `ETH` at limit price `1500`) once pair price crosses `1700`:
 
 ```javascript
 // JavaScript
-const symbol = 'ETH/BTC'
-const type = 'limit' // or 'market'
-const side = 'sell'
-const amount = 123.45 // your amount
-const price = 54.321 // your price
 const params = {
-    'triggerPrice': 123.45, // your stop price
+    'triggerPrice': 1700,
 }
-const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+const order = await exchange.createOrder ('ETH/USDT', 'market', 'buy', 0.1, 1500, params)
 ```
 
 ```python
 # Python
-symbol = 'ETH/BTC'
-type = 'limit'  # or 'market'
-side = 'sell'
-amount = 123.45  # your amount
-price = 54.321  # your price
 params = {
-    'triggerPrice': 123.45,  # your stop price
+    'triggerPrice': 1700,
 }
-order = exchange.create_order(symbol, type, side, amount, price, params)
+order = exchange.create_order('ETH/USDT', 'market', 'buy', 0.1, 1500, params)
 ```
 
 ```php
 // PHP
-$symbol = 'ETH/BTC';
-$type = 'limit'; // or 'market'
-$side = 'sell';
-$amount = 123.45; // your amount
-$price = 54.321; // your price
 $params = {
-    'triggerPrice': 123.45, // your stop price
+    'triggerPrice': 1700,
 }
-$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
+$order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
+```
+However, if some exchanges require that you provided `triggerDirection`, with either `above` or `below` values:
+
+```
+params = {
+    'triggerPrice': 1700,
+    'triggerDirection': 'above', // order will be triggered when price is above 1700
+}
 ```
 
 ##### Stop Loss Orders
 
-The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter (for the spot loss triggerPrice).
+The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter (for the spot loss triggerPrice), and also automatically implemented `triggerDirection` on behalf of user, so instead of regular Trigger Order, you can use this as an alternative.
 
 Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
 
@@ -4330,7 +4359,7 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 **Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively.
 
 * By default stopLoss and takeProfit orders will be the same magnitude as primary order but in the opposite direction.
-* Attached stop orders are conditional on the primary order being executed.
+* Attached trigger orders are conditional on the primary order being executed.
 * Not supported by all exchanges.
 * Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
 
@@ -5588,6 +5617,11 @@ Returns
 ## Margin
 
 *margin and contract only*
+
+Note: through the manual we use term "collateral" which means current margin balance, but do not confuse it with "initial margin" or "maintenance margin":
+- `collateral (current margin balance) = initial margin + realized & unrealized profit`.
+
+For example, when you had opened an isolated position with **50$** initial margin and the position has unrealized profit of **-15$**, then your position's **collateral** will be **35$**. However, if we take that Maintenance Margin requirement (to keep the position open) by exchange hints **$25** for that position, then your collateral should not drop below it, otherwise the position will be liquidated.
 
 To increase, reduce or set your margin balance (collateral) in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
 

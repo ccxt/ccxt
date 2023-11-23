@@ -22,8 +22,10 @@ before_install:
 - pip install tox cryptography requests ruff # common packages
 - pip install twine # used to publish python package
 - pip install pyopenssl aiohttp # used to run real-time tests
+- pip install typing-extensions # required by python <3.11
 - php -i | grep php.ini
 - composer install
+
 script:
 - ./build.sh 2>&1
 - git checkout master composer.json

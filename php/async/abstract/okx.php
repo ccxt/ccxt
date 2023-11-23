@@ -61,6 +61,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function public_get_market_index_components($params = array()) {
         return $this->request('market/index-components', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_public_economic_calendar($params = array()) {
+        return $this->request('public/economic-calendar', 'public', 'GET', $params, null, null, array("cost" => 50));
+    }
     public function public_get_market_block_tickers($params = array()) {
         return $this->request('market/block-tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -412,9 +415,6 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_users_entrust_subaccount_list($params = array()) {
         return $this->request('users/entrust-subaccount-list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
-    public function private_get_users_partner_if_rebate($params = array()) {
-        return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function private_get_account_subaccount_interest_limits($params = array()) {
         return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -537,6 +537,12 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function private_get_broker_fd_if_rebate($params = array()) {
         return $this->request('broker/fd/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_affiliate_invitee_detail($params = array()) {
+        return $this->request('affiliate/invitee/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_users_partner_if_rebate($params = array()) {
+        return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_post_rfq_create_rfq($params = array()) {
         return $this->request('rfq/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 4));
@@ -873,6 +879,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function publicGetMarketIndexComponents($params = array()) {
         return $this->request('market/index-components', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetPublicEconomicCalendar($params = array()) {
+        return $this->request('public/economic-calendar', 'public', 'GET', $params, null, null, array("cost" => 50));
     }
     public function publicGetMarketBlockTickers($params = array()) {
         return $this->request('market/block-tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -1225,9 +1234,6 @@ abstract class okx extends \ccxt\async\Exchange {
     public function privateGetUsersEntrustSubaccountList($params = array()) {
         return $this->request('users/entrust-subaccount-list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
-    public function privateGetUsersPartnerIfRebate($params = array()) {
-        return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function privateGetAccountSubaccountInterestLimits($params = array()) {
         return $this->request('account/subaccount/interest-limits', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1350,6 +1356,12 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privateGetBrokerFdIfRebate($params = array()) {
         return $this->request('broker/fd/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetAffiliateInviteeDetail($params = array()) {
+        return $this->request('affiliate/invitee/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetUsersPartnerIfRebate($params = array()) {
+        return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostRfqCreateRfq($params = array()) {
         return $this->request('rfq/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 4));

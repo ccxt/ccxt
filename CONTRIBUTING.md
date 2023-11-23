@@ -227,7 +227,7 @@ At first, all language-specific versions were developed in parallel, but separat
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
-- `./python/async/__init__.py` for the Python 3.5.3+ ccxt.async_support subpackage
+- `./python/async/__init__.py` for the Python 3.7.0+ ccxt.async_support subpackage
 - `./js/ccxt.js` for the Node.js npm package
 - `./ts/ccxt.ts` for TypeScript
 - `./dist/ccxt.browser.js` for the browser bundle

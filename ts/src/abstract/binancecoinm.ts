@@ -60,6 +60,7 @@ interface binance {
     sapiGetMarginCapitalFlow (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginDelistSchedule (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAvailableInventory (params?: {}): Promise<implicitReturnType>;
+    sapiGetMarginLeverageBracket (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipLoanableData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRequestData (params?: {}): Promise<implicitReturnType>;
@@ -88,6 +89,7 @@ interface binance {
     sapiGetRebateTaxQuery (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositAddress (params?: {}): Promise<implicitReturnType>;
+    sapiGetCapitalDepositAddressList (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubAddress (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubHisrec (params?: {}): Promise<implicitReturnType>;
@@ -505,6 +507,7 @@ interface binance {
     fapiPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteAllOpenOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteListenKey (params?: {}): Promise<implicitReturnType>;
+    fapiPublicV2GetTickerPrice (params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetAccount (params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetBalance (params?: {}): Promise<implicitReturnType>;
     fapiPrivateV2GetPositionRisk (params?: {}): Promise<implicitReturnType>;

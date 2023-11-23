@@ -36,7 +36,7 @@ class mexc extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
-                'borrowMargin' => true,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
@@ -49,13 +49,12 @@ class mexc extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
-                'fetchBorrowRate' => null,
                 'fetchBorrowRateHistory' => null,
-                'fetchBorrowRates' => null,
-                'fetchBorrowRatesPerSymbol' => null,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
@@ -69,6 +68,8 @@ class mexc extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => null,
                 'fetchIndexOHLCV' => true,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchL2OrderBook' => true,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
@@ -107,7 +108,7 @@ class mexc extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
-                'repayMargin' => true,
+                'repayMargin' => false,
                 'setLeverage' => true,
                 'setMarginMode' => null,
                 'setPositionMode' => true,
@@ -218,10 +219,6 @@ class mexc extends Exchange {
                             'capital/deposit/address' => 1,
                             'capital/sub-account/universalTransfer' => 1,
                             'capital/convert' => 1,
-                            'margin/tradeMode' => 1,
-                            'margin/order' => 1,
-                            'margin/loan' => 1,
-                            'margin/repay' => 1,
                             'mxDeduct/enable' => 1,
                             'userDataStream' => 1,
                         ),
@@ -441,18 +438,18 @@ class mexc extends Exchange {
                 'networks' => array(
                     'BTC' => 'BTC',
                     'BCH' => 'BCH',
-                    'TRC20' => 'TRC20',
-                    'ERC20' => 'ERC20',
-                    'BEP20' => 'BEP20(BSC)',
-                    'OPTIMISM' => 'OP',
-                    'SOL' => 'SOL',
+                    'TRC20' => 'Tron(TRC20)',
+                    'ERC20' => 'Ethereum(ERC20)',
+                    'BEP20' => 'BNBSmartChain(BEP20)',
+                    'OPTIMISM' => 'Optimism(OP)',
+                    'SOL' => 'Solana(SOL)',
                     'CRC20' => 'CRONOS',
-                    'ALGO' => 'ALGO',
+                    'ALGO' => 'Algorand(ALGO)',
                     'XRP' => 'XRP',
-                    'MATIC' => 'MATIC',
+                    'MATIC' => 'Polygon(MATIC)',
                     'AVAXX' => 'AVAX_XCHAIN',
-                    'AVAXC' => 'AVAX_CCHAIN',
-                    'ARBONE' => 'Arbitrum One',
+                    'AVAXC' => 'AvalancheCChain(AVAXCCHAIN)',
+                    'ARBONE' => 'ArbitrumOne(ARB)',
                     'ARBNOVA' => 'ARBNOVA',
                     'FTM' => 'FTM',
                     'WAVES' => 'WAVES',
@@ -827,7 +824,7 @@ class mexc extends Exchange {
             /**
              * the latest known information on the availability of the exchange API
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-$status-structure $status structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
              */
             list($marketType, $query) = $this->handle_market_type_and_params('fetchStatus', null, $params);
             $response = null;
@@ -1039,10 +1036,15 @@ class mexc extends Exchange {
         $networkId = implode('', $parts);
         $networkId = str_replace('-20', '20', $networkId);
         $networksById = array(
-            'ETH' => 'ETH',
-            'ERC20' => 'ERC20',
-            'BEP20(BSC)' => 'BEP20',
-            'TRX' => 'TRC20',
+            'Ethereum(ERC20)' => 'ERC20',
+            'Algorand(ALGO)' => 'ALGO',
+            'ArbitrumOne(ARB)' => 'ARBONE',
+            'AvalancheCChain(AVAXCCHAIN)' => 'AVAXC',
+            'BNBSmartChain(BEP20)' => 'BEP20',
+            'Polygon(MATIC)' => 'MATIC',
+            'Optimism(OP)' => 'OPTIMISM',
+            'Solana(SOL)' => 'SOL',
+            'Tron(TRC20)' => 'TRC20',
         );
         return $this->safe_string($networksById, $networkId, $networkId);
     }
@@ -1304,7 +1306,7 @@ class mexc extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1383,7 +1385,7 @@ class mexc extends Exchange {
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {int} [$params->until] *spot only* *$since must be defined* the latest time in ms to fetch entries for
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1465,7 +1467,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade($trade, ?array $market = null): array {
         $id = null;
         $timestamp = null;
         $orderId = null;
@@ -1740,7 +1742,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null): array {
+    public function parse_ohlcv($ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1757,7 +1759,7 @@ class mexc extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1845,7 +1847,7 @@ class mexc extends Exchange {
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1912,7 +1914,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null): array {
+    public function parse_ticker($ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = null;
@@ -2035,7 +2037,7 @@ class mexc extends Exchange {
              * fetches the bid and ask price and volume for multiple markets
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -2082,7 +2084,7 @@ class mexc extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2146,12 +2148,7 @@ class mexc extends Exchange {
         return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
             Async\await($this->load_markets());
             $request = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $params);
-            $response = null;
-            if ($marginMode !== null) {
-                $response = Async\await($this->spotPrivatePostMarginOrder (array_merge($request, $params)));
-            } else {
-                $response = Async\await($this->spotPrivatePostOrder (array_merge($request, $params)));
-            }
+            $response = Async\await($this->spotPrivatePostOrder (array_merge($request, $params)));
             //
             // spot
             //
@@ -2290,7 +2287,7 @@ class mexc extends Exchange {
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-$orders
              * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $ordersRequests = array();
@@ -2354,9 +2351,11 @@ class mexc extends Exchange {
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
-            $this->check_required_symbol('fetchOrder', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -2474,7 +2473,7 @@ class mexc extends Exchange {
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -2705,7 +2704,7 @@ class mexc extends Exchange {
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -2793,7 +2792,7 @@ class mexc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_state(3, $symbol, $since, $limit, $params));
         }) ();
@@ -2807,7 +2806,7 @@ class mexc extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] max number of orders to return, default is null
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_state(4, $symbol, $since, $limit, $params));
         }) ();
@@ -2839,7 +2838,7 @@ class mexc extends Exchange {
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
-             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -2944,7 +2943,7 @@ class mexc extends Exchange {
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = ($symbol !== null) ? $this->market($symbol) : null;
@@ -2979,7 +2978,7 @@ class mexc extends Exchange {
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = ($symbol !== null) ? $this->market($symbol) : null;
@@ -3058,7 +3057,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // spot => createOrder
         //
@@ -3378,7 +3377,7 @@ class mexc extends Exchange {
             /**
              * fetch all the accounts associated with a profile
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$account-structure $account structures} indexed by the $account type
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account type
              */
             // TODO => is the below endpoints suitable for fetchAccounts?
             list($marketType, $query) = $this->handle_market_type_and_params('fetchAccounts', null, $params);
@@ -3406,7 +3405,7 @@ class mexc extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures} indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->fetch_account_helper('spot', $params));
@@ -3560,7 +3559,7 @@ class mexc extends Exchange {
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->symbols] // required for margin, $market id's separated by commas
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $marketType = null;
@@ -3688,9 +3687,11 @@ class mexc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
-            $this->check_required_symbol('fetchMyTrades', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
@@ -3777,7 +3778,7 @@ class mexc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades to retrieve
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $request = array();
@@ -3876,7 +3877,7 @@ class mexc extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'SUB', $params));
         }) ();
@@ -3889,7 +3890,7 @@ class mexc extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'ADD', $params));
         }) ();
@@ -3935,7 +3936,7 @@ class mexc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -4005,7 +4006,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -4050,7 +4051,7 @@ class mexc extends Exchange {
              * fetch the current funding rate
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4086,9 +4087,11 @@ class mexc extends Exchange {
              * @param {int} [$since] not used by mexc, but filtered internally by ccxt
              * @param {int} [$limit] mexc $limit is page_size default 20, maximum is 100
              * @param {array} [$params] extra parameters specific to the mexc api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
-            $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -4151,7 +4154,7 @@ class mexc extends Exchange {
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, 'swap', true, true);
@@ -4206,7 +4209,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null) {
         /**
             @param $info {object} Exchange response for 1 $market
             @param $market {object} CCXT $market
@@ -4238,7 +4241,7 @@ class mexc extends Exchange {
         return $tiers;
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //     array("chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"),
         //     array("chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"),
@@ -4268,7 +4271,7 @@ class mexc extends Exchange {
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-$address-supporting-$network
              * @param {string} $code unified $currency $code of the $currency for the deposit $address
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structures} indexed by the $network
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$address-structure $address structures~ indexed by the $network
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -4310,7 +4313,7 @@ class mexc extends Exchange {
              * @param {string} $code unified $currency $code of the $currency for the deposit address
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->network] the blockchain network name
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -4350,7 +4353,7 @@ class mexc extends Exchange {
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
              * @param {string} $code unified currency $code
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             $rawNetwork = $this->safe_string_upper($params, 'network');
             $params = $this->omit($params, 'network');
@@ -4381,7 +4384,7 @@ class mexc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -4442,7 +4445,7 @@ class mexc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -4490,7 +4493,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null): array {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -4619,7 +4622,7 @@ class mexc extends Exchange {
              * fetch data on a single open contract trade position
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4637,7 +4640,7 @@ class mexc extends Exchange {
              * fetch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->contractPrivateGetPositionOpenPositions ($params));
@@ -4676,7 +4679,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, $market = null) {
+    public function parse_position($position, ?array $market = null) {
         //
         //     {
         //         "positionId" => 1394650,
@@ -4783,7 +4786,7 @@ class mexc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of  transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
              */
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfers', null, $params);
             Async\await($this->load_markets());
@@ -4873,7 +4876,7 @@ class mexc extends Exchange {
              * @param {string} $toAccount account to transfer to
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @param {string} [$params->symbol] $market $symbol required for margin account transfers eg:BTCUSDT
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -4922,7 +4925,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, $currency = null) {
+    public function parse_transfer($transfer, ?array $currency = null) {
         //
         // spot => fetchTransfer
         //
@@ -5008,7 +5011,7 @@ class mexc extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $networks = $this->safe_value($this->options, 'networks', array());
@@ -5073,80 +5076,6 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
-            /**
-             * create a loan to borrow margin
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#loan
-             * @param {string} $code unified $currency $code of the $currency to borrow
-             * @param {float} $amount the $amount to borrow
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
-             */
-            $this->check_required_symbol('borrowMargin', $symbol);
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $currency = $this->currency($code);
-            $request = array(
-                'asset' => $currency['id'],
-                'amount' => $this->currency_to_precision($code, $amount),
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->spotPrivatePostMarginLoan (array_merge($request, $params)));
-            //
-            //     {
-            //         "tranId" => "762407666453712896"
-            //     }
-            //
-            $transaction = $this->parse_margin_loan($response, $currency);
-            return array_merge($transaction, array(
-                'amount' => $amount,
-                'symbol' => $symbol,
-            ));
-        }) ();
-    }
-
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
-        return Async\async(function () use ($code, $amount, $symbol, $params) {
-            /**
-             * repay borrowed margin and interest
-             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#repayment
-             * @param {string} $code unified $currency $code of the $currency to repay
-             * @param {float} $amount the $amount to repay
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @param {string} [$params->borrowId] $transaction $id '762407666453712896'
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
-             */
-            $this->check_required_symbol('repayMargin', $symbol);
-            Async\await($this->load_markets());
-            $id = $this->safe_string_2($params, 'id', 'borrowId');
-            if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' repayMargin() requires a borrowId argument in the params');
-            }
-            $market = $this->market($symbol);
-            $currency = $this->currency($code);
-            $request = array(
-                'asset' => $currency['id'],
-                'amount' => $this->currency_to_precision($code, $amount),
-                'borrowId' => $id,
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->spotPrivatePostMarginRepay (array_merge($request, $params)));
-            //
-            //     {
-            //         "tranId" => "762407666453712896"
-            //     }
-            //
-            $transaction = $this->parse_margin_loan($response, $currency);
-            return array_merge($transaction, array(
-                'amount' => $amount,
-                'symbol' => $symbol,
-            ));
-        }) ();
-    }
-
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
@@ -5154,7 +5083,7 @@ class mexc extends Exchange {
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
              * @param {string[]|null} $codes returns fees for all currencies if null
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->spotPrivateGetCapitalConfigGetall ($params));
@@ -5209,7 +5138,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function parse_transaction_fee($transaction, $currency = null) {
+    public function parse_transaction_fee($transaction, ?array $currency = null) {
         //
         //    {
         //        "coin" => "AGLD",
@@ -5255,7 +5184,7 @@ class mexc extends Exchange {
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
              * @param {string[]|null} $codes returns fees for all currencies if null
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->spotPrivateGetCapitalConfigGetall ($params));
@@ -5292,7 +5221,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
         //    {
         //        "coin" => "AGLD",
@@ -5337,23 +5266,6 @@ class mexc extends Exchange {
             );
         }
         return $this->assign_default_deposit_withdraw_fees($result);
-    }
-
-    public function parse_margin_loan($info, $currency = null) {
-        //
-        //     {
-        //         "tranId" => "762407666453712896"
-        //     }
-        //
-        return array(
-            'id' => $this->safe_string($info, 'tranId'),
-            'currency' => $this->safe_currency_code(null, $currency),
-            'amount' => null,
-            'symbol' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'info' => $info,
-        );
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {

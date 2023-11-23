@@ -29,6 +29,7 @@ export default class krakenfutures extends krakenfuturesRest {
     handleBalance(client: Client, message: any): void;
     handleMyTrades(client: Client, message: any): void;
     parseWsMyTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    handleErrorMessage(client: Client, message: any): void;
     handleMessage(client: any, message: any): any;
     handleAuthenticate(client: Client, message: any): any;
 }

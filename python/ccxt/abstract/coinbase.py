@@ -60,3 +60,5 @@ class ImplicitAPI:
     v3_private_get_brokerage_best_bid_ask = v3PrivateGetBrokerageBestBidAsk = Entry('brokerage/best_bid_ask', ['v3', 'private'], 'GET', {})
     v3_private_post_brokerage_orders = v3PrivatePostBrokerageOrders = Entry('brokerage/orders', ['v3', 'private'], 'POST', {})
     v3_private_post_brokerage_orders_batch_cancel = v3PrivatePostBrokerageOrdersBatchCancel = Entry('brokerage/orders/batch_cancel', ['v3', 'private'], 'POST', {})
+    v3_private_post_brokerage_orders_edit = v3PrivatePostBrokerageOrdersEdit = Entry('brokerage/orders/edit', ['v3', 'private'], 'POST', {})
+    v3_private_post_brokerage_orders_edit_preview = v3PrivatePostBrokerageOrdersEditPreview = Entry('brokerage/orders/edit_preview', ['v3', 'private'], 'POST', {})

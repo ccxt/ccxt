@@ -17,7 +17,7 @@
     "strict": "off",
     "semi": "error",
     "indent": ["error", 4],
-    "init-declarations": "error",
+    "init-declarations": "off",
     "no-undef-init": "off",
     "comma-dangle": ["error", {
         "arrays": "always-multiline",
@@ -60,12 +60,14 @@
     "lines-between-class-members": "error",
     "no-multiple-empty-lines": ["error", { "max": 1 }],
     "padding-line-between-statements": ["error",
-      { "blankLine": "never", "prev":"*", "next": "*" },
+      { "blankLine": "never",  "prev":"*", "next": "*" },
+      { "blankLine": "always", "prev":"import", "next": "*" },
+      { "blankLine": "never",  "prev":"import", "next": "import" },
       { "blankLine": "always", "prev":"directive", "next": "*" },
       { "blankLine": "always", "prev":"*", "next": "cjs-export" },
       { "blankLine": "always", "prev":"*", "next": "export" },
-      { "blankLine": "always", "prev":"*", "next": "function" }
-
+      { "blankLine": "any",    "prev":"export", "next": "export" },
+      { "blankLine": "always", "prev":"*", "next": "function" },
     ],
     "prefer-template": "off",
     "curly": "error",
