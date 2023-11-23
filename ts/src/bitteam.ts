@@ -51,11 +51,11 @@ export default class bitteam extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
-                'fetchDeposit': false, // todo
+                'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false, // todo
+                'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': false, // todo
                 'fetchDepositWithdrawFees': false, // todo
@@ -99,8 +99,8 @@ export default class bitteam extends Exchange {
                 'fetchTransactionFees': false, // todo
                 'fetchTransactions': true,
                 'fetchTransfers': false,
-                'fetchWithdrawal': false, // todo
-                'fetchWithdrawals': false, // todo
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
                 'repayMargin': false,
@@ -110,7 +110,7 @@ export default class bitteam extends Exchange {
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': false,
-                'withdraw': true,
+                'withdraw': false,
                 'ws': false,
             },
             'timeframes': {
@@ -212,7 +212,7 @@ export default class bitteam extends Exchange {
                         'trade/api/user/favourite/remove-pair': 1, // not unified
                         'trade/api/user/pay-fee-btt': 1, // not unified returns 401000
                         'trade/api/webhook/deposit': 1, // not unified returns 401000
-                        'trade/api/withdraw/create': 1,
+                        'trade/api/withdraw/create': 1, // not unified returns 401000
                     },
                     'delete': {
                         'trade/api/dev/all-orders/cancel': 1, // not unified
@@ -1190,9 +1190,9 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseValueToPricision (o, valueKey, precisionKey) {
-        const valueRawString = this.safeString (o, valueKey);
-        const precisionRawString = this.safeString (o, precisionKey);
+    parseValueToPricision (valueObject, valueKey, preciseObject, precisionKey) {
+        const valueRawString = this.safeString (valueObject, valueKey);
+        const precisionRawString = this.safeString (preciseObject, precisionKey);
         if (valueRawString === undefined || precisionRawString === undefined) {
             return undefined;
         }
@@ -1858,8 +1858,8 @@ export default class bitteam extends Exchange {
         const symbol = market['symbol'];
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
-        const price = this.parseValueToPricision (trade, 'price', 'quoteDecimals');
-        const amount = this.parseValueToPricision (trade, 'quantity', 'baseDecimals');
+        const price = this.parseValueToPricision (trade, 'price', trade, 'quoteDecimals');
+        const amount = this.parseValueToPricision (trade, 'quantity', trade, 'baseDecimals');
         const side = this.safeString (trade, 'side');
         const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
         let takerOrMaker = undefined;
@@ -1891,7 +1891,7 @@ export default class bitteam extends Exchange {
         }
         // todo: bad values for fees that are not in USDT from fetchOrders
         if (feeInfo !== undefined) {
-            const feeCost = this.parseValueToPricision (feeInfo, 'amount', 'decimals');
+            const feeCost = this.parseValueToPricision (feeInfo, 'amount', feeInfo, 'decimals');
             const feeCurrencyId = this.safeString (feeInfo, 'symbol');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
@@ -2023,94 +2023,203 @@ export default class bitteam extends Exchange {
         }
         const response = await this.privateGetTradeApiTransactionsOfUser (this.extend (request, params));
         //
-        // todo: check and parse the response
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 2,
+        //             "transactions": [
+        //                 {
+        //                     "id": 1329686,
+        //                     "orderId": "2f060ad5-30f7-4f2b-ac5f-1bb8f5fd34dc",
+        //                     "transactionCoreId": "561863",
+        //                     "userId": 21639,
+        //                     "recipient": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "sender": "0x6894a93B6fea044584649278621723cac51443Cd",
+        //                     "symbolId": 2,
+        //                     "CommissionId": 17571,
+        //                     "amount": "44000000000000000",
+        //                     "params": {},
+        //                     "reason": null,
+        //                     "timestamp": 1700715341743,
+        //                     "status": "approving",
+        //                     "statusDescription": null,
+        //                     "type": "withdraw",
+        //                     "message": null,
+        //                     "blockChain": "",
+        //                     "before": null,
+        //                     "after": null,
+        //                     "currency": {
+        //                         "symbol": "eth",
+        //                         "decimals": 18,
+        //                         "blockChain": "Ethereum",
+        //                         "links": [
+        //                             {
+        //                                 "tx": "https://etherscan.io/tx/",
+        //                                 "address": "https://etherscan.io/address/",
+        //                                 "blockChain": "Ethereum"
+        //                             }
+        //                         ]
+        //                     }
+        //                 },
+        //                 {
+        //                     "id": 1329229,
+        //                     "orderId": null,
+        //                     "transactionCoreId": "561418",
+        //                     "userId": 21639,
+        //                     "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
+        //                     "sender": null,
+        //                     "symbolId": 3,
+        //                     "CommissionId": null,
+        //                     "amount": "100000000",
+        //                     "params": {
+        //                         "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
+        //                     },
+        //                     "reason": null,
+        //                     "timestamp": 1700594180417,
+        //                     "status": "success",
+        //                     "statusDescription": null,
+        //                     "type": "deposit",
+        //                     "message": null,
+        //                     "blockChain": "Ethereum",
+        //                     "before": 0,
+        //                     "after": 100000000,
+        //                     "currency": {
+        //                         "symbol": "usdt",
+        //                         "decimals": 6,
+        //                         "blockChain": "",
+        //                         "links": [
+        //                             {
+        //                                 "tx": "https://etherscan.io/tx/",
+        //                                 "address": "https://etherscan.io/address/",
+        //                                 "blockChain": "Ethereum"
+        //                             },
+        //                             {
+        //                                 "tx": "https://tronscan.org/#/transaction/",
+        //                                 "address": "https://tronscan.org/#/address/",
+        //                                 "blockChain": "Tron"
+        //                             },
+        //                             {
+        //                                 "tx": "https://bscscan.com/tx/",
+        //                                 "address": "https://bscscan.com/address/",
+        //                                 "blockChain": "Binance"
+        //                             }
+        //                         ]
+        //                     }
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
-        return this.parseTransactions (response, currency, since, limit);
-    }
-
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitteam#withdraw
-         * @description make a withdrawal
-         * @see https://trade-docs.bitteam.co/?javascript--nodejs#request-withdrawal-from-wallet
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the bitteam api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-         */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currencyId': currency['numericId'],
-            'amount': this.currencyToPrecision (code, amount),
-            'to': address,
-        };
-        const response = await this.privatePostTradeApiWithdrawCreate (this.extend (request, params));
-        //
-        // todo: check and parse the response
-        //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        const result = this.safeValue (response, 'result', {});
+        const transactions = this.safeValue (result, 'transactions', []);
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
-        // todo
         //
+        //     {
+        //         "id": 1329229,
+        //         "orderId": null,
+        //         "transactionCoreId": "561418",
+        //         "userId": 21639,
+        //         "recipient": "0x7d6a797f2406e06b2f9b41d067df324affa315dd",
+        //         "sender": null,
+        //         "symbolId": 3,
+        //         "CommissionId": null,
+        //         "amount": "100000000",
+        //         "params": {
+        //             "tx_id": "0x2253823c828d838acd983fe6a348fb0e034efe3874b081871d8b80da76ec758b"
+        //         },
+        //         "reason": null,
+        //         "timestamp": 1700594180417,
+        //         "status": "success",
+        //         "statusDescription": null,
+        //         "type": "deposit",
+        //         "message": null,
+        //         "blockChain": "Ethereum",
+        //         "before": 0,
+        //         "after": 100000000,
+        //         "currency": {
+        //             "symbol": "usdt",
+        //             "decimals": 6,
+        //             "blockChain": "",
+        //             "links": [
+        //                 {
+        //                     "tx": "https://etherscan.io/tx/",
+        //                     "address": "https://etherscan.io/address/",
+        //                     "blockChain": "Ethereum"
+        //                 },
+        //                 {
+        //                     "tx": "https://tronscan.org/#/transaction/",
+        //                     "address": "https://tronscan.org/#/address/",
+        //                     "blockChain": "Tron"
+        //                 },
+        //                 {
+        //                     "tx": "https://bscscan.com/tx/",
+        //                     "address": "https://bscscan.com/address/",
+        //                     "blockChain": "Binance"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
-        const currencyId = this.safeString (transaction, 'asset');
+        const currencyObject = this.safeValue (transaction, 'currency');
+        const currencyId = this.safeString (currencyObject, 'symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const id = this.safeString2 (transaction, 'id', 'transfer_id');
-        const amount = this.safeNumber (transaction, 'amount');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
-        let type = this.safeString (transaction, 'type', undefined);
-        if (type === undefined) {
-            type = 'withdrawal'; // undefined only in withdraw() method
-        } else {
-            type = this.parseTransactionType (type);
+        const id = this.safeString (transaction, 'id');
+        const params = this.safeValue (transaction, 'params');
+        const txid = this.safeString (params, 'tx_id');
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
+        let networkId = this.safeString (transaction, 'blockChain');
+        if (networkId === undefined) {
+            const links = this.safeValue (currencyObject, 'links', []);
+            const blockChain = this.safeValue (links, 0, {});
+            networkId = this.safeString (blockChain, 'blockChain');
         }
-        let fee = undefined;
-        const feeCost = this.safeString (transaction, 'withdrawal_fee_amount');
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            };
-        }
+        const addressFrom = this.safeString (transaction, 'sender');
+        const addressTo = this.safeString (transaction, 'recipient');
+        const tag = this.safeString (transaction, 'message');
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
+        const amount = this.parseValueToPricision (transaction, 'amount', currencyObject, 'decimals');
+        const status = this.parseTransactionStatus (this.safeValue (transaction, 'status'));
         return {
             'info': transaction,
             'id': id,
-            'txid': undefined,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
+            'network': this.networkIdToCode (networkId),
+            'addressFrom': addressFrom,
             'address': undefined,
-            'addressTo': undefined,
+            'addressTo': addressTo,
             'tagFrom': undefined,
-            'tag': undefined,
+            'tag': tag,
             'tagTo': undefined,
             'type': type,
-            'amount': amount,
+            'amount': this.number (amount),
             'currency': code,
-            'status': undefined,
+            'status': status,
             'updated': undefined,
-            'fee': fee,
+            'fee': undefined,
             'comment': this.safeString (transaction, 'description'),
-            'internal': undefined,
+            'internal': false,
         };
     }
 
     parseTransactionType (type) {
-        // todo
         const types = {
-            'CRYPTO_DEPOSIT': 'deposit',
-            'CRYPTO_WITHDRAWAL': 'withdrawal',
-            'PRO_TRANSFER': 'transfer',
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
         };
         return this.safeString (types, type, type);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'approving': 'pending',
+            'success': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
