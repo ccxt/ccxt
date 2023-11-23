@@ -100,7 +100,11 @@ public partial class Exchange
         if (a == null)
             return null;
 
-        if (a.GetType() == typeof(List<object>))
+        // if (a.GetType() == typeof(List<object>))
+        // {
+        //     return (List<object>)a;
+        // }
+        if (a is List<object>)
         {
             return (List<object>)a;
         }
@@ -121,7 +125,8 @@ public partial class Exchange
 
     public object arrayConcat(object aa, object bb)
     {
-        if (aa.GetType() == typeof(List<object>))
+        // if (aa.GetType() == typeof(List<object>))
+        if (aa is List<object>)
         {
             var a = (List<object>)aa;
             var b = (List<object>)bb;

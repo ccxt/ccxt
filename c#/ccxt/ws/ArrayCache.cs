@@ -18,7 +18,7 @@ public class BaseCache : List<object>
     public BaseCache(object maxSixe = null) : base()
     {
         // this.maxSize = maxSixe;
-        this.maxSize = (maxSixe == null) ? null : (int)maxSixe;
+        this.maxSize = (maxSixe == null) ? null : Convert.ToInt32(maxSize);
 
     }
 
@@ -42,7 +42,7 @@ public class ArrayCache : BaseCache
 
     }
 
-    public int getLimit(object symbol2, object limit2)
+    public object getLimit(object symbol2, object limit2)
     {
         // var limit = (int)limit2;
         int? newUpdatesValue = null;
@@ -65,21 +65,21 @@ public class ArrayCache : BaseCache
 
         if (newUpdatesValue == null)
         {
-            return (int)limit2;
+            return limit2;
         }
         else if (limit2 != null)
         {
-            return Math.Min((int)newUpdatesValue, (int)limit2);
+            return Math.Min(Convert.ToInt32(newUpdatesValue), Convert.ToInt32(limit2));
         }
         else
         {
-            return (int)newUpdatesValue;
+            return newUpdatesValue;
         }
     }
 
     public void append(object item)
     {
-        if (this.maxSize != null && this.Count == this.maxSize)
+        if (this.maxSize != null && this.maxSize != 0 && this.Count == this.maxSize)
         {
             this.RemoveAt(0);
         }

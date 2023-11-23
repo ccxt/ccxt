@@ -490,6 +490,12 @@ class NewTranspiler {
         baseClass = baseClass.replace("throw new getValue(exact, str)(((string)message));", "this.throwDynamicException(exact, str, message);"); // tmp fix for c#
         // baseClass = baseClass.replace("throw new getValue(exact, str)(message);", "throw new Exception ((string) message);"); // tmp fix for c#
 
+
+        // WS fixes
+        baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
+        baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
+
+
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
         if (parts.length > 1) {
@@ -599,12 +605,13 @@ class NewTranspiler {
         if (!ws) {
             content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
         } else {
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1");
+            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1Ws : $1");
         }
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
         if (ws) {
             // content = content.replace(/Dictionary<string, object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients');
+            content = content.replace(/typeof\(client\)/gm, 'client');
             content = content.replace(/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions');
             content = content.replace(/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
             content = content.replace(/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients');
@@ -612,7 +619,7 @@ class NewTranspiler {
             content = content.replace(/(\w+)(\.cache)/gm, '($1 as ccxt.OrderBook)$2');
             content = content.replace(/(\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2');
             content = content.replace(/(\w+)(\.store\(.+\))/gm, '($1 as OrderBookSide)$2');
-            content = content.replace(/(\w+)\.call\(this,(.+)\)/gm, '($1 as MethodInfo).Invoke(this, new object[] {$2})');
+            content = content.replace(/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})');
             content = content.replace(/(\w+)(\.limit\(\))/gm, '($1 as ccxt.OrderBook)$2');
             content = content.replace(/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)');
             content = content.replace(/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})');
@@ -620,7 +627,6 @@ class NewTranspiler {
             content = content.replace(/(\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})');
             content = content.replace(/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2');
             content = content.replace(/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2');
-            content = content.replace(/typeof\(client\)/gm, 'client');
             content = content.replace(/\(client,/g, '(client as WebSocketClient,');
             content = content.replace(/\(object client,/gm, '(WebSocketClient client,');
             content = content.replace(/object client/gm, 'var client');

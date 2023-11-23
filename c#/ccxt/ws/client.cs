@@ -35,17 +35,21 @@ public partial class Exchange
     {
         try
         {
-            var url = "wss://stream.binance.com:9443/ws/0";
-            // { method: 'SUBSCRIBE', params: [ 'btcusdt@ticker' ], id: 1 }
-            var subMessage = new Dictionary<string, object> {
-                { "method", "SUBSCRIBE" },
-                { "params", new List<string> { "btcusdt@ticker" } },
-                { "id", 1 }
-            };
+            // var url = "wss://stream.binance.com:9443/ws/0";
+            // // { method: 'SUBSCRIBE', params: [ 'btcusdt@ticker' ], id: 1 }
+            // var subMessage = new Dictionary<string, object> {
+            //     { "method", "SUBSCRIBE" },
+            //     { "params", new List<string> { "btcusdt@ticker" } },
+            //     { "id", 1 }
+
+            // };
+            var binance = new binanceWs();
+            await binance.loadMarkets();
+            binance.verbose = true;
             while (true)
             {
-                var message = await this.watch(url, "test", this.json(subMessage), "test", null);
-                Console.WriteLine("message" + message.ToString());
+                var message = await binance.watchTrades("BTC/USDT");
+                Console.WriteLine("message" + this.json(message));
             }
 
         }
@@ -132,7 +136,7 @@ public partial class Exchange
             {
                 try
                 {
-                    var bytes = Encoding.UTF8.GetBytes(message.ToString());
+                    var bytes = Encoding.UTF8.GetBytes(this.json(message).ToString());
                     var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
                     await client.webSocket.SendAsync(arraySegment,
                                         WebSocketMessageType.Text,
@@ -335,7 +339,7 @@ public partial class Exchange
                     {
                         var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         // Console.WriteLine($"Received: {message}");
-                        this.handleMessage(this, message);
+                        this.handleMessage(this, JsonHelper.Deserialize(message));
                     }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {

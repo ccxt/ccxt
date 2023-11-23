@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Net;
+using System.Reflection;
 
 namespace ccxt;
 
@@ -636,5 +637,39 @@ public static class BoolExtensions
     public static string ToString(this bool _bool)
     {
         return _bool.ToString().ToLowerInvariant();
+    }
+}
+
+
+public class DynamicInvoker
+{
+    public static void InvokeMethod(object action, object[] parameters)
+    {
+        // var methodName = (string)methodName2;
+        // // Assuming the method is in the current class for simplicity
+        // MethodInfo methodInfo = typeof(DynamicInvoker).GetMethod(methodName);
+
+        // if (methodInfo != null)
+        // {
+        //     Delegate methodDelegate = Delegate.CreateDelegate(typeof(Action), methodInfo);
+        //     methodDelegate.DynamicInvoke(parameters);
+        // }
+        // else
+        // {
+        //     throw new Exception("Method not found.");
+        // }
+        Delegate myDelegate = action as Delegate;
+
+        // Get parameter types
+        // MethodInfo methodInfo = myDelegate.Method;
+        // ParameterInfo[] parametersAux = methodInfo.GetParameters();
+
+        // Prepare arguments (in a real scenario, these would be dynamically determined)
+        // object[] args = new object[parametersAux.Length];
+        // args[0] = 123; // Assuming the first parameter is an int
+        // args[1] = "Hello"; // Assuming the second parameter is a string
+
+        // Dynamically invoke the action
+        myDelegate.DynamicInvoke(parameters);
     }
 }

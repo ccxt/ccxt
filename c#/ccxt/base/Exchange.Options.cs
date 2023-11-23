@@ -149,19 +149,19 @@ public partial class Exchange
     public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
 
     // WS options
-    public object tickers;
-    public object myTrades;
-    public object orders;
-    public object triggerOrders;
+    public object tickers = new dict();
+    public object myTrades = new dict();
+    public object orders = new dict();
+    public object triggerOrders = new dict();
     public object balance;
 
     public bool newUpdates;
 
-    public object positions;
-    public object trades;
-    public object orderbooks;
+    public object positions = new dict();
+    public object trades = new dict();
+    public object orderbooks = new dict();
 
-    public object ohlcvs;
+    public object ohlcvs = new dict();
 
     private string httpProxyValue = "";
     public object httpProxy
