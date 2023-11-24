@@ -1750,7 +1750,7 @@ export default class upbit extends Exchange {
         const request = {
             'amount': amount,
         };
-        let method = 'privatePostWithdraws';
+        let response = undefined;
         if (code !== 'KRW') {
             // 2023-05-23 Change to required parameters for digital assets
             const network = this.safeStringUpper2 (params, 'network', 'net_type');
@@ -1759,17 +1759,16 @@ export default class upbit extends Exchange {
             }
             params = this.omit (params, [ 'network' ]);
             request['net_type'] = network;
-            method += 'Coin';
             request['currency'] = currency['id'];
             request['address'] = address;
             if (tag !== undefined) {
                 request['secondary_address'] = tag;
             }
             params = this.omit (params, 'network');
+            response = await this.privatePostWithdrawsCoin (this.extend (request, params));
         } else {
-            method += 'Krw';
+            response = await this.privatePostWithdrawsKrw (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "type": "withdraw",
