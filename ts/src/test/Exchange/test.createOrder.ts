@@ -90,12 +90,10 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         //     amountToSell = balance[market['base']]['free'] - ((initialBaseBalance !== undefined) ? initialBaseBalance : 0);
         // }
         //
-        // We should use 'reduceOnly' to ensure we don't open a margin-ed position accidentally (i.e. on FTX you can open a margin position with sell order even if you don't have target base coin to sell)
-        let params = { 'reduceOnly': true };
+        // We should use 'reduceOnly' to ensure we don't open a margin-ed position accidentally (i.e. on some exchanges it might lead to margin-sell, so let's be safe by using reduceOnly )
+        const params = {};
         let priceForMarketSellOrder = undefined;
         if (exchange.id === 'binance') {
-            // @ts-ignore
-            params = {}; // because of temporary bug, we should remove 'reduceOnly' from binance createOrder for spot (it should be fixed in near future), atm getting : {"code":-1104,"msg":"Not all sent parameters were read; read '9' parameter(s) but was sent '10'."}
             const minimumCostForBuy = getMinimumCostForBuy (exchange, market);
             priceForMarketSellOrder = (minimumCostForBuy / amountToSell) * limitPriceSafetyMultiplierFromMedian;
         }
