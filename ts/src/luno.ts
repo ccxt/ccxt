@@ -340,17 +340,16 @@ export default class luno extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        let method = 'publicGetOrderbook';
-        if (limit !== undefined) {
-            if (limit <= 100) {
-                method += 'Top'; // get just the top of the orderbook when limit is low
-            }
-        }
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (limit !== undefined && limit <= 100) {
+            response = await this.publicGetOrderbookTop (this.extend (request, params));
+        } else {
+            response = await this.publicGetOrderbook (this.extend (request, params));
+        }
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
     }
