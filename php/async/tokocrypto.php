@@ -1173,9 +1173,7 @@ class tokocrypto extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
-            $defaultMethod = 'binanceGetTicker24hr';
-            $method = $this->safe_string($this->options, 'fetchTickersMethod', $defaultMethod);
-            $response = Async\await($this->$method ($params));
+            $response = Async\await($this->binanceGetTicker24hr ($params));
             return $this->parse_tickers($response, $symbols);
         }) ();
     }

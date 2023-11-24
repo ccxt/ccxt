@@ -101,7 +101,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
-                    'https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API',
+                    'https://docs.futures.kraken.com/#introduction',
                 ],
                 'fees': 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral': None,
@@ -2103,22 +2103,22 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        method = 'privatePostTransfer'
+        if fromAccount == 'spot':
+            raise BadRequest(self.id + ' transfer does not yet support transfers from spot')
         request = {
             'amount': amount,
         }
-        if fromAccount == 'spot':
-            raise BadRequest(self.id + ' transfer does not yet support transfers from spot')
+        response = None
         if toAccount == 'spot':
             if self.parse_account(fromAccount) != 'cash':
                 raise BadRequest(self.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount)
-            method = 'privatePostWithdrawal'
             request['currency'] = currency['id']
+            response = self.privatePostWithdrawal(self.extend(request, params))
         else:
             request['fromAccount'] = self.parse_account(fromAccount)
             request['toAccount'] = self.parse_account(toAccount)
             request['unit'] = currency['id']
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostTransfer(self.extend(request, params))
         #
         #    {
         #        "result": "success",

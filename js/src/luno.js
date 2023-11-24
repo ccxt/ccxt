@@ -337,17 +337,17 @@ export default class luno extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
-        let method = 'publicGetOrderbook';
-        if (limit !== undefined) {
-            if (limit <= 100) {
-                method += 'Top'; // get just the top of the orderbook when limit is low
-            }
-        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
         };
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (limit !== undefined && limit <= 100) {
+            response = await this.publicGetOrderbookTop(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetOrderbook(this.extend(request, params));
+        }
         const timestamp = this.safeInteger(response, 'timestamp');
         return this.parseOrderBook(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
     }
@@ -815,13 +815,12 @@ export default class luno extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        let method = 'privatePost';
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
         };
+        let response = undefined;
         if (type === 'market') {
-            method += 'Marketorder';
             request['type'] = side.toUpperCase();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
@@ -830,14 +829,14 @@ export default class luno extends Exchange {
             else {
                 request['base_volume'] = this.amountToPrecision(market['symbol'], amount);
             }
+            response = await this.privatePostMarketorder(this.extend(request, params));
         }
         else {
-            method += 'Postorder';
             request['volume'] = this.amountToPrecision(market['symbol'], amount);
             request['price'] = this.priceToPrecision(market['symbol'], price);
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
+            response = await this.privatePostPostorder(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         return this.safeOrder({
             'info': response,
             'id': response['order_id'],

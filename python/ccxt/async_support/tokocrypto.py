@@ -1153,9 +1153,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        defaultMethod = 'binanceGetTicker24hr'
-        method = self.safe_string(self.options, 'fetchTickersMethod', defaultMethod)
-        response = await getattr(self, method)(params)
+        response = await self.binanceGetTicker24hr(params)
         return self.parse_tickers(response, symbols)
 
     def get_market_id_by_type(self, market):
