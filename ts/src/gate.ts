@@ -3953,9 +3953,14 @@ export default class gate extends Exchange {
             }
         }
         if (contract) {
-            const amountToPrecision = this.amountToPrecision (symbol, amount);
-            const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
-            amount = parseInt (signedAmount);
+            const isClose = this.safeValue (params, 'close');
+            if (isClose) {
+                amount = 0;
+            } else {
+                const amountToPrecision = this.amountToPrecision (symbol, amount);
+                const signedAmount = (side === 'sell') ? Precise.stringNeg (amountToPrecision) : amountToPrecision;
+                amount = parseInt (signedAmount);
+            }
         }
         let request = undefined;
         const nonTriggerOrder = !isStopOrder && (trigger === undefined);
@@ -6930,7 +6935,6 @@ export default class gate extends Exchange {
          * @method
          * @name gate#closePositions
          * @description closes open positions for a market
-         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
@@ -6939,6 +6943,10 @@ export default class gate extends Exchange {
          * @param {object} [params] extra parameters specific to the okx api endpoint
          * @returns {[object]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
+        const request = {
+            'close': true,
+        };
+        params = this.extend (request, params);
         const order = await this.createOrder (symbol, 'market', side, 0, undefined, params);
         return [ order ];
     }
