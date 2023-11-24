@@ -6037,11 +6037,11 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchFundingRateHistory
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
          * @description fetches historical funding rate prices
+         * @see https://www.bitget.com/api-doc/contract/market/Get-History-Funding-Rate
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of funding rate structures to fetch
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
@@ -6053,20 +6053,21 @@ export default class bitget extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'pageNo', 50) as FundingRateHistory[];
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'pageNo', 100) as FundingRateHistory[];
         }
         const market = this.market (symbol);
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request = {
             'symbol': market['id'],
+            'productType': productType,
             // 'pageSize': limit, // default 20
             // 'pageNo': 1,
-            // 'nextPage': false,
         };
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        request['nextPage'] = true;
-        const response = await this.publicMixGetMixV1MarketHistoryFundRate (this.extend (request, params));
+        const response = await this.publicMixGetV2MixMarketHistoryFundRate (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -6076,7 +6077,7 @@ export default class bitget extends Exchange {
         //             {
         //                 "symbol": "BTCUSDT",
         //                 "fundingRate": "-0.0003",
-        //                 "settleTime": "1652396400000"
+        //                 "fundingTime": "1652396400000"
         //             },
         //         ]
         //     }
@@ -6087,7 +6088,7 @@ export default class bitget extends Exchange {
             const entry = data[i];
             const marketId = this.safeString (entry, 'symbol');
             const symbolInner = this.safeSymbol (marketId, market);
-            const timestamp = this.safeInteger (entry, 'settleTime');
+            const timestamp = this.safeInteger (entry, 'fundingTime');
             rates.push ({
                 'info': entry,
                 'symbol': symbolInner,
