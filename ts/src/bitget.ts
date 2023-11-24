@@ -80,7 +80,7 @@ export default class bitget extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchOrderTrades': true,
+                'fetchOrderTrades': false,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
@@ -5695,65 +5695,6 @@ export default class bitget extends Exchange {
             const fills = this.safeValue (data, 'fills', []);
             return this.parseTrades (fills, market, since, limit);
         }
-        return this.parseTrades (data, market, since, limit);
-    }
-
-    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name bitget#fetchOrderTrades
-         * @description fetch all the trades made from a single order
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-order-fill-detail
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades to retrieve
-         * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
-        const request = {
-            'symbol': market['id'],
-            'orderId': id,
-        };
-        let response = undefined;
-        if (marketType === 'spot') {
-            response = await this.privateSpotPostSpotV1TradeFills (this.extend (request, query));
-        } else if ((marketType === 'swap') || (marketType === 'future')) {
-            response = await this.privateMixGetMixV1OrderFills (this.extend (request, query));
-        } else {
-            throw new NotSupported (this.id + ' fetchOrderTrades() does not support ' + marketType + ' market');
-        }
-        // spot
-        //
-        // swap
-        //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": 1645927862710,
-        //       "data": [
-        //         {
-        //           "tradeId": "881640729552281602",
-        //           "symbol": "BTCUSDT_UMCBL",
-        //           "orderId": "881640729145409536",
-        //           "price": "38429.50",
-        //           "sizeQty": "0.001",
-        //           "fee": "0",
-        //           "side": "open_long",
-        //           "fillAmount": "38.4295",
-        //           "profit": "0",
-        //           "cTime": "1645925450694"
-        //         }
-        //       ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 
