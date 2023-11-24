@@ -6265,7 +6265,7 @@ export default class bitget extends Exchange {
         const result = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
-            const business = this.safeString (contract, 'business');
+            const business = this.safeString (contract, 'businessType');
             if (business !== 'contract_settle_fee') {
                 continue;
             }
@@ -6279,23 +6279,23 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const holdSide = this.safeString (params, 'holdSide');
         const market = this.market (symbol);
-        const marginCoin = (market['linear']) ? market['quote'] : market['base'];
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request = {
             'symbol': market['id'],
-            'marginCoin': marginCoin,
+            'marginCoin': market['settleId'],
             'amount': this.amountToPrecision (symbol, amount), // positive value for adding margin, negative for reducing
             'holdSide': holdSide, // long or short
+            'productType': productType,
         };
         params = this.omit (params, 'holdSide');
-        const response = await this.privateMixPostMixV1AccountSetMargin (this.extend (request, params));
+        const response = await this.privateMixPostV2MixAccountSetMargin (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1652483636792,
-        //         "data": {
-        //             "result": true
-        //         }
+        //         "requestTime": 1700813444618,
+        //         "data": ""
         //     }
         //
         return this.extend (this.parseMarginModification (response, market), {
@@ -6307,12 +6307,11 @@ export default class bitget extends Exchange {
     parseMarginModification (data, market: Market = undefined) {
         const errorCode = this.safeString (data, 'code');
         const status = (errorCode === '00000') ? 'ok' : 'failed';
-        const code = (market['linear']) ? market['quote'] : market['base'];
         return {
             'info': data,
             'type': undefined,
             'amount': undefined,
-            'code': code,
+            'code': market['settle'],
             'symbol': market['symbol'],
             'status': status,
         };
@@ -6323,7 +6322,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#reduceMargin
          * @description remove margin from a position
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#change-margin
+         * @see https://www.bitget.com/api-doc/contract/account/Change-Margin
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the bitget api endpoint
@@ -6344,9 +6343,9 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#addMargin
          * @description add margin
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#change-margin
+         * @see https://www.bitget.com/api-doc/contract/account/Change-Margin
          * @param {string} symbol unified market symbol
-         * @param {float} amount amount of margin to add
+         * @param {float} amount the amount of margin to add
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
