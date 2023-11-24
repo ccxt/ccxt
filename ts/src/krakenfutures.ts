@@ -2243,25 +2243,25 @@ export default class krakenfutures extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let method = 'privatePostTransfer';
-        const request = {
-            'amount': amount,
-        };
         if (fromAccount === 'spot') {
             throw new BadRequest (this.id + ' transfer does not yet support transfers from spot');
         }
+        const request = {
+            'amount': amount,
+        };
+        let response = undefined;
         if (toAccount === 'spot') {
             if (this.parseAccount (fromAccount) !== 'cash') {
                 throw new BadRequest (this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);
             }
-            method = 'privatePostWithdrawal';
             request['currency'] = currency['id'];
+            response = await this.privatePostWithdrawal (this.extend (request, params));
         } else {
             request['fromAccount'] = this.parseAccount (fromAccount);
             request['toAccount'] = this.parseAccount (toAccount);
             request['unit'] = currency['id'];
+            response = await this.privatePostTransfer (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "result": "success",
