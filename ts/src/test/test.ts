@@ -442,7 +442,7 @@ export default class testMainClass extends baseMainTestClass {
             }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
             let errorsInMessage = '';
-            if (errors) {
+            if (errors.length) {
                 const failedMsg = errors.join (', ');
                 errorsInMessage = ' | Failed methods : ' + failedMsg;
             }
