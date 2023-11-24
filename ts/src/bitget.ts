@@ -6540,9 +6540,9 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchOpenInterest
-         * @description Retrieves the open interest of a currency
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
-         * @param {string} symbol Unified CCXT market symbol
+         * @description retrieves the open interest of a contract trading pair
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Open-Interest
+         * @param {string} symbol unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
          */
@@ -6551,24 +6551,56 @@ export default class bitget extends Exchange {
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request = {
             'symbol': market['id'],
+            'productType': productType,
         };
-        const response = await this.publicMixGetMixV1MarketOpenInterest (this.extend (request, params));
+        const response = await this.publicMixGetV2MixMarketOpenInterest (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 0,
+        //         "requestTime": 1700866041022,
         //         "data": {
-        //             "symbol": "BTCUSDT_UMCBL",
-        //             "amount": "130818.967",
-        //             "timestamp": "1663399151127"
+        //             "openInterestList": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "size": "52234.134"
+        //                 }
+        //             ],
+        //             "ts": "1700866041023"
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOpenInterest (data, market);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //     {
+        //         "openInterestList": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "size": "52234.134"
+        //             }
+        //         ],
+        //         "ts": "1700866041023"
+        //     }
+        //
+        const data = this.safeValue (interest, 'openInterestList', []);
+        const timestamp = this.safeInteger (interest, 'ts');
+        const marketId = this.safeString (data[0], 'symbol');
+        return this.safeOpenInterest ({
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'openInterestAmount': this.safeNumber (data[0], 'size'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        }, market);
     }
 
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -6819,28 +6851,6 @@ export default class bitget extends Exchange {
             'successful': 'ok',
         };
         return this.safeString (statuses, status, status);
-    }
-
-    parseOpenInterest (interest, market: Market = undefined) {
-        //
-        //     {
-        //         "symbol": "BTCUSDT_UMCBL",
-        //         "amount": "130818.967",
-        //         "timestamp": "1663399151127"
-        //     }
-        //
-        const timestamp = this.safeInteger (interest, 'timestamp');
-        const id = this.safeString (interest, 'symbol');
-        const symbol = this.safeSymbol (id, market);
-        const amount = this.safeNumber (interest, 'amount');
-        return this.safeOpenInterest ({
-            'symbol': symbol,
-            'openInterestAmount': amount,
-            'openInterestValue': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': interest,
-        }, market);
     }
 
     async borrowCrossMargin (code: string, amount, params = {}) {
