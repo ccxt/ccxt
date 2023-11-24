@@ -1085,14 +1085,14 @@ export default class gate extends gateRest {
         /**
          * @method
          * @name gate#watchMyLiquidationsForSymbols
-         * @description watch the public liquidations of a trading pair
+         * @description watch the private liquidations of a trading pair
          * @see https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
          * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
          * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
          * @param {string} symbol unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
-         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @param {object} [params] exchange specific parameters for the gate api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
