@@ -5196,7 +5196,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        // swap
+        // swap and future
         //
         //     {
         //         "code": "00000",
@@ -5238,7 +5238,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        // swap stop
+        // swap and future stop
         //
         //     {
         //         "code": "00000",
@@ -5313,95 +5313,153 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#fetchLedger
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-bills
+         * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
+         * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {int} [params.until] end tim in ms
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] end time in ms
+         * @param {string} [params.symbol] *contract only* unified market symbol
+         * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 500);
+        const symbol = this.safeString (params, 'symbol');
+        params = this.omit (params, 'symbol');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', market, params);
         let currency = undefined;
         let request = {};
         if (code !== undefined) {
             currency = this.currency (code);
-            request['coinId'] = currency['id'];
+            request['coin'] = currency['id'];
         }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
-            request['before'] = since;
+            request['startTime'] = since;
         }
-        [ request, params ] = this.handleUntilOption ('after', request, params);
-        const response = await this.privateSpotPostSpotV1AccountBills (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateSpotGetV2SpotAccountBills (this.extend (request, params));
+        } else {
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            let productType = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['productType'] = productType;
+            response = await this.privateMixGetV2MixAccountBill (this.extend (request, params));
+        }
+        //
+        // spot
         //
         //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": "1645929886887",
-        //       "data": [
-        //         {
-        //           "billId": "881626974170554368",
-        //           "coinId": "2",
-        //           "coinName": "USDT",
-        //           "groupType": "transfer",
-        //           "bizType": "transfer-out",
-        //           "quantity": "-10.00000000",
-        //           "balance": "73.36005300",
-        //           "fees": "0.00000000",
-        //           "cTime": "1645922171146"
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700795836415,
+        //         "data": [
+        //             {
+        //                 "billId": "1111506298997215233",
+        //                 "coin": "USDT",
+        //                 "groupType": "transfer",
+        //                 "businessType": "transfer_out",
+        //                 "size": "-11.64958799",
+        //                 "balance": "0.00000000",
+        //                 "fees": "0.00000000",
+        //                 "cTime": "1700729673028"
+        //             },
+        //         ]
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700795977890,
+        //         "data": {
+        //             "bills": [
+        //                 {
+        //                     "billId": "1111499428100472833",
+        //                     "symbol": "",
+        //                     "amount": "-11.64958799",
+        //                     "fee": "0",
+        //                     "feeByCoupon": "",
+        //                     "businessType": "trans_to_exchange",
+        //                     "coin": "USDT",
+        //                     "cTime": "1700728034996"
+        //                 },
+        //             ],
+        //             "endId": "1098396773329305606"
         //         }
-        //       ]
         //     }
         //
         const data = this.safeValue (response, 'data');
+        if ((marketType === 'swap') || (marketType === 'future')) {
+            const bills = this.safeValue (data, 'bills', []);
+            return this.parseLedger (bills, currency, since, limit);
+        }
         return this.parseLedger (data, currency, since, limit);
     }
 
     parseLedgerEntry (item, currency: Currency = undefined) {
         //
+        // spot
+        //
         //     {
-        //       "billId": "881626974170554368",
-        //       "coinId": "2",
-        //       "coinName": "USDT",
-        //       "groupType": "transfer",
-        //       "bizType": "transfer-out",
-        //       "quantity": "-10.00000000",
-        //       "balance": "73.36005300",
-        //       "fees": "0.00000000",
-        //       "cTime": "1645922171146"
+        //         "billId": "1111506298997215233",
+        //         "coin": "USDT",
+        //         "groupType": "transfer",
+        //         "businessType": "transfer_out",
+        //         "size": "-11.64958799",
+        //         "balance": "0.00000000",
+        //         "fees": "0.00000000",
+        //         "cTime": "1700729673028"
         //     }
         //
-        const id = this.safeString (item, 'billId');
-        const currencyId = this.safeString (item, 'coinId');
-        const code = this.safeCurrencyCode (currencyId);
-        const amount = this.parseNumber (Precise.stringAbs (this.safeString (item, 'quantity')));
+        // swap and future
+        //
+        //     {
+        //         "billId": "1111499428100472833",
+        //         "symbol": "",
+        //         "amount": "-11.64958799",
+        //         "fee": "0",
+        //         "feeByCoupon": "",
+        //         "businessType": "trans_to_exchange",
+        //         "coin": "USDT",
+        //         "cTime": "1700728034996"
+        //     }
+        //
+        const currencyId = this.safeString (item, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeInteger (item, 'cTime');
-        const bizType = this.safeString (item, 'bizType');
-        let direction = undefined;
-        if (bizType !== undefined && bizType.indexOf ('-') >= 0) {
-            const parts = bizType.split ('-');
-            direction = parts[1];
-        }
-        const type = this.safeString (item, 'groupType');
-        const fee = this.safeNumber (item, 'fees');
         const after = this.safeNumber (item, 'balance');
+        const fee = this.safeNumber2 (item, 'fees', 'fee');
+        const amountRaw = this.safeString2 (item, 'size', 'amount');
+        const amount = this.parseNumber (Precise.stringAbs (amountRaw));
+        let direction = 'in';
+        if (amountRaw.indexOf ('-') >= 0) {
+            direction = 'out';
+        }
         return {
             'info': item,
-            'id': id,
+            'id': this.safeString (item, 'billId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'direction': direction,
             'account': undefined,
             'referenceId': undefined,
             'referenceAccount': undefined,
-            'type': type,
+            'type': this.parseLedgerType (this.safeString (item, 'businessType')),
             'currency': code,
             'amount': amount,
             'before': undefined,
@@ -5409,6 +5467,52 @@ export default class bitget extends Exchange {
             'status': undefined,
             'fee': fee,
         };
+    }
+
+    parseLedgerType (type) {
+        const types = {
+            'trans_to_cross': 'transfer',
+            'trans_from_cross': 'transfer',
+            'trans_to_exchange': 'transfer',
+            'trans_from_exchange': 'transfer',
+            'trans_to_isolated': 'transfer',
+            'trans_from_isolated': 'transfer',
+            'trans_to_contract': 'transfer',
+            'trans_from_contract': 'transfer',
+            'trans_to_otc': 'transfer',
+            'trans_from_otc': 'transfer',
+            'open_long': 'trade',
+            'close_long': 'trade',
+            'open_short': 'trade',
+            'close_short': 'trade',
+            'force_close_long': 'trade',
+            'force_close_short': 'trade',
+            'burst_long_loss_query': 'trade',
+            'burst_short_loss_query': 'trade',
+            'force_buy': 'trade',
+            'force_sell': 'trade',
+            'burst_buy': 'trade',
+            'burst_sell': 'trade',
+            'delivery_long': 'settlement',
+            'delivery_short': 'settlement',
+            'contract_settle_fee': 'fee',
+            'append_margin': 'transaction',
+            'adjust_down_lever_append_margin': 'transaction',
+            'reduce_margin': 'transaction',
+            'auto_append_margin': 'transaction',
+            'cash_gift_issue': 'cashback',
+            'cash_gift_recycle': 'cashback',
+            'bonus_issue': 'rebate',
+            'bonus_recycle': 'rebate',
+            'bonus_expired': 'rebate',
+            'transfer_in': 'transfer',
+            'transfer_out': 'transfer',
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'buy': 'trade',
+            'sell': 'trade',
+        };
+        return this.safeString (types, type, type);
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
