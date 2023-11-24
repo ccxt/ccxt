@@ -1,0 +1,15 @@
+{
+    "exchange": "upbit",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.upbit.com/v1/market/all",
+                "input": []
+            }
+        ]
+    }
+}
