@@ -1142,15 +1142,16 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {};
-        let method = undefined;
+        let response = undefined;
         if (market['swap']) {
-            method = 'publicGetContractV1Tickers';
             request['contract_symbol'] = market['id'];
+            response = await this.publicGetContractV1Tickers (this.extend (request, params));
         } else if (market['spot']) {
-            method = 'publicGetSpotV1Ticker';
             request['symbol'] = market['id'];
+            response = await this.publicGetSpotV1Ticker (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchTicker() does not support ' + market['type'] + ' markets, only spot and swap markets are accepted');
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1236,11 +1237,14 @@ export default class bitmart extends Exchange {
             market = this.market (symbol);
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        const method = this.getSupportedMapping (type, {
-            'spot': 'publicGetSpotV2Ticker',
-            'swap': 'publicGetContractV1Tickers',
-        });
-        const response = await this[method] (params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.publicGetSpotV2Ticker (params);
+        } else if (type === 'swap') {
+            response = await this.publicGetContractV1Tickers (params);
+        } else {
+            throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted');
+        }
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
         const result = {};
@@ -1834,20 +1838,24 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateGetSpotV1Wallet',
-            'swap': 'privateGetContractPrivateAssetsDetail',
-            'account': 'privateGetAccountV1Wallet',
-            'margin': 'privateGetSpotV1MarginIsolatedAccount',
-        });
         const marginMode = this.safeString (params, 'marginMode');
         const isMargin = this.safeValue (params, 'margin', false);
         params = this.omit (params, [ 'margin', 'marginMode' ]);
         if (marginMode !== undefined || isMargin) {
-            method = 'privateGetSpotV1MarginIsolatedAccount';
             marketType = 'margin';
         }
-        const response = await this[method] (params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateGetSpotV1Wallet (params);
+        } else if (marketType === 'swap') {
+            response = await this.privateGetContractPrivateAssetsDetail (params);
+        } else if (marketType === 'account') {
+            response = await this.privateGetAccountV1Wallet (params);
+        } else if (marketType === 'margin') {
+            response = await this.privateGetSpotV1MarginIsolatedAccount (params);
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() does not support ' + marketType + ' markets, only spot, swap and account and margin markets are accepted');
+        }
         //
         // spot
         //
