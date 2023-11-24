@@ -51,7 +51,7 @@ export default class kucoin extends kucoinRest {
         });
     }
 
-    negotiate (privateChannel, params = {}) {
+    async negotiate (privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue (this.options, 'urls', {});
         if (connectId in urls) {

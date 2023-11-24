@@ -988,13 +988,14 @@ export default class bitpanda extends bitpandaRest {
             if (updateType === 'ORDER_CLOSED' && filled === 0) {
                 status = 'canceled';
             }
-            orders.append ({
+            const orderToAppend = {
                 'id': orderId,
                 'symbol': symbol,
                 'status': status,
                 'timestamp': this.parse8601 (datetime),
                 'datetime': datetime,
-            });
+            };
+            orders.append (orderToAppend);
         } else {
             const parsed = this.parseOrder (update);
             symbol = this.safeString (parsed, 'symbol', '');

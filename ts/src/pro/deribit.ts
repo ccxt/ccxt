@@ -815,7 +815,7 @@ export default class deribit extends deribitRest {
         return message;
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const time = this.milliseconds ();

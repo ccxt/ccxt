@@ -60,6 +60,36 @@ class NewTranspiler {
         }
     }
 
+    getWsRegexes() {
+        return [
+            [/typeof\(client\)/gm, 'client'],
+            [/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions'],
+            [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
+            [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
+            [/(orderbook)(\.reset.+)/gm, '($1 as ccxt.OrderBook)$2'],
+            [/(\w+)(\.cache)/gm, '($1 as ccxt.OrderBook)$2'],
+            //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
+            [/(\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IndexedOrderBookSide).store($2)'],
+            [/(\w+)(\.store\(.+\))/gm, '($1 as OrderBookSide)$2'],
+            [/(\w+)(\.storeArray\(.+\))/gm, '($1 as OrderBookSide)$2'],
+            [/(.+)\.store\((.+),(.+)\)/gm, '($1 as OrderBookSide).store($2,$3)'],
+            [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
+            [/(\w+)(\.limit\(\))/gm, '($1 as ccxt.OrderBook)$2'],
+            [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
+            [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
+            [/this\.delay\((\w+),(.+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
+            [/(\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'],
+            [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
+            [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
+            [/\(client,/g, '(client as WebSocketClient,'],
+            [/\(object client,/gm, '(WebSocketClient client,'],
+            [/object client =/gm, 'var client ='],
+            [/object future =/gm, 'var future ='],
+        ]
+    }
+
+
     // c# custom method
     customCSharpPropAssignment(node, identation) {
         const stringValue = node.getFullText().trim();
@@ -609,26 +639,8 @@ class NewTranspiler {
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
         if (ws) {
-            // content = content.replace(/Dictionary<string, object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients');
-            content = content.replace(/typeof\(client\)/gm, 'client');
-            content = content.replace(/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions');
-            content = content.replace(/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
-            content = content.replace(/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients');
-            content = content.replace(/(orderbook)(\.reset.+)/gm, '($1 as ccxt.OrderBook)$2');
-            content = content.replace(/(\w+)(\.cache)/gm, '($1 as ccxt.OrderBook)$2');
-            content = content.replace(/(\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2');
-            content = content.replace(/(\w+)(\.store\(.+\))/gm, '($1 as OrderBookSide)$2');
-            content = content.replace(/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})');
-            content = content.replace(/(\w+)(\.limit\(\))/gm, '($1 as ccxt.OrderBook)$2');
-            content = content.replace(/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)');
-            content = content.replace(/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})');
-            content = content.replace(/this\.delay\((\w+),(.+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})');
-            content = content.replace(/(\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})');
-            content = content.replace(/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2');
-            content = content.replace(/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2');
-            content = content.replace(/\(client,/g, '(client as WebSocketClient,');
-            content = content.replace(/\(object client,/gm, '(WebSocketClient client,');
-            content = content.replace(/object client/gm, 'var client');
+            const wsRegexes = this.getWsRegexes();
+            content = this.regexAll (content, wsRegexes)
         }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;

@@ -745,7 +745,7 @@ export default class woo extends wooRest {
         return message;
     }
 
-    ping (client) {
+    ping (client: Client) {
         return { 'event': 'ping' };
     }
 

@@ -47,7 +47,7 @@ export default class luno extends lunoRest {
          * @param {object} [params] extra parameters specific to the luno api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.checkRequiredCredentials ();
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
