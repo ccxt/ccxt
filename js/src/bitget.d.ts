@@ -218,7 +218,7 @@ export default class bitget extends Exchange {
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    borrowCrossMargin(code: string, amount: any, params?: {}): Promise<{
         id: string;
         currency: string;
         amount: number;
@@ -227,7 +227,25 @@ export default class bitget extends Exchange {
         datetime: any;
         info: any;
     }>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
+    borrowIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+        id: string;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+        id: string;
+        currency: string;
+        amount: number;
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        info: any;
+    }>;
+    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
         id: string;
         currency: string;
         amount: number;
@@ -247,9 +265,31 @@ export default class bitget extends Exchange {
     };
     fetchMyLiquidations(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     parseLiquidation(liquidation: any, market?: Market): import("./base/types.js").Liquidation;
-    fetchBorrowRate(code: string, params?: {}): Promise<{
+    fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<{
+        symbol: string;
+        base: string;
+        baseRate: number;
+        quote: string;
+        quoteRate: number;
+        period: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    parseIsolatedBorrowRate(info: any, market?: Market): {
+        symbol: string;
+        base: string;
+        baseRate: number;
+        quote: string;
+        quoteRate: number;
+        period: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
+    fetchCrossBorrowRate(code: string, params?: {}): Promise<{
         currency: string;
-        rate: any;
+        rate: number;
         period: number;
         timestamp: number;
         datetime: string;
@@ -257,7 +297,7 @@ export default class bitget extends Exchange {
     }>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
-        rate: any;
+        rate: number;
         period: number;
         timestamp: number;
         datetime: string;

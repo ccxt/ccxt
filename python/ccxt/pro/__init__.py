@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.56'
+__version__ = '4.1.63'
 
 # ----------------------------------------------------------------------------
 
@@ -51,7 +51,6 @@ from ccxt.pro.hollaex import hollaex                                      # noqa
 from ccxt.pro.htx import htx                                              # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
 from ccxt.pro.huobijp import huobijp                                      # noqa: F401
-from ccxt.pro.huobipro import huobipro                                    # noqa: F401
 from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.independentreserve import independentreserve                # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
@@ -60,10 +59,8 @@ from ccxt.pro.kucoin import kucoin                                        # noqa
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
-from ccxt.pro.mexc3 import mexc3                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
-from ccxt.pro.okex import okex                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
@@ -114,7 +111,6 @@ exchanges = [
     'htx',
     'huobi',
     'huobijp',
-    'huobipro',
     'idex',
     'independentreserve',
     'kraken',
@@ -123,10 +119,8 @@ exchanges = [
     'kucoinfutures',
     'luno',
     'mexc',
-    'mexc3',
     'ndax',
     'okcoin',
-    'okex',
     'okx',
     'phemex',
     'poloniex',

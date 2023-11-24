@@ -15,6 +15,15 @@ export default class bybit extends bybitRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': false,
+                'cancelOrdersWs': false,
+                'cancelAllOrdersWs': false,
+                'fetchTradesWs': false,
+                'fetchBalanceWs': false,
                 'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
@@ -1713,7 +1722,7 @@ export default class bybit extends bybitRest {
             'args': topics,
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, subscriptionHash);
+        return await this.watch (url, messageHash, message, messageHash, subscriptionHash);
     }
 
     async authenticate (url, params = {}) {

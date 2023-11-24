@@ -1,11 +1,9 @@
 'use strict';
 
-require('../ccxt.js');
 var p2b$1 = require('./abstract/p2b.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
-var Precise = require('./base/Precise.js');
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -44,11 +42,10 @@ class p2b extends p2b$1 {
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -60,6 +57,8 @@ class p2b extends p2b$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': false,
                 'fetchLedgerEntry': false,
                 'fetchLeverageTiers': false,
@@ -78,7 +77,7 @@ class p2b extends p2b$1 {
                 'fetchPermissions': false,
                 'fetchPosition': false,
                 'fetchPositions': false,
-                'fetchPositionsBySymbol': false,
+                'fetchPositionsForSymbol': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -266,72 +265,66 @@ class p2b extends p2b$1 {
         //    }
         //
         const markets = this.safeValue(response, 'result', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const marketId = this.safeString(market, 'name');
-            const baseId = this.safeValue(market, 'stock');
-            const quoteId = this.safeValue(market, 'money');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const precision = this.safeValue(market, 'precision');
-            const limits = this.safeValue(market, 'limits');
-            const maxAmount = this.safeString(limits, 'max_amount');
-            const maxPrice = this.safeString(limits, 'max_price');
-            const entry = this.safeMarketStructure({
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber(limits, 'step_size'),
-                    'price': this.safeNumber(limits, 'tick_size'),
-                    'base': this.parsePrecision(this.safeString(precision, 'stock')),
-                    'quote': this.parsePrecision(this.safeString(precision, 'money')),
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const marketId = this.safeString(market, 'name');
+        const baseId = this.safeString(market, 'stock');
+        const quoteId = this.safeString(market, 'money');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const limits = this.safeValue(market, 'limits');
+        const maxAmount = this.safeString(limits, 'max_amount');
+        const maxPrice = this.safeString(limits, 'max_price');
+        return {
+            'id': marketId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber(limits, 'step_size'),
+                'price': this.safeNumber(limits, 'tick_size'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(limits, 'min_amount'),
-                        'max': Precise["default"].stringEq(maxAmount, '0') ? undefined : this.parseNumber(maxAmount),
-                    },
-                    'price': {
-                        'min': this.safeString(limits, 'min_price'),
-                        'max': Precise["default"].stringEq(maxPrice, '0') ? undefined : this.parseNumber(maxPrice),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber(limits, 'min_amount'),
+                    'max': this.parseNumber(this.omitZero(maxAmount)),
                 },
-                'created': undefined,
-                'info': market,
-            });
-            result.push(entry);
-        }
-        return result;
+                'price': {
+                    'min': this.safeNumber(limits, 'min_price'),
+                    'max': this.parseNumber(this.omitZero(maxPrice)),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -341,7 +334,7 @@ class p2b extends p2b$1 {
          * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the p2b api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const response = await this.publicGetTickers(params);
@@ -381,7 +374,7 @@ class p2b extends p2b$1 {
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the p2b api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -485,7 +478,7 @@ class p2b extends p2b$1 {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -537,7 +530,7 @@ class p2b extends p2b$1 {
          * @param {object} [params] extra parameters specific to the p2b api endpoint
          *
          * @param {int} params.lastId order id
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const lastId = this.safeInteger(params, 'lastId');
@@ -722,7 +715,7 @@ class p2b extends p2b$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
          * @param {object} [params] extra parameters specific to the p2b api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostAccountBalances(params);
@@ -789,7 +782,7 @@ class p2b extends p2b$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
          * @param {object} [params] extra parameters specific to the p2b api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         if (type === 'market') {
@@ -837,10 +830,12 @@ class p2b extends p2b$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the p2b api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets();
-        this.checkRequiredArgument('cancelOrder', symbol, 'symbol');
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -885,7 +880,7 @@ class p2b extends p2b$1 {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.offset] 0-10000, default=0
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders () requires the symbol argument');
@@ -941,7 +936,7 @@ class p2b extends p2b$1 {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.offset] 0-10000, default=0
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const market = this.safeMarket(symbol);
@@ -993,12 +988,14 @@ class p2b extends p2b$1 {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.offset] 0-10000, default=0
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets();
         let until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
-        this.checkRequiredArgument('fetchMyTrades', symbol, 'symbol');
         if (until === undefined) {
             if (since === undefined) {
                 until = this.milliseconds();
@@ -1067,7 +1064,7 @@ class p2b extends p2b$1 {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.offset] 0-10000, default=0
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let until = this.safeInteger(params, 'until');

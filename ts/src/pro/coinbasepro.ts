@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinbaseproRest from '../coinbasepro.js';
-import { AuthenticationError, ExchangeError, BadSymbol, BadRequest } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, BadSymbol, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int, Ticker, Str, Strings } from '../base/types.js';
@@ -210,7 +210,9 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
-        this.checkRequiredSymbol ('watchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const name = 'user';

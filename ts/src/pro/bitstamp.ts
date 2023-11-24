@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitstampRest from '../bitstamp.js';
-import { AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -281,7 +281,9 @@ export default class bitstamp extends bitstampRest {
          * @param {object} [params] extra parameters specific to the bitstamp api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('watchOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];

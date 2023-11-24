@@ -1831,13 +1831,16 @@ export default class bitmex extends Exchange {
          * @method
          * @name bitmex#createOrder
          * @description create a trade order
+         * @see https://www.bitmex.com/api/explorer/#!/Order/Order_new
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1857,14 +1860,37 @@ export default class bitmex extends Exchange {
             'ordType': orderType,
             'text': brokerId,
         };
-        if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
-            const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or stopPrice parameter for the ' + orderType + ' order type');
-            } else {
-                request['stopPx'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-                params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        const customTriggerType = (orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched');
+        // support for unified trigger format
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        if ((triggerPrice !== undefined) && !customTriggerType) {
+            request['stopPx'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
+            const triggerDirection = this.safeString (params, 'triggerDirection');
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopPx', 'triggerDirection' ]);
+            const triggerAbove = (triggerDirection === 'above');
+            this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
+            this.checkRequiredArgument ('createOrder', side, 'side', [ 'buy', 'sell' ]);
+            if (type === 'limit') {
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+                if (side === 'buy') {
+                    request['ordType'] = triggerAbove ? 'StopLimit' : 'LimitIfTouched';
+                } else {
+                    request['ordType'] = triggerAbove ? 'LimitIfTouched' : 'StopLimit';
+                }
+            } else if (type === 'market') {
+                if (side === 'buy') {
+                    request['ordType'] = triggerAbove ? 'Stop' : 'MarketIfTouched';
+                } else {
+                    request['ordType'] = triggerAbove ? 'MarketIfTouched' : 'Stop';
+                }
             }
+        } else if (customTriggerType) {
+            if (triggerPrice === undefined) {
+                // if exchange specific trigger types were provided
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the ' + orderType + ' order type');
+            }
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stopPx' ]);
+            request['stopPx'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
         }
         if ((orderType === 'Limit') || (orderType === 'StopLimit') || (orderType === 'LimitIfTouched')) {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
@@ -2473,7 +2499,9 @@ export default class bitmex extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         if ((leverage < 0.01) || (leverage > 100)) {
             throw new BadRequest (this.id + ' leverage should be between 0.01 and 100');
         }
@@ -2499,7 +2527,9 @@ export default class bitmex extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setMarginMode', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
         marginMode = marginMode.toLowerCase ();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
