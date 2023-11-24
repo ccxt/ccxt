@@ -65,7 +65,7 @@ public static class Program
         List<string> strings = ids.Select(s => (string)s).ToList();
         exchangesId = strings;
 
-        if (args.Contains("--ws"))
+        if (true || args.Contains("--ws"))
         {
             // instance.verbose = true;
             // Exchange.runWs().Wait();
