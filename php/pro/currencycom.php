@@ -72,33 +72,33 @@ class currencycom extends \ccxt\async\currencycom {
     public function handle_balance(Client $client, $message, $subscription) {
         //
         //     {
-        //         status => 'OK',
-        //         correlationId => '1',
-        //         $payload => {
-        //             makerCommission => 0.2,
-        //             takerCommission => 0.2,
-        //             buyerCommission => 0.2,
-        //             sellerCommission => 0.2,
-        //             canTrade => true,
-        //             canWithdraw => true,
-        //             canDeposit => true,
-        //             updateTime => 1596742699,
-        //             balances => array(
+        //         "status" => "OK",
+        //         "correlationId" => "1",
+        //         "payload" => {
+        //             "makerCommission" => 0.2,
+        //             "takerCommission" => 0.2,
+        //             "buyerCommission" => 0.2,
+        //             "sellerCommission" => 0.2,
+        //             "canTrade" => true,
+        //             "canWithdraw" => true,
+        //             "canDeposit" => true,
+        //             "updateTime" => 1596742699,
+        //             "balances" => array(
         //                 array(
-        //                     accountId => 5470306579272968,
-        //                     collateralCurrency => true,
-        //                     asset => 'ETH',
-        //                     free => 0,
-        //                     locked => 0,
-        //                     default => false
+        //                     "accountId" => 5470306579272968,
+        //                     "collateralCurrency" => true,
+        //                     "asset" => "ETH",
+        //                     "free" => 0,
+        //                     "locked" => 0,
+        //                     "default" => false
         //                 ),
         //                 array(
-        //                     accountId => 5470310874305732,
-        //                     collateralCurrency => true,
-        //                     asset => 'USD',
-        //                     free => 47.82576735,
-        //                     locked => 1.187925,
-        //                     default => true
+        //                     "accountId" => 5470310874305732,
+        //                     "collateralCurrency" => true,
+        //                     "asset" => "USD",
+        //                     "free" => 47.82576735,
+        //                     "locked" => 1.187925,
+        //                     "default" => true
         //                 ),
         //             )
         //         }
@@ -117,27 +117,27 @@ class currencycom extends \ccxt\async\currencycom {
     public function handle_ticker(Client $client, $message, $subscription) {
         //
         //     {
-        //         status => 'OK',
-        //         correlationId => '1',
-        //         $payload => {
-        //             $tickers => array(
+        //         "status" => "OK",
+        //         "correlationId" => "1",
+        //         "payload" => {
+        //             "tickers" => array(
         //                 {
-        //                     $symbol => 'BTC/USD_LEVERAGE',
-        //                     priceChange => '484.05',
-        //                     priceChangePercent => '4.14',
-        //                     weightedAvgPrice => '11682.83',
-        //                     prevClosePrice => '11197.70',
-        //                     lastPrice => '11682.80',
-        //                     lastQty => '0.25',
-        //                     bidPrice => '11682.80',
-        //                     askPrice => '11682.85',
-        //                     openPrice => '11197.70',
-        //                     highPrice => '11734.05',
-        //                     lowPrice => '11080.95',
-        //                     volume => '299.133',
-        //                     quoteVolume => '3488040.3465',
-        //                     openTime => 1596585600000,
-        //                     closeTime => 1596654452674
+        //                     "symbol" => "BTC/USD_LEVERAGE",
+        //                     "priceChange" => "484.05",
+        //                     "priceChangePercent" => "4.14",
+        //                     "weightedAvgPrice" => "11682.83",
+        //                     "prevClosePrice" => "11197.70",
+        //                     "lastPrice" => "11682.80",
+        //                     "lastQty" => "0.25",
+        //                     "bidPrice" => "11682.80",
+        //                     "askPrice" => "11682.85",
+        //                     "openPrice" => "11197.70",
+        //                     "highPrice" => "11734.05",
+        //                     "lowPrice" => "11080.95",
+        //                     "volume" => "299.133",
+        //                     "quoteVolume" => "3488040.3465",
+        //                     "openTime" => 1596585600000,
+        //                     "closeTime" => 1596654452674
         //                 }
         //             )
         //         }
@@ -161,14 +161,14 @@ class currencycom extends \ccxt\async\currencycom {
     public function handle_trade($trade, $market = null) {
         //
         //     {
-        //         $price => 11668.55,
-        //         size => 0.001,
-        //         $id => 1600300736,
-        //         ts => 1596653426822,
-        //         $symbol => 'BTC/USD_LEVERAGE',
-        //         $orderId => '00a02503-0079-54c4-0000-00004020163c',
-        //         clientOrderId => '00a02503-0079-54c4-0000-482f0000754f',
-        //         $buyer => false
+        //         "price" => 11668.55,
+        //         "size" => 0.001,
+        //         "id" => 1600300736,
+        //         "ts" => 1596653426822,
+        //         "symbol" => "BTC/USD_LEVERAGE",
+        //         "orderId" => "00a02503-0079-54c4-0000-00004020163c",
+        //         "clientOrderId" => "00a02503-0079-54c4-0000-482f0000754f",
+        //         "buyer" => false
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -203,17 +203,17 @@ class currencycom extends \ccxt\async\currencycom {
     public function handle_trades(Client $client, $message, $subscription) {
         //
         //     {
-        //         status => 'OK',
-        //         $destination => 'internal.trade',
-        //         $payload => {
-        //             price => 11668.55,
-        //             size => 0.001,
-        //             id => 1600300736,
-        //             ts => 1596653426822,
-        //             $symbol => 'BTC/USD_LEVERAGE',
-        //             orderId => '00a02503-0079-54c4-0000-00004020163c',
-        //             clientOrderId => '00a02503-0079-54c4-0000-482f0000754f',
-        //             buyer => false
+        //         "status" => "OK",
+        //         "destination" => "internal.trade",
+        //         "payload" => {
+        //             "price" => 11668.55,
+        //             "size" => 0.001,
+        //             "id" => 1600300736,
+        //             "ts" => 1596653426822,
+        //             "symbol" => "BTC/USD_LEVERAGE",
+        //             "orderId" => "00a02503-0079-54c4-0000-00004020163c",
+        //             "clientOrderId" => "00a02503-0079-54c4-0000-482f0000754f",
+        //             "buyer" => false
         //         }
         //     }
         //
@@ -248,16 +248,16 @@ class currencycom extends \ccxt\async\currencycom {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         status => 'OK',
-        //         $destination => 'ohlc.event',
-        //         $payload => {
-        //             $interval => 'M1',
-        //             $symbol => 'BTC/USD_LEVERAGE',
-        //             t => 1596650940000,
-        //             h => 11670.05,
-        //             l => 11658.1,
-        //             o => 11668.55,
-        //             c => 11666.05
+        //         "status" => "OK",
+        //         "destination" => "ohlc.event",
+        //         "payload" => {
+        //             "interval" => "M1",
+        //             "symbol" => "BTC/USD_LEVERAGE",
+        //             "t" => 1596650940000,
+        //             "h" => 11670.05,
+        //             "l" => 11658.1,
+        //             "o" => 11668.55,
+        //             "c" => 11666.05
         //         }
         //     }
         //
@@ -347,7 +347,7 @@ class currencycom extends \ccxt\async\currencycom {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             return Async\await($this->watch_private('/api/v1/account', $params));
@@ -360,7 +360,7 @@ class currencycom extends \ccxt\async\currencycom {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -392,7 +392,7 @@ class currencycom extends \ccxt\async\currencycom {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -411,7 +411,7 @@ class currencycom extends \ccxt\async\currencycom {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the currencycom api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -464,11 +464,11 @@ class currencycom extends \ccxt\async\currencycom {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         status => 'OK',
-        //         $destination => 'marketdepth.event',
-        //         $payload => {
-        //             $data => 'array("ts":1596235401337,"bid":array("11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000),"ofr":array("11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000))',
-        //             $symbol => 'BTC/USD_LEVERAGE'
+        //         "status" => "OK",
+        //         "destination" => "marketdepth.event",
+        //         "payload" => {
+        //             "data" => "array("ts":1596235401337,"bid":array("11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000),"ofr":array("11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000))",
+        //             "symbol" => "BTC/USD_LEVERAGE"
         //         }
         //     }
         //
@@ -499,47 +499,47 @@ class currencycom extends \ccxt\async\currencycom {
     public function handle_message(Client $client, $message) {
         //
         //     {
-        //         $status => 'OK',
-        //         correlationId => '1',
-        //         payload => {
-        //             tickers => array(
+        //         "status" => "OK",
+        //         "correlationId" => "1",
+        //         "payload" => {
+        //             "tickers" => array(
         //                 {
-        //                     symbol => '1COV',
-        //                     priceChange => '-0.29',
-        //                     priceChangePercent => '-0.80',
-        //                     prevClosePrice => '36.33',
-        //                     lastPrice => '36.04',
-        //                     openPrice => '36.33',
-        //                     highPrice => '36.46',
-        //                     lowPrice => '35.88',
-        //                     openTime => 1595548800000,
-        //                     closeTime => 1595795305401
+        //                     "symbol" => "1COV",
+        //                     "priceChange" => "-0.29",
+        //                     "priceChangePercent" => "-0.80",
+        //                     "prevClosePrice" => "36.33",
+        //                     "lastPrice" => "36.04",
+        //                     "openPrice" => "36.33",
+        //                     "highPrice" => "36.46",
+        //                     "lowPrice" => "35.88",
+        //                     "openTime" => 1595548800000,
+        //                     "closeTime" => 1595795305401
         //                 }
         //             )
         //         }
         //     }
         //
         //     {
-        //         $status => 'OK',
-        //         $destination => 'marketdepth.event',
-        //         payload => {
-        //             data => 'array("ts":1596235401337,"bid":array("11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000),"ofr":array("11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000))',
-        //             symbol => 'BTC/USD_LEVERAGE'
+        //         "status" => "OK",
+        //         "destination" => "marketdepth.event",
+        //         "payload" => {
+        //             "data" => "array("ts":1596235401337,"bid":array("11366.85":0.2500,"11366.1":5.0000,"11365.6":0.5000,"11363.0":2.0000),"ofr":array("11366.9":0.2500,"11367.65":5.0000,"11368.15":0.5000))",
+        //             "symbol" => "BTC/USD_LEVERAGE"
         //         }
         //     }
         //
         //     {
-        //         $status => 'OK',
-        //         $destination => 'internal.trade',
-        //         payload => {
-        //             price => 11634.75,
-        //             size => 0.001,
-        //             id => 1605492357,
-        //             ts => 1596263802399,
-        //             instrumentId => 45076691096786110,
-        //             orderId => '00a02503-0079-54c4-0000-0000401fff51',
-        //             clientOrderId => '00a02503-0079-54c4-0000-482b00002f17',
-        //             buyer => false
+        //         "status" => "OK",
+        //         "destination" => "internal.trade",
+        //         "payload" => {
+        //             "price" => 11634.75,
+        //             "size" => 0.001,
+        //             "id" => 1605492357,
+        //             "ts" => 1596263802399,
+        //             "instrumentId" => 45076691096786110,
+        //             "orderId" => "00a02503-0079-54c4-0000-0000401fff51",
+        //             "clientOrderId" => "00a02503-0079-54c4-0000-482b00002f17",
+        //             "buyer" => false
         //         }
         //     }
         //

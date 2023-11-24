@@ -6,8 +6,8 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coincheck import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
@@ -34,17 +34,18 @@ class coincheck(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
@@ -167,7 +168,7 @@ class coincheck(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -182,24 +183,24 @@ class coincheck(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetAccountsBalance(params)
         return self.parse_balance(response)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         # Only BTC/JPY is meaningful
@@ -214,18 +215,18 @@ class coincheck(Exchange, ImplicitAPI):
             result.append(self.extend(parsedOrders[i], {'status': 'open'}))
         return result
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # fetchOpenOrders
         #
         #     {                       id:  202835,
-        #                      order_type: "buy",
-        #                            rate:  26890,
-        #                            pair: "btc_jpy",
-        #                  pending_amount: "0.5527",
-        #       pending_market_buy_amount:  null,
-        #                  stop_loss_rate:  null,
-        #                      created_at: "2015-01-10T05:55:38.000Z"}
+        #                      "order_type": "buy",
+        #                            "rate":  26890,
+        #                            "pair": "btc_jpy",
+        #                  "pending_amount": "0.5527",
+        #       "pending_market_buy_amount":  null,
+        #                  "stop_loss_rate":  null,
+        #                      "created_at": "2015-01-10T05:55:38.000Z"}
         #
         # todo: add formats for fetchOrder, fetchClosedOrders here
         #
@@ -263,13 +264,13 @@ class coincheck(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -279,7 +280,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.publicGetOrderBooks(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # {
         #     "last":4192632.0,
@@ -317,12 +318,12 @@ class coincheck(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         if symbol != 'BTC/JPY':
             raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
@@ -345,7 +346,7 @@ class coincheck(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -423,14 +424,14 @@ class coincheck(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -463,14 +464,14 @@ class coincheck(Exchange, ImplicitAPI):
         transactions = self.safe_value(response, 'data', [])
         return self.parse_trades(transactions, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -497,26 +498,26 @@ class coincheck(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privateGetAccounts(params)
         #
         #     {
-        #         success: True,
-        #         id: '7487995',
-        #         email: 'some@email.com',
-        #         identity_status: 'identity_pending',
-        #         bitcoin_address: null,
-        #         lending_leverage: '4',
-        #         taker_fee: '0.0',
-        #         maker_fee: '0.0',
-        #         exchange_fees: {
-        #           btc_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           etc_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           fct_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           mona_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           plt_jpy: {taker_fee: '0.0', maker_fee: '0.0'}
+        #         "success": True,
+        #         "id": "7487995",
+        #         "email": "some@email.com",
+        #         "identity_status": "identity_pending",
+        #         "bitcoin_address": null,
+        #         "lending_leverage": "4",
+        #         "taker_fee": "0.0",
+        #         "maker_fee": "0.0",
+        #         "exchange_fees": {
+        #           "btc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "etc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "fct_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "mona_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "plt_jpy": {taker_fee: '0.0', maker_fee: "0.0"}
         #         }
         #     }
         #
@@ -545,7 +546,7 @@ class coincheck(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -568,27 +569,27 @@ class coincheck(Exchange, ImplicitAPI):
             'info': response,
         }, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: not used by coincheck cancelOrder()
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'id': id,
         }
         return await self.privateDeleteExchangeOrdersId(self.extend(request, params))
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -625,14 +626,14 @@ class coincheck(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'deposits', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the coincheck api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -679,7 +680,7 @@ class coincheck(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -739,6 +740,7 @@ class coincheck(Exchange, ImplicitAPI):
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': None,
             'internal': None,
             'fee': fee,
         }

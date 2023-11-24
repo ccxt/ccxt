@@ -1,12 +1,13 @@
 import hitbtcRest from '../hitbtc.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, OrderSide, OrderType, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Trade } from '../base/types';
+import { Str, Trade } from '../base/types';
 export default class hitbtc extends hitbtcRest {
     describe(): any;
     authenticate(): Promise<any>;
-    subscribePublic(name: string, symbols?: string[], params?: {}): Promise<any>;
-    subscribePrivate(name: string, symbol?: string, params?: {}): Promise<any>;
+    subscribePublic(name: string, symbols?: Strings, params?: {}): Promise<any>;
+    subscribePrivate(name: string, symbol?: Str, params?: {}): Promise<any>;
+    tradeRequest(name: string, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
@@ -22,14 +23,20 @@ export default class hitbtc extends hitbtcRest {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): any;
     parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): any;
     handleOrderHelper(client: Client, message: any, order: any): void;
     parseWsOrderTrade(trade: any, market?: any): Trade;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     watchBalance(params?: {}): Promise<any>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
+    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     handleNotification(client: Client, message: any): any;
+    handleOrderRequest(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): any;
+    handleError(client: Client, message: any): any;
 }

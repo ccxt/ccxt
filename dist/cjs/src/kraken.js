@@ -42,11 +42,11 @@ class kraken extends kraken$1 {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -55,6 +55,8 @@ class kraken extends kraken$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLedgerEntry': true,
                 'fetchLeverageTiers': false,
@@ -193,12 +195,6 @@ class kraken extends kraken$1 {
                         'WithdrawInfo': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
-                        // staking
-                        'Stake': 3,
-                        'Unstake': 3,
-                        'Staking/Assets': 3,
-                        'Staking/Pending': 3,
-                        'Staking/Transactions': 3,
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
@@ -492,7 +488,7 @@ class kraken extends kraken$1 {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber(market, 'costmin'),
                         'max': undefined,
                     },
                 },
@@ -613,7 +609,7 @@ class kraken extends kraken$1 {
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -624,28 +620,28 @@ class kraken extends kraken$1 {
         const response = await this.privatePostTradeVolume(this.extend(request, params));
         //
         //     {
-        //        error: [],
-        //        result: {
-        //          currency: 'ZUSD',
-        //          volume: '0.0000',
-        //          fees: {
-        //            XXBTZUSD: {
-        //              fee: '0.2600',
-        //              minfee: '0.1000',
-        //              maxfee: '0.2600',
-        //              nextfee: '0.2400',
-        //              tiervolume: '0.0000',
-        //              nextvolume: '50000.0000'
+        //        "error": [],
+        //        "result": {
+        //          "currency": 'ZUSD',
+        //          "volume": '0.0000',
+        //          "fees": {
+        //            "XXBTZUSD": {
+        //              "fee": '0.2600',
+        //              "minfee": '0.1000',
+        //              "maxfee": '0.2600',
+        //              "nextfee": '0.2400',
+        //              "tiervolume": '0.0000',
+        //              "nextvolume": '50000.0000'
         //            }
         //          },
-        //          fees_maker: {
-        //            XXBTZUSD: {
-        //              fee: '0.1600',
-        //              minfee: '0.0000',
-        //              maxfee: '0.1600',
-        //              nextfee: '0.1400',
-        //              tiervolume: '0.0000',
-        //              nextvolume: '50000.0000'
+        //          "fees_maker": {
+        //            "XXBTZUSD": {
+        //              "fee": '0.1600',
+        //              "minfee": '0.0000',
+        //              "maxfee": '0.1600',
+        //              "nextfee": '0.1400',
+        //              "tiervolume": '0.0000',
+        //              "nextvolume": '50000.0000'
         //            }
         //          }
         //        }
@@ -683,7 +679,7 @@ class kraken extends kraken$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -781,11 +777,11 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -822,7 +818,7 @@ class kraken extends kraken$1 {
          * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const darkpool = symbol.indexOf('.d') >= 0;
@@ -925,14 +921,14 @@ class kraken extends kraken$1 {
         //
         //     {
         //         'LTFK7F-N2CUX-PNY4SX': {
-        //             refid: "TSJTGT-DT7WN-GPPQMJ",
-        //             time:  1520102320.555,
-        //             type: "trade",
-        //             aclass: "currency",
-        //             asset: "XETH",
-        //             amount: "0.1087194600",
-        //             fee: "0.0000000000",
-        //             balance: "0.2855851000"
+        //             "refid": "TSJTGT-DT7WN-GPPQMJ",
+        //             "time":  1520102320.555,
+        //             "type": "trade",
+        //             "aclass": "currency",
+        //             "asset": "XETH",
+        //             "amount": "0.1087194600",
+        //             "fee": "0.0000000000",
+        //             "balance": "0.2855851000"
         //         },
         //         ...
         //     }
@@ -978,7 +974,6 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#fetchLedger
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @param {string} code unified currency code, default is undefined
@@ -986,7 +981,7 @@ class kraken extends kraken$1 {
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
-         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets();
@@ -1002,14 +997,14 @@ class kraken extends kraken$1 {
         [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.privatePostLedgers(this.extend(request, params));
         // {  error: [],
-        //   result: { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
-        //                                                   time:  1520103488.314,
-        //                                                   type: "withdrawal",
-        //                                                 aclass: "currency",
-        //                                                  asset: "XETH",
-        //                                                 amount: "-0.2805800000",
-        //                                                    fee: "0.0050000000",
-        //                                                balance: "0.0000051000"           },
+        //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                   "time":  1520103488.314,
+        //                                                   "type": "withdrawal",
+        //                                                 "aclass": "currency",
+        //                                                  "asset": "XETH",
+        //                                                 "amount": "-0.2805800000",
+        //                                                    "fee": "0.0050000000",
+        //                                                "balance": "0.0000051000"           },
         const result = this.safeValue(response, 'result', {});
         const ledger = this.safeValue(result, 'ledger', {});
         const keys = Object.keys(ledger);
@@ -1031,14 +1026,14 @@ class kraken extends kraken$1 {
         }, params);
         const response = await this.privatePostQueryLedgers(request);
         // {  error: [],
-        //   result: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
-        //                                         time:  1520103488.314,
-        //                                         type: "withdrawal",
-        //                                       aclass: "currency",
-        //                                        asset: "XETH",
-        //                                       amount: "-0.2805800000",
-        //                                          fee: "0.0050000000",
-        //                                      balance: "0.0000051000"           } } }
+        //   "result": { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                         "time":  1520103488.314,
+        //                                         "type": "withdrawal",
+        //                                       "aclass": "currency",
+        //                                        "asset": "XETH",
+        //                                       "amount": "-0.2805800000",
+        //                                          "fee": "0.0050000000",
+        //                                      "balance": "0.0000051000"           } } }
         const result = response['result'];
         const keys = Object.keys(result);
         const items = [];
@@ -1070,19 +1065,19 @@ class kraken extends kraken$1 {
         // fetchOrderTrades (private)
         //
         //     {
-        //         id: 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
-        //         ordertxid: 'OQRPN2-LRHFY-HIFA7D',
-        //         postxid: 'TKH2SE-M7IF5-CFI7LT',
-        //         pair: 'USDCUSDT',
-        //         time: 1586340086.457,
-        //         type: 'sell',
-        //         ordertype: 'market',
-        //         price: '0.99860000',
-        //         cost: '22.16892001',
-        //         fee: '0.04433784',
-        //         vol: '22.20000000',
-        //         margin: '0.00000000',
-        //         misc: ''
+        //         "id": 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
+        //         "ordertxid": 'OQRPN2-LRHFY-HIFA7D',
+        //         "postxid": 'TKH2SE-M7IF5-CFI7LT',
+        //         "pair": 'USDCUSDT',
+        //         "time": 1586340086.457,
+        //         "type": 'sell',
+        //         "ordertype": 'market',
+        //         "price": '0.99860000',
+        //         "cost": '22.16892001',
+        //         "fee": '0.04433784',
+        //         "vol": '22.20000000',
+        //         "margin": '0.00000000',
+        //         "misc": ''
         //     }
         //
         let timestamp = undefined;
@@ -1166,7 +1161,7 @@ class kraken extends kraken$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1239,7 +1234,7 @@ class kraken extends kraken$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostBalanceEx(params);
@@ -1264,7 +1259,7 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#createOrder
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1274,7 +1269,7 @@ class kraken extends kraken$1 {
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @param {bool} params.postOnly
          * @param {bool} params.reduceOnly
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1288,10 +1283,10 @@ class kraken extends kraken$1 {
         const response = await this.privatePostAddOrder(this.extend(orderRequest[0], orderRequest[1]));
         //
         //     {
-        //         error: [],
-        //         result: {
-        //             descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
-        //             txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
+        //         "error": [],
+        //         "result": {
+        //             "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //             "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
         //         }
         //     }
         //
@@ -1359,8 +1354,8 @@ class kraken extends kraken$1 {
         // createOrder for regular orders
         //
         //     {
-        //         descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
-        //         txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
+        //         "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //         "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
         //     }
         //     {
         //         "txid": [ "TX_ID_HERE" ],
@@ -1396,11 +1391,11 @@ class kraken extends kraken$1 {
         //     }
         //  ws - createOrder
         //    {
-        //        descr: 'sell 0.00010000 XBTUSDT @ market',
-        //        event: 'addOrderStatus',
-        //        reqid: 1,
-        //        status: 'ok',
-        //        txid: 'OAVXZH-XIE54-JCYYDG'
+        //        "descr": 'sell 0.00010000 XBTUSDT @ market',
+        //        "event": 'addOrderStatus',
+        //        "reqid": 1,
+        //        "status": 'ok',
+        //        "txid": 'OAVXZH-XIE54-JCYYDG'
         //    }
         //  ws - editOrder
         //    {
@@ -1531,8 +1526,8 @@ class kraken extends kraken$1 {
         //
         //     market
         //     limit (price = limit price)
-        //     stop-loss (price = stop loss price)
-        //     take-profit (price = take profit price)
+        //     stop-loss (price = stop loss trigger price)
+        //     take-profit (price = take profit trigger price)
         //     stop-loss-limit (price = stop loss trigger price, price2 = triggered limit price)
         //     take-profit-limit (price = take profit trigger price, price2 = triggered limit price)
         //     settle-position
@@ -1607,7 +1602,7 @@ class kraken extends kraken$1 {
          * @method
          * @name kraken#editOrder
          * @description edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1615,7 +1610,7 @@ class kraken extends kraken$1 {
          * @param {float} amount how much of the currency you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1658,7 +1653,7 @@ class kraken extends kraken$1 {
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
          * @param {string} symbol not used by kraken fetchOrder
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const clientOrderId = this.safeValue2(params, 'userref', 'clientOrderId');
@@ -1717,9 +1712,7 @@ class kraken extends kraken$1 {
         if (!(id in result)) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
-        const order = this.parseOrder(this.extend({ 'id': id }, result[id]));
-        order['info'] = order;
-        return order;
+        return this.parseOrder(this.extend({ 'id': id }, result[id]));
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1732,7 +1725,7 @@ class kraken extends kraken$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const orderTrades = this.safeValue(params, 'trades');
         const tradeIds = [];
@@ -1774,21 +1767,21 @@ class kraken extends kraken$1 {
             const response = await this.privatePostQueryTrades(request);
             //
             //     {
-            //         error: [],
-            //         result: {
+            //         "error": [],
+            //         "result": {
             //             'TIMIRG-WUNNE-RRJ6GT': {
-            //                 ordertxid: 'OQRPN2-LRHFY-HIFA7D',
-            //                 postxid: 'TKH2SE-M7IF5-CFI7LT',
-            //                 pair: 'USDCUSDT',
-            //                 time: 1586340086.457,
-            //                 type: 'sell',
-            //                 ordertype: 'market',
-            //                 price: '0.99860000',
-            //                 cost: '22.16892001',
-            //                 fee: '0.04433784',
-            //                 vol: '22.20000000',
-            //                 margin: '0.00000000',
-            //                 misc: ''
+            //                 "ordertxid": 'OQRPN2-LRHFY-HIFA7D',
+            //                 "postxid": 'TKH2SE-M7IF5-CFI7LT',
+            //                 "pair": 'USDCUSDT',
+            //                 "time": 1586340086.457,
+            //                 "type": 'sell',
+            //                 "ordertype": 'market',
+            //                 "price": '0.99860000',
+            //                 "cost": '22.16892001',
+            //                 "fee": '0.04433784',
+            //                 "vol": '22.20000000',
+            //                 "margin": '0.00000000',
+            //                 "misc": ''
             //             }
             //         }
             //     }
@@ -1805,6 +1798,15 @@ class kraken extends kraken$1 {
         return result;
     }
     async fetchOrdersByIds(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchOrdersByIds
+         * @description fetch orders by the list of order id
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+         * @param {string[]|undefined} ids list of order id
+         * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets();
         const response = await this.privatePostQueryOrders(this.extend({
             'trades': true,
@@ -1831,7 +1833,7 @@ class kraken extends kraken$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1890,7 +1892,7 @@ class kraken extends kraken$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let response = undefined;
@@ -1921,7 +1923,7 @@ class kraken extends kraken$1 {
          * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'orders': ids,
@@ -1945,7 +1947,7 @@ class kraken extends kraken$1 {
          * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         return await this.privatePostCancelAll(params);
@@ -1954,14 +1956,13 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#fetchOpenOrders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1987,7 +1988,6 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#fetchClosedOrders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} symbol unified market symbol of the market orders were made in
@@ -1995,7 +1995,7 @@ class kraken extends kraken$1 {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @param {int} [params.until] timestamp in ms of the latest entry
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let request = {};
@@ -2074,16 +2074,16 @@ class kraken extends kraken$1 {
         // fetchDeposits
         //
         //     {
-        //         method: "Ether (Hex)",
-        //         aclass: "currency",
-        //         asset: "XETH",
-        //         refid: "Q2CANKL-LBFVEE-U4Y2WQ",
-        //         txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //         info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //         amount: "7.9999257900",
-        //         fee: "0.0000000000",
-        //         time:  1529223212,
-        //         status: "Success"
+        //         "method": "Ether (Hex)",
+        //         "aclass": "currency",
+        //         "asset": "XETH",
+        //         "refid": "Q2CANKL-LBFVEE-U4Y2WQ",
+        //         "txid": "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //         "info": "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //         "amount": "7.9999257900",
+        //         "fee": "0.0000000000",
+        //         "time":  1529223212,
+        //         "status": "Success"
         //     }
         //
         // there can be an additional 'status-prop' field present
@@ -2091,17 +2091,17 @@ class kraken extends kraken$1 {
         // the deposit is initiated by the exchange => 'return'
         //
         //      {
-        //          type: 'deposit',
-        //          method: 'Fidor Bank AG (Wire Transfer)',
-        //          aclass: 'currency',
-        //          asset: 'ZEUR',
-        //          refid: 'xxx-xxx-xxx',
-        //          txid: '12341234',
-        //          info: 'BANKCODEXXX',
-        //          amount: '38769.08',
-        //          fee: '0.0000',
-        //          time: 1644306552,
-        //          status: 'Success',
+        //          "type": 'deposit',
+        //          "method": 'Fidor Bank AG (Wire Transfer)',
+        //          "aclass": 'currency',
+        //          "asset": 'ZEUR',
+        //          "refid": 'xxx-xxx-xxx',
+        //          "txid": '12341234',
+        //          "info": 'BANKCODEXXX',
+        //          "amount": '38769.08',
+        //          "fee": '0.0000',
+        //          "time": 1644306552,
+        //          "status": 'Success',
         //          status-prop: 'on-hold'
         //      }
         //
@@ -2109,16 +2109,16 @@ class kraken extends kraken$1 {
         // fetchWithdrawals
         //
         //     {
-        //         method: "Ether",
-        //         aclass: "currency",
-        //         asset: "XETH",
-        //         refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        //         txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
-        //         info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //         amount: "9.9950000000",
-        //         fee: "0.0050000000",
-        //         time:  1530481750,
-        //         status: "Success"
+        //         "method": "Ether",
+        //         "aclass": "currency",
+        //         "asset": "XETH",
+        //         "refid": "A2BF34S-O7LBNQ-UE4Y4O",
+        //         "txid": "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //         "info": "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //         "amount": "9.9950000000",
+        //         "fee": "0.0050000000",
+        //         "time":  1530481750,
+        //         "status": "Success"
         //         status-prop: 'on-hold' // this field might not be present in some cases
         //     }
         //
@@ -2168,6 +2168,8 @@ class kraken extends kraken$1 {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
@@ -2188,14 +2190,13 @@ class kraken extends kraken$1 {
         /**
          * @method
          * @name kraken#fetchDeposits
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @description fetch all deposits made to an account
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
         if (code === undefined) {
@@ -2206,19 +2207,22 @@ class kraken extends kraken$1 {
         const request = {
             'asset': currency['id'],
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         const response = await this.privatePostDepositStatus(this.extend(request, params));
         //
         //     {  error: [],
-        //       result: [ { method: "Ether (Hex)",
-        //                   aclass: "currency",
-        //                    asset: "XETH",
-        //                    refid: "Q2CANKL-LBFVEE-U4Y2WQ",
-        //                     txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //                     info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //                   amount: "7.9999257900",
-        //                      fee: "0.0000000000",
-        //                     time:  1529223212,
-        //                   status: "Success"                                                       } ] }
+        //       "result": [ { "method": "Ether (Hex)",
+        //                     "aclass": "currency",
+        //                      "asset": "XETH",
+        //                      "refid": "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                       "txid": "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                       "info": "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //                     "amount": "7.9999257900",
+        //                        "fee": "0.0000000000",
+        //                       "time":  1529223212,
+        //                     "status": "Success"                                                       } ] }
         //
         return this.parseTransactionsByType('deposit', response['result'], code, since, limit);
     }
@@ -2255,7 +2259,7 @@ class kraken extends kraken$1 {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#withdraw-status
         if (code === undefined) {
@@ -2269,16 +2273,16 @@ class kraken extends kraken$1 {
         const response = await this.privatePostWithdrawStatus(this.extend(request, params));
         //
         //     {  error: [],
-        //       result: [ { method: "Ether",
-        //                   aclass: "currency",
-        //                    asset: "XETH",
-        //                    refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        //                     txid: "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
-        //                     info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //                   amount: "9.9950000000",
-        //                      fee: "0.0050000000",
-        //                     time:  1530481750,
-        //                   status: "Success"                                                             } ] }
+        //       "result": [ { "method": "Ether",
+        //                     "aclass": "currency",
+        //                      "asset": "XETH",
+        //                      "refid": "A2BF34S-O7LBNQ-UE4Y4O",
+        //                       "txid": "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
+        //                       "info": "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //                     "amount": "9.9950000000",
+        //                        "fee": "0.0050000000",
+        //                       "time":  1530481750,
+        //                     "status": "Success"                                                             } ] }
         //
         return this.parseTransactionsByType('withdrawal', response['result'], code, since, limit);
     }
@@ -2290,7 +2294,7 @@ class kraken extends kraken$1 {
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const request = {
             'new': 'true',
@@ -2298,6 +2302,15 @@ class kraken extends kraken$1 {
         return await this.fetchDepositAddress(code, this.extend(request, params));
     }
     async fetchDepositMethods(code, params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchDepositMethods
+         * @description fetch deposit methods for a currency associated with this account
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @returns {object} of deposit methods
+         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -2337,7 +2350,7 @@ class kraken extends kraken$1 {
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2422,7 +2435,7 @@ class kraken extends kraken$1 {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
@@ -2432,7 +2445,7 @@ class kraken extends kraken$1 {
             const request = {
                 'asset': currency['id'],
                 'amount': amount,
-                // 'address': address, // they don't allow withdrawals to direct addresses
+                'address': address,
             };
             const response = await this.privatePostWithdraw(this.extend(request, params));
             //
@@ -2456,7 +2469,7 @@ class kraken extends kraken$1 {
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
          * @param {string[]|undefined} symbols not used by kraken fetchPositions ()
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -2469,24 +2482,24 @@ class kraken extends kraken$1 {
         // no consolidation
         //
         //     {
-        //         error: [],
-        //         result: {
+        //         "error": [],
+        //         "result": {
         //             'TGUFMY-FLESJ-VYIX3J': {
-        //                 ordertxid: "O3LRNU-ZKDG5-XNCDFR",
-        //                 posstatus: "open",
-        //                 pair: "ETHUSDT",
-        //                 time:  1611557231.4584,
-        //                 type: "buy",
-        //                 ordertype: "market",
-        //                 cost: "28.49800",
-        //                 fee: "0.07979",
-        //                 vol: "0.02000000",
-        //                 vol_closed: "0.00000000",
-        //                 margin: "14.24900",
-        //                 terms: "0.0200% per 4 hours",
-        //                 rollovertm: "1611571631",
-        //                 misc: "",
-        //                 oflags: ""
+        //                 "ordertxid": "O3LRNU-ZKDG5-XNCDFR",
+        //                 "posstatus": "open",
+        //                 "pair": "ETHUSDT",
+        //                 "time":  1611557231.4584,
+        //                 "type": "buy",
+        //                 "ordertype": "market",
+        //                 "cost": "28.49800",
+        //                 "fee": "0.07979",
+        //                 "vol": "0.02000000",
+        //                 "vol_closed": "0.00000000",
+        //                 "margin": "14.24900",
+        //                 "terms": "0.0200% per 4 hours",
+        //                 "rollovertm": "1611571631",
+        //                 "misc": "",
+        //                 "oflags": ""
         //             }
         //         }
         //     }
@@ -2494,18 +2507,18 @@ class kraken extends kraken$1 {
         // consolidation by market
         //
         //     {
-        //         error: [],
-        //         result: [
+        //         "error": [],
+        //         "result": [
         //             {
-        //                 pair: "ETHUSDT",
-        //                 positions: "1",
-        //                 type: "buy",
-        //                 leverage: "2.00000",
-        //                 cost: "28.49800",
-        //                 fee: "0.07979",
-        //                 vol: "0.02000000",
-        //                 vol_closed: "0.00000000",
-        //                 margin: "14.24900"
+        //                 "pair": "ETHUSDT",
+        //                 "positions": "1",
+        //                 "type": "buy",
+        //                 "leverage": "2.00000",
+        //                 "cost": "28.49800",
+        //                 "fee": "0.07979",
+        //                 "vol": "0.02000000",
+        //                 "vol_closed": "0.00000000",
+        //                 "margin": "14.24900"
         //             }
         //         ]
         //     }
@@ -2529,7 +2542,7 @@ class kraken extends kraken$1 {
          * @param {str} code Unified currency code
          * @param {float} amount Size of the transfer
          * @param {dict} [params] Exchange specific parameters
-         * @returns a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         return await this.transfer(code, amount, 'spot', 'swap', params);
     }
@@ -2544,7 +2557,7 @@ class kraken extends kraken$1 {
          * @param {string} fromAccount 'spot' or 'Spot Wallet'
          * @param {string} toAccount 'swap' or 'Futures Wallet'
          * @param {object} [params] Exchange specific parameters
-         * @returns a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);

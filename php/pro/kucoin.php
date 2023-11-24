@@ -16,6 +16,13 @@ class kucoin extends \ccxt\async\kucoin {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'cancelOrderWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelAllOrdersWs' => false,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
@@ -68,18 +75,18 @@ class kucoin extends \ccxt\async\kucoin {
                 $response = Async\await($this->privatePostBulletPrivate ($params));
                 //
                 //     {
-                //         code => "200000",
-                //         $data => {
-                //             $instanceServers => array(
+                //         "code" => "200000",
+                //         "data" => {
+                //             "instanceServers" => array(
                 //                 {
-                //                     $pingInterval =>  50000,
-                //                     $endpoint => "wss://push-private.kucoin.com/endpoint",
-                //                     protocol => "websocket",
-                //                     encrypt => true,
-                //                     pingTimeout => 10000
+                //                     "pingInterval" =>  50000,
+                //                     "endpoint" => "wss://push-private.kucoin.com/endpoint",
+                //                     "protocol" => "websocket",
+                //                     "encrypt" => true,
+                //                     "pingTimeout" => 10000
                 //                 }
                 //             ),
-                //             $token => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+                //             "token" => "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
                 //         }
                 //     }
                 //
@@ -133,7 +140,7 @@ class kucoin extends \ccxt\async\kucoin {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -152,7 +159,7 @@ class kucoin extends \ccxt\async\kucoin {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -210,18 +217,18 @@ class kucoin extends \ccxt\async\kucoin {
         // market/ticker
         //
         //     {
-        //         type => 'message',
-        //         $topic => '/market/ticker:BTC-USDT',
-        //         subject => 'trade.ticker',
-        //         $data => {
-        //             bestAsk => '62163',
-        //             bestAskSize => '0.99011388',
-        //             bestBid => '62162.9',
-        //             bestBidSize => '0.04794181',
-        //             price => '62162.9',
-        //             sequence => '1621383371852',
-        //             size => '0.00832274',
-        //             time => 1634641987564
+        //         "type" => "message",
+        //         "topic" => "/market/ticker:BTC-USDT",
+        //         "subject" => "trade.ticker",
+        //         "data" => {
+        //             "bestAsk" => "62163",
+        //             "bestAskSize" => "0.99011388",
+        //             "bestBid" => "62162.9",
+        //             "bestBidSize" => "0.04794181",
+        //             "price" => "62162.9",
+        //             "sequence" => "1621383371852",
+        //             "size" => "0.00832274",
+        //             "time" => 1634641987564
         //         }
         //     }
         //
@@ -291,22 +298,22 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         $data => array(
-        //             $symbol => 'BTC-USDT',
-        //             $candles => array(
-        //                 '1624881240',
-        //                 '34138.8',
-        //                 '34121.6',
-        //                 '34138.8',
-        //                 '34097.9',
-        //                 '3.06097133',
-        //                 '104430.955068564'
+        //         "data" => array(
+        //             "symbol" => "BTC-USDT",
+        //             "candles" => array(
+        //                 "1624881240",
+        //                 "34138.8",
+        //                 "34121.6",
+        //                 "34138.8",
+        //                 "34097.9",
+        //                 "3.06097133",
+        //                 "104430.955068564"
         //             ),
-        //             time => 1624881284466023700
+        //             "time" => 1624881284466023700
         //         ),
-        //         subject => 'trade.candles.update',
-        //         $topic => '/market/candles:BTC-USDT_1min',
-        //         type => 'message'
+        //         "subject" => "trade.candles.update",
+        //         "topic" => "/market/candles:BTC-USDT_1min",
+        //         "type" => "message"
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
@@ -340,7 +347,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(false));
@@ -390,21 +397,21 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_trade(Client $client, $message) {
         //
         //     {
-        //         $data => array(
-        //             sequence => '1568787654360',
-        //             $symbol => 'BTC-USDT',
-        //             side => 'buy',
-        //             size => '0.00536577',
-        //             price => '9345',
-        //             takerOrderId => '5e356c4a9f1a790008f8d921',
-        //             time => '1580559434436443257',
-        //             type => 'match',
-        //             makerOrderId => '5e356bffedf0010008fa5d7f',
-        //             tradeId => '5e356c4aeefabd62c62a1ece'
+        //         "data" => array(
+        //             "sequence" => "1568787654360",
+        //             "symbol" => "BTC-USDT",
+        //             "side" => "buy",
+        //             "size" => "0.00536577",
+        //             "price" => "9345",
+        //             "takerOrderId" => "5e356c4a9f1a790008f8d921",
+        //             "time" => "1580559434436443257",
+        //             "type" => "match",
+        //             "makerOrderId" => "5e356bffedf0010008fa5d7f",
+        //             "tradeId" => "5e356c4aeefabd62c62a1ece"
         //         ),
-        //         subject => 'trade.l3match',
-        //         topic => '/market/match:BTC-USDT',
-        //         type => 'message'
+        //         "subject" => "trade.l3match",
+        //         "topic" => "/market/match:BTC-USDT",
+        //         "type" => "message"
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
@@ -430,7 +437,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             //
             // https://docs.kucoin.com/#level-2-$market-data
@@ -620,8 +627,8 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
-        //         $id => '1578090438322',
-        //         type => 'ack'
+        //         "id" => "1578090438322",
+        //         "type" => "ack"
         //     }
         //
         $id = $this->safe_string($message, 'id');
@@ -641,8 +648,8 @@ class kucoin extends \ccxt\async\kucoin {
         // involves system status and maintenance updates
         //
         //     {
-        //         id => '1578090234088', // connectId
-        //         type => 'welcome',
+        //         "id" => "1578090234088", // connectId
+        //         "type" => "welcome",
         //     }
         //
         return $message;
@@ -657,7 +664,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
              * @param {boolean} [$params->stop] trigger $orders are watched if true
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $stop = $this->safe_value_2($params, 'stop', 'trigger');
@@ -699,19 +706,19 @@ class kucoin extends \ccxt\async\kucoin {
         // /spotMarket/tradeOrders
         //
         //    {
-        //        'symbol' => 'XCAD-USDT',
-        //        'orderType' => 'limit',
-        //        'side' => 'buy',
-        //        'orderId' => '6249167327218b000135e749',
-        //        'type' => 'canceled',
-        //        'orderTime' => 1648957043065280224,
-        //        'size' => '100.452',
-        //        'filledSize' => '0',
-        //        'price' => '2.9635',
-        //        'clientOid' => 'buy-XCAD-USDT-1648957043010159',
-        //        'remainSize' => '0',
-        //        'status' => 'done',
-        //        'ts' => 1648957054031001037
+        //        "symbol" => "XCAD-USDT",
+        //        "orderType" => "limit",
+        //        "side" => "buy",
+        //        "orderId" => "6249167327218b000135e749",
+        //        "type" => "canceled",
+        //        "orderTime" => 1648957043065280224,
+        //        "size" => "100.452",
+        //        "filledSize" => "0",
+        //        "price" => "2.9635",
+        //        "clientOid" => "buy-XCAD-USDT-1648957043010159",
+        //        "remainSize" => "0",
+        //        "status" => "done",
+        //        "ts" => 1648957054031001037
         //    }
         //
         // /spotMarket/advancedOrders
@@ -774,20 +781,20 @@ class kucoin extends \ccxt\async\kucoin {
         // Trigger Orders
         //
         //    {
-        //        createdAt => 1692745706437,
-        //        error => 'Balance insufficient!',       // not always there
-        //        $orderId => 'vs86kp757vlda6ni003qs70v',
-        //        orderPrice => '0.26',
-        //        orderType => 'stop',
-        //        side => 'sell',
-        //        size => '5',
-        //        stop => 'loss',
-        //        stopPrice => '0.26',
-        //        $symbol => 'ADA-USDT',
-        //        tradeType => 'TRADE',
-        //        triggerSuccess => false,                // not always there
-        //        ts => '1692745706442929298',
-        //        type => 'open'
+        //        "createdAt" => 1692745706437,
+        //        "error" => "Balance insufficient!",       // not always there
+        //        "orderId" => "vs86kp757vlda6ni003qs70v",
+        //        "orderPrice" => "0.26",
+        //        "orderType" => "stop",
+        //        "side" => "sell",
+        //        "size" => "5",
+        //        "stop" => "loss",
+        //        "stopPrice" => "0.26",
+        //        "symbol" => "ADA-USDT",
+        //        "tradeType" => "TRADE",
+        //        "triggerSuccess" => false,                // not always there
+        //        "ts" => "1692745706442929298",
+        //        "type" => "open"
         //    }
         //
         $messageHash = 'orders';
@@ -825,7 +832,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
@@ -865,17 +872,17 @@ class kucoin extends \ccxt\async\kucoin {
     public function parse_ws_trade($trade, $market = null) {
         //
         // {
-        //     $fee => 0.00262148,
-        //     $feeCurrency => 'USDT',
-        //     $feeRate => 0.001,
-        //     orderId => '62417436b29df8000183df2f',
-        //     orderType => 'market',
-        //     $price => 131.074,
-        //     $side => 'sell',
-        //     size => 0.02,
-        //     $symbol => 'LTC-USDT',
-        //     time => '1648456758734571745',
-        //     $tradeId => '624174362e113d2f467b3043'
+        //     "fee" => 0.00262148,
+        //     "feeCurrency" => "USDT",
+        //     "feeRate" => 0.001,
+        //     "orderId" => "62417436b29df8000183df2f",
+        //     "orderType" => "market",
+        //     "price" => 131.074,
+        //     "side" => "sell",
+        //     "size" => 0.02,
+        //     "symbol" => "LTC-USDT",
+        //     "time" => "1648456758734571745",
+        //     "tradeId" => "624174362e113d2f467b3043"
         //   }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -918,7 +925,7 @@ class kucoin extends \ccxt\async\kucoin {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
@@ -1046,10 +1053,10 @@ class kucoin extends \ccxt\async\kucoin {
     public function handle_error_message(Client $client, $message) {
         //
         //    {
-        //        id => '1',
-        //        type => 'error',
-        //        code => 415,
-        //        $data => 'type is not supported'
+        //        "id" => "1",
+        //        "type" => "error",
+        //        "code" => 415,
+        //        "data" => "type is not supported"
         //    }
         //
         $data = $this->safe_string($message, 'data', '');

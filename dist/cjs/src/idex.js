@@ -44,12 +44,11 @@ class idex extends idex$1 {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDeposits': true,
@@ -58,6 +57,8 @@ class idex extends idex$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -322,7 +323,7 @@ class idex extends idex$1 {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -331,20 +332,20 @@ class idex extends idex$1 {
         };
         // [
         //   {
-        //     market: 'DIL-ETH',
-        //     time: 1598367493008,
-        //     open: '0.09695361',
-        //     high: '0.10245881',
-        //     low: '0.09572507',
-        //     close: '0.09917079',
-        //     closeQuantity: '0.71320950',
-        //     baseVolume: '309.17380612',
-        //     quoteVolume: '30.57633981',
-        //     percentChange: '2.28',
-        //     numTrades: 205,
-        //     ask: '0.09910476',
-        //     bid: '0.09688340',
-        //     sequence: 3902
+        //     "market": "DIL-ETH",
+        //     "time": 1598367493008,
+        //     "open": "0.09695361",
+        //     "high": "0.10245881",
+        //     "low": "0.09572507",
+        //     "close": "0.09917079",
+        //     "closeQuantity": "0.71320950",
+        //     "baseVolume": "309.17380612",
+        //     "quoteVolume": "30.57633981",
+        //     "percentChange": "2.28",
+        //     "numTrades": 205,
+        //     "ask": "0.09910476",
+        //     "bid": "0.09688340",
+        //     "sequence": 3902
         //   }
         // ]
         const response = await this.publicGetTickers(this.extend(request, params));
@@ -355,28 +356,28 @@ class idex extends idex$1 {
         /**
          * @method
          * @name idex#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         // [
         //   {
-        //     market: 'DIL-ETH',
-        //     time: 1598367493008,
-        //     open: '0.09695361',
-        //     high: '0.10245881',
-        //     low: '0.09572507',
-        //     close: '0.09917079',
-        //     closeQuantity: '0.71320950',
-        //     baseVolume: '309.17380612',
-        //     quoteVolume: '30.57633981',
-        //     percentChange: '2.28',
-        //     numTrades: 205,
-        //     ask: '0.09910476',
-        //     bid: '0.09688340',
-        //     sequence: 3902
+        //     "market": "DIL-ETH",
+        //     "time": 1598367493008,
+        //     "open": "0.09695361",
+        //     "high": "0.10245881",
+        //     "low": "0.09572507",
+        //     "close": "0.09917079",
+        //     "closeQuantity": "0.71320950",
+        //     "baseVolume": "309.17380612",
+        //     "quoteVolume": "30.57633981",
+        //     "percentChange": "2.28",
+        //     "numTrades": 205,
+        //     "ask": "0.09910476",
+        //     "bid": "0.09688340",
+        //     "sequence": 3902
         //   }, ...
         // ]
         const response = await this.publicGetTickers(params);
@@ -384,20 +385,20 @@ class idex extends idex$1 {
     }
     parseTicker(ticker, market = undefined) {
         // {
-        //   market: 'DIL-ETH',
-        //   time: 1598367493008,
-        //   open: '0.09695361',
-        //   high: '0.10245881',
-        //   low: '0.09572507',
-        //   close: '0.09917079',
-        //   closeQuantity: '0.71320950',
-        //   baseVolume: '309.17380612',
-        //   quoteVolume: '30.57633981',
-        //   percentChange: '2.28',
-        //   numTrades: 205,
-        //   ask: '0.09910476',
-        //   bid: '0.09688340',
-        //   sequence: 3902
+        //   "market": "DIL-ETH",
+        //   "time": 1598367493008,
+        //   "open": "0.09695361",
+        //   "high": "0.10245881",
+        //   "low": "0.09572507",
+        //   "close": "0.09917079",
+        //   "closeQuantity": "0.71320950",
+        //   "baseVolume": "309.17380612",
+        //   "quoteVolume": "30.57633981",
+        //   "percentChange": "2.28",
+        //   "numTrades": 205,
+        //   "ask": "0.09910476",
+        //   "bid": "0.09688340",
+        //   "sequence": 3902
         // }
         const marketId = this.safeString(ticker, 'market');
         market = this.safeMarket(marketId, market, '-');
@@ -455,13 +456,13 @@ class idex extends idex$1 {
         if (Array.isArray(response)) {
             // [
             //   {
-            //     start: 1598345580000,
-            //     open: '0.09771286',
-            //     high: '0.09771286',
-            //     low: '0.09771286',
-            //     close: '0.09771286',
-            //     volume: '1.45340410',
-            //     sequence: 3853
+            //     "start": 1598345580000,
+            //     "open": "0.09771286",
+            //     "high": "0.09771286",
+            //     "low": "0.09771286",
+            //     "close": "0.09771286",
+            //     "volume": "1.45340410",
+            //     "sequence": 3853
             //   }, ...
             // ]
             return this.parseOHLCVs(response, market, timeframe, since, limit);
@@ -473,13 +474,13 @@ class idex extends idex$1 {
     }
     parseOHLCV(ohlcv, market = undefined) {
         // {
-        //   start: 1598345580000,
-        //   open: '0.09771286',
-        //   high: '0.09771286',
-        //   low: '0.09771286',
-        //   close: '0.09771286',
-        //   volume: '1.45340410',
-        //   sequence: 3853
+        //   "start": 1598345580000,
+        //   "open": "0.09771286",
+        //   "high": "0.09771286",
+        //   "low": "0.09771286",
+        //   "close": "0.09771286",
+        //   "volume": "1.45340410",
+        //   "sequence": 3853
         // }
         const timestamp = this.safeInteger(ohlcv, 'start');
         const open = this.safeNumber(ohlcv, 'open');
@@ -498,7 +499,7 @@ class idex extends idex$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -513,13 +514,13 @@ class idex extends idex$1 {
         }
         // [
         //   {
-        //     fillId: 'b5467d00-b13e-3fa9-8216-dd66735550fc',
-        //     price: '0.09771286',
-        //     quantity: '1.45340410',
-        //     quoteQuantity: '0.14201627',
-        //     time: 1598345638994,
-        //     makerSide: 'buy',
-        //     sequence: 3853
+        //     "fillId": "b5467d00-b13e-3fa9-8216-dd66735550fc",
+        //     "price": "0.09771286",
+        //     "quantity": "1.45340410",
+        //     "quoteQuantity": "0.14201627",
+        //     "time": 1598345638994,
+        //     "makerSide": "buy",
+        //     "sequence": 3853
         //   }, ...
         // ]
         const response = await this.publicGetTrades(this.extend(request, params));
@@ -608,7 +609,7 @@ class idex extends idex$1 {
          * @name idex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -620,15 +621,15 @@ class idex extends idex$1 {
         response = await this.privateGetUser(this.extend(request, params));
         //
         //     {
-        //         depositEnabled: true,
-        //         orderEnabled: true,
-        //         cancelEnabled: true,
-        //         withdrawEnabled: true,
-        //         totalPortfolioValueUsd: '0.00',
-        //         makerFeeRate: '0.0000',
-        //         takerFeeRate: '0.0025',
-        //         takerIdexFeeRate: '0.0005',
-        //         takerLiquidityProviderFeeRate: '0.0020'
+        //         "depositEnabled": true,
+        //         "orderEnabled": true,
+        //         "cancelEnabled": true,
+        //         "withdrawEnabled": true,
+        //         "totalPortfolioValueUsd": "0.00",
+        //         "makerFeeRate": "0.0000",
+        //         "takerFeeRate": "0.0025",
+        //         "takerIdexFeeRate": "0.0005",
+        //         "takerLiquidityProviderFeeRate": "0.0020"
         //     }
         //
         const maker = this.safeNumber(response, 'makerFeeRate');
@@ -655,7 +656,7 @@ class idex extends idex$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -667,23 +668,23 @@ class idex extends idex$1 {
             request['limit'] = limit;
         }
         // {
-        //   sequence: 36416753,
-        //   bids: [
-        //     [ '0.09672815', '8.22284267', 1 ],
-        //     [ '0.09672814', '1.83685554', 1 ],
-        //     [ '0.09672143', '4.10962617', 1 ],
-        //     [ '0.09658884', '4.03863759', 1 ],
-        //     [ '0.09653781', '3.35730684', 1 ],
-        //     [ '0.09624660', '2.54163586', 1 ],
-        //     [ '0.09617490', '1.93065030', 1 ]
+        //   "sequence": 36416753,
+        //   "bids": [
+        //     [ '0.09672815', "8.22284267", 1 ],
+        //     [ '0.09672814', "1.83685554", 1 ],
+        //     [ '0.09672143', "4.10962617", 1 ],
+        //     [ '0.09658884', "4.03863759", 1 ],
+        //     [ '0.09653781', "3.35730684", 1 ],
+        //     [ '0.09624660', "2.54163586", 1 ],
+        //     [ '0.09617490', "1.93065030", 1 ]
         //   ],
-        //   asks: [
-        //     [ '0.09910476', '3.22840154', 1 ],
-        //     [ '0.09940587', '3.39796593', 1 ],
-        //     [ '0.09948189', '4.25088898', 1 ],
-        //     [ '0.09958362', '2.42195784', 1 ],
-        //     [ '0.09974393', '4.25234367', 1 ],
-        //     [ '0.09995250', '3.40192141', 1 ]
+        //   "asks": [
+        //     [ '0.09910476', "3.22840154", 1 ],
+        //     [ '0.09940587', "3.39796593", 1 ],
+        //     [ '0.09948189', "4.25088898", 1 ],
+        //     [ '0.09958362', "2.42195784", 1 ],
+        //     [ '0.09974393', "4.25234367", 1 ],
+        //     [ '0.09995250', "3.40192141", 1 ]
         //   ]
         // }
         const response = await this.publicGetOrderbook(this.extend(request, params));
@@ -781,7 +782,7 @@ class idex extends idex$1 {
          * @name idex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -792,11 +793,11 @@ class idex extends idex$1 {
         };
         // [
         //   {
-        //     asset: 'DIL',
-        //     quantity: '0.00000000',
-        //     availableForTrade: '0.00000000',
-        //     locked: '0.00000000',
-        //     usdValue: null
+        //     "asset": "DIL",
+        //     "quantity": "0.00000000",
+        //     "availableForTrade": "0.00000000",
+        //     "locked": "0.00000000",
+        //     "usdValue": null
         //   }, ...
         // ]
         const extendedRequest = this.extend(request, params);
@@ -828,7 +829,7 @@ class idex extends idex$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -849,22 +850,22 @@ class idex extends idex$1 {
         }
         // [
         //   {
-        //     fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //     price: '0.09905990',
-        //     quantity: '0.40000000',
-        //     quoteQuantity: '0.03962396',
-        //     time: 1598873478762,
-        //     makerSide: 'sell',
-        //     sequence: 5053,
-        //     market: 'DIL-ETH',
-        //     orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //     side: 'buy',
-        //     fee: '0.00080000',
-        //     feeAsset: 'DIL',
-        //     gas: '0.00857497',
-        //     liquidity: 'taker',
-        //     txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //     txStatus: 'mined'
+        //     "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //     "price": "0.09905990",
+        //     "quantity": "0.40000000",
+        //     "quoteQuantity": "0.03962396",
+        //     "time": 1598873478762,
+        //     "makerSide": "sell",
+        //     "sequence": 5053,
+        //     "market": "DIL-ETH",
+        //     "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //     "side": "buy",
+        //     "fee": "0.00080000",
+        //     "feeAsset": "DIL",
+        //     "gas": "0.00857497",
+        //     "liquidity": "taker",
+        //     "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //     "txStatus": "mined"
         //   }
         // ]
         const extendedRequest = this.extend(request, params);
@@ -894,7 +895,7 @@ class idex extends idex$1 {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'orderId': id,
@@ -910,7 +911,7 @@ class idex extends idex$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'closed': false,
@@ -926,7 +927,7 @@ class idex extends idex$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'closed': true,
@@ -986,32 +987,32 @@ class idex extends idex$1 {
         //   }
         // ]
         // fetchOrder
-        // { market: 'DIL-ETH',
-        //   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   wallet: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   time: 1598873478650,
-        //   status: 'filled',
-        //   type: 'limit',
-        //   side: 'buy',
-        //   originalQuantity: '0.40000000',
-        //   executedQuantity: '0.40000000',
-        //   cumulativeQuoteQuantity: '0.03962396',
-        //   avgExecutionPrice: '0.09905990',
-        //   price: '1.00000000',
-        //   fills:
-        //    [ { fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //        price: '0.09905990',
-        //        quantity: '0.40000000',
-        //        quoteQuantity: '0.03962396',
-        //        time: 1598873478650,
-        //        makerSide: 'sell',
-        //        sequence: 5053,
-        //        fee: '0.00080000',
-        //        feeAsset: 'DIL',
-        //        gas: '0.00857497',
-        //        liquidity: 'taker',
-        //        txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //        txStatus: 'mined' } ] }
+        // { market: "DIL-ETH",
+        //   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "time": 1598873478650,
+        //   "status": "filled",
+        //   "type": "limit",
+        //   "side": "buy",
+        //   "originalQuantity": "0.40000000",
+        //   "executedQuantity": "0.40000000",
+        //   "cumulativeQuoteQuantity": "0.03962396",
+        //   "avgExecutionPrice": "0.09905990",
+        //   "price": "1.00000000",
+        //   "fills":
+        //    [ { fillId: "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //        "price": "0.09905990",
+        //        "quantity": "0.40000000",
+        //        "quoteQuantity": "0.03962396",
+        //        "time": 1598873478650,
+        //        "makerSide": "sell",
+        //        "sequence": 5053,
+        //        "fee": "0.00080000",
+        //        "feeAsset": "DIL",
+        //        "gas": "0.00857497",
+        //        "liquidity": "taker",
+        //        "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //        "txStatus": "mined" } ] }
         if (Array.isArray(response)) {
             return this.parseOrders(response, market, since, limit);
         }
@@ -1114,9 +1115,9 @@ class idex extends idex$1 {
         const hash = this.hash(binary, sha3.keccak_256, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         // {
-        //   address: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   totalPortfolioValueUsd: '0.00',
-        //   time: 1598468353626
+        //   "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "totalPortfolioValueUsd": "0.00",
+        //   "time": 1598468353626
         // }
         const request = {
             'parameters': {
@@ -1139,7 +1140,7 @@ class idex extends idex$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -1293,34 +1294,34 @@ class idex extends idex$1 {
             request['parameters']['clientOrderId'] = clientOrderId;
         }
         // {
-        //   market: 'DIL-ETH',
-        //   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   wallet: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   time: 1598873478650,
-        //   status: 'filled',
-        //   type: 'limit',
-        //   side: 'buy',
-        //   originalQuantity: '0.40000000',
-        //   executedQuantity: '0.40000000',
-        //   cumulativeQuoteQuantity: '0.03962396',
-        //   price: '1.00000000',
-        //   fills: [
+        //   "market": "DIL-ETH",
+        //   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "time": 1598873478650,
+        //   "status": "filled",
+        //   "type": "limit",
+        //   "side": "buy",
+        //   "originalQuantity": "0.40000000",
+        //   "executedQuantity": "0.40000000",
+        //   "cumulativeQuoteQuantity": "0.03962396",
+        //   "price": "1.00000000",
+        //   "fills": [
         //     {
-        //       fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //       price: '0.09905990',
-        //       quantity: '0.40000000',
-        //       quoteQuantity: '0.03962396',
-        //       time: 1598873478650,
-        //       makerSide: 'sell',
-        //       sequence: 5053,
-        //       fee: '0.00080000',
-        //       feeAsset: 'DIL',
-        //       gas: '0.00857497',
-        //       liquidity: 'taker',
-        //       txStatus: 'pending'
+        //       "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //       "price": "0.09905990",
+        //       "quantity": "0.40000000",
+        //       "quoteQuantity": "0.03962396",
+        //       "time": 1598873478650,
+        //       "makerSide": "sell",
+        //       "sequence": 5053,
+        //       "fee": "0.00080000",
+        //       "feeAsset": "DIL",
+        //       "gas": "0.00857497",
+        //       "liquidity": "taker",
+        //       "txStatus": "pending"
         //     }
         //   ],
-        //   avgExecutionPrice: '0.09905990'
+        //   "avgExecutionPrice": "0.09905990"
         // }
         // we don't use extend here because it is a signed endpoint
         const response = await this.privatePostOrders(request);
@@ -1336,7 +1337,7 @@ class idex extends idex$1 {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkRequiredCredentials();
@@ -1367,14 +1368,14 @@ class idex extends idex$1 {
         const response = await this.privatePostWithdrawals(request);
         //
         //     {
-        //         withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //         asset: 'ETH',
-        //         assetContractAddress: '0x0000000000000000000000000000000000000000',
-        //         quantity: '0.20000000',
-        //         time: 1598962883190,
-        //         fee: '0.00024000',
-        //         txStatus: 'pending',
-        //         txId: null
+        //         "withdrawalId": "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        //         "asset": "ETH",
+        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
+        //         "quantity": "0.20000000",
+        //         "time": 1598962883190,
+        //         "fee": "0.00024000",
+        //         "txStatus": "pending",
+        //         "txId": null
         //     }
         //
         return this.parseTransaction(response, currency);
@@ -1386,7 +1387,7 @@ class idex extends idex$1 {
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -1414,7 +1415,7 @@ class idex extends idex$1 {
         const hash = this.hash(binary, sha3.keccak_256, 'hex');
         const signature = this.signMessageString(hash, this.privateKey);
         request['signature'] = signature;
-        // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
+        // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
         const response = await this.privateDeleteOrders(this.extend(request, params));
         return this.parseOrders(response, market);
     }
@@ -1426,7 +1427,7 @@ class idex extends idex$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -1452,7 +1453,7 @@ class idex extends idex$1 {
             },
             'signature': signature,
         };
-        // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
+        // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
         const response = await this.privateDeleteOrders(this.extend(request, params));
         const canceledOrder = this.safeValue(response, 0);
         return this.parseOrder(canceledOrder, market);
@@ -1477,7 +1478,7 @@ class idex extends idex$1 {
          * @param {string} id deposit id
          * @param {string} code not used by idex fetchDeposit ()
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const nonce = this.uuidv1();
@@ -1487,7 +1488,7 @@ class idex extends idex$1 {
             'depositId': id,
         };
         const response = await this.privateGetDeposits(this.extend(request, params));
-        return this.parseTransaction(response, code);
+        return this.parseTransaction(response);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1498,7 +1499,7 @@ class idex extends idex$1 {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         params = this.extend({
             'method': 'privateGetDeposits',
@@ -1515,7 +1516,7 @@ class idex extends idex$1 {
          */
         const response = await this.publicGetTime(params);
         //
-        //    { serverTime: '1655258263236' }
+        //    { serverTime: "1655258263236" }
         //
         return this.safeInteger(response, 'serverTime');
     }
@@ -1527,7 +1528,7 @@ class idex extends idex$1 {
          * @param {string} id withdrawal id
          * @param {string} code not used by idex.fetchWithdrawal
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
         const nonce = this.uuidv1();
@@ -1537,7 +1538,7 @@ class idex extends idex$1 {
             'withdrawalId': id,
         };
         const response = await this.privateGetWithdrawals(this.extend(request, params));
-        return this.parseTransaction(response, code);
+        return this.parseTransaction(response);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1548,7 +1549,7 @@ class idex extends idex$1 {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the idex api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         params = this.extend({
             'method': 'privateGetWithdrawals',
@@ -1575,12 +1576,12 @@ class idex extends idex$1 {
         }
         // [
         //   {
-        //     depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e',
-        //     asset: 'ETH',
-        //     quantity: '1.00000000',
-        //     txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //     txTime: 1598865853000,
-        //     confirmationTime: 1598865930231
+        //     "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e",
+        //     "asset": "ETH",
+        //     "quantity": "1.00000000",
+        //     "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        //     "txTime": 1598865853000,
+        //     "confirmationTime": 1598865930231
         //   }
         // ]
         const method = params['method'];
@@ -1599,38 +1600,38 @@ class idex extends idex$1 {
         // fetchDeposits
         //
         //     {
-        //         depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
-        //         asset: 'ETH',
-        //         quantity: '1.00000000',
-        //         txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //         txTime: 1598865853000,
-        //         confirmationTime: 1598865930231
+        //         "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f",
+        //         "asset": "ETH",
+        //         "quantity": "1.00000000",
+        //         "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        //         "txTime": 1598865853000,
+        //         "confirmationTime": 1598865930231
         //     }
         //
         // fetchWithdrwalas
         //
         //     {
-        //         withdrawalId: 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
-        //         asset: 'ETH',
-        //         assetContractAddress: '0x0000000000000000000000000000000000000000',
-        //         quantity: '0.20000000',
-        //         time: 1598962883288,
-        //         fee: '0.00024000',
-        //         txId: '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
-        //         txStatus: 'mined'
+        //         "withdrawalId": "a62d8760-ec4d-11ea-9fa6-47904c19499b",
+        //         "asset": "ETH",
+        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
+        //         "quantity": "0.20000000",
+        //         "time": 1598962883288,
+        //         "fee": "0.00024000",
+        //         "txId": "0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce",
+        //         "txStatus": "mined"
         //     }
         //
         // withdraw
         //
         //     {
-        //         withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //         asset: 'ETH',
-        //         assetContractAddress: '0x0000000000000000000000000000000000000000',
-        //         quantity: '0.20000000',
-        //         time: 1598962883190,
-        //         fee: '0.00024000',
-        //         txStatus: 'pending',
-        //         txId: null
+        //         "withdrawalId": "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        //         "asset": "ETH",
+        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
+        //         "quantity": "0.20000000",
+        //         "time": 1598962883190,
+        //         "fee": "0.00024000",
+        //         "txStatus": "pending",
+        //         "txId": null
         //     }
         //
         let type = undefined;
@@ -1674,6 +1675,8 @@ class idex extends idex$1 {
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

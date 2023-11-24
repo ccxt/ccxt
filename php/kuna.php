@@ -37,12 +37,11 @@ class kuna extends Exchange {
                 'createStopOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
@@ -53,6 +52,8 @@ class kuna extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLeverage' => false,
@@ -72,7 +73,7 @@ class kuna extends Exchange {
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
-                'fetchPositionsBySymbol' => false,
+                'fetchPositionsForSymbol' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -593,20 +594,21 @@ class kuna extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $item,
             );
         }
         return $markets;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://docs.kuna.io/docs/get-public-orders-book
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] 5, 10, 20, 50, 100, 500, or 1000 (default)
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -647,7 +649,7 @@ class kuna extends Exchange {
         return $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 0, 1);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, ?array $market = null): array {
         //
         //    {
         //        "pair" => "BTC_USDT",                                   // Traded pair
@@ -686,13 +688,13 @@ class kuna extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market. The average is not returned in the $response, but the median can be accessed via $response['info']['price']
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market. The average is not returned in the $response, but the median can be accessed via $response['info']['price']
          * @see https://docs.kuna.io/docs/get-market-info-by-tickers
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         if ($symbols === null) {
@@ -728,13 +730,13 @@ class kuna extends Exchange {
         return $this->parse_tickers($data, $symbols, $params);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://docs.kuna.io/docs/get-$market-info-by-tickers
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -774,12 +776,12 @@ class kuna extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {int} [$limit] max number of orders to return, default is null
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
          */
         return $this->fetch_order_book($symbol, $limit, $params);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://docs.kuna.io/docs/get-public-trades-book
@@ -787,7 +789,7 @@ class kuna extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] between 1 and 100, 25 by default
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -815,7 +817,7 @@ class kuna extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -832,17 +834,17 @@ class kuna extends Exchange {
         // fetchMyTrades, fetchOrder (private)
         //
         //    {
-        //        id => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a $trade
-        //        orderId => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the $trade
-        //        pair => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //        quantity => "1.5862",                                // Traded quantity of base asset
-        //        price => "19087",                                    // Price of the $trade
-        //        $isTaker => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //        fee => "0.0039655",                                  // Exchange commission fee
-        //        feeCurrency => "BTC",                                // Currency of the commission
-        //        $isBuyer => true,                                     // Buy or sell the base asset
-        //        quoteQuantity => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //        createdAt => "2022-09-29T13:43:53.824Z",             // Date-time of $trade execution, UTC
+        //        "id" => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a $trade
+        //        "orderId" => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the $trade
+        //        "pair" => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //        "quantity" => "1.5862",                                // Traded quantity of base asset
+        //        "price" => "19087",                                    // Price of the $trade
+        //        "isTaker" => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //        "fee" => "0.0039655",                                  // Exchange commission fee
+        //        "feeCurrency" => "BTC",                                // Currency of the commission
+        //        "isBuyer" => true,                                     // Buy or sell the base asset
+        //        "quoteQuantity" => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //        "createdAt" => "2022-09-29T13:43:53.824Z",             // Date-time of $trade execution, UTC
         //    }
         //
         $datetime = $this->safe_string($trade, 'createdAt');
@@ -874,7 +876,7 @@ class kuna extends Exchange {
         ), $market);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         //    array(
         //        {
@@ -898,11 +900,11 @@ class kuna extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->v4PrivateGetPrivateGetBalance ($params);
@@ -934,7 +936,7 @@ class kuna extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->id] id must be a UUID format, if you do not specify id, it will be generated automatically.
          * @param {float} [$params->quoteQuantity] the max quantity of the quote asset to use for selling/buying
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -944,7 +946,7 @@ class kuna extends Exchange {
         $request = array(
             'pair' => $market['id'],
             'orderSide' => ($side === 'buy') ? 'Bid' : 'Ask',
-            'quantity' => (string) $amount,
+            'quantity' => $this->number_to_string($amount),
             'type' => $capitalizedType,
         );
         if ($capitalizedType === 'Limit') {
@@ -985,7 +987,7 @@ class kuna extends Exchange {
          * @param {string} $id $order $id
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1015,7 +1017,7 @@ class kuna extends Exchange {
          * @param {string} $ids order $ids
          * @param {string} $symbol not used by kuna cancelOrder
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1050,7 +1052,7 @@ class kuna extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order($order, ?array $market = null): array {
         //
         // createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         //
@@ -1137,7 +1139,7 @@ class kuna extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {boolean} [$params->withTrades] default == true, specify if the $response should include trades associated with the order
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1183,7 +1185,7 @@ class kuna extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://docs.kuna.io/docs/get-active-client-orders-private
@@ -1195,7 +1197,7 @@ class kuna extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->sort] asc (oldest-on-top) or desc (newest-on-top)
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         $until = $this->safe_integer($params, 'until');
@@ -1242,7 +1244,7 @@ class kuna extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://docs.kuna.io/docs/get-private-orders-history
@@ -1254,7 +1256,7 @@ class kuna extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->sort] asc (oldest-on-top) or desc (newest-on-top)
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params);
     }
@@ -1272,7 +1274,7 @@ class kuna extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->sort] asc (oldest-on-top) or desc (newest-on-top)
-         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
         if ($status === 'open') {
@@ -1336,7 +1338,7 @@ class kuna extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->orderId] UUID of an order, to receive trades for this order only
          * @param {string} [$params->sort] asc (oldest-on-top) or desc (newest-on-top)
-         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $market = null;
@@ -1350,17 +1352,17 @@ class kuna extends Exchange {
         //    {
         //        "data" => array(
         //            array(
-        //                id => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
-        //                orderId => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
-        //                pair => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //                quantity => "1.5862",                                // Traded quantity of base asset
-        //                price => "19087",                                    // Price of the trade
-        //                isTaker => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //                fee => "0.0039655",                                  // Exchange commission fee
-        //                feeCurrency => "BTC",                                // Currency of the commission
-        //                isBuyer => true,                                     // Buy or sell the base asset
-        //                quoteQuantity => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //                createdAt => "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //                "id" => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //                "orderId" => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //                "pair" => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //                "quantity" => "1.5862",                                // Traded quantity of base asset
+        //                "price" => "19087",                                    // Price of the trade
+        //                "isTaker" => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //                "fee" => "0.0039655",                                  // Exchange commission fee
+        //                "feeCurrency" => "BTC",                                // Currency of the commission
+        //                "isBuyer" => true,                                     // Buy or sell the base asset
+        //                "quoteQuantity" => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //                "createdAt" => "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
         //            ),
         //        )
         //    }
@@ -1383,7 +1385,7 @@ class kuna extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->id] id must be a uuid format, if you do not specify id, it will be generated automatically
          * @param {boolean} [$params->withdrawAll] this field says that the $amount should also include a fee
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $this->check_address($address);
         $chain = $this->safe_string_2($params, 'chain', 'network');
@@ -1420,7 +1422,7 @@ class kuna extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made to an account
          * @see https://docs.kuna.io/docs/get-withdraw-history
@@ -1436,13 +1438,13 @@ class kuna extends Exchange {
          * @param {string} [$params->sortOrder] asc (oldest-on-top), or desc (newest-on-top, default)
          * @param {int} [$params->skip] 0 - ... Select the number of transactions to skip
          * @param {string} [$params->address]
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, 'until');
         $currency = null;
-        if ($currency !== null) {
+        if ($code !== null) {
             $currency = $this->currency($code);
         }
         $request = array();
@@ -1494,7 +1496,7 @@ class kuna extends Exchange {
          * @param {string} $id withdrawal $id
          * @param {string} $code not used by kuna.fetchWithdrawal
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $request = array(
@@ -1532,7 +1534,7 @@ class kuna extends Exchange {
          * @see https://docs.kuna.io/docs/generate-a-constant-crypto-address-for-deposit
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1559,7 +1561,7 @@ class kuna extends Exchange {
          * @see https://docs.kuna.io/docs/find-crypto-address-for-deposit
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1580,7 +1582,7 @@ class kuna extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null) {
         //
         //    {
         //        "id" => "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.
@@ -1612,7 +1614,7 @@ class kuna extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @see https://docs.kuna.io/docs/get-deposit-history
@@ -1628,13 +1630,13 @@ class kuna extends Exchange {
          * @param {string} [$params->sortOrder] asc (oldest-on-top), or desc (newest-on-top, default)
          * @param {int} [$params->skip] 0 - ... Select the number of transactions to skip
          * @param {string} [$params->address]
-         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, 'until');
         $currency = null;
-        if ($currency !== null) {
+        if ($code !== null) {
             $currency = $this->currency($code);
         }
         $request = array();
@@ -1686,7 +1688,7 @@ class kuna extends Exchange {
          * @param {string} $id deposit $id
          * @param {string} $code filter by $currency $code
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
-         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
+         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $currency = null;
@@ -1722,7 +1724,7 @@ class kuna extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, ?array $currency = null): array {
         //
         //    {
         //        "id" => "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
@@ -1749,6 +1751,7 @@ class kuna extends Exchange {
         $type = $this->safe_string_lower($transaction, 'type');
         $address = $this->safe_string($transaction, 'address');
         $isDeposit = ($type === 'deposit');
+        $parsedType = $isDeposit ? $type : 'withdrawal';
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
@@ -1761,15 +1764,16 @@ class kuna extends Exchange {
             'address' => $address,
             'addressTo' => $address,
             'amount' => $this->safe_number($transaction, 'amount'),
-            'type' => !$isDeposit ? 'withdrawal' : $type,
+            'type' => $parsedType,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'updated' => $this->parse8601($this->safe_string($transaction, 'updatedAt')),
             'tagFrom' => null,
             'tag' => null,
             'tagTo' => null,
             'comment' => $this->safe_string($transaction, 'memo'),
+            'internal' => null,
             'fee' => array(
-                'cost' => $this->safe_string($transaction, 'fee'),
+                'cost' => $this->safe_number($transaction, 'fee'),
                 'currency' => $code,
             ),
         );
@@ -1801,7 +1805,8 @@ class kuna extends Exchange {
         $url = null;
         if (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api))) {
             $isGet = $method === 'GET';
-            list($version, $access) = $api;
+            $version = $this->safe_string($api, 0);
+            $access = $this->safe_string($api, 1);
             if ($version === 'v3') {
                 $url = $this->urls['api'][$version] . '/' . $version . '/' . $this->implode_params($path, $params);
                 if ($access === 'public') {

@@ -468,7 +468,7 @@ export default class cex extends Exchange {
          * @name cex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostBalance(params);
@@ -482,7 +482,7 @@ export default class cex extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -598,10 +598,10 @@ export default class cex extends Exchange {
         /**
          * @method
          * @name cex#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -628,7 +628,7 @@ export default class cex extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -682,7 +682,7 @@ export default class cex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -698,17 +698,17 @@ export default class cex extends Exchange {
          * @name cex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privatePostGetMyfee(params);
         //
         //      {
-        //          e: 'get_myfee',
-        //          ok: 'ok',
-        //          data: {
-        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
-        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
+        //          "e": "get_myfee",
+        //          "ok": "ok",
+        //          "data": {
+        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15" },
+        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15" },
         //            ..
         //          }
         //      }
@@ -745,7 +745,7 @@ export default class cex extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         // for market buy it requires the amount of quote currency to spend
         if ((type === 'market') && (side === 'buy')) {
@@ -824,7 +824,7 @@ export default class cex extends Exchange {
          * @param {string} id order id
          * @param {string} symbol not used by cex cancelOrder ()
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -921,23 +921,23 @@ export default class cex extends Exchange {
                 const tradeSide = this.safeString(item, 'type');
                 if (tradeSide === 'cancel') {
                     // looks like this might represent the cancelled part of an order
-                    //   { id: '4426729543',
-                    //     type: 'cancel',
-                    //     time: '2017-09-22T00:24:30.476Z',
-                    //     user: 'up106404164',
-                    //     c: 'user:up106404164:a:BCH',
-                    //     d: 'order:4426728375:a:BCH',
-                    //     a: '0.09935956',
-                    //     amount: '0.09935956',
-                    //     balance: '0.42580261',
-                    //     symbol: 'BCH',
-                    //     order: '4426728375',
-                    //     buy: null,
-                    //     sell: null,
-                    //     pair: null,
-                    //     pos: null,
-                    //     cs: '0.42580261',
-                    //     ds: 0 }
+                    //   { "id": "4426729543",
+                    //     "type": "cancel",
+                    //     "time": "2017-09-22T00:24:30.476Z",
+                    //     "user": "up106404164",
+                    //     "c": "user:up106404164:a:BCH",
+                    //     "d": "order:4426728375:a:BCH",
+                    //     "a": "0.09935956",
+                    //     "amount": "0.09935956",
+                    //     "balance": "0.42580261",
+                    //     "symbol": "BCH",
+                    //     "order": "4426728375",
+                    //     "buy": null,
+                    //     "sell": null,
+                    //     "pair": null,
+                    //     "pos": null,
+                    //     "cs": "0.42580261",
+                    //     "ds": 0 }
                     continue;
                 }
                 const tradePrice = this.safeString(item, 'price');
@@ -1109,7 +1109,7 @@ export default class cex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -1133,15 +1133,15 @@ export default class cex extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
-        const method = 'privatePostArchivedOrdersPair';
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
+        await this.loadMarkets();
+        const method = 'privatePostArchivedOrdersPair';
         const market = this.market(symbol);
         const request = { 'pair': market['id'] };
         const response = await this[method](this.extend(request, params));
@@ -1154,7 +1154,7 @@ export default class cex extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol not used by cex fetchOrder
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -1273,7 +1273,7 @@ export default class cex extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1286,95 +1286,95 @@ export default class cex extends Exchange {
         const results = [];
         for (let i = 0; i < response.length; i++) {
             // cancelled (unfilled):
-            //    { id: '4005785516',
-            //     type: 'sell',
-            //     time: '2017-07-18T19:08:34.223Z',
-            //     lastTxTime: '2017-07-18T19:08:34.396Z',
-            //     lastTx: '4005785522',
-            //     pos: null,
-            //     status: 'c',
-            //     symbol1: 'ETH',
-            //     symbol2: 'GBP',
-            //     amount: '0.20000000',
-            //     price: '200.5625',
-            //     remains: '0.20000000',
-            //     'a:ETH:cds': '0.20000000',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '10155061217',
-            //     orderId: '4005785516' }
+            //    { "id": "4005785516",
+            //     "type": "sell",
+            //     "time": "2017-07-18T19:08:34.223Z",
+            //     "lastTxTime": "2017-07-18T19:08:34.396Z",
+            //     "lastTx": "4005785522",
+            //     "pos": null,
+            //     "status": "c",
+            //     "symbol1": "ETH",
+            //     "symbol2": "GBP",
+            //     "amount": "0.20000000",
+            //     "price": "200.5625",
+            //     "remains": "0.20000000",
+            //     'a:ETH:cds': "0.20000000",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.16",
+            //     "tradingFeeUserVolumeAmount": "10155061217",
+            //     "orderId": "4005785516" }
             // --
             // cancelled (partially filled buy):
-            //    { id: '4084911657',
-            //     type: 'buy',
-            //     time: '2017-08-05T03:18:39.596Z',
-            //     lastTxTime: '2019-03-19T17:37:46.404Z',
-            //     lastTx: '8459265833',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BTC',
-            //     symbol2: 'GBP',
-            //     amount: '0.05000000',
-            //     price: '2241.4692',
-            //     tfacf: '1',
-            //     remains: '0.03910535',
-            //     'tfa:GBP': '0.04',
-            //     'tta:GBP': '24.39',
-            //     'a:BTC:cds': '0.01089465',
-            //     'a:GBP:cds': '112.26',
-            //     'f:GBP:cds': '0.04',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '13336396963',
-            //     orderId: '4084911657' }
+            //    { "id": "4084911657",
+            //     "type": "buy",
+            //     "time": "2017-08-05T03:18:39.596Z",
+            //     "lastTxTime": "2019-03-19T17:37:46.404Z",
+            //     "lastTx": "8459265833",
+            //     "pos": null,
+            //     "status": "cd",
+            //     "symbol1": "BTC",
+            //     "symbol2": "GBP",
+            //     "amount": "0.05000000",
+            //     "price": "2241.4692",
+            //     "tfacf": "1",
+            //     "remains": "0.03910535",
+            //     'tfa:GBP': "0.04",
+            //     'tta:GBP': "24.39",
+            //     'a:BTC:cds': "0.01089465",
+            //     'a:GBP:cds': "112.26",
+            //     'f:GBP:cds': "0.04",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.16",
+            //     "tradingFeeUserVolumeAmount": "13336396963",
+            //     "orderId": "4084911657" }
             // --
             // cancelled (partially filled sell):
-            //    { id: '4426728375',
-            //     type: 'sell',
-            //     time: '2017-09-22T00:24:20.126Z',
-            //     lastTxTime: '2017-09-22T00:24:30.476Z',
-            //     lastTx: '4426729543',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     price: '0.11757182',
-            //     tfacf: '1',
-            //     remains: '0.09935956',
-            //     'tfa:BTC': '0.00000014',
-            //     'tta:BTC': '0.00007537',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.00007537',
-            //     'f:BTC:cds': '0.00000014',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.18',
-            //     tradingFeeUserVolumeAmount: '3466715450',
-            //     orderId: '4426728375' }
+            //    { "id": "4426728375",
+            //     "type": "sell",
+            //     "time": "2017-09-22T00:24:20.126Z",
+            //     "lastTxTime": "2017-09-22T00:24:30.476Z",
+            //     "lastTx": "4426729543",
+            //     "pos": null,
+            //     "status": "cd",
+            //     "symbol1": "BCH",
+            //     "symbol2": "BTC",
+            //     "amount": "0.10000000",
+            //     "price": "0.11757182",
+            //     "tfacf": "1",
+            //     "remains": "0.09935956",
+            //     'tfa:BTC': "0.00000014",
+            //     'tta:BTC': "0.00007537",
+            //     'a:BCH:cds': "0.10000000",
+            //     'a:BTC:cds': "0.00007537",
+            //     'f:BTC:cds': "0.00000014",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.18",
+            //     "tradingFeeUserVolumeAmount": "3466715450",
+            //     "orderId": "4426728375" }
             // --
             // filled:
-            //    { id: '5342275378',
-            //     type: 'sell',
-            //     time: '2018-01-04T00:28:12.992Z',
-            //     lastTxTime: '2018-01-04T00:28:12.992Z',
-            //     lastTx: '5342275393',
-            //     pos: null,
-            //     status: 'd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     kind: 'api',
-            //     price: '0.17',
-            //     remains: '0.00000000',
-            //     'tfa:BTC': '0.00003902',
-            //     'tta:BTC': '0.01699999',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.01699999',
-            //     'f:BTC:cds': '0.00003902',
-            //     tradingFeeMaker: '0.15',
-            //     tradingFeeTaker: '0.23',
-            //     tradingFeeUserVolumeAmount: '1525951128',
-            //     orderId: '5342275378' }
+            //    { "id": "5342275378",
+            //     "type": "sell",
+            //     "time": "2018-01-04T00:28:12.992Z",
+            //     "lastTxTime": "2018-01-04T00:28:12.992Z",
+            //     "lastTx": "5342275393",
+            //     "pos": null,
+            //     "status": "d",
+            //     "symbol1": "BCH",
+            //     "symbol2": "BTC",
+            //     "amount": "0.10000000",
+            //     "kind": "api",
+            //     "price": "0.17",
+            //     "remains": "0.00000000",
+            //     'tfa:BTC': "0.00003902",
+            //     'tta:BTC': "0.01699999",
+            //     'a:BCH:cds': "0.10000000",
+            //     'a:BTC:cds': "0.01699999",
+            //     'f:BTC:cds': "0.00003902",
+            //     "tradingFeeMaker": "0.15",
+            //     "tradingFeeTaker": "0.23",
+            //     "tradingFeeUserVolumeAmount": "1525951128",
+            //     "orderId": "5342275378" }
             // --
             // market order (buy):
             //    { "id": "6281946200",
@@ -1516,7 +1516,7 @@ export default class cex extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the cex api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);

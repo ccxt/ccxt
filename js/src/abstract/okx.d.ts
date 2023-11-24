@@ -19,9 +19,10 @@ interface Exchange {
     publicGetMarketOpenOracle(params?: {}): Promise<implicitReturnType>;
     publicGetMarketExchangeRate(params?: {}): Promise<implicitReturnType>;
     publicGetMarketIndexComponents(params?: {}): Promise<implicitReturnType>;
+    publicGetPublicEconomicCalendar(params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTickers(params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTicker(params?: {}): Promise<implicitReturnType>;
-    publicGetMarketBlockTrades(params?: {}): Promise<implicitReturnType>;
+    publicGetPublicBlockTrades(params?: {}): Promise<implicitReturnType>;
     publicGetPublicInstruments(params?: {}): Promise<implicitReturnType>;
     publicGetPublicDeliveryExerciseHistory(params?: {}): Promise<implicitReturnType>;
     publicGetPublicOpenInterest(params?: {}): Promise<implicitReturnType>;
@@ -60,6 +61,7 @@ interface Exchange {
     publicGetTradingBotGridMinInvestment(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotPublicRsiBackTesting(params?: {}): Promise<implicitReturnType>;
     publicGetAssetExchangeList(params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceStakingDefiEthApyHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSfpDcdProducts(params?: {}): Promise<implicitReturnType>;
@@ -135,7 +137,6 @@ interface Exchange {
     privateGetAssetSubaccountBills(params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountManagedSubaccountBills(params?: {}): Promise<implicitReturnType>;
     privateGetUsersEntrustSubaccountList(params?: {}): Promise<implicitReturnType>;
-    privateGetUsersPartnerIfRebate(params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountInterestLimits(params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoPending(params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridOrdersAlgoHistory(params?: {}): Promise<implicitReturnType>;
@@ -157,6 +158,8 @@ interface Exchange {
     privateGetFinanceStakingDefiOffers(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiOrdersActive(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiOrdersHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiEthBalance(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiEthPurchaseRedeemHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingCurrentSubpositions(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingSubpositionsHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingInstruments(params?: {}): Promise<implicitReturnType>;
@@ -175,6 +178,8 @@ interface Exchange {
     privateGetFinanceSfpDcdOrders(params?: {}): Promise<implicitReturnType>;
     privateGetBrokerFdRebatePerOrders(params?: {}): Promise<implicitReturnType>;
     privateGetBrokerFdIfRebate(params?: {}): Promise<implicitReturnType>;
+    privateGetAffiliateInviteeDetail(params?: {}): Promise<implicitReturnType>;
+    privateGetUsersPartnerIfRebate(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCreateRfq(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelRfq(params?: {}): Promise<implicitReturnType>;
     privatePostRfqCancelBatchRfqs(params?: {}): Promise<implicitReturnType>;
@@ -249,6 +254,8 @@ interface Exchange {
     privatePostFinanceStakingDefiPurchase(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiRedeem(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiCancel(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiEthPurchase(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiEthRedeem(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingAlgoOrder(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingCloseSubposition(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingSetInstruments(params?: {}): Promise<implicitReturnType>;

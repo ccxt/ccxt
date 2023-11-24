@@ -1,0 +1,109 @@
+{
+    "exchange": "exmo",
+    "skipKeys": [
+        "nonce"
+    ],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.exmo.com/v1.1/wallet_operations",
+                "input": [],
+                "output": "nonce=1699458294472&type=deposit"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.exmo.com/v1.1/wallet_operations",
+                "input": [],
+                "output": "nonce=1699460471005&type=withdraw"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.exmo.com/v1.1/user_info",
+                "input": [],
+                "output": "nonce=1700154924505"
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "Fetch cancelled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.exmo.com/v1.1/user_cancelled_orders",
+                "input": [],
+                "output": "nonce=1700155071992&limit=100&offset=0"
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "Fetch deposit",
+                "method": "fetchDeposit",
+                "url": "https://api.exmo.com/v1.1/wallet_operations",
+                "input": [
+                  65221580
+                ],
+                "output": "nonce=1700155146392&order_id=65221580&type=deposit"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address of Tron",
+                "method": "fetchDepositAddress",
+                "url": "https://api.exmo.com/v1.1/deposit_address",
+                "input": [
+                  "BTC"
+                ],
+                "output": "nonce=1700155247019"
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "Fetch history of deposits and withdrawals of Tron",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://api.exmo.com/v1.1/wallet_history",
+                "input": [
+                  "BTC"
+                ],
+                "output": "nonce=1700155466968"
+            }
+        ],
+        "fetchWithdrawal": [
+            {
+                "description": "Fetch data on a currency withdrawal via the withdrawal id",
+                "method": "fetchWithdrawal",
+                "url": "https://api.exmo.com/v1.1/wallet_operations",
+                "input": [
+                  187435
+                ],
+                "output": "nonce=1700155560242&order_id=187435&type=withdraw"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.exmo.com/v1.1/user_open_orders",
+                "input": [],
+                "output": "nonce=1700155623591"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my BTC/USDT trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.exmo.com/v1.1/user_trades",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "output": "nonce=1700155664178&pair=BTC_USDT&limit=100&offset=0"
+            }
+        ]
+    }
+}

@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\BadRequest;
+use ccxt\NetworkError;
 use React\Async;
 
 class bingx extends \ccxt\async\bingx {
@@ -113,28 +114,28 @@ class bingx extends \ccxt\async\bingx {
         // first snapshot
         //
         //    {
-        //      id => 'd83b78ce-98be-4dc2-b847-12fe471b5bc5',
-        //      code => 0,
-        //      msg => 'SUCCESS',
-        //      timestamp => 1690214699854
+        //      "id" => "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
+        //      "code" => 0,
+        //      "msg" => "SUCCESS",
+        //      "timestamp" => 1690214699854
         //    }
         //
         // subsequent updates
         //
         //     {
-        //         code => 0,
-        //         $data => array(
-        //           E => 1690214529432,
-        //           T => 1690214529386,
-        //           e => 'trade',
-        //           m => true,
-        //           p => '29110.19',
-        //           q => '0.1868',
-        //           s => 'BTC-USDT',
-        //           t => '57903921'
+        //         "code" => 0,
+        //         "data" => array(
+        //           "E" => 1690214529432,
+        //           "T" => 1690214529386,
+        //           "e" => "trade",
+        //           "m" => true,
+        //           "p" => "29110.19",
+        //           "q" => "0.1868",
+        //           "s" => "BTC-USDT",
+        //           "t" => "57903921"
         //         ),
-        //         dataType => 'BTC-USDT@trade',
-        //         success => true
+        //         "dataType" => "BTC-USDT@trade",
+        //         "success" => true
         //     }
         //
         //
@@ -142,26 +143,26 @@ class bingx extends \ccxt\async\bingx {
         // first snapshot
         //
         //    {
-        //        id => '2aed93b1-6e1e-4038-aeba-f5eeaec2ca48',
-        //        code => 0,
-        //        msg => '',
-        //        dataType => '',
-        //        $data => null
+        //        "id" => "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
+        //        "code" => 0,
+        //        "msg" => '',
+        //        "dataType" => '',
+        //        "data" => null
         //    }
         //
         // subsequent updates
         //
         //
         //    {
-        //        code => 0,
-        //        dataType => 'BTC-USDT@trade',
-        //        $data => array(
+        //        "code" => 0,
+        //        "dataType" => "BTC-USDT@trade",
+        //        "data" => array(
         //            array(
-        //                q => '0.0421',
-        //                p => '29023.5',
-        //                T => 1690221401344,
-        //                m => false,
-        //                s => 'BTC-USDT'
+        //                "q" => "0.0421",
+        //                "p" => "29023.5",
+        //                "T" => 1690221401344,
+        //                "m" => false,
+        //                "s" => "BTC-USDT"
         //            ),
         //            ...
         //        )
@@ -248,35 +249,35 @@ class bingx extends \ccxt\async\bingx {
         //
         //
         //    {
-        //        code => 0,
-        //        dataType => 'BTC-USDT@depth20',
-        //        $data => array(
-        //          bids => array(
-        //            array( '28852.9', '34.2621' ),
+        //        "code" => 0,
+        //        "dataType" => "BTC-USDT@depth20",
+        //        "data" => array(
+        //          "bids" => array(
+        //            array( '28852.9', "34.2621" ),
         //            ...
         //          ),
-        //          asks => array(
-        //            array( '28864.9', '23.4079' ),
+        //          "asks" => array(
+        //            array( '28864.9', "23.4079" ),
         //            ...
         //          )
         //        ),
-        //        dataType => 'BTC-USDT@depth20',
-        //        success => true
+        //        "dataType" => "BTC-USDT@depth20",
+        //        "success" => true
         //    }
         //
         // swap
         //
         //
         //    {
-        //        code => 0,
-        //        dataType => 'BTC-USDT@depth20',
-        //        $data => {
-        //          bids => array(
-        //            array( '28852.9', '34.2621' ),
+        //        "code" => 0,
+        //        "dataType" => "BTC-USDT@depth20",
+        //        "data" => {
+        //          "bids" => array(
+        //            array( '28852.9', "34.2621" ),
         //            ...
         //          ),
-        //          asks => array(
-        //            array( '28864.9', '23.4079' ),
+        //          "asks" => array(
+        //            array( '28864.9', "23.4079" ),
         //            ...
         //          )
         //        }
@@ -301,16 +302,17 @@ class bingx extends \ccxt\async\bingx {
     public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //    {
-        //        c => '28909.0',
-        //        o => '28915.4',
-        //        h => '28915.4',
-        //        l => '28896.1',
-        //        v => '27.6919',
-        //        T => 1690907580000
+        //        "c" => "28909.0",
+        //        "o" => "28915.4",
+        //        "h" => "28915.4",
+        //        "l" => "28896.1",
+        //        "v" => "27.6919",
+        //        "T" => 1696687499999,
+        //        "t" => 1696687440000
         //    }
         //
         return array(
-            $this->safe_integer($ohlcv, 'T'),
+            $this->safe_integer($ohlcv, 't'), // needs to be opening-time (t) instead of closing-time (T), to be compatible with fetchOHLCV
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
@@ -324,42 +326,42 @@ class bingx extends \ccxt\async\bingx {
         // spot
         //
         //   {
-        //       code => 0,
-        //       $data => array(
-        //         E => 1696687498608,
-        //         K => array(
-        //           T => 1696687499999,
-        //           c => '27917.829',
-        //           h => '27918.427',
-        //           $i => '1min',
-        //           l => '27917.7',
-        //           n => 262,
-        //           o => '27917.91',
-        //           q => '25715.359197',
-        //           s => 'BTC-USDT',
-        //           t => 1696687440000,
-        //           v => '0.921100'
+        //       "code" => 0,
+        //       "data" => array(
+        //         "E" => 1696687498608,
+        //         "K" => array(
+        //           "T" => 1696687499999,
+        //           "c" => "27917.829",
+        //           "h" => "27918.427",
+        //           "i" => "1min",
+        //           "l" => "27917.7",
+        //           "n" => 262,
+        //           "o" => "27917.91",
+        //           "q" => "25715.359197",
+        //           "s" => "BTC-USDT",
+        //           "t" => 1696687440000,
+        //           "v" => "0.921100"
         //         ),
-        //         e => 'kline',
-        //         s => 'BTC-USDT'
+        //         "e" => "kline",
+        //         "s" => "BTC-USDT"
         //       ),
-        //       dataType => 'BTC-USDT@kline_1min',
-        //       success => true
+        //       "dataType" => "BTC-USDT@kline_1min",
+        //       "success" => true
         //   }
         //
         // swap
         //    {
-        //        code => 0,
-        //        dataType => 'BTC-USDT@kline_1m',
-        //        s => 'BTC-USDT',
-        //        $data => array(
+        //        "code" => 0,
+        //        "dataType" => "BTC-USDT@kline_1m",
+        //        "s" => "BTC-USDT",
+        //        "data" => array(
         //            {
-        //            c => '28909.0',
-        //            o => '28915.4',
-        //            h => '28915.4',
-        //            l => '28896.1',
-        //            v => '27.6919',
-        //            T => 1690907580000
+        //            "c" => "28909.0",
+        //            "o" => "28915.4",
+        //            "h" => "28915.4",
+        //            "l" => "28896.1",
+        //            "v" => "27.6919",
+        //            "T" => 1690907580000
         //            }
         //        )
         //    }
@@ -489,7 +491,7 @@ class bingx extends \ccxt\async\bingx {
              * @param {int} [$since] the earliest time in ms to $trades orders for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -565,10 +567,10 @@ class bingx extends \ccxt\async\bingx {
         // array( $code => 100400, msg => '', timestamp => 1696245808833 )
         //
         // {
-        //     $code => 100500,
-        //     id => '9cd37d32-da98-440b-bd04-37e7dbcf51ad',
-        //     msg => '',
-        //     timestamp => 1696245842307
+        //     "code" => 100500,
+        //     "id" => "9cd37d32-da98-440b-bd04-37e7dbcf51ad",
+        //     "msg" => '',
+        //     "timestamp" => 1696245842307
         // }
         $code = $this->safe_string($message, 'code');
         try {
@@ -607,21 +609,26 @@ class bingx extends \ccxt\async\bingx {
             //
             // spot
             // {
-            //     $ping => '5963ba3db76049b2870f9a686b2ebaac',
-            //     $time => '2023-10-02T18:51:55.089+0800'
+            //     "ping" => "5963ba3db76049b2870f9a686b2ebaac",
+            //     "time" => "2023-10-02T18:51:55.089+0800"
             // }
             // swap
             // Ping
             //
-            if ($message === 'Ping') {
-                Async\await($client->send ('Pong'));
-            } else {
-                $ping = $this->safe_string($message, 'ping');
-                $time = $this->safe_string($message, 'time');
-                Async\await($client->send (array(
-                    'pong' => $ping,
-                    'time' => $time,
-                )));
+            try {
+                if ($message === 'Ping') {
+                    Async\await($client->send ('Pong'));
+                } else {
+                    $ping = $this->safe_string($message, 'ping');
+                    $time = $this->safe_string($message, 'time');
+                    Async\await($client->send (array(
+                        'pong' => $ping,
+                        'time' => $time,
+                    )));
+                }
+            } catch (Exception $e) {
+                $error = new NetworkError ($this->id . ' pong failed with $error ' . $this->json($e));
+                $client->reset ($error);
             }
         }) ();
     }
@@ -658,31 +665,31 @@ class bingx extends \ccxt\async\bingx {
         //      }
         //
         //      {
-        //         code => 0,
-        //         dataType => 'spot.executionReport',
-        //         $data => {
-        //           e => 'executionReport',
-        //           E => 1694681809302,
-        //           s => 'LTC-USDT',
-        //           S => 'BUY',
-        //           o => 'MARKET',
-        //           q => 0,
-        //           p => 62.29,
-        //           x => 'TRADE',
-        //           X => 'FILLED',
-        //           i => '1702245001712369664',
-        //           l => 0.0802,
-        //           z => 0.0802,
-        //           L => 62.308,
-        //           n => -0.0000802,
-        //           N => 'LTC',
-        //           T => 1694681809256,
-        //           t => 38259147,
-        //           O => 1694681809248,
-        //           Z => 4.9971016,
-        //           Y => 4.9971016,
-        //           Q => 5,
-        //           m => false
+        //         "code" => 0,
+        //         "dataType" => "spot.executionReport",
+        //         "data" => {
+        //           "e" => "executionReport",
+        //           "E" => 1694681809302,
+        //           "s" => "LTC-USDT",
+        //           "S" => "BUY",
+        //           "o" => "MARKET",
+        //           "q" => 0,
+        //           "p" => 62.29,
+        //           "x" => "TRADE",
+        //           "X" => "FILLED",
+        //           "i" => "1702245001712369664",
+        //           "l" => 0.0802,
+        //           "z" => 0.0802,
+        //           "L" => 62.308,
+        //           "n" => -0.0000802,
+        //           "N" => "LTC",
+        //           "T" => 1694681809256,
+        //           "t" => 38259147,
+        //           "O" => 1694681809248,
+        //           "Z" => 4.9971016,
+        //           "Y" => 4.9971016,
+        //           "Q" => 5,
+        //           "m" => false
         //         }
         //       }
         // swap
@@ -731,31 +738,31 @@ class bingx extends \ccxt\async\bingx {
         //
         //
         //      {
-        //         code => 0,
-        //         dataType => 'spot.executionReport',
-        //         data => {
-        //           e => 'executionReport',
-        //           E => 1694681809302,
-        //           s => 'LTC-USDT',
-        //           S => 'BUY',
-        //           o => 'MARKET',
-        //           q => 0,
-        //           p => 62.29,
-        //           x => 'TRADE',
-        //           X => 'FILLED',
-        //           i => '1702245001712369664',
-        //           l => 0.0802,
-        //           z => 0.0802,
-        //           L => 62.308,
-        //           n => -0.0000802,
-        //           N => 'LTC',
-        //           T => 1694681809256,
-        //           t => 38259147,
-        //           O => 1694681809248,
-        //           Z => 4.9971016,
-        //           Y => 4.9971016,
-        //           Q => 5,
-        //           m => false
+        //         "code" => 0,
+        //         "dataType" => "spot.executionReport",
+        //         "data" => {
+        //           "e" => "executionReport",
+        //           "E" => 1694681809302,
+        //           "s" => "LTC-USDT",
+        //           "S" => "BUY",
+        //           "o" => "MARKET",
+        //           "q" => 0,
+        //           "p" => 62.29,
+        //           "x" => "TRADE",
+        //           "X" => "FILLED",
+        //           "i" => "1702245001712369664",
+        //           "l" => 0.0802,
+        //           "z" => 0.0802,
+        //           "L" => 62.308,
+        //           "n" => -0.0000802,
+        //           "N" => "LTC",
+        //           "T" => 1694681809256,
+        //           "t" => 38259147,
+        //           "O" => 1694681809248,
+        //           "Z" => 4.9971016,
+        //           "Y" => 4.9971016,
+        //           "Q" => 5,
+        //           "m" => false
         //         }
         //       }
         //

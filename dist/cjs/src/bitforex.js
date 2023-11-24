@@ -26,26 +26,46 @@ class bitforex extends bitforex$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
+                'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
@@ -54,6 +74,12 @@ class bitforex extends bitforex$1 {
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
+                'reduceMargin': false,
+                'repayMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -318,7 +344,7 @@ class bitforex extends bitforex$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const request = {
@@ -357,9 +383,11 @@ class bitforex extends bitforex$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol('fetchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets();
         const request = {
         // 'symbol': market['id'],
@@ -428,7 +456,7 @@ class bitforex extends bitforex$1 {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://apidoc.bitforex.com/#user-all-asset-information-user_data
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostApiV1FundAllAccount(params);
@@ -479,7 +507,7 @@ class bitforex extends bitforex$1 {
          * @see https://apidoc.bitforex.com/#exchange-information
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.markets[symbol];
@@ -572,7 +600,7 @@ class bitforex extends bitforex$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -660,7 +688,7 @@ class bitforex extends bitforex$1 {
          * @see https://apidoc.bitforex.com/#order-information-user_data
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -679,17 +707,17 @@ class bitforex extends bitforex$1 {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': this.marketId(symbol),
+            'symbol': market['id'],
             'state': 0,
         };
         const response = await this.privatePostApiV1TradeOrderInfos(this.extend(request, params));
@@ -702,17 +730,17 @@ class bitforex extends bitforex$1 {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
+            throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'symbol': this.marketId(symbol),
+            'symbol': market['id'],
             'state': 1,
         };
         const response = await this.privatePostApiV1TradeOrderInfos(this.extend(request, params));
@@ -730,7 +758,7 @@ class bitforex extends bitforex$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let sideId = undefined;
@@ -763,7 +791,7 @@ class bitforex extends bitforex$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {

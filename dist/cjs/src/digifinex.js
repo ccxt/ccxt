@@ -31,6 +31,7 @@ class digifinex extends digifinex$1 {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
@@ -38,10 +39,10 @@ class digifinex extends digifinex$1 {
                 'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': true,
+                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -52,6 +53,8 @@ class digifinex extends digifinex$1 {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
@@ -288,6 +291,7 @@ class digifinex extends digifinex$1 {
             'options': {
                 'defaultType': 'spot',
                 'types': ['spot', 'margin', 'otc'],
+                'createMarketBuyOrderRequiresPrice': true,
                 'accountsByType': {
                     'spot': '1',
                     'margin': '2',
@@ -798,7 +802,7 @@ class digifinex extends digifinex$1 {
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accountbalance
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         let marketType = undefined;
@@ -864,7 +868,7 @@ class digifinex extends digifinex$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -937,12 +941,12 @@ class digifinex extends digifinex$1 {
         /**
          * @method
          * @name digifinex#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1029,7 +1033,7 @@ class digifinex extends digifinex$1 {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1337,7 +1341,7 @@ class digifinex extends digifinex$1 {
          * @name digifinex#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.publicSpotGetPing(params);
         //
@@ -1367,7 +1371,7 @@ class digifinex extends digifinex$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1551,28 +1555,173 @@ class digifinex extends digifinex$1 {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
          * @param {bool} [params.reduceOnly] true or false
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const marginResult = this.handleMarginModeAndParams('createOrder', params);
+        const marginMode = marginResult[0];
+        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.privateSwapPostTradeOrderPlace(request);
+        }
+        else {
+            if (marginMode !== undefined) {
+                response = await this.privateSpotPostMarginOrderNew(request);
+            }
+            else {
+                response = await this.privateSpotPostSpotOrderNew(request);
+            }
+        }
+        //
+        // spot and margin
+        //
+        //     {
+        //         "code": 0,
+        //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": "1590873693003714560"
+        //     }
+        //
+        const order = this.parseOrder(response, market);
+        order['symbol'] = market['symbol'];
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name digifinex#createOrders
+         * @description create a list of trade orders (all orders should be of the same symbol)
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let symbol = undefined;
+        let marginMode = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
+            const currentMarginMode = marginResult[0];
+            if (currentMarginMode !== undefined) {
+                if (marginMode === undefined) {
+                    marginMode = currentMarginMode;
+                }
+                else {
+                    if (marginMode !== currentMarginMode) {
+                        throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)');
+                    }
+                }
+            }
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const market = this.market(symbol);
+        const request = {};
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.privateSwapPostTradeBatchOrder(ordersRequests);
+        }
+        else {
+            request['market'] = (marginMode !== undefined) ? 'margin' : 'spot';
+            request['symbol'] = market['id'];
+            request['list'] = this.json(ordersRequests);
+            response = await this.privateSpotPostMarketOrderBatchNew(request);
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "order_ids": [
+        //             "064290fbe2d26e7b28d7e6c0a5cf70a5",
+        //             "24c8f9b73d81e4d9d8d7e3280281c258"
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             "1720297963537829888",
+        //             "1720297963537829889"
+        //         ]
+        //     }
+        //
+        let data = [];
+        if (market['swap']) {
+            data = this.safeValue(response, 'data', []);
+        }
+        else {
+            data = this.safeValue(response, 'order_ids', []);
+        }
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const individualOrder = {};
+            individualOrder['order_id'] = data[i];
+            individualOrder['instrument_id'] = market['id'];
+            individualOrder['amount'] = this.safeNumber(rawOrder, 'amount');
+            individualOrder['price'] = this.safeNumber(rawOrder, 'price');
+            result.push(individualOrder);
+        }
+        return this.parseOrders(result, market);
+    }
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name digifinex#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @returns {object} request to be sent to the exchange
+         */
+        const market = this.market(symbol);
         let marketType = undefined;
         let marginMode = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotPostSpotOrderNew',
-            'margin': 'privateSpotPostMarginOrderNew',
-            'swap': 'privateSwapPostTradeOrderPlace',
-        });
-        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        [marketType, params] = this.handleMarketTypeAndParams('createOrderRequest', market, params);
+        [marginMode, params] = this.handleMarginModeAndParams('createOrderRequest', params);
         if (marginMode !== undefined) {
-            method = 'privateSpotPostMarginOrderNew';
             marketType = 'margin';
         }
         const request = {};
@@ -1629,40 +1778,34 @@ class digifinex extends digifinex$1 {
             }
             request['type'] = side + suffix;
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
-            request['amount'] = this.amountToPrecision(symbol, amount);
+            let quantity = undefined;
+            const createMarketBuyOrderRequiresPrice = this.safeValue(this.options, 'createMarketBuyOrderRequiresPrice', true);
+            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                if (price === undefined) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                }
+                else {
+                    const amountString = this.numberToString(amount);
+                    const priceString = this.numberToString(price);
+                    const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
+                    quantity = this.priceToPrecision(symbol, cost);
+                }
+            }
+            else {
+                quantity = this.amountToPrecision(symbol, amount);
+            }
+            request['amount'] = quantity;
         }
         if (postOnly) {
             if (postOnlyParsed) {
-                request['postOnly'] = postOnlyParsed;
+                request['post_only'] = postOnlyParsed;
             }
             else {
-                request['postOnly'] = postOnly;
+                request['post_only'] = postOnly;
             }
         }
-        const query = this.omit(params, ['postOnly', 'post_only']);
-        const response = await this[method](this.extend(request, query));
-        //
-        // spot and margin
-        //
-        //     {
-        //         "code": 0,
-        //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": "1590873693003714560"
-        //     }
-        //
-        const order = this.parseOrder(response, market);
-        order['symbol'] = symbol;
-        order['type'] = type;
-        order['side'] = side;
-        order['amount'] = amount;
-        order['price'] = price;
-        return order;
+        params = this.omit(params, ['postOnly']);
+        return this.extend(request, params);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1674,7 +1817,7 @@ class digifinex extends digifinex$1 {
          * @param {string} id order id
          * @param {string} symbol not used by digifinex cancelOrder ()
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1698,7 +1841,9 @@ class digifinex extends digifinex$1 {
             'order_id': id,
         };
         if (marketType === 'swap') {
-            this.checkRequiredSymbol('cancelOrder', symbol);
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+            }
             request['instrument_id'] = market['id'];
         }
         else {
@@ -1743,7 +1888,7 @@ class digifinex extends digifinex$1 {
          * @param {string[]} ids order ids
          * @param {string} symbol not used by digifinex cancelOrders ()
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const defaultType = this.safeString(this.options, 'defaultType', 'spot');
@@ -1799,6 +1944,15 @@ class digifinex extends digifinex$1 {
         //         "data": "1590873693003714560"
         //     }
         //
+        // spot and swap: createOrders
+        //
+        //     {
+        //         "order_id": "d64d92a5e0a120f792f385485bc3d95b",
+        //         "instrument_id": "BTC_USDT",
+        //         "amount": 0.0001,
+        //         "price": 27000
+        //     }
+        //
         // spot: fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
@@ -1844,24 +1998,26 @@ class digifinex extends digifinex$1 {
         let type = undefined;
         let side = this.safeString(order, 'type');
         const marketId = this.safeString2(order, 'symbol', 'instrument_id');
-        const symbol = this.safeSymbol(marketId, market, '_');
+        const symbol = this.safeSymbol(marketId, market);
         market = this.market(symbol);
         if (market['type'] === 'swap') {
             const orderType = this.safeInteger(order, 'order_type');
-            if ((orderType === 9) || (orderType === 10) || (orderType === 11) || (orderType === 12) || (orderType === 15)) {
-                timeInForce = 'FOK';
-            }
-            else if ((orderType === 1) || (orderType === 2) || (orderType === 3) || (orderType === 4) || (orderType === 13)) {
-                timeInForce = 'IOC';
-            }
-            else if ((orderType === 6) || (orderType === 7) || (orderType === 8) || (orderType === 14)) {
-                timeInForce = 'GTC';
-            }
-            if ((orderType === 0) || (orderType === 1) || (orderType === 4) || (orderType === 5) || (orderType === 9) || (orderType === 10)) {
-                type = 'limit';
-            }
-            else {
-                type = 'market';
+            if (orderType !== undefined) {
+                if ((orderType === 9) || (orderType === 10) || (orderType === 11) || (orderType === 12) || (orderType === 15)) {
+                    timeInForce = 'FOK';
+                }
+                else if ((orderType === 1) || (orderType === 2) || (orderType === 3) || (orderType === 4) || (orderType === 13)) {
+                    timeInForce = 'IOC';
+                }
+                else if ((orderType === 6) || (orderType === 7) || (orderType === 8) || (orderType === 14)) {
+                    timeInForce = 'GTC';
+                }
+                if ((orderType === 0) || (orderType === 1) || (orderType === 4) || (orderType === 5) || (orderType === 9) || (orderType === 10)) {
+                    type = 'limit';
+                }
+                else {
+                    type = 'market';
+                }
             }
             if (side === '1') {
                 side = 'open long';
@@ -1931,7 +2087,7 @@ class digifinex extends digifinex$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2033,7 +2189,7 @@ class digifinex extends digifinex$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2136,7 +2292,7 @@ class digifinex extends digifinex$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2233,7 +2389,7 @@ class digifinex extends digifinex$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -2383,7 +2539,7 @@ class digifinex extends digifinex$1 {
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -2491,7 +2647,7 @@ class digifinex extends digifinex$1 {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2570,7 +2726,7 @@ class digifinex extends digifinex$1 {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsByType('deposit', code, since, limit, params);
     }
@@ -2583,7 +2739,7 @@ class digifinex extends digifinex$1 {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchTransactionsByType('withdrawal', code, since, limit, params);
     }
@@ -2657,6 +2813,8 @@ class digifinex extends digifinex$1 {
             'currency': code,
             'status': status,
             'updated': updated,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -2718,7 +2876,7 @@ class digifinex extends digifinex$1 {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2749,7 +2907,7 @@ class digifinex extends digifinex$1 {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
@@ -2840,7 +2998,16 @@ class digifinex extends digifinex$1 {
             'info': info,
         };
     }
-    async fetchBorrowRate(code, params = {}) {
+    async fetchCrossBorrowRate(code, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchCrossBorrowRate
+         * @description fetch the rate of interest to borrow a currency for margin trading
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         */
         await this.loadMarkets();
         const request = {};
         const response = await this.privateSpotGetMarginAssets(this.extend(request, params));
@@ -2869,16 +3036,17 @@ class digifinex extends digifinex$1 {
                 result = entry;
             }
         }
-        const currency = this.safeString(result, 'currency');
+        const currency = this.currency(code);
         return this.parseBorrowRate(result, currency);
     }
-    async fetchBorrowRates(params = {}) {
+    async fetchCrossBorrowRates(params = {}) {
         /**
          * @method
-         * @name digifinex#fetchBorrowRates
+         * @name digifinex#fetchCrossBorrowRates
          * @description fetch the borrow interest rates of all currencies
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a list of [borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
+         * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
          */
         await this.loadMarkets();
         const response = await this.privateSpotGetMarginAssets(params);
@@ -2899,7 +3067,7 @@ class digifinex extends digifinex$1 {
         //         "equity": 45.133305540922
         //     }
         //
-        const result = this.safeValue(response, 'list');
+        const result = this.safeValue(response, 'list', []);
         return this.parseBorrowRates(result, 'currency');
     }
     parseBorrowRate(info, currency = undefined) {
@@ -2936,7 +3104,7 @@ class digifinex extends digifinex$1 {
             const item = info[i];
             const currency = this.safeString(item, codeKey);
             const code = this.safeCurrencyCode(currency);
-            const borrowRate = this.parseBorrowRate(item, currency);
+            const borrowRate = this.parseBorrowRate(item);
             result[code] = borrowRate;
         }
         return result;
@@ -2949,7 +3117,7 @@ class digifinex extends digifinex$1 {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3015,11 +3183,13 @@ class digifinex extends digifinex$1 {
          * @description fetches historical funding rate prices
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
-        this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['swap']) {
@@ -3077,7 +3247,7 @@ class digifinex extends digifinex$1 {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3127,7 +3297,7 @@ class digifinex extends digifinex$1 {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -3233,7 +3403,7 @@ class digifinex extends digifinex$1 {
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3413,8 +3583,10 @@ class digifinex extends digifinex$1 {
          * @param {string} [params.side] either 'long' or 'short', required for isolated markets only
          * @returns {object} response from the exchange
          */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
+        }
         await this.loadMarkets();
-        this.checkRequiredSymbol('setLeverage', symbol);
         const market = this.market(symbol);
         if (market['type'] !== 'swap') {
             throw new errors.BadSymbol(this.id + ' setLeverage() supports swap contracts only');
@@ -3466,7 +3638,7 @@ class digifinex extends digifinex$1 {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets();
         let currency = undefined;
@@ -3508,7 +3680,7 @@ class digifinex extends digifinex$1 {
          * @description retrieve information on the maximum leverage, for different trade sizes
          * @param {string[]|undefined} symbols a list of unified market symbols
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.publicSwapGetPublicInstruments(params);
@@ -3574,7 +3746,7 @@ class digifinex extends digifinex$1 {
          * @description retrieve information on the maximum leverage, for different trade sizes for a single market
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a [leverage tiers structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -3690,7 +3862,7 @@ class digifinex extends digifinex$1 {
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
          * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
-         * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const response = await this.publicSpotGetCurrencies(params);
@@ -3807,7 +3979,7 @@ class digifinex extends digifinex$1 {
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @param {string} params.side the position side: 'long' or 'short'
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure}
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=margin-structure}
          */
         const side = this.safeString(params, 'side');
         this.checkRequiredArgument('addMargin', side, 'side', ['long', 'short']);
@@ -3823,7 +3995,7 @@ class digifinex extends digifinex$1 {
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @param {string} params.side the position side: 'long' or 'short'
-         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure}
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=margin-structure}
          */
         const side = this.safeString(params, 'side');
         this.checkRequiredArgument('reduceMargin', side, 'side', ['long', 'short']);
@@ -3890,7 +4062,7 @@ class digifinex extends digifinex$1 {
          * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding payment
-         * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets();
         let request = {};
@@ -3956,7 +4128,9 @@ class digifinex extends digifinex$1 {
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol('setMarginMode', symbol);
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         marginMode = marginMode.toLowerCase();
@@ -3977,7 +4151,13 @@ class digifinex extends digifinex$1 {
         const payload = pathPart + request;
         let url = this.urls['api']['rest'] + payload;
         const query = this.omit(params, this.extractParams(path));
-        let urlencoded = this.urlencode(this.keysort(query));
+        let urlencoded = undefined;
+        if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {
+            urlencoded = JSON.stringify(params);
+        }
+        else {
+            urlencoded = this.urlencode(this.keysort(query));
+        }
         if (signed) {
             let auth = undefined;
             let nonce = undefined;
@@ -3990,9 +4170,7 @@ class digifinex extends digifinex$1 {
                     }
                 }
                 else if (method === 'POST') {
-                    const swapPostParams = JSON.stringify(params);
-                    urlencoded = swapPostParams;
-                    auth += swapPostParams;
+                    auth += urlencoded;
                 }
             }
             else {

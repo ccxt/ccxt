@@ -53,7 +53,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         // create a "limit order" which must be guaranteed not to get filled (i.e. being much far from the real price)
         const limitBuyPrice_nonFillable = bestBid / limitPriceSafetyMultiplierFromMedian; // minimum limit price is not good here, as it's unrealistic and leads to unrealistic amounts because of cost equation, like buying 30k bitcoins for 0.01 USD (min limit) price
         const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, limitBuyPrice_nonFillable);
-        const buyOrder_nonFillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_nonFillable, {}, skippedProperties);
+        const buyOrder_nonFillable = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_nonFillable, {}, skippedProperties);
         const buyOrder_nonFillable_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, buyOrder_nonFillable['id'], skippedProperties);
         // ensure that order is not filled
         const isClosed = testSharedMethods.confirmOrderState (exchange, buyOrder_nonFillable, 'closed');
@@ -76,7 +76,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         // create limit/market order which IS GUARANTEED to have a fill (full or partial), then sell the bought amount
         const limitBuyPrice_fillable = bestAsk * limitPriceSafetyMultiplierFromMedian;
         const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, limitBuyPrice_fillable);
-        const buyOrder_fillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_fillable, {}, skippedProperties);
+        const buyOrder_fillable = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_fillable, {}, skippedProperties);
         // try to cancel remnant (if any) of order
         await testCreateOrder_tryCancelOrder (exchange, symbol, buyOrder_fillable, skippedProperties);
         // now, as order is closed/canceled, we can reliably fetch the order information
@@ -99,7 +99,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
             const minimumCostForBuy = getMinimumCostForBuy (exchange, market);
             priceForMarketSellOrder = (minimumCostForBuy / amountToSell) * limitPriceSafetyMultiplierFromMedian;
         }
-        const sellOrder = await testCreateOrder_submitSafeOrder (exchange, symbol, 'market', 'sell', amountToSell, priceForMarketSellOrder, params, skippedProperties);
+        const sellOrder = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'market', 'sell', amountToSell, priceForMarketSellOrder, params, skippedProperties);
         const sellOrder_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, sellOrder['id'], skippedProperties);
         // try to test that order was fully filled
         const isClosedFetched = testSharedMethods.confirmOrderState (exchange, sellOrder_fetched, 'closed');
@@ -145,7 +145,7 @@ async function testCreateOrder_cancelOrder (exchange, symbol, orderId = undefine
 
 // ----------------------------------------------------------------------------
 
-async function testCreateOrder_submitSafeOrder (exchange, symbol, orderType, side, amount, price = undefined, params = {}, skippedProperties = {}) {
+async function testCreateOrderSubmitSafeOrder (exchange, symbol, orderType, side, amount, price = undefined, params = {}, skippedProperties = {}) {
     verboseOutput (exchange, symbol, 'Executing createOrder', orderType, side, amount, price, params);
     const order = await exchange.createOrder (symbol, orderType, side, amount, price, params);
     try {

@@ -7,8 +7,6 @@ const minusOne = BigInt(-1);
 const base = BigInt(10);
 class Precise {
     constructor(number, decimals = undefined) {
-        this.decimals = undefined;
-        this.integer = undefined;
         this.base = undefined;
         if (decimals === undefined) {
             let modifier = 0;
@@ -35,7 +33,7 @@ class Precise {
     }
     div(other, precision = 18) {
         const distance = precision - this.decimals + other.decimals;
-        let numerator = undefined;
+        let numerator;
         if (distance === 0) {
             numerator = this.integer;
         }

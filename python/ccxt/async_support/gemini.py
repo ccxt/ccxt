@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -54,12 +53,11 @@ class gemini(Exchange, ImplicitAPI):
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
@@ -69,6 +67,8 @@ class gemini(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -327,7 +327,7 @@ class gemini(Exchange, ImplicitAPI):
         #            ["ORCA", "Orca", 204, 6, 0, 6, 8, False, null, "solana"],  #, precisions seem to be the 5th index
         #            ["ATOM", "Cosmos", 44, 6, 0, 6, 8, False, null, "cosmos"],
         #            ["ETH", "Ether", 2, 6, 0, 18, 8, False, null, "ethereum"],
-        #            ["GBP", "Pound Sterling", 22, 2, 2, 2, 2, True, '£', null],
+        #            ["GBP", "Pound Sterling", 22, 2, 2, 2, 2, True, "£", null],
         #            ...
         #        ],
         #        "networks": [
@@ -578,7 +578,7 @@ class gemini(Exchange, ImplicitAPI):
             result[marketId] = self.parse_market(responseInner)
         return self.to_array(result)
 
-    def parse_market(self, response):
+    def parse_market(self, response) -> Market:
         marketId = self.safe_string_lower(response, 'symbol')
         baseId = self.safe_string(response, 'base_currency')
         quoteId = self.safe_string(response, 'quote_currency')
@@ -641,13 +641,13 @@ class gemini(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -716,13 +716,13 @@ class gemini(Exchange, ImplicitAPI):
             'info': tickerB['info'],
         })
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the gemini api endpoint
         :param dict [params.fetchTickerMethod]: 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetch_ticker- 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         method = self.safe_value(self.options, 'fetchTickerMethod', 'fetchTickerV1')
         if method == 'fetchTickerV1':
@@ -731,7 +731,7 @@ class gemini(Exchange, ImplicitAPI):
             return await self.fetch_ticker_v2(symbol, params)
         return await self.fetch_ticker_v1_and_v2(symbol, params)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #
@@ -821,12 +821,12 @@ class gemini(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetV1Pricefeed(params)
@@ -846,7 +846,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # public fetchTrades
         #
@@ -909,7 +909,7 @@ class gemini(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.gemini.com/rest-api/#trade-history
@@ -917,7 +917,7 @@ class gemini(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -944,7 +944,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -960,7 +960,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privatePostV1Notionalvolume(params)
@@ -1011,17 +1011,17 @@ class gemini(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privatePostV1Balances(params)
         return self.parse_balance(response)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # createOrder(private)
         #
@@ -1181,12 +1181,12 @@ class gemini(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1218,14 +1218,14 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         response = await self.privatePostV1Orders(params)
@@ -1269,7 +1269,7 @@ class gemini(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         if type != 'limit':
@@ -1344,13 +1344,13 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1383,14 +1383,14 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -1414,7 +1414,7 @@ class gemini(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1460,14 +1460,14 @@ class gemini(Exchange, ImplicitAPI):
             return self.milliseconds()
         return self.seconds()
 
-    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: a list of `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1478,7 +1478,7 @@ class gemini(Exchange, ImplicitAPI):
         response = await self.privatePostV1Transfers(self.extend(request, params))
         return self.parse_transactions(response)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -1529,6 +1529,8 @@ class gemini(Exchange, ImplicitAPI):
             'currency': code,
             'status': self.parse_transaction_status(statusRaw),
             'updated': None,
+            'internal': None,
+            'comment': self.safe_string(transaction, 'message'),
             'fee': fee,
         }
 
@@ -1539,12 +1541,12 @@ class gemini(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #      {
-        #          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
-        #          timestamp: "1636813923098",
-        #          addressVersion: "eV1"                                         }
+        #          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        #          "timestamp": "1636813923098",
+        #          "addressVersion": "eV1"                                         }
         #      }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -1564,7 +1566,7 @@ class gemini(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the endpoint
         :param str [params.network]:  *required* The chain of currency
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         groupedByNetwork = await self.fetch_deposit_addresses_by_network(code, params)
@@ -1580,7 +1582,7 @@ class gemini(Exchange, ImplicitAPI):
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the gemini api endpoint
         :param str [params.network]:  *required* The chain of currency
-        :returns dict: a dictionary of `address structures <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>` indexed by the network
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1656,7 +1658,7 @@ class gemini(Exchange, ImplicitAPI):
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the gemini api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1673,7 +1675,7 @@ class gemini(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
