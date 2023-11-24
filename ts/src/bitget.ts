@@ -6361,42 +6361,44 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchLeverage
          * @description fetch the set leverage for a market
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-single-account
+         * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
+            'productType': productType,
         };
-        const response = await this.privateMixGetMixV1AccountAccount (this.extend (request, params));
+        const response = await this.privateMixGetV2MixAccountAccount (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 0,
-        //         "data": {
-        //             "marginCoin": "SUSDT",
-        //             "locked": "0",
-        //             "available": "3000",
-        //             "crossMaxAvailable": "3000",
-        //             "fixedMaxAvailable": "3000",
-        //             "maxTransferOut": "3000",
-        //             "equity": "3000",
-        //             "usdtEquity": "3000",
-        //             "btcEquity": "0.12217217236",
-        //             "crossRiskRate": "0",
-        //             "crossMarginLeverage": 20,
-        //             "fixedLongLeverage": 40,
-        //             "fixedShortLeverage": 10,
-        //             "marginMode": "fixed",
-        //             "holdMode": "double_hold",
-        //             "unrealizedPL": null,
-        //             "bonus": "0"
-        //         }
+        //         "requestTime": 1700625127294,
+        //         "data": [
+        //             {
+        //                 "marginCoin": "USDT",
+        //                 "locked": "0",
+        //                 "available": "0",
+        //                 "crossedMaxAvailable": "0",
+        //                 "isolatedMaxAvailable": "0",
+        //                 "maxTransferOut": "0",
+        //                 "accountEquity": "0",
+        //                 "usdtEquity": "0.000000005166",
+        //                 "btcEquity": "0",
+        //                 "crossedRiskRate": "0",
+        //                 "unrealizedPL": "0",
+        //                 "coupon": "0",
+        //                 "crossedUnrealizedPL": null,
+        //                 "isolatedUnrealizedPL": null
+        //             }
+        //         ]
         //     }
         //
         return response;
