@@ -1350,7 +1350,7 @@ export default class bitget extends Exchange {
                     'BSC': 'BEP20',
                 },
                 'fetchPositions': {
-                    'method': 'privateMixGetMixV1PositionAllPositionV2', // or privateMixGetMixV1PositionHistoryPosition
+                    'method': 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
@@ -5703,50 +5703,54 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchPosition
          * @description fetch data on a single open contract trade position
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-symbol-position-v2
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @see https://www.bitget.com/api-doc/contract/position/get-single-position
+         * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
+            'productType': productType,
         };
-        const response = await this.privateMixGetMixV1PositionSinglePositionV2 (this.extend (request, params));
+        const response = await this.privateMixGetV2MixPositionSinglePosition (this.extend (request, params));
         //
         //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": "1645933957584",
-        //       "data": [
-        //         {
-        //           "marginCoin": "USDT",
-        //           "symbol": "BTCUSDT_UMCBL",
-        //           "holdSide": "long",
-        //           "openDelegateCount": "0",
-        //           "margin": "1.921475",
-        //           "available": "0.001",
-        //           "locked": "0",
-        //           "total": "0.001",
-        //           "leverage": "20",
-        //           "achievedProfits": "0",
-        //           "averageOpenPrice": "38429.5",
-        //           "marginMode": "fixed",
-        //           "holdMode": "double_hold",
-        //           "unrealizedPL": "0.1634",
-        //           "liquidationPrice": "0",
-        //           "keepMarginRate": "0.004",
-        //           "cTime": "1645922194988"
-        //         }
-        //       ]
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700807531673,
+        //         "data": [
+        //             {
+        //                 "marginCoin": "USDT",
+        //                 "symbol": "BTCUSDT",
+        //                 "holdSide": "long",
+        //                 "openDelegateSize": "0",
+        //                 "marginSize": "3.73555",
+        //                 "available": "0.002",
+        //                 "locked": "0",
+        //                 "total": "0.002",
+        //                 "leverage": "20",
+        //                 "achievedProfits": "0",
+        //                 "openPriceAvg": "37355.5",
+        //                 "marginMode": "crossed",
+        //                 "posMode": "hedge_mode",
+        //                 "unrealizedPL": "0.007",
+        //                 "liquidationPrice": "31724.970702417",
+        //                 "keepMarginRate": "0.004",
+        //                 "markPrice": "37359",
+        //                 "marginRatio": "0.029599540355",
+        //                 "cTime": "1700807507275"
+        //             }
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
-        const position = this.parsePosition (first, market);
-        return position;
+        return this.parsePosition (first, market);
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
@@ -5754,105 +5758,101 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchPositions
          * @description fetch all open positions
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-position-v2
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-position
+         * @see https://www.bitget.com/api-doc/contract/position/get-all-position
+         * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         await this.loadMarkets ();
         const fetchPositionsOptions = this.safeValue (this.options, 'fetchPositions', {});
-        const method = this.safeString (fetchPositionsOptions, 'method', 'privateMixGetMixV1PositionAllPositionV2');
+        const method = this.safeString (fetchPositionsOptions, 'method', 'privateMixGetV2MixPositionAllPosition');
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
         }
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
-        let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
-        if (sandboxMode) {
-            productType = 'S' + productType;
-        }
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request = {
             'productType': productType,
         };
-        if (method === 'privateMixGetMixV1PositionHistoryPosition') {
-            // endTime and startTime mandatory
-            let since = this.safeInteger2 (params, 'startTime', 'since');
-            if (since === undefined) {
-                since = this.milliseconds () - 7689600000; // 3 months ago
-            }
-            request['startTime'] = since;
-            let until = this.safeInteger2 (params, 'endTime', 'until');
-            if (until === undefined) {
-                until = this.milliseconds ();
-            }
-            request['endTime'] = until;
-        }
         let response = undefined;
         let isHistory = false;
-        if (method === 'privateMixGetMixV1PositionAllPositionV2') {
-            response = await this.privateMixGetMixV1PositionAllPositionV2 (this.extend (request, params));
+        if (method === 'privateMixGetV2MixPositionAllPosition') {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() requires a symbols argument');
+            }
+            request['marginCoin'] = market['settleId'];
+            response = await this.privateMixGetV2MixPositionAllPosition (this.extend (request, params));
         } else {
             isHistory = true;
-            response = await this.privateMixGetMixV1PositionHistoryPosition (this.extend (request, params));
+            if (market !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            response = await this.privateMixGetV2MixPositionHistoryPosition (this.extend (request, params));
         }
         //
-        //     {
-        //       "code": "00000",
-        //       "msg": "success",
-        //       "requestTime": "1645933905060",
-        //       "data": [
-        //         {
-        //           "marginCoin": "USDT",
-        //           "symbol": "BTCUSDT_UMCBL",
-        //           "holdSide": "long",
-        //           "openDelegateCount": "0",
-        //           "margin": "1.921475",
-        //           "available": "0.001",
-        //           "locked": "0",
-        //           "total": "0.001",
-        //           "leverage": "20",
-        //           "achievedProfits": "0",
-        //           "averageOpenPrice": "38429.5",
-        //           "marginMode": "fixed",
-        //           "holdMode": "double_hold",
-        //           "unrealizedPL": "0.14869",
-        //           "liquidationPrice": "0",
-        //           "keepMarginRate": "0.004",
-        //           "cTime": "1645922194988"
-        //         }
-        //       ]
-        //     }
+        // privateMixGetV2MixPositionAllPosition
+        //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 0,
-        //         "data": {
-        //           "list": [
+        //         "requestTime": 1700807810221,
+        //         "data": [
         //             {
-        //               "symbol": "ETHUSDT_UMCBL",
-        //               "marginCoin": "USDT",
-        //               "holdSide": "short",
-        //               "openAvgPrice": "1206.7",
-        //               "closeAvgPrice": "1206.8",
-        //               "marginMode": "fixed",
-        //               "openTotalPos": "1.15",
-        //               "closeTotalPos": "1.15",
-        //               "pnl": "-0.11",
-        //               "netProfit": "-1.780315",
-        //               "totalFunding": "0",
-        //               "openFee": "-0.83",
-        //               "closeFee": "-0.83",
-        //               "ctime": "1689300233897",
-        //               "utime": "1689300238205"
+        //                 "marginCoin": "USDT",
+        //                 "symbol": "BTCUSDT",
+        //                 "holdSide": "long",
+        //                 "openDelegateSize": "0",
+        //                 "marginSize": "3.73555",
+        //                 "available": "0.002",
+        //                 "locked": "0",
+        //                 "total": "0.002",
+        //                 "leverage": "20",
+        //                 "achievedProfits": "0",
+        //                 "openPriceAvg": "37355.5",
+        //                 "marginMode": "crossed",
+        //                 "posMode": "hedge_mode",
+        //                 "unrealizedPL": "0.03",
+        //                 "liquidationPrice": "31725.023602417",
+        //                 "keepMarginRate": "0.004",
+        //                 "markPrice": "37370.5",
+        //                 "marginRatio": "0.029550120396",
+        //                 "cTime": "1700807507275"
         //             }
-        //           ],
-        //           "endId": "1062308959580516352"
+        //         ]
+        //     }
+        //
+        // privateMixGetV2MixPositionHistoryPosition
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700808051002,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "marginCoin": "USDT",
+        //                     "holdSide": "long",
+        //                     "openAvgPrice": "37272.1",
+        //                     "closeAvgPrice": "37271.4",
+        //                     "marginMode": "crossed",
+        //                     "openTotalPos": "0.001",
+        //                     "closeTotalPos": "0.001",
+        //                     "pnl": "-0.0007",
+        //                     "netProfit": "-0.0454261",
+        //                     "totalFunding": "0",
+        //                     "openFee": "-0.02236326",
+        //                     "closeFee": "-0.02236284",
+        //                     "utime": "1700720700400",
+        //                     "ctime": "1700720651684"
+        //                 },
+        //             ],
+        //             "endId": "1099351653866962944"
         //         }
-        //       }
+        //     }
         //
         let position = [];
         if (!isHistory) {
@@ -5863,7 +5863,7 @@ export default class bitget extends Exchange {
         }
         const result = [];
         for (let i = 0; i < position.length; i++) {
-            result.push (this.parsePosition (position[i]));
+            result.push (this.parsePosition (position[i], market));
         }
         symbols = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
@@ -5871,67 +5871,94 @@ export default class bitget extends Exchange {
 
     parsePosition (position, market: Market = undefined) {
         //
+        // fetchPosition
+        //
         //     {
         //         "marginCoin": "USDT",
-        //         "symbol": "BTCUSDT_UMCBL",
+        //         "symbol": "BTCUSDT",
         //         "holdSide": "long",
-        //         "openDelegateCount": "0",
-        //         "margin": "1.921475",
-        //         "available": "0.001",
+        //         "openDelegateSize": "0",
+        //         "marginSize": "3.73555",
+        //         "available": "0.002",
         //         "locked": "0",
-        //         "total": "0.001",
+        //         "total": "0.002",
         //         "leverage": "20",
         //         "achievedProfits": "0",
-        //         "averageOpenPrice": "38429.5",
-        //         "marginMode": "fixed",
-        //         "holdMode": "double_hold",
-        //         "unrealizedPL": "0.14869",
-        //         "liquidationPrice": "0",
+        //         "openPriceAvg": "37355.5",
+        //         "marginMode": "crossed",
+        //         "posMode": "hedge_mode",
+        //         "unrealizedPL": "0.007",
+        //         "liquidationPrice": "31724.970702417",
         //         "keepMarginRate": "0.004",
-        //         "cTime": "1645922194988"
+        //         "markPrice": "37359",
+        //         "marginRatio": "0.029599540355",
+        //         "cTime": "1700807507275"
         //     }
         //
-        // history
+        // fetchPositions: privateMixGetV2MixPositionAllPosition
         //
         //     {
-        //       "symbol": "ETHUSDT_UMCBL",
-        //       "marginCoin": "USDT",
-        //       "holdSide": "short",
-        //       "openAvgPrice": "1206.7",
-        //       "closeAvgPrice": "1206.8",
-        //       "marginMode": "fixed",
-        //       "openTotalPos": "1.15",
-        //       "closeTotalPos": "1.15",
-        //       "pnl": "-0.11",
-        //       "netProfit": "-1.780315",
-        //       "totalFunding": "0",
-        //       "openFee": "-0.83",
-        //       "closeFee": "-0.83",
-        //       "ctime": "1689300233897",
-        //       "utime": "1689300238205"
+        //         "marginCoin": "USDT",
+        //         "symbol": "BTCUSDT",
+        //         "holdSide": "long",
+        //         "openDelegateSize": "0",
+        //         "marginSize": "3.73555",
+        //         "available": "0.002",
+        //         "locked": "0",
+        //         "total": "0.002",
+        //         "leverage": "20",
+        //         "achievedProfits": "0",
+        //         "openPriceAvg": "37355.5",
+        //         "marginMode": "crossed",
+        //         "posMode": "hedge_mode",
+        //         "unrealizedPL": "0.03",
+        //         "liquidationPrice": "31725.023602417",
+        //         "keepMarginRate": "0.004",
+        //         "markPrice": "37370.5",
+        //         "marginRatio": "0.029550120396",
+        //         "cTime": "1700807507275"
+        //     }
+        //
+        // fetchPositions: privateMixGetV2MixPositionHistoryPosition
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "marginCoin": "USDT",
+        //         "holdSide": "long",
+        //         "openAvgPrice": "37272.1",
+        //         "closeAvgPrice": "37271.4",
+        //         "marginMode": "crossed",
+        //         "openTotalPos": "0.001",
+        //         "closeTotalPos": "0.001",
+        //         "pnl": "-0.0007",
+        //         "netProfit": "-0.0454261",
+        //         "totalFunding": "0",
+        //         "openFee": "-0.02236326",
+        //         "closeFee": "-0.02236284",
+        //         "utime": "1700720700400",
+        //         "ctime": "1700720651684"
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (position, 'cTime', 'ctime');
         let marginMode = this.safeString (position, 'marginMode');
         let collateral = undefined;
         let initialMargin = undefined;
         const unrealizedPnl = this.safeString (position, 'unrealizedPL');
-        const rawCollateral = this.safeString (position, 'margin');
-        if (marginMode === 'fixed') {
-            marginMode = 'isolated';
+        const rawCollateral = this.safeString (position, 'marginSize');
+        if (marginMode === 'isolated') {
             collateral = Precise.stringAdd (rawCollateral, unrealizedPnl);
         } else if (marginMode === 'crossed') {
             marginMode = 'cross';
             initialMargin = rawCollateral;
         }
-        const holdMode = this.safeString (position, 'holdMode');
+        const holdMode = this.safeString (position, 'posMode');
         let hedged = undefined;
-        if (holdMode === 'double_hold') {
+        if (holdMode === 'hedge_mode') {
             hedged = true;
-        } else if (holdMode === 'single_hold') {
+        } else if (holdMode === 'one_way_mode') {
             hedged = false;
         }
         const side = this.safeString (position, 'holdSide');
@@ -5939,7 +5966,7 @@ export default class bitget extends Exchange {
         const contractSizeNumber = this.safeValue (market, 'contractSize');
         const contractSize = this.numberToString (contractSizeNumber);
         const baseAmount = this.safeString (position, 'total');
-        const entryPrice = this.safeString2 (position, 'averageOpenPrice', 'openAvgPrice');
+        const entryPrice = this.safeString2 (position, 'openPriceAvg', 'openAvgPrice');
         const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate');
         const openNotional = Precise.stringMul (entryPrice, baseAmount);
         if (initialMargin === undefined) {
@@ -5949,7 +5976,7 @@ export default class bitget extends Exchange {
         if (contracts === undefined) {
             contracts = this.safeNumber (position, 'closeTotalPos');
         }
-        const markPrice = this.safeString (position, 'marketPrice');
+        const markPrice = this.safeString (position, 'markPrice');
         const notional = Precise.stringMul (baseAmount, markPrice);
         const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
         let liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice')));
@@ -5973,7 +6000,6 @@ export default class bitget extends Exchange {
         }
         const feeToClose = Precise.stringMul (notional, calcTakerFeeRate);
         const maintenanceMargin = Precise.stringAdd (Precise.stringMul (maintenanceMarginPercentage, notional), feeToClose);
-        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMargin, 4), '100');
         return this.safePosition ({
             'info': position,
@@ -6001,7 +6027,7 @@ export default class bitget extends Exchange {
             'initialMargin': this.parseNumber (initialMargin),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'leverage': this.parseNumber (leverage),
-            'marginRatio': this.parseNumber (marginRatio),
+            'marginRatio': this.safeNumber (position, 'marginRatio'),
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
