@@ -6422,7 +6422,7 @@ class okx extends okx$1 {
          * @method
          * @name okx#borrowCrossMargin
          * @description create a loan to borrow margin (need to be VIP 5 and above)
-         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -6442,12 +6442,10 @@ class okx extends okx$1 {
         //         "data": [
         //             {
         //                 "amt": "102",
-        //                 "availLoan": "97",
         //                 "ccy": "USDT",
-        //                 "loanQuota": "6000000",
-        //                 "posLoan": "0",
+        //                 "ordId": "544199684697214976",
         //                 "side": "borrow",
-        //                 "usedLoan": "97"
+        //                 "state": "1"
         //             }
         //         ],
         //         "msg": ""
@@ -6462,18 +6460,25 @@ class okx extends okx$1 {
          * @method
          * @name okx#repayCrossMargin
          * @description repay borrowed margin and interest
-         * @see https://www.okx.com/docs-v5/en/#rest-api-account-vip-loans-borrow-and-repay
+         * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-vip-loans-borrow-and-repay
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
+        const id = this.safeString2(params, 'id', 'ordId');
+        params = this.omit(params, 'id');
+        if (id === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' repayCrossMargin() requires an id parameter');
+        }
         const currency = this.currency(code);
         const request = {
             'ccy': currency['id'],
             'amt': this.currencyToPrecision(code, amount),
             'side': 'repay',
+            'ordId': id,
         };
         const response = await this.privatePostAccountBorrowRepay(this.extend(request, params));
         //
@@ -6482,12 +6487,10 @@ class okx extends okx$1 {
         //         "data": [
         //             {
         //                 "amt": "102",
-        //                 "availLoan": "97",
         //                 "ccy": "USDT",
-        //                 "loanQuota": "6000000",
-        //                 "posLoan": "0",
+        //                 "ordId": "544199684697214976",
         //                 "side": "repay",
-        //                 "usedLoan": "97"
+        //                 "state": "1"
         //             }
         //         ],
         //         "msg": ""

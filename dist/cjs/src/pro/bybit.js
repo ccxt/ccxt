@@ -1707,7 +1707,7 @@ class bybit extends bybit$1 {
             'args': topics,
         };
         const message = this.extend(request, params);
-        return await this.watch(url, messageHash, message, subscriptionHash);
+        return await this.watch(url, messageHash, message, messageHash, subscriptionHash);
     }
     async authenticate(url, params = {}) {
         this.checkRequiredCredentials();

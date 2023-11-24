@@ -1589,7 +1589,7 @@ class bybit(ccxt.async_support.bybit):
             'args': topics,
         }
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, subscriptionHash)
+        return await self.watch(url, messageHash, message, messageHash, subscriptionHash)
 
     async def authenticate(self, url, params={}):
         self.check_required_credentials()
