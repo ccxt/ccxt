@@ -207,10 +207,11 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = initExchange (exchangeId, exchangeArgs);
         await this.importFiles (exchange);
         this.expandSettings (exchange, symbol);
+        this.checkIfSpecificTestIsChosen ();
         await this.startTest (exchange, symbol);
     }
 
-    checkIfSpecificTest () {
+    checkIfSpecificTestIsChosen () {
         const keys = Object.keys (this.testFiles);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
