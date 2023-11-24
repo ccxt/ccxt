@@ -2394,7 +2394,7 @@ export default class phemex extends Exchange {
             request['clOrdID'] = clientOrderId;
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
-        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
+        const stopPrice = this.safeStringN (params, [ 'stopPx', 'stopPrice', 'triggerPrice' ]);
         if (stopPrice !== undefined) {
             if (market['settle'] === 'USDT') {
                 request['stopPxRp'] = this.priceToPrecision (symbol, stopPrice);
@@ -2402,7 +2402,7 @@ export default class phemex extends Exchange {
                 request['stopPxEp'] = this.toEp (stopPrice, market);
             }
         }
-        params = this.omit (params, [ 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit' ]);
+        params = this.omit (params, [ 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice' ]);
         if (market['spot']) {
             let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
             if ((type === 'Market') || (type === 'Stop') || (type === 'MarketIfTouched')) {
