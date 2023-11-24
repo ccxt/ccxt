@@ -46,6 +46,7 @@ class baseMainTestClass {
     publicTests = {};
     rootDir = DIR_NAME + '/../../../';
     rootDirForSkips = DIR_NAME + '/../../../';
+    onlySpecificTest = undefined;
     envVars = process.env;
     ext = import.meta.url.split ('.')[1];
 }
@@ -206,7 +207,18 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = initExchange (exchangeId, exchangeArgs);
         await this.importFiles (exchange);
         this.expandSettings (exchange, symbol);
+        this.checkIfSpecificTestIsChosen ();
         await this.startTest (exchange, symbol);
+    }
+
+    checkIfSpecificTestIsChosen () {
+        const keys = Object.keys (this.testFiles);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (getCliArgValue ('--' + key)) {
+                this.onlySpecificTest = key;
+            }
+        }
     }
 
     async importFiles (exchange) {
@@ -297,6 +309,8 @@ export default class testMainClass extends baseMainTestClass {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
+        } else if (this.onlySpecificTest !== undefined && this.onlySpecificTest !== methodNameInTest) {
+            skipMessage = '[INFO:IGNORED_TEST]';
         } else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
@@ -429,7 +443,7 @@ export default class testMainClass extends baseMainTestClass {
             }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
             let errorsInMessage = '';
-            if (errors) {
+            if (errors.length) {
                 const failedMsg = errors.join (', ');
                 errorsInMessage = ' | Failed methods : ' + failedMsg;
             }
