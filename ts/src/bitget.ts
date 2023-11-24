@@ -6175,11 +6175,12 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchFundingHistory
          * @description fetch the funding history
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
+         * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
          * @param {string} symbol unified market symbol
          * @param {int} [since] the starting timestamp in milliseconds
          * @param {int} [limit] the number of entries to return
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch funding history for
          * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets ();
@@ -6190,76 +6191,73 @@ export default class bitget extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
-        if (since === undefined) {
-            since = this.milliseconds () - 31556952000; // 1 year
-        }
-        const request = {
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        let request = {
             'symbol': market['id'],
-            'marginCoin': market['quoteId'],
-            'startTime': since,
-            'endTime': this.milliseconds (),
+            'marginCoin': market['settleId'],
+            'businessType': 'contract_settle_fee',
+            'productType': productType,
         };
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
-        const response = await this.privateMixGetMixV1AccountAccountBill (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateMixGetV2MixAccountBill (this.extend (request, params));
         //
-        //    {
-        //        "code": "00000",
-        //        "msg": "success",
-        //        "data": {
-        //            "result": [
-        //                {
-        //                    "id": "892962903462432768",
-        //                    "symbol": "ETHUSDT_UMCBL",
-        //                    "marginCoin": "USDT",
-        //                    "amount": "0",
-        //                    "fee": "-0.1765104",
-        //                    "feeByCoupon": "",
-        //                    "feeCoin": "USDT",
-        //                    "business": "contract_settle_fee",
-        //                    "cTime": "1648624867354"
-        //                }
-        //            ],
-        //            "endId": "885353495773458432",
-        //            "nextFlag": false,
-        //            "preFlag": false
-        //    }
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700795977890,
+        //         "data": {
+        //             "bills": [
+        //                 {
+        //                     "billId": "1111499428100472833",
+        //                     "symbol": "BTCUSDT",
+        //                     "amount": "-0.004992",
+        //                     "fee": "0",
+        //                     "feeByCoupon": "",
+        //                     "businessType": "contract_settle_fee",
+        //                     "coin": "USDT",
+        //                     "cTime": "1700728034996"
+        //                 },
+        //             ],
+        //             "endId": "1098396773329305606"
+        //         }
+        //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const result = this.safeValue (data, 'result', []);
+        const result = this.safeValue (data, 'bills', []);
         return this.parseFundingHistories (result, market, since, limit);
     }
 
     parseFundingHistory (contract, market: Market = undefined) {
         //
         //     {
-        //         "id": "892962903462432768",
-        //         "symbol": "ETHUSDT_UMCBL",
-        //         "marginCoin": "USDT",
-        //         "amount": "0",
-        //         "fee": "-0.1765104",
+        //         "billId": "1111499428100472833",
+        //         "symbol": "BTCUSDT",
+        //         "amount": "-0.004992",
+        //         "fee": "0",
         //         "feeByCoupon": "",
-        //         "feeCoin": "USDT",
-        //         "business": "contract_settle_fee",
-        //         "cTime": "1648624867354"
+        //         "businessType": "contract_settle_fee",
+        //         "coin": "USDT",
+        //         "cTime": "1700728034996"
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
-        const currencyId = this.safeString (contract, 'marginCoin');
-        const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeNumber (contract, 'amount');
+        const currencyId = this.safeString (contract, 'coin');
         const timestamp = this.safeInteger (contract, 'cTime');
-        const id = this.safeString (contract, 'id');
         return {
             'info': contract,
-            'symbol': symbol,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'code': code,
-            'amount': amount,
-            'id': id,
+            'code': this.safeCurrencyCode (currencyId),
+            'amount': this.safeNumber (contract, 'amount'),
+            'id': this.safeString (contract, 'billId'),
         };
     }
 
