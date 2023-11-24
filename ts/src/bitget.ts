@@ -6409,10 +6409,11 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#setLeverage
          * @description set the level of leverage for a market
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#change-leverage
+         * @see https://www.bitget.com/api-doc/contract/account/Change-Leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.holdSide] *isolated only* position direction, 'long' or 'short'
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -6420,13 +6421,32 @@ export default class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'leverage': leverage,
+            'productType': productType,
             // 'holdSide': 'long',
         };
-        return await this.privateMixPostMixV1AccountSetLeverage (this.extend (request, params));
+        const response = await this.privateMixPostV2MixAccountSetLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700864711517,
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "marginCoin": "USDT",
+        //             "longLeverage": "25",
+        //             "shortLeverage": "25",
+        //             "crossMarginLeverage": "25",
+        //             "marginMode": "crossed"
+        //         }
+        //     }
+        //
+        return response;
     }
 
     async setMarginMode (marginMode, symbol: Str = undefined, params = {}) {
