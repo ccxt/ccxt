@@ -3008,6 +3008,7 @@ export default class cryptocom extends Exchange {
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeSymbol (marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger (position, 'update_timestamp_ms');
+        const amount = this.safeString (position, 'quantity');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -3015,8 +3016,8 @@ export default class cryptocom extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'hedged': undefined,
-            'side': undefined,
-            'contracts': this.safeNumber (position, 'quantity'),
+            'side': Precise.stringGt (amount, '0') ? 'buy' : 'sell',
+            'contracts': Precise.stringAbs (amount),
             'contractSize': market['contractSize'],
             'entryPrice': undefined,
             'markPrice': undefined,
