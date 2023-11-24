@@ -304,9 +304,6 @@ export default class testMainClass extends baseMainTestClass {
         if (isLoadMarkets) {
             await exchange.loadMarkets (true);
         }
-        if (methodName !== 'createOrder') {
-            return;
-        }
         if (skipMessage) {
             if (this.info) {
                 dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
