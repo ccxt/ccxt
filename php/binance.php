@@ -281,6 +281,7 @@ class binance extends Exchange {
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall' => 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address' => 1,
+                        'capital/deposit/address/list' => 1,
                         'capital/deposit/hisrec' => 0.1,
                         'capital/deposit/subAddress' => 0.1,
                         'capital/deposit/subHisrec' => 0.1,
@@ -960,7 +961,7 @@ class binance extends Exchange {
                         'cm/income' => 30,
                         'um/account' => 5,
                         'cm/account' => 5,
-                        'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
+                        'repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
                         'um/adlQuantile' => 5,
                         'cm/adlQuantile' => 5,
                     ),
@@ -979,8 +980,8 @@ class binance extends Exchange {
                         'cm/positionSide/dual' => 1, // 1
                         'auto-collection' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
                         'bnb-transfer' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
-                        'portfolio/repay-futures-switch' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
-                        'portfolio/repay-futures-negative-balance' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'repay-futures-switch' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'repay-futures-negative-balance' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'listenKey' => 1, // 1
                         'asset-collection' => 3,
                     ),

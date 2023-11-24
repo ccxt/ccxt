@@ -987,6 +987,16 @@ export default class testMainClass extends baseMainTestClass {
             storedOutput = this.urlencodedToDict(storedOutput);
             newOutput = this.urlencodedToDict(newOutput);
         }
+        else if (type === 'both') {
+            if (storedOutput.startsWith('{') || storedOutput.startsWith('[')) {
+                storedOutput = jsonParse(storedOutput);
+                newOutput = jsonParse(newOutput);
+            }
+            else {
+                storedOutput = this.urlencodedToDict(storedOutput);
+                newOutput = this.urlencodedToDict(newOutput);
+            }
+        }
         this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
     }
     assertStaticResponseOutput(exchange, skipKeys, computedResult, storedResult) {

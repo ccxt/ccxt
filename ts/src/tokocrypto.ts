@@ -1168,9 +1168,7 @@ export default class tokocrypto extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const defaultMethod = 'binanceGetTicker24hr';
-        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
-        const response = await this[method] (params);
+        const response = await this.binanceGetTicker24hr (params);
         return this.parseTickers (response, symbols);
     }
 
