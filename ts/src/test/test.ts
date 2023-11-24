@@ -212,22 +212,24 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     checkIfSpecificTestIsChosen (symbolArgv) {
-        const testFileNames = Object.keys (this.testFiles);
-        const methodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
-        if (methodNames.length > 1) {
-            for (let i = 0; i < testFileNames.length; i++) {
-                const testFileName = testFileNames[i];
-                for (let j = 0; j < methodNames.length; j++) {
-                    const methodName = methodNames[j];
-                    if (testFileName === methodName) {
-                        this.onlySpecificTests.push (testFileName);
+        if (symbolArgv !== undefined) {
+            const testFileNames = Object.keys (this.testFiles);
+            const methodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            if (methodNames.length > 1) {
+                for (let i = 0; i < testFileNames.length; i++) {
+                    const testFileName = testFileNames[i];
+                    for (let j = 0; j < methodNames.length; j++) {
+                        const methodName = methodNames[j];
+                        if (testFileName === methodName) {
+                            this.onlySpecificTests.push (testFileName);
+                        }
                     }
                 }
             }
-        }
-        // if method names were found, then remove them from symbolArgv
-        if (this.onlySpecificTests.length > 0) {
-            symbolArgv = undefined;
+            // if method names were found, then remove them from symbolArgv
+            if (this.onlySpecificTests.length > 0) {
+                symbolArgv = undefined;
+            }
         }
         return symbolArgv;
     }
