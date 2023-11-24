@@ -631,7 +631,7 @@ export default class coinbasepro extends Exchange {
         /**
          * @method
          * @name coinbasepro#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
