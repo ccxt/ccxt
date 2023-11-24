@@ -27,6 +27,30 @@
                     0.1
                 ]
             }
+        ],
+        "transfer": [
+            {
+                "description": "transfer to spot",
+                "method": "transfer",
+                "url": "https://demo-futures.kraken.com/derivatives/api/v3/withdrawal?amount=1&currency=USDT",
+                "input": [
+                    "USDT",
+                    1,
+                    "main",
+                    "spot"
+                ]
+            },
+            {
+                "description": "transfer to funding",
+                "method": "transfer",
+                "url": "https://demo-futures.kraken.com/derivatives/api/v3/transfer?amount=1&fromAccount=cash&toAccount=cash&unit=USDT",
+                "input": [
+                    "USDT",
+                    1,
+                    "main",
+                    "funding"
+                ]
+            }
         ]
     }
 }
