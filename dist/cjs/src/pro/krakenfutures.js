@@ -403,7 +403,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {int} [limit] not used by krakenfutures watchBalance
          * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
          * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-         * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const name = 'balances';
@@ -1268,6 +1268,7 @@ class krakenfutures extends krakenfutures$1 {
                 holdingResult[code] = newAccount;
             }
             this.balance['cash'] = holdingResult;
+            this.balance['cash'] = this.safeBalance(this.balance['cash']);
             client.resolve(holdingResult, messageHash);
         }
         if (futures !== undefined) {
@@ -1291,6 +1292,7 @@ class krakenfutures extends krakenfutures$1 {
                 futuresResult[symbol][code] = newAccount;
             }
             this.balance['margin'] = futuresResult;
+            this.balance['margin'] = this.safeBalance(this.balance['margin']);
             client.resolve(this.balance['margin'], messageHash + 'futures');
         }
         if (flexFutures !== undefined) {
@@ -1312,6 +1314,7 @@ class krakenfutures extends krakenfutures$1 {
                 flexFuturesResult[code] = newAccount;
             }
             this.balance['flex'] = flexFuturesResult;
+            this.balance['flex'] = this.safeBalance(this.balance['flex']);
             client.resolve(this.balance['flex'], messageHash + 'flex_futures');
         }
         client.resolve(this.balance, messageHash);

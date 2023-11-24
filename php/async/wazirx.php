@@ -480,7 +480,12 @@ class wazirx extends Exchange {
                 $request['limit'] = min ($limit, 1000); // Default 500; max 1000.
             }
             $method = $this->safe_string($this->options, 'fetchTradesMethod', 'publicGetTrades');
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($method === 'privateGetHistoricalTrades') {
+                $response = Async\await($this->privateGetHistoricalTrades (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+            }
             // array(
             //     array(
             //         "id":322307791,

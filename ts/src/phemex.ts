@@ -993,11 +993,12 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let method = 'v1GetMdOrderbook';
+        let response = undefined;
         if (market['linear'] && market['settle'] === 'USDT') {
-            method = 'v2GetMdV2Orderbook';
+            response = await this.v2GetMdV2Orderbook (this.extend (request, params));
+        } else {
+            response = await this.v1GetMdOrderbook (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": null,
@@ -1308,15 +1309,16 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let method = 'v1GetMdSpotTicker24hr';
+        let response = undefined;
         if (market['swap']) {
             if (market['inverse'] || market['settle'] === 'USD') {
-                method = 'v1GetMdTicker24hr';
+                response = await this.v1GetMdTicker24hr (this.extend (request, params));
             } else {
-                method = 'v2GetMdV2Ticker24hr';
+                response = await this.v2GetMdV2Ticker24hr (this.extend (request, params));
             }
+        } else {
+            response = await this.v1GetMdSpotTicker24hr (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1388,16 +1390,14 @@ export default class phemex extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const query = this.omit (params, 'type');
-        let defaultMethod: string;
+        let response = undefined;
         if (type === 'spot') {
-            defaultMethod = 'v1GetMdSpotTicker24hrAll';
-        } else if (subType === 'inverse') {
-            defaultMethod = 'v1GetMdTicker24hrAll';
+            response = await this.v1GetMdSpotTicker24hrAll (query);
+        } else if (subType === 'inverse' || market['settle'] === 'USD') {
+            response = await this.v1GetMdTicker24hrAll (query);
         } else {
-            defaultMethod = 'v2GetMdV2Ticker24hrAll';
+            response = await this.v2GetMdV2Ticker24hrAll (query);
         }
-        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
-        const response = await this[method] (query);
         const result = this.safeValue (response, 'result', []);
         return this.parseTickers (result, symbols);
     }
@@ -1420,11 +1420,12 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let method = 'v1GetMdTrade';
+        let response = undefined;
         if (market['linear'] && market['settle'] === 'USDT') {
-            method = 'v2GetMdV2Trade';
+            response = await this.v2GetMdV2Trade (this.extend (request, params));
+        } else {
+            response = await this.v1GetMdTrade (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": null,
@@ -1820,18 +1821,20 @@ export default class phemex extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] spot or swap
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        let method = 'privateGetSpotWallets';
+        const code = this.safeString (params, 'code');
+        params = this.omit (params, [ 'type', 'code' ]);
+        let response = undefined;
         const request = {};
         if ((type !== 'spot') && (type !== 'swap')) {
             throw new BadRequest (this.id + ' does not support ' + type + ' markets, only spot and swap');
         }
         if (type === 'swap') {
-            const code = this.safeString (params, 'code');
             let settle = undefined;
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle');
             if (code !== undefined || settle !== undefined) {
@@ -1844,19 +1847,20 @@ export default class phemex extends Exchange {
                 const currency = this.currency (coin);
                 request['currency'] = currency['id'];
                 if (currency['id'] === 'USDT') {
-                    method = 'privateGetGAccountsAccountPositions';
+                    response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
                 } else {
-                    method = 'privateGetAccountsAccountPositions';
+                    response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
                 }
             } else {
                 const currency = this.safeString (params, 'currency');
                 if (currency === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchBalance() requires a code parameter or a currency or settle parameter for ' + type + ' type');
                 }
+                response = await this.privateGetSpotWallets (this.extend (request, params));
             }
+        } else {
+            response = await this.privateGetSpotWallets (this.extend (request, params));
         }
-        params = this.omit (params, [ 'type', 'code' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         // usdt
         //   {
@@ -2390,7 +2394,7 @@ export default class phemex extends Exchange {
             request['clOrdID'] = clientOrderId;
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
-        const stopPrice = this.safeString2 (params, 'stopPx', 'stopPrice');
+        const stopPrice = this.safeStringN (params, [ 'stopPx', 'stopPrice', 'triggerPrice' ]);
         if (stopPrice !== undefined) {
             if (market['settle'] === 'USDT') {
                 request['stopPxRp'] = this.priceToPrecision (symbol, stopPrice);
@@ -2398,7 +2402,7 @@ export default class phemex extends Exchange {
                 request['stopPxEp'] = this.toEp (stopPrice, market);
             }
         }
-        params = this.omit (params, [ 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit' ]);
+        params = this.omit (params, [ 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice' ]);
         if (market['spot']) {
             let qtyType = this.safeValue (params, 'qtyType', 'ByBase');
             if ((type === 'Market') || (type === 'Stop') || (type === 'MarketIfTouched')) {
@@ -2523,14 +2527,15 @@ export default class phemex extends Exchange {
             }
             params = this.omit (params, 'stopLossPrice');
         }
-        let method = 'privatePostSpotOrders';
-        if (market['settle'] === 'USDT') {
-            method = 'privatePostGOrders';
-        } else if (market['contract']) {
-            method = 'privatePostOrders';
-        }
         params = this.omit (params, 'reduceOnly');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['settle'] === 'USDT') {
+            response = await this.privatePostGOrders (this.extend (request, params));
+        } else if (market['contract']) {
+            response = await this.privatePostOrders (this.extend (request, params));
+        } else {
+            response = await this.privatePostSpotOrders (this.extend (request, params));
+        }
         //
         // spot
         //
@@ -2668,17 +2673,18 @@ export default class phemex extends Exchange {
             }
         }
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
-        let method = 'privatePutSpotOrders';
+        let response = undefined;
         if (isUSDTSettled) {
-            method = 'privatePutGOrdersReplace';
             const posSide = this.safeString (params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+            response = await this.privatePutGOrdersReplace (this.extend (request, params));
         } else if (market['swap']) {
-            method = 'privatePutOrdersReplace';
+            response = await this.privatePutOrdersReplace (this.extend (request, params));
+        } else {
+            response = await this.privatePutSpotOrders (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
@@ -2710,17 +2716,18 @@ export default class phemex extends Exchange {
         } else {
             request['orderID'] = id;
         }
-        let method = 'privateDeleteSpotOrders';
+        let response = undefined;
         if (market['settle'] === 'USDT') {
-            method = 'privateDeleteGOrdersCancel';
             const posSide = this.safeString (params, 'posSide');
             if (posSide === undefined) {
                 request['posSide'] = 'Merged';
             }
+            response = await this.privateDeleteGOrdersCancel (this.extend (request, params));
         } else if (market['swap']) {
-            method = 'privateDeleteOrdersCancel';
+            response = await this.privateDeleteOrdersCancel (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteSpotOrders (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
     }
@@ -2739,20 +2746,21 @@ export default class phemex extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            // 'symbol': market['id'],
+            'symbol': market['id'],
             // 'untriggerred': false, // false to cancel non-conditional orders, true to cancel conditional orders
             // 'text': 'up to 40 characters max',
         };
-        const market = this.market (symbol);
-        let method = 'privateDeleteSpotOrdersAll';
+        let response = undefined;
         if (market['settle'] === 'USDT') {
-            method = 'privateDeleteGOrdersAll';
+            response = await this.privateDeleteGOrdersAll (this.extend (request, params));
         } else if (market['swap']) {
-            method = 'privateDeleteOrdersAll';
+            response = await this.privateDeleteOrdersAll (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteSpotOrdersAll (this.extend (request, params));
         }
-        request['symbol'] = market['id'];
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2772,7 +2780,6 @@ export default class phemex extends Exchange {
         if (market['settle'] === 'USDT') {
             throw new NotSupported (this.id + 'fetchOrder() is not supported yet for USDT settled swap markets'); // https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-order-by-orderid-or-query-user-order-by-client-order-id
         }
-        const method = market['spot'] ? 'privateGetSpotOrdersActive' : 'privateGetExchangeOrder';
         const request = {
             'symbol': market['id'],
         };
@@ -2783,7 +2790,12 @@ export default class phemex extends Exchange {
         } else {
             request['orderID'] = id;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privateGetSpotOrdersActive (this.extend (request, params));
+        } else {
+            response = await this.privateGetExchangeOrder (this.extend (request, params));
+        }
         const data = this.safeValue (response, 'data', {});
         let order = data;
         if (Array.isArray (data)) {
@@ -2820,20 +2832,21 @@ export default class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'privateGetSpotOrders';
-        if (market['settle'] === 'USDT') {
-            request['currency'] = market['settle'];
-            method = 'privateGetExchangeOrderV2OrderList';
-        } else if (market['swap']) {
-            method = 'privateGetExchangeOrderList';
-        }
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['settle'] === 'USDT') {
+            request['currency'] = market['settle'];
+            response = await this.privateGetExchangeOrderV2OrderList (this.extend (request, params));
+        } else if (market['swap']) {
+            response = await this.privateGetExchangeOrderList (this.extend (request, params));
+        } else {
+            response = await this.privateGetSpotOrders (this.extend (request, params));
+        }
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeValue (data, 'rows', data);
         return this.parseOrders (rows, market, since, limit);
@@ -2857,18 +2870,18 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'privateGetSpotOrders';
-        if (market['settle'] === 'USDT') {
-            method = 'privateGetGOrdersActiveList';
-        } else if (market['swap']) {
-            method = 'privateGetOrdersActiveList';
-        }
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
         try {
-            response = await this[method] (this.extend (request, params));
+            if (market['settle'] === 'USDT') {
+                response = await this.privateGetGOrdersActiveList (this.extend (request, params));
+            } else if (market['swap']) {
+                response = await this.privateGetOrdersActiveList (this.extend (request, params));
+            } else {
+                response = await this.privateGetSpotOrders (this.extend (request, params));
+            }
         } catch (e) {
             if (e instanceof OrderNotFound) {
                 return [];
@@ -2904,20 +2917,21 @@ export default class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = 'privateGetExchangeSpotOrder';
-        if (market['settle'] === 'USDT') {
-            request['currency'] = market['settle'];
-            method = 'privateGetExchangeOrderV2OrderList';
-        } else if (market['swap']) {
-            method = 'privateGetExchangeOrderList';
-        }
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['settle'] === 'USDT') {
+            request['currency'] = market['settle'];
+            response = await this.privateGetExchangeOrderV2OrderList (this.extend (request, params));
+        } else if (market['swap']) {
+            response = await this.privateGetExchangeOrderList (this.extend (request, params));
+        } else {
+            response = await this.privateGetExchangeSpotOrder (this.extend (request, params));
+        }
         //
         // spot
         //
@@ -2981,13 +2995,6 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'privateGetExchangeSpotOrderTrades';
-        if (market['swap']) {
-            method = 'privateGetExchangeOrderTrade';
-            if (market['settle'] === 'USDT') {
-                method = 'privateGetExchangeOrderV2TradingList';
-            }
-        }
         const request = {};
         if (limit !== undefined) {
             limit = Math.min (200, limit);
@@ -3008,7 +3015,17 @@ export default class phemex extends Exchange {
         if (market['swap'] && (limit !== undefined)) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        const isUSDTSettled = market['settle'] === 'USDT';
+        let response = undefined;
+        if (market['swap']) {
+            if (isUSDTSettled) {
+                response = await this.privateGetExchangeOrderV2TradingList (this.extend (request, params));
+            } else {
+                response = await this.privateGetExchangeOrderTrade (this.extend (request, params));
+            }
+        } else {
+            response = await this.privateGetExchangeSpotOrderTrades (this.extend (request, params));
+        }
         //
         // spot
         //
@@ -3113,10 +3130,12 @@ export default class phemex extends Exchange {
         //     }
         // }
         //
-        const data = this.safeValue (response, 'data', {});
-        if (method !== 'privateGetExchangeOrderV2TradingList') {
-            const rows = this.safeValue (data, 'rows', []);
-            return this.parseTrades (rows, market, since, limit);
+        let data = undefined;
+        if (isUSDTSettled) {
+            data = this.safeValue (response, 'data', []);
+        } else {
+            data = this.safeValue (response, 'data', {});
+            data = this.safeValue (data, 'rows', []);
         }
         return this.parseTrades (data, market, since, limit);
     }
@@ -3353,7 +3372,6 @@ export default class phemex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let subType = undefined;
-        let method = 'privateGetAccountsAccountPositions';
         let code = this.safeString (params, 'currency');
         let settle = undefined;
         let market = undefined;
@@ -3366,9 +3384,9 @@ export default class phemex extends Exchange {
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USD');
         }
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
-        if (settle === 'USDT') {
+        const isUSDTSettled = settle === 'USDT';
+        if (isUSDTSettled) {
             code = 'USDT';
-            method = 'privateGetGAccountsAccountPositions';
         } else if (code === undefined) {
             code = (subType === 'linear') ? 'USD' : 'BTC';
         } else {
@@ -3378,7 +3396,12 @@ export default class phemex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (isUSDTSettled) {
+            response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
+        } else {
+            response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
+        }
         //
         //     {
         //         "code":0,"msg":"",
@@ -3803,7 +3826,7 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
          * @param {string} symbol unified market symbol of the market to set margin in
          * @param {float} amount the amount to set the margin to
-         * @param {object} [params] parameters specific to the phemex api endpoint
+         * @param {object} [params] parameters specific to the exchange API endpoint
          * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         await this.loadMarkets ();

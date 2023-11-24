@@ -82,7 +82,7 @@ class krakenfutures extends Exchange {
                 ),
                 'www' => 'https://futures.kraken.com/',
                 'doc' => array(
-                    'https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API',
+                    'https://docs.futures.kraken.com/#introduction',
                 ),
                 'fees' => 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral' => null,
@@ -2199,25 +2199,25 @@ class krakenfutures extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $method = 'privatePostTransfer';
-        $request = array(
-            'amount' => $amount,
-        );
         if ($fromAccount === 'spot') {
             throw new BadRequest($this->id . ' $transfer does not yet support transfers from spot');
         }
+        $request = array(
+            'amount' => $amount,
+        );
+        $response = null;
         if ($toAccount === 'spot') {
             if ($this->parse_account($fromAccount) !== 'cash') {
                 throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount);
             }
-            $method = 'privatePostWithdrawal';
             $request['currency'] = $currency['id'];
+            $response = $this->privatePostWithdrawal (array_merge($request, $params));
         } else {
             $request['fromAccount'] = $this->parse_account($fromAccount);
             $request['toAccount'] = $this->parse_account($toAccount);
             $request['unit'] = $currency['id'];
+            $response = $this->privatePostTransfer (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //    {
         //        "result" => "success",

@@ -2216,11 +2216,13 @@ export default class Exchange {
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.safeNumber (fee, 'cost');
-                if ('rate' in fee) {
-                    fee['rate'] = this.safeNumber (fee, 'rate');
+                // copy fee to avoid modification by reference
+                const feeCopy = this.deepExtend (fee);
+                feeCopy['cost'] = this.safeNumber (feeCopy, 'cost');
+                if ('rate' in feeCopy) {
+                    feeCopy['rate'] = this.safeNumber (feeCopy, 'rate');
                 }
-                reducedFees.push (fee);
+                reducedFees.push (feeCopy);
             }
             order['fees'] = reducedFees;
             if (parseFee && (reducedLength === 1)) {
@@ -2498,11 +2500,13 @@ export default class Exchange {
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.safeNumber (fee, 'cost');
-                if ('rate' in fee) {
-                    fee['rate'] = this.safeNumber (fee, 'rate');
+                // copy fee to avoid modification by reference
+                const feeCopy = this.deepExtend (fee);
+                feeCopy['cost'] = this.safeNumber (feeCopy, 'cost');
+                if ('rate' in feeCopy) {
+                    feeCopy['rate'] = this.safeNumber (feeCopy, 'rate');
                 }
-                reducedFees.push (fee);
+                reducedFees.push (feeCopy);
             }
             if (parseFees) {
                 trade['fees'] = reducedFees;

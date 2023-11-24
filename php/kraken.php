@@ -1517,8 +1517,8 @@ class kraken extends Exchange {
         //
         //     market
         //     limit ($price = limit $price)
-        //     stop-loss ($price = stop loss $price)
-        //     take-profit ($price = take profit $price)
+        //     stop-loss ($price = stop loss trigger $price)
+        //     take-profit ($price = take profit trigger $price)
         //     stop-loss-limit ($price = stop loss trigger $price, price2 = triggered limit $price)
         //     take-profit-limit ($price = take profit trigger $price, price2 = triggered limit $price)
         //     settle-position
@@ -1778,6 +1778,13 @@ class kraken extends Exchange {
     }
 
     public function fetch_orders_by_ids($ids, ?string $symbol = null, $params = array ()) {
+        /**
+         * fetch $orders by the list of $order $id
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+         * @param {string[]|null} $ids list of $order $id
+         * @param {array} [$params] extra parameters specific to the kraken api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         */
         $this->load_markets();
         $response = $this->privatePostQueryOrders (array_merge(array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
@@ -2266,6 +2273,13 @@ class kraken extends Exchange {
     }
 
     public function fetch_deposit_methods(string $code, $params = array ()) {
+        /**
+         * fetch deposit methods for a $currency associated with this account
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the kraken api endpoint
+         * @return {array} of deposit methods
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(

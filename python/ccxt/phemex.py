@@ -983,10 +983,11 @@ class phemex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             # 'id': 123456789,  # optional request id
         }
-        method = 'v1GetMdOrderbook'
+        response = None
         if market['linear'] and market['settle'] == 'USDT':
-            method = 'v2GetMdV2Orderbook'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.v2GetMdV2Orderbook(self.extend(request, params))
+        else:
+            response = self.v1GetMdOrderbook(self.extend(request, params))
         #
         #     {
         #         "error": null,
@@ -1266,13 +1267,14 @@ class phemex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             # 'id': 123456789,  # optional request id
         }
-        method = 'v1GetMdSpotTicker24hr'
+        response = None
         if market['swap']:
             if market['inverse'] or market['settle'] == 'USD':
-                method = 'v1GetMdTicker24hr'
+                response = self.v1GetMdTicker24hr(self.extend(request, params))
             else:
-                method = 'v2GetMdV2Ticker24hr'
-        response = getattr(self, method)(self.extend(request, params))
+                response = self.v2GetMdV2Ticker24hr(self.extend(request, params))
+        else:
+            response = self.v1GetMdSpotTicker24hr(self.extend(request, params))
         #
         # spot
         #
@@ -1340,15 +1342,13 @@ class phemex(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         query = self.omit(params, 'type')
-        defaultMethod: str
+        response = None
         if type == 'spot':
-            defaultMethod = 'v1GetMdSpotTicker24hrAll'
-        elif subType == 'inverse':
-            defaultMethod = 'v1GetMdTicker24hrAll'
+            response = self.v1GetMdSpotTicker24hrAll(query)
+        elif subType == 'inverse' or market['settle'] == 'USD':
+            response = self.v1GetMdTicker24hrAll(query)
         else:
-            defaultMethod = 'v2GetMdV2Ticker24hrAll'
-        method = self.safe_string(self.options, 'fetchTickersMethod', defaultMethod)
-        response = getattr(self, method)(query)
+            response = self.v2GetMdV2Ticker24hrAll(query)
         result = self.safe_value(response, 'result', [])
         return self.parse_tickers(result, symbols)
 
@@ -1368,10 +1368,11 @@ class phemex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             # 'id': 123456789,  # optional request id
         }
-        method = 'v1GetMdTrade'
+        response = None
         if market['linear'] and market['settle'] == 'USDT':
-            method = 'v2GetMdV2Trade'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.v2GetMdV2Trade(self.extend(request, params))
+        else:
+            response = self.v1GetMdTrade(self.extend(request, params))
         #
         #     {
         #         "error": null,
@@ -1749,17 +1750,19 @@ class phemex(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-account-positions
         :param dict [params]: extra parameters specific to the phemex api endpoint
+        :param str [params.type]: spot or swap
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        method = 'privateGetSpotWallets'
+        code = self.safe_string(params, 'code')
+        params = self.omit(params, ['type', 'code'])
+        response = None
         request = {}
         if (type != 'spot') and (type != 'swap'):
             raise BadRequest(self.id + ' does not support ' + type + ' markets, only spot and swap')
         if type == 'swap':
-            code = self.safe_string(params, 'code')
             settle = None
             settle, params = self.handle_option_and_params(params, 'fetchBalance', 'settle')
             if code is not None or settle is not None:
@@ -1771,15 +1774,16 @@ class phemex(Exchange, ImplicitAPI):
                 currency = self.currency(coin)
                 request['currency'] = currency['id']
                 if currency['id'] == 'USDT':
-                    method = 'privateGetGAccountsAccountPositions'
+                    response = self.privateGetGAccountsAccountPositions(self.extend(request, params))
                 else:
-                    method = 'privateGetAccountsAccountPositions'
+                    response = self.privateGetAccountsAccountPositions(self.extend(request, params))
             else:
                 currency = self.safe_string(params, 'currency')
                 if currency is None:
                     raise ArgumentsRequired(self.id + ' fetchBalance() requires a code parameter or a currency or settle parameter for ' + type + ' type')
-        params = self.omit(params, ['type', 'code'])
-        response = getattr(self, method)(self.extend(request, params))
+                response = self.privateGetSpotWallets(self.extend(request, params))
+        else:
+            response = self.privateGetSpotWallets(self.extend(request, params))
         #
         # usdt
         #   {
@@ -2293,13 +2297,13 @@ class phemex(Exchange, ImplicitAPI):
         else:
             request['clOrdID'] = clientOrderId
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
-        stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
+        stopPrice = self.safe_string_n(params, ['stopPx', 'stopPrice', 'triggerPrice'])
         if stopPrice is not None:
             if market['settle'] == 'USDT':
                 request['stopPxRp'] = self.price_to_precision(symbol, stopPrice)
             else:
                 request['stopPxEp'] = self.to_ep(stopPrice, market)
-        params = self.omit(params, ['stopPx', 'stopPrice', 'stopLoss', 'takeProfit'])
+        params = self.omit(params, ['stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice'])
         if market['spot']:
             qtyType = self.safe_value(params, 'qtyType', 'ByBase')
             if (type == 'Market') or (type == 'Stop') or (type == 'MarketIfTouched'):
@@ -2393,13 +2397,14 @@ class phemex(Exchange, ImplicitAPI):
             else:
                 request['stopLossEp'] = self.to_ep(stopLossPrice, market)
             params = self.omit(params, 'stopLossPrice')
-        method = 'privatePostSpotOrders'
-        if market['settle'] == 'USDT':
-            method = 'privatePostGOrders'
-        elif market['contract']:
-            method = 'privatePostOrders'
         params = self.omit(params, 'reduceOnly')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['settle'] == 'USDT':
+            response = self.privatePostGOrders(self.extend(request, params))
+        elif market['contract']:
+            response = self.privatePostOrders(self.extend(request, params))
+        else:
+            response = self.privatePostSpotOrders(self.extend(request, params))
         #
         # spot
         #
@@ -2527,15 +2532,16 @@ class phemex(Exchange, ImplicitAPI):
             else:
                 request['stopPxEp'] = self.to_ep(stopPrice, market)
         params = self.omit(params, ['stopPx', 'stopPrice'])
-        method = 'privatePutSpotOrders'
+        response = None
         if isUSDTSettled:
-            method = 'privatePutGOrdersReplace'
             posSide = self.safe_string(params, 'posSide')
             if posSide is None:
                 request['posSide'] = 'Merged'
+            response = self.privatePutGOrdersReplace(self.extend(request, params))
         elif market['swap']:
-            method = 'privatePutOrdersReplace'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePutOrdersReplace(self.extend(request, params))
+        else:
+            response = self.privatePutSpotOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
@@ -2562,15 +2568,16 @@ class phemex(Exchange, ImplicitAPI):
             request['clOrdID'] = clientOrderId
         else:
             request['orderID'] = id
-        method = 'privateDeleteSpotOrders'
+        response = None
         if market['settle'] == 'USDT':
-            method = 'privateDeleteGOrdersCancel'
             posSide = self.safe_string(params, 'posSide')
             if posSide is None:
                 request['posSide'] = 'Merged'
+            response = self.privateDeleteGOrdersCancel(self.extend(request, params))
         elif market['swap']:
-            method = 'privateDeleteOrdersCancel'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privateDeleteOrdersCancel(self.extend(request, params))
+        else:
+            response = self.privateDeleteSpotOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
@@ -2585,19 +2592,20 @@ class phemex(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            # 'symbol': market['id'],
+            'symbol': market['id'],
             # 'untriggerred': False,  # False to cancel non-conditional orders, True to cancel conditional orders
             # 'text': 'up to 40 characters max',
         }
-        market = self.market(symbol)
-        method = 'privateDeleteSpotOrdersAll'
+        response = None
         if market['settle'] == 'USDT':
-            method = 'privateDeleteGOrdersAll'
+            response = self.privateDeleteGOrdersAll(self.extend(request, params))
         elif market['swap']:
-            method = 'privateDeleteOrdersAll'
-        request['symbol'] = market['id']
-        return getattr(self, method)(self.extend(request, params))
+            response = self.privateDeleteOrdersAll(self.extend(request, params))
+        else:
+            response = self.privateDeleteSpotOrdersAll(self.extend(request, params))
+        return response
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -2612,7 +2620,6 @@ class phemex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['settle'] == 'USDT':
             raise NotSupported(self.id + 'fetchOrder() is not supported yet for USDT settled swap markets')  # https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-order-by-orderid-or-query-user-order-by-client-order-id
-        method = 'privateGetSpotOrdersActive' if market['spot'] else 'privateGetExchangeOrder'
         request = {
             'symbol': market['id'],
         }
@@ -2622,7 +2629,11 @@ class phemex(Exchange, ImplicitAPI):
             request['clOrdID'] = clientOrderId
         else:
             request['orderID'] = id
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['spot']:
+            response = self.privateGetSpotOrdersActive(self.extend(request, params))
+        else:
+            response = self.privateGetExchangeOrder(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         order = data
         if isinstance(data, list):
@@ -2652,17 +2663,18 @@ class phemex(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        method = 'privateGetSpotOrders'
-        if market['settle'] == 'USDT':
-            request['currency'] = market['settle']
-            method = 'privateGetExchangeOrderV2OrderList'
-        elif market['swap']:
-            method = 'privateGetExchangeOrderList'
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['settle'] == 'USDT':
+            request['currency'] = market['settle']
+            response = self.privateGetExchangeOrderV2OrderList(self.extend(request, params))
+        elif market['swap']:
+            response = self.privateGetExchangeOrderList(self.extend(request, params))
+        else:
+            response = self.privateGetSpotOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
         rows = self.safe_value(data, 'rows', data)
         return self.parse_orders(rows, market, since, limit)
@@ -2682,17 +2694,17 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        method = 'privateGetSpotOrders'
-        if market['settle'] == 'USDT':
-            method = 'privateGetGOrdersActiveList'
-        elif market['swap']:
-            method = 'privateGetOrdersActiveList'
         request = {
             'symbol': market['id'],
         }
         response = None
         try:
-            response = getattr(self, method)(self.extend(request, params))
+            if market['settle'] == 'USDT':
+                response = self.privateGetGOrdersActiveList(self.extend(request, params))
+            elif market['swap']:
+                response = self.privateGetOrdersActiveList(self.extend(request, params))
+            else:
+                response = self.privateGetSpotOrders(self.extend(request, params))
         except Exception as e:
             if isinstance(e, OrderNotFound):
                 return []
@@ -2721,17 +2733,18 @@ class phemex(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        method = 'privateGetExchangeSpotOrder'
-        if market['settle'] == 'USDT':
-            request['currency'] = market['settle']
-            method = 'privateGetExchangeOrderV2OrderList'
-        elif market['swap']:
-            method = 'privateGetExchangeOrderList'
         if since is not None:
             request['start'] = since
         if limit is not None:
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['settle'] == 'USDT':
+            request['currency'] = market['settle']
+            response = self.privateGetExchangeOrderV2OrderList(self.extend(request, params))
+        elif market['swap']:
+            response = self.privateGetExchangeOrderList(self.extend(request, params))
+        else:
+            response = self.privateGetExchangeSpotOrder(self.extend(request, params))
         #
         # spot
         #
@@ -2790,11 +2803,6 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        method = 'privateGetExchangeSpotOrderTrades'
-        if market['swap']:
-            method = 'privateGetExchangeOrderTrade'
-            if market['settle'] == 'USDT':
-                method = 'privateGetExchangeOrderV2TradingList'
         request = {}
         if limit is not None:
             limit = min(200, limit)
@@ -2810,7 +2818,15 @@ class phemex(Exchange, ImplicitAPI):
             request['start'] = since
         if market['swap'] and (limit is not None):
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        isUSDTSettled = market['settle'] == 'USDT'
+        response = None
+        if market['swap']:
+            if isUSDTSettled:
+                response = self.privateGetExchangeOrderV2TradingList(self.extend(request, params))
+            else:
+                response = self.privateGetExchangeOrderTrade(self.extend(request, params))
+        else:
+            response = self.privateGetExchangeSpotOrderTrades(self.extend(request, params))
         #
         # spot
         #
@@ -2915,10 +2931,12 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        data = self.safe_value(response, 'data', {})
-        if method != 'privateGetExchangeOrderV2TradingList':
-            rows = self.safe_value(data, 'rows', [])
-            return self.parse_trades(rows, market, since, limit)
+        data = None
+        if isUSDTSettled:
+            data = self.safe_value(response, 'data', [])
+        else:
+            data = self.safe_value(response, 'data', {})
+            data = self.safe_value(data, 'rows', [])
         return self.parse_trades(data, market, since, limit)
 
     def fetch_deposit_address(self, code: str, params={}):
@@ -3136,7 +3154,6 @@ class phemex(Exchange, ImplicitAPI):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         subType = None
-        method = 'privateGetAccountsAccountPositions'
         code = self.safe_string(params, 'currency')
         settle = None
         market = None
@@ -3148,9 +3165,9 @@ class phemex(Exchange, ImplicitAPI):
         else:
             settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', 'USD')
         subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
-        if settle == 'USDT':
+        isUSDTSettled = settle == 'USDT'
+        if isUSDTSettled:
             code = 'USDT'
-            method = 'privateGetGAccountsAccountPositions'
         elif code is None:
             code = 'USD' if (subType == 'linear') else 'BTC'
         else:
@@ -3159,7 +3176,11 @@ class phemex(Exchange, ImplicitAPI):
         request = {
             'currency': currency['id'],
         }
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if isUSDTSettled:
+            response = self.privateGetGAccountsAccountPositions(self.extend(request, params))
+        else:
+            response = self.privateGetAccountsAccountPositions(self.extend(request, params))
         #
         #     {
         #         "code":0,"msg":"",
