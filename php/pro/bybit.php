@@ -1729,7 +1729,7 @@ class bybit extends \ccxt\async\bybit {
                 'args' => $topics,
             );
             $message = array_merge($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash));
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscriptionHash));
         }) ();
     }
 

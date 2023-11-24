@@ -2067,7 +2067,7 @@ Python
    print(exmo.id, exmo.create_limit_buy_order('BTC/EUR', 1, 2500.00))
 
    # pass/redefine custom exchange-specific order params: type, amount, price, flags, etc...
-   kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
+   kraken.create_market_buy_order('BTC/USD', 1, {'validate': true})
 
 PHP
 ^^^
