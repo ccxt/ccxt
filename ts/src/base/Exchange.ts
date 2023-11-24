@@ -3428,6 +3428,7 @@ export default class Exchange {
             'id': currencyId,
             'code': code,
             'precision': undefined,
+            'info': undefined,
         };
     }
 

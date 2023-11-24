@@ -76,6 +76,21 @@ class Account(TypedDict):
     total: Str
 
 
+class Currency(TypedDict):
+    id: Union[None, str]
+    code: Union[None, str]
+    name: Union[None, str]
+    type: Union[None, str]
+    deposit: Union[None, bool]
+    withdraw: Union[None, bool]
+    fee: Numeric
+    active: Union[None, bool]
+    numericId: Union[None, int]
+    precision: Union[None, int]
+    limits: Dict[str, Union[float, int]]
+    info: Dict[str, any]
+
+
 class Trade(TypedDict):
     info: Dict[str, Any]
     amount: Num
