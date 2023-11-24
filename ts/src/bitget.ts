@@ -6454,7 +6454,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#change-margin-mode
+         * @see https://www.bitget.com/api-doc/contract/account/Change-Margin-Mode
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
@@ -6464,23 +6464,38 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
         marginMode = marginMode.toLowerCase ();
-        if (marginMode === 'isolated') {
-            marginMode = 'fixed';
-        }
         if (marginMode === 'cross') {
             marginMode = 'crossed';
         }
-        if ((marginMode !== 'fixed') && (marginMode !== 'crossed')) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either fixed (isolated) or crossed (cross)');
+        if ((marginMode !== 'isolated') && (marginMode !== 'crossed')) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be either isolated or crossed (cross)');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
             'marginMode': marginMode,
+            'productType': productType,
         };
-        return await this.privateMixPostMixV1AccountSetMarginMode (this.extend (request, params));
+        const response = await this.privateMixPostV2MixAccountSetMarginMode (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700865205552,
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "marginCoin": "USDT",
+        //             "longLeverage": "20",
+        //             "shortLeverage": "3",
+        //             "marginMode": "isolated"
+        //         }
+        //     }
+        //
+        return response;
     }
 
     async setPositionMode (hedged, symbol: Str = undefined, params = {}) {
