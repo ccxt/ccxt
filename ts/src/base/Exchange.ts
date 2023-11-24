@@ -296,11 +296,11 @@ export default class Exchange {
     markets_by_id: Dictionary<any> = undefined;
     symbols: string[] = undefined;
     ids: string[] = undefined;
-    currencies: Dictionary<Currency> = undefined;
+    currencies: Dictionary<CurrencyInterface> = undefined;
 
-    baseCurrencies = undefined
-    quoteCurrencies = undefined
-    currencies_by_id = undefined
+    baseCurrencies: Dictionary<CurrencyInterface> = undefined;
+    quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
+    currencies_by_id: Dictionary<any> = undefined;
     codes = undefined
 
     reloadingMarkets = undefined
