@@ -116,7 +116,7 @@ class baseMainTestClass():
     env_vars = envVars
     ext = ext
     root_dir_for_skips = rootDirForSkips
-    only_specific_tests = None
+    only_specific_tests = []
     pass
 
 
