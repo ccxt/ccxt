@@ -6503,37 +6503,34 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#setPositionMode
          * @description set hedged to true or false for a market
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#change-hold-mode
+         * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
          * @param {bool} hedged set to true to use dualSidePosition
          * @param {string} symbol not used by bitget setPositionMode ()
          * @param {object} [params] extra parameters specific to the bitget api endpoint
+         * @param {string} [params.productType] required if symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @returns {object} response from the exchange
-         *
          */
         await this.loadMarkets ();
-        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-        const holdMode = hedged ? 'double_hold' : 'single_hold';
-        const request = {
-            'holdMode': holdMode,
-        };
-        let subType = undefined;
+        const posMode = hedged ? 'hedge_mode' : 'one_way_mode';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
-        let productType = (subType === 'linear') ? 'UMCBL' : 'DMCBL';
-        if (sandboxMode) {
-            productType = 'S' + productType;
-        }
-        request['productType'] = productType;
-        const response = await this.privateMixPostMixV1AccountSetPositionMode (this.extend (request, params));
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
+        const request = {
+            'posMode': posMode,
+            'productType': productType,
+        };
+        const response = await this.privateMixPostV2MixAccountSetPositionMode (this.extend (request, params));
         //
-        //    {
-        //         "code": "40919",
-        //         "msg": "This function is not open yet",
-        //         "requestTime": 1672212431093,
-        //         "data": null
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700865608009,
+        //         "data": {
+        //             "posMode": "hedge_mode"
+        //         }
         //     }
         //
         return response;
