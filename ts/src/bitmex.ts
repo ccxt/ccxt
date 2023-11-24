@@ -2788,7 +2788,7 @@ export default class bitmex extends Exchange {
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
-         * @name okx#closePositions
+         * @name bitmex#closePositions
          * @description closes open positions for a market
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
          * @param {string} symbol Unified CCXT market symbol
