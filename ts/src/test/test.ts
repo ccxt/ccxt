@@ -181,22 +181,22 @@ export default class testMainClass extends baseMainTestClass {
         this.sandbox = getCliArgValue ('--sandbox');
     }
 
-    async init (exchangeId, symbol) {
+    async init (exchangeId, symbolArgv) {
         this.parseCliArgs ();
 
         if (this.responseTests) {
-            await this.runStaticResponseTests (exchangeId, symbol);
+            await this.runStaticResponseTests (exchangeId, symbolArgv);
             return;
         }
         if (this.requestTests) {
-            await this.runStaticRequestTests (exchangeId, symbol); // symbol here is the testname
+            await this.runStaticRequestTests (exchangeId, symbolArgv); // symbol here is the testname
             return;
         }
         if (this.idTests) {
             await this.runBrokerIdTests ();
             return;
         }
-        const symbolStr = symbol !== undefined ? symbol : 'all';
+        const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
         dump ('\nTESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
         const exchangeArgs = {
             'verbose': this.verbose,
@@ -206,19 +206,30 @@ export default class testMainClass extends baseMainTestClass {
         };
         const exchange = initExchange (exchangeId, exchangeArgs);
         await this.importFiles (exchange);
-        this.expandSettings (exchange, symbol);
-        this.checkIfSpecificTestIsChosen ();
-        await this.startTest (exchange, symbol);
+        this.expandSettings (exchange);
+        symbolArgv = this.checkIfSpecificTestIsChosen (symbolArgv);
+        await this.startTest (exchange, symbolArgv);
     }
 
-    checkIfSpecificTestIsChosen () {
-        const keys = Object.keys (this.testFiles);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (getCliArgValue ('--' + key)) {
-                this.onlySpecificTests.push (key);
+    checkIfSpecificTestIsChosen (symbolArgv) {
+        const testFileNames = Object.keys (this.testFiles);
+        const methodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+        if (methodNames.length > 1) {
+            for (let i = 0; i < testFileNames.length; i++) {
+                const testFileName = testFileNames[i];
+                for (let j = 0; j < methodNames.length; j++) {
+                    const methodName = methodNames[j];
+                    if (testFileName === methodName) {
+                        this.onlySpecificTests.push (testFileName);
+                    }
+                }
             }
         }
+        // if method names were found, then remove them from symbolArgv
+        if (this.onlySpecificTests.length > 0) {
+            symbolArgv = undefined;
+        }
+        return symbolArgv;
     }
 
     async importFiles (exchange) {
@@ -229,7 +240,7 @@ export default class testMainClass extends baseMainTestClass {
         await setTestFiles (this, properties);
     }
 
-    expandSettings (exchange, symbol) {
+    expandSettings (exchange) {
         const exchangeId = exchange.id;
         const keysGlobal = this.rootDir + 'keys.json';
         const keysLocal = this.rootDir + 'keys.local.json';
