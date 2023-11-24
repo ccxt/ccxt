@@ -145,7 +145,7 @@ class Exchange(BaseExchange):
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
-            self.open() # ensure `asyncio_loop` is set
+            self.open()  # ensure `asyncio_loop` is set
             connector = ProxyConnector.from_url(
                 socksProxy,
                 # extra args copied from self.open()
