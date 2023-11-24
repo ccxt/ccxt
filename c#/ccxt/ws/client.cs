@@ -23,7 +23,7 @@ public partial class Exchange
         return new ccxt.OrderBook(snapshot, depth);
     }
 
-    public ccxt.IndexedOrderBook indexedIndexedOrderBook(object snapshot = null, object depth = null)
+    public ccxt.IndexedOrderBook indexedOrderBook(object snapshot = null, object depth = null)
     {
         return new ccxt.IndexedOrderBook(snapshot, depth);
     }
@@ -52,7 +52,7 @@ public partial class Exchange
             {
                 var message = await binance.watchOHLCV("BTC/USDT");
                 Console.WriteLine(JsonConvert.SerializeObject(message, Formatting.Indented));
-                Console.WriteLine("message" + this.json(message));
+                Console.WriteLine("message" + Exchange.Json(message));
             }
 
         }
@@ -139,12 +139,7 @@ public partial class Exchange
             {
                 try
                 {
-                    var bytes = Encoding.UTF8.GetBytes(this.json(message).ToString());
-                    var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-                    await client.webSocket.SendAsync(arraySegment,
-                                        WebSocketMessageType.Text,
-                                        true,
-                                        CancellationToken.None);
+                    await client.send(message);
                 }
                 catch (Exception ex)
                 {
@@ -177,6 +172,8 @@ public partial class Exchange
         public delegate void handleMessageDelegate(WebSocketClient client, object messageContent);
 
         public handleMessageDelegate handleMessage = null;
+
+        public object lastPong = null;
 
         public WebSocketClient(string url, handleMessageDelegate handleMessage)
         {
@@ -306,6 +303,16 @@ public partial class Exchange
             });
 
             // return tcs.Task;
+        }
+
+        public async Task send(object message)
+        {
+            var bytes = Encoding.UTF8.GetBytes(Exchange.Json(message).ToString());
+            var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
+            await this.webSocket.SendAsync(arraySegment,
+                                WebSocketMessageType.Text,
+                                true,
+                                CancellationToken.None);
         }
 
         private static async Task Sending(ClientWebSocket webSocket)
