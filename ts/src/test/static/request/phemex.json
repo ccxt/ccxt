@@ -1,8 +1,96 @@
 {
     "exchange": "phemex",
-    "skipKeys": [],
+    "skipKeys": ["clOrdID"],
     "outputType": "json",
     "methods": {
+        "createOrder":[
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  0.1
+                ],
+                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt20228e2ff23c142d8430\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000}"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1
+                ],
+                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Sell\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt2022682fd099549bbfeb\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000}"
+            },
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  "55"
+                ],
+                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"ccxt202269fb13ce74759a10\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000,\"priceEp\":5500000000}"
+            },
+            {
+                "description": "Swap market buy",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  0.1
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt20221857f87e9488b077\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1}"
+            },
+            {
+                "description": "Swap limit buy with trigger price",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/g-orders",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  "55",
+                  {
+                    "triggerPrice": 60,
+                    "clientOrderId": "myordr2"
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"myordr2\",\"stopPxRp\":\"60\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"55\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders?symbol=sLTCUSDT&orderID=2465bef7-b1fd-46ba-9eaa-bebc5c9791f2",
+                "input": [
+                  "2465bef7-b1fd-46ba-9eaa-bebc5c9791f2",
+                  "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Cancel swap order",
+                "method": "cancelOrder",
+                "url": "https://testnet-api.phemex.com/g-orders/cancel?symbol=LTCUSDT&orderID=2da1890e-2b2e-4780-b432-410213a07e4c&posSide=Merged",
+                "input": [
+                  "2da1890e-2b2e-4780-b432-410213a07e4c",
+                  "LTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Spot orders",
