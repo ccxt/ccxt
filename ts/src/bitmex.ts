@@ -2785,7 +2785,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name bitmex#closePositions
@@ -2816,7 +2816,7 @@ export default class bitmex extends Exchange {
         }
         const response = await this.privatePostOrder (this.extend (request, params));
         const parsedOrder = this.parseOrder (response, market);
-        return [ parsedOrder ];
+        return parsedOrder;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

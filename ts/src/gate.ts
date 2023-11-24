@@ -6930,7 +6930,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name gate#closePositions

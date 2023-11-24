@@ -2893,7 +2893,7 @@ export default class cryptocom extends Exchange {
         return returnString;
     }
 
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name cryptocom#closePositions
@@ -2935,7 +2935,7 @@ export default class cryptocom extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result');
-        return [ this.parseOrder (result, market) ];
+        return this.parseOrder (result, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

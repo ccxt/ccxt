@@ -8593,7 +8593,7 @@ export default class htx extends Exchange {
         });
     }
 
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order[]> {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name htx#closePositions
