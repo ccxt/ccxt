@@ -288,10 +288,10 @@ export default class binance extends Exchange {
                         'capital/deposit/hisrec': 0.1,
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
-                        'capital/withdraw/history': 5, // globalRateLimit / endpointRateLimit = 50 / 10 = 5
+                        'capital/withdraw/history': 2, // Weight(UID): 18000 (but it's 180_000r/s not 180_000r/m so we cost'=cost/60) => cost = 0.006667 / 60 * 18000 = 2
                         'capital/contract/convertible-coins': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'convert/tradeFlow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'convert/exchangeInfo': 50,
+                        'convert/exchngeInfo': 50,
                         'convert/assetInfo': 10,
                         'convert/orderStatus': 0.6667,
                         'account/status': 0.1,
