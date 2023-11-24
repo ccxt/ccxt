@@ -57,6 +57,7 @@ class baseMainTestClass {
     public $root_dir = root_dir;
     public $env_vars = envVars;
     public $root_dir_for_skips = rootDirForSkips;
+    public $only_specific_test = null;
     public $ext = ext;
     public $LOG_CHARS_LENGTH = LOG_CHARS_LENGTH;
 }
