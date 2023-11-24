@@ -2336,7 +2336,7 @@ export default class kraken extends Exchange {
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the kraken api endpoint
-         * @returns {object} of deposit methods 
+         * @returns {object} of deposit methods
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
