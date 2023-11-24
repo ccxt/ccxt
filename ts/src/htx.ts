@@ -34,7 +34,8 @@ export default class htx extends Exchange {
                 'future': true,
                 'option': undefined,
                 'addMargin': undefined,
-                'borrowMargin': true,
+                'borrowCrossMargin': true,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -114,7 +115,8 @@ export default class htx extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'reduceMargin': undefined,
-                'repayMargin': true,
+                'repayCrossMargin': true,
+                'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -1163,10 +1165,6 @@ export default class htx extends Exchange {
                     'grid-trading': 'grid-trading',
                     'deposit-earning': 'deposit-earning',
                     'otc-options': 'otc-options',
-                },
-                'marginAccounts': {
-                    'cross': 'super-margin',
-                    'isolated': 'margin',
                 },
                 'typesByAccount': {
                     'pro': 'spot',
@@ -2569,7 +2567,9 @@ export default class htx extends Exchange {
             [ request, params ] = this.handleUntilOption ('end-time', request, params);
             method = 'spotPrivateGetV1OrderMatchresults';
         } else {
-            this.checkRequiredSymbol ('fetchMyTrades', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+            }
             request['contract'] = market['id'];
             request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if (since !== undefined) {
@@ -3513,7 +3513,9 @@ export default class htx extends Exchange {
                 request['order-id'] = id;
             }
         } else {
-            this.checkRequiredSymbol ('fetchOrder', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+            }
             request['contract_code'] = market['id'];
             if (market['linear']) {
                 let marginMode = undefined;
@@ -3694,7 +3696,9 @@ export default class htx extends Exchange {
     async fetchSpotOrdersByStates (states, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
-            this.checkRequiredSymbol ('fetchOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+            }
         }
         await this.loadMarkets ();
         let market = undefined;
@@ -3727,7 +3731,12 @@ export default class htx extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'spot_private_get_v1_order_orders') {
+            response = await this.spotPrivateGetV1OrderOrders (this.extend (request, params));
+        } else {
+            response = await this.spotPrivateGetV1OrderHistory (this.extend (request, params));
+        }
         //
         // spot_private_get_v1_order_orders GET /v1/order/orders
         //
@@ -3767,7 +3776,9 @@ export default class htx extends Exchange {
     }
 
     async fetchContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        this.checkRequiredSymbol ('fetchContractOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchContractOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = {
@@ -4123,7 +4134,9 @@ export default class htx extends Exchange {
             params = this.omit (params, 'account-id');
             response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, params));
         } else {
-            this.checkRequiredSymbol ('fetchOpenOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+            }
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
@@ -5282,7 +5295,9 @@ export default class htx extends Exchange {
                 response = await this.spotPrivatePostV1OrderOrdersSubmitCancelClientOrder (this.extend (request, params));
             }
         } else {
-            this.checkRequiredSymbol ('cancelOrder', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            }
             const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             if (clientOrderId === undefined) {
                 request['order_id'] = id;
@@ -5379,7 +5394,7 @@ export default class htx extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -5415,7 +5430,9 @@ export default class htx extends Exchange {
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchcancel (this.extend (request, params));
         } else {
-            this.checkRequiredSymbol ('cancelOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+            }
             let clientOrderIds = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeString2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
@@ -5568,7 +5585,9 @@ export default class htx extends Exchange {
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (this.extend (request, params));
         } else {
-            this.checkRequiredSymbol ('cancelAllOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+            }
             if (market['future']) {
                 request['symbol'] = market['settleId'];
             }
@@ -6275,7 +6294,9 @@ export default class htx extends Exchange {
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
-        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -6851,7 +6872,9 @@ export default class htx extends Exchange {
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('setLeverage', market, params);
@@ -7972,45 +7995,28 @@ export default class htx extends Exchange {
         }, market);
     }
 
-    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name huobi#borrowMargin
+         * @name huobi#borrowIsolatedMargin
          * @description create a loan to borrow margin
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
          * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const market = this.market (symbol);
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
+            'symbol': market['id'],
         };
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
-        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-        let method = undefined;
-        if (marginMode === 'isolated') {
-            this.checkRequiredSymbol ('borrowMargin', symbol);
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
-            method = 'privatePostMarginOrders';
-        } else if (marginMode === 'cross') {
-            method = 'privatePostCrossMarginOrders';
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // Cross
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": null
-        //     }
+        const response = await this.privatePostMarginOrders (this.extend (request, params));
         //
         // Isolated
         //
@@ -8025,10 +8031,43 @@ export default class htx extends Exchange {
         });
     }
 
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async borrowCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name huobi#repayMargin
+         * @name huobi#borrowCrossMargin
+         * @description create a loan to borrow margin
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {object} [params] extra parameters specific to the huobi api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privatePostCrossMarginOrders (this.extend (request, params));
+        //
+        // Cross
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": null
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+        });
+    }
+
+    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name huobi#repayIsolatedMargin
          * @description repay borrowed margin and interest
          * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
          * @param {string} code unified currency code of the currency to repay
@@ -8039,12 +8078,7 @@ export default class htx extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
-        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-        const marginAccounts = this.safeValue (this.options, 'marginAccounts', {});
-        const accountType = this.getSupportedMapping (marginMode, marginAccounts);
-        const accountId = await this.fetchAccountIdByType (accountType, marginMode, symbol, params);
+        const accountId = await this.fetchAccountIdByType ('spot', 'isolated', symbol, params);
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
@@ -8068,6 +8102,45 @@ export default class htx extends Exchange {
         return this.extend (transaction, {
             'amount': amount,
             'symbol': symbol,
+        });
+    }
+
+    async repayCrossMargin (code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name huobi#repayCrossMargin
+         * @description repay borrowed margin and interest
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {object} [params] extra parameters specific to the huobi api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountId = await this.fetchAccountIdByType ('spot', 'cross', undefined, params);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'accountId': accountId,
+        };
+        const response = await this.v2PrivatePostAccountRepayment (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data": [
+        //             {
+        //                 "repayId":1174424,
+        //                 "repayTime":1600747722018
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'Data', []);
+        const loan = this.safeValue (data, 0);
+        const transaction = this.parseMarginLoan (loan, currency);
+        return this.extend (transaction, {
+            'amount': amount,
         });
     }
 
@@ -8095,7 +8168,7 @@ export default class htx extends Exchange {
         //
         const timestamp = this.safeInteger (info, 'repayTime');
         return {
-            'id': this.safeInteger2 (info, 'repayId', 'data'),
+            'id': this.safeString2 (info, 'repayId', 'data'),
             'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
             'symbol': undefined,
@@ -8119,7 +8192,9 @@ export default class htx extends Exchange {
          * @param {int} [params.code] unified currency code, can be used when symbol is undefined
          * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
          */
-        this.checkRequiredSymbol ('fetchSettlementHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchSettlementHistory() requires a symbol argument');
+        }
         const until = this.safeInteger2 (params, 'until', 'till');
         params = this.omit (params, [ 'until', 'till' ]);
         const market = this.market (symbol);

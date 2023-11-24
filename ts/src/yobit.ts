@@ -1038,7 +1038,9 @@ export default class yobit extends Exchange {
          * @param {object} [params] extra parameters specific to the yobit api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('fetchOpenOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request = {};
         const market = undefined;
@@ -1086,7 +1088,9 @@ export default class yobit extends Exchange {
          * @param {object} [params] extra parameters specific to the yobit api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol ('fetchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         // some derived classes use camelcase notation for request fields

@@ -210,27 +210,57 @@
             "stopLossPrice": null
           }
         ]
-      }
-    ]
-  },
-  "disabledTests":[
-    {
-      "description": "Swap closed order",
-      "method": "fetchClosedOrders",
-      "input": [
-        "LTC/USDT:USDT",
-        null,
-        1
-      ],
-      "httpResponse": {
-        "code": "00000",
-        "msg": "success",
-        "requestTime": "1700235403946",
-        "data": {
-          "nextFlag": true,
-          "endId": "1109420492214390786",
-          "orderList": [
-            {
+      },
+      {
+        "description": "Swap closed order",
+        "method": "fetchClosedOrders",
+        "input": [
+          "LTC/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "00000",
+          "msg": "success",
+          "requestTime": "1700235403946",
+          "data": {
+            "nextFlag": true,
+            "endId": "1109420492214390786",
+            "orderList": [
+              {
+                "symbol": "LTCUSDT_UMCBL",
+                "size": "0.1",
+                "orderId": "1109420492214390786",
+                "clientOid": "1109420492214390788",
+                "filledQty": "0.1",
+                "fee": "-0.00415080",
+                "price": null,
+                "priceAvg": "69.18",
+                "state": "filled",
+                "side": "burst_close_long",
+                "timeInForce": "normal",
+                "totalProfits": "-0.28600000",
+                "posSide": "long",
+                "marginCoin": "USDT",
+                "filledAmount": "6.9180",
+                "orderType": "market",
+                "leverage": "20",
+                "marginMode": "fixed",
+                "reduceOnly": true,
+                "enterPointSource": "SYS",
+                "tradeSide": "burst_close_long",
+                "holdMode": "double_hold",
+                "orderSource": "market",
+                "cTime": "1700232378056",
+                "uTime": "1700232378181",
+                "endId": "1109420492214390786"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
               "symbol": "LTCUSDT_UMCBL",
               "size": "0.1",
               "orderId": "1109420492214390786",
@@ -257,77 +287,45 @@
               "cTime": "1700232378056",
               "uTime": "1700232378181",
               "endId": "1109420492214390786"
-            }
-          ]
-        }
-      },
-      "parsedResponse": [
-        {
-          "info": {
-            "symbol": "LTCUSDT_UMCBL",
-            "size": "0.1",
-            "orderId": "1109420492214390786",
-            "clientOid": "1109420492214390788",
-            "filledQty": "0.1",
-            "fee": "-0.00415080",
-            "price": null,
-            "priceAvg": "69.18",
-            "state": "filled",
+            },
+            "id": "1109420492214390786",
+            "clientOrderId": "1109420492214390788",
+            "timestamp": 1700232378056,
+            "datetime": "2023-11-17T14:46:18.056Z",
+            "lastTradeTimestamp": 1700232378181,
+            "lastUpdateTimestamp": 1700232378181,
+            "symbol": "LTC/USDT:USDT",
+            "type": "market",
+            "timeInForce": "IOC",
+            "postOnly": null,
             "side": "burst_close_long",
-            "timeInForce": "normal",
-            "totalProfits": "-0.28600000",
-            "posSide": "long",
-            "marginCoin": "USDT",
-            "filledAmount": "6.9180",
-            "orderType": "market",
-            "leverage": "20",
-            "marginMode": "fixed",
-            "reduceOnly": true,
-            "enterPointSource": "SYS",
-            "tradeSide": "burst_close_long",
-            "holdMode": "double_hold",
-            "orderSource": "market",
-            "cTime": "1700232378056",
-            "uTime": "1700232378181",
-            "endId": "1109420492214390786"
-          },
-          "id": "1109420492214390786",
-          "clientOrderId": "1109420492214390788",
-          "timestamp": 1700232378056,
-          "datetime": "2023-11-17T14:46:18.056Z",
-          "lastTradeTimestamp": 1700232378181,
-          "lastUpdateTimestamp": 1700232378181,
-          "symbol": "LTC/USDT:USDT",
-          "type": "market",
-          "timeInForce": "IOC",
-          "postOnly": null,
-          "side": "burst_close_long",
-          "price": 69.18,
-          "stopPrice": null,
-          "triggerPrice": null,
-          "average": 69.18,
-          "cost": 6.918,
-          "amount": 0.1,
-          "filled": 0.1,
-          "remaining": 0,
-          "status": "closed",
-          "fee": {
-            "cost": -0.0041508,
-            "currency": "USDT"
-          },
-          "trades": [],
-          "fees": [
-            {
-              "cost": -0.0041508,
+            "price": 69.18,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "average": 69.18,
+            "cost": 6.918,
+            "amount": 0.1,
+            "filled": 0.1,
+            "remaining": 0,
+            "status": "closed",
+            "fee": {
+              "cost": "-0.00415080",
               "currency": "USDT"
-            }
-          ],
-          "reduceOnly": null,
-          "takeProfitPrice": null,
-          "stopLossPrice": null
-        }
-      ]
-    }
-  ]
+            },
+            "trades": [],
+            "fees": [
+              {
+                "cost": -0.0041508,
+                "currency": "USDT"
+              }
+            ],
+            "reduceOnly": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      }
+    ]
+  }
 
 }

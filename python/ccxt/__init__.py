@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.56'
+__version__ = '4.1.63'
 
 # ----------------------------------------------------------------------------
 
@@ -141,7 +141,6 @@ from ccxt.hollaex import hollaex                                      # noqa: F4
 from ccxt.htx import htx                                              # noqa: F401
 from ccxt.huobi import huobi                                          # noqa: F401
 from ccxt.huobijp import huobijp                                      # noqa: F401
-from ccxt.huobipro import huobipro                                    # noqa: F401
 from ccxt.idex import idex                                            # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
@@ -156,13 +155,10 @@ from ccxt.luno import luno                                            # noqa: F4
 from ccxt.lykke import lykke                                          # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
-from ccxt.mexc3 import mexc3                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.oceanex import oceanex                                      # noqa: F401
 from ccxt.okcoin import okcoin                                        # noqa: F401
-from ccxt.okex import okex                                            # noqa: F401
-from ccxt.okex5 import okex5                                          # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
@@ -247,7 +243,6 @@ exchanges = [
     'htx',
     'huobi',
     'huobijp',
-    'huobipro',
     'idex',
     'independentreserve',
     'indodax',
@@ -262,13 +257,10 @@ exchanges = [
     'lykke',
     'mercado',
     'mexc',
-    'mexc3',
     'ndax',
     'novadax',
     'oceanex',
     'okcoin',
-    'okex',
-    'okex5',
     'okx',
     'p2b',
     'paymium',

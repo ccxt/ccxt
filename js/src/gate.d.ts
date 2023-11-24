@@ -164,7 +164,7 @@ export default class gate extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
+    parseBalanceHelper(entry: any): import("./base/types.js").Account;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchOptionOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -220,33 +220,6 @@ export default class gate extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<{}>;
     parseMarketLeverageTiers(info: any, market?: Market): any[];
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
-        id: number;
-        currency: string;
-        amount: number;
-        symbol: string;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{
-        id: number;
-        currency: string;
-        amount: number;
-        symbol: string;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    }>;
-    parseMarginLoan(info: any, currency?: Currency): {
-        id: number;
-        currency: string;
-        amount: number;
-        symbol: string;
-        timestamp: number;
-        datetime: string;
-        info: any;
-    };
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

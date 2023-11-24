@@ -54,12 +54,11 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
-                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchBorrowRates': False,
-                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -69,6 +68,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,
@@ -111,12 +112,6 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
                     'webExchange': 'https://futures.kucoin.com/_api/web-front',
-                },
-                'test': {
-                    'public': 'https://openapi-sandbox.kucoin.com',
-                    'private': 'https://openapi-sandbox.kucoin.com',
-                    'futuresPrivate': 'https://api-sandbox-futures.kucoin.com',
-                    'futuresPublic': 'https://api-sandbox-futures.kucoin.com',
                 },
             },
             'requiredCredentials': {
@@ -340,8 +335,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-status
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `status structure <https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         response = self.futuresPublicGetStatus(params)
         #
@@ -366,6 +362,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for kucoinfutures
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -523,6 +520,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-server-time
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -538,6 +536,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-klines
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -610,9 +609,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        :see: https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -646,10 +646,11 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-part-order-book-level-2
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         level = self.safe_number(params, 'level')
@@ -697,9 +698,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -776,13 +778,15 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
+        :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-funding-history
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
-        self.check_required_symbol('fetchFundingHistory', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -843,7 +847,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -904,7 +908,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://docs.kucoin.com/futures/#get-position-list
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
         response = self.futuresPrivateGetPositions(params)
@@ -1076,7 +1080,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param bool [params.closeOrder]: set to True to close position
         :param bool [params.test]: set to True to use the test order endpoint(does not submit order, use to validate params)
         :param bool [params.forceHold]: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1182,10 +1186,11 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
@@ -1207,6 +1212,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
+        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-limit-orders
+        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :param dict [params.stop]: When True, all the trigger orders will be cancelled
@@ -1217,8 +1224,12 @@ class kucoinfutures(kucoin, ImplicitAPI):
         if symbol is not None:
             request['symbol'] = self.market_id(symbol)
         stop = self.safe_value(params, 'stop')
-        method = 'futuresPrivateDeleteStopOrders' if stop else 'futuresPrivateDeleteOrders'
-        response = getattr(self, method)(self.extend(request, params))
+        params = self.omit(params, 'stop')
+        response = None
+        if stop:
+            response = self.futuresPrivateDeleteStopOrders(self.extend(request, params))
+        else:
+            response = self.futuresPrivateDeleteOrders(self.extend(request, params))
         #
         #   {
         #       "code": "200000",
@@ -1234,10 +1245,11 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def add_margin(self, symbol: str, amount, params={}):
         """
         add margin
+        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1380,7 +1392,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str [params.side]: buy or sell
         :param str [params.type]: limit or market
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns: An `array of order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns: An `array of order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1407,8 +1419,11 @@ class kucoinfutures(kucoin, ImplicitAPI):
             request['startAt'] = since
         if until is not None:
             request['endAt'] = until
-        method = 'futuresPrivateGetStopOrders' if stop else 'futuresPrivateGetOrders'
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if stop:
+            response = self.futuresPrivateGetStopOrders(self.extend(request, params))
+        else:
+            response = self.futuresPrivateGetOrders(self.extend(request, params))
         #
         #     {
         #         "code": "200000",
@@ -1476,7 +1491,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1491,21 +1506,21 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://docs.kucoin.com/futures/#get-details-of-a-single-order
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
-        method = 'futuresPrivateGetOrdersOrderId'
+        response = None
         if id is None:
             clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
             if clientOrderId is None:
                 raise InvalidOrder(self.id + ' fetchOrder() requires parameter id or params.clientOid')
             request['clientOid'] = clientOrderId
-            method = 'futuresPrivateGetOrdersByClientOid'
             params = self.omit(params, ['clientOid', 'clientOrderId'])
+            response = self.futuresPrivateGetOrdersByClientOid(self.extend(request, params))
         else:
             request['orderId'] = id
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.futuresPrivateGetOrdersOrderId(self.extend(request, params))
         #
         #     {
         #         "code": "200000",
@@ -1665,9 +1680,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-funding-rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1728,8 +1744,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
         # only fetches one balance at a time
@@ -1767,7 +1784,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
             raise BadRequest(self.id + ' transfer() only supports transfers from contract(future) account to main(funding) account')
@@ -1832,7 +1849,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :param int [params.until]: End time in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.load_markets()
         paginate = False
@@ -1895,11 +1912,12 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-transaction-history
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2062,7 +2080,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {}
@@ -2112,7 +2130,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         request = {}
@@ -2158,9 +2176,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_market_leverage_tiers(self, symbol: str, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+        :see: https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
-        :returns dict: a `leverage tiers structure <https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure>`
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2226,12 +2245,13 @@ class kucoinfutures(kucoin, ImplicitAPI):
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by kucuoinfutures
-        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
-        self.check_required_symbol('fetchFundingRateHistory', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')

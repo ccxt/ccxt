@@ -1,5 +1,5 @@
 import Exchange from './abstract/wazirx.js';
-import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, PermissionDenied, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, PermissionDenied, InsufficientFunds, InvalidOrder, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -671,7 +671,9 @@ export default class wazirx extends Exchange {
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('fetchOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -779,7 +781,9 @@ export default class wazirx extends Exchange {
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelAllOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -799,7 +803,9 @@ export default class wazirx extends Exchange {
          * @param {object} [params] extra parameters specific to the wazirx api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        this.checkRequiredSymbol ('cancelOrder', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
