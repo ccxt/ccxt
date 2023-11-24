@@ -2100,7 +2100,6 @@ export default class bybit extends Exchange {
             // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         };
         let type = undefined;
-        const isTypeInParams = ('type' in params);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (type === 'spot') {
             request['category'] = 'spot';
@@ -2152,24 +2151,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const tickerList = this.safeValue (result, 'list', []);
-        const tickers = {};
-        if (market === undefined && isTypeInParams) {
-            // create a "fake" market for the type
-            market = {
-                'type': (type === 'swap' || type === 'future') ? 'swap' : type,
-            };
-        }
-        for (let i = 0; i < tickerList.length; i++) {
-            const ticker = this.parseTicker (tickerList[i], market);
-            const symbol = ticker['symbol'];
-            // this is needed because bybit returns
-            // futures with type = swap
-            const marketInner = this.market (symbol);
-            if (marketInner['type'] === type) {
-                tickers[symbol] = ticker;
-            }
-        }
-        return this.filterByArrayTickers (tickers, 'symbol', symbols);
+        return this.parseTickers (tickerList, symbols);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
