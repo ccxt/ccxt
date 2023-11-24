@@ -2090,9 +2090,29 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
+        const parsedSymbols = [];
         if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
-            market = this.market (symbols[0]);
+            const marketTypeInfo = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+            const defaultType = marketTypeInfo[0]; // don't omit here
+            // we can't use marketSymbols here due to the conflicing ids between markets
+            let currentType = undefined;
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
+                // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
+                const isExchangeSpecificSymbol = (symbol.indexOf ('/') === -1);
+                if (isExchangeSpecificSymbol) {
+                    market = this.safeMarket (symbol, undefined, undefined, defaultType);
+                } else {
+                    market = this.market (symbol);
+                }
+                if (currentType === undefined) {
+                    currentType = market['type'];
+                } else if (market['type'] !== currentType) {
+                    throw new BadRequest (this.id + ' fetchTickers can only accept a list of symbols of the same type');
+                }
+                parsedSymbols.push (market['symbol']);
+            }
         }
         const request = {
             // 'symbol': market['id'],
@@ -2100,7 +2120,6 @@ export default class bybit extends Exchange {
             // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         };
         let type = undefined;
-        const isTypeInParams = ('type' in params);
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (type === 'spot') {
             request['category'] = 'spot';
@@ -2152,24 +2171,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const tickerList = this.safeValue (result, 'list', []);
-        const tickers = {};
-        if (market === undefined && isTypeInParams) {
-            // create a "fake" market for the type
-            market = {
-                'type': (type === 'swap' || type === 'future') ? 'swap' : type,
-            };
-        }
-        for (let i = 0; i < tickerList.length; i++) {
-            const ticker = this.parseTicker (tickerList[i], market);
-            const symbol = ticker['symbol'];
-            // this is needed because bybit returns
-            // futures with type = swap
-            const marketInner = this.market (symbol);
-            if (marketInner['type'] === type) {
-                tickers[symbol] = ticker;
-            }
-        }
-        return this.filterByArrayTickers (tickers, 'symbol', symbols);
+        return this.parseTickers (tickerList, parsedSymbols);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
