@@ -2627,7 +2627,7 @@ class Exchange extends \ccxt\Exchange {
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Array} the marginMode in lowercase by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
          */
         return $this->handle_option_and_params($params, $methodName, 'marginMode', $defaultValue);
@@ -2822,7 +2822,7 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
@@ -3420,7 +3420,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {float[][]} A list of candles ordered, open, high, low, close, null
              */
             if ($this->has['fetchMarkOHLCV']) {
@@ -3442,7 +3442,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return array() A list of candles ordered, open, high, low, close, null
              */
             if ($this->has['fetchIndexOHLCV']) {
@@ -3464,7 +3464,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {float[][]} A list of candles ordered, open, high, low, close, null
              */
             if ($this->has['fetchPremiumIndexOHLCV']) {
@@ -3670,7 +3670,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {string} $code unified currency $code for the currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             if ($this->has['fetchDepositsWithdrawals']) {

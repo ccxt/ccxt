@@ -1273,7 +1273,7 @@ class bybit extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          * @see https://bybit-exchange.github.io/docs/v5/market/time
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->publicGetV5MarketTime ($params);
@@ -1296,7 +1296,7 @@ class bybit extends Exchange {
         /**
          * fetches all available currencies on an exchange
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
@@ -1426,7 +1426,7 @@ class bybit extends Exchange {
         /**
          * retrieves data on all markets for bybit
          * @see https://bybit-exchange.github.io/docs/v5/market/instrument
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         if ($this->options['adjustForTimeDifference']) {
@@ -1995,7 +1995,7 @@ class bybit extends Exchange {
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
          */
         if ($symbol === null) {
@@ -2066,17 +2066,37 @@ class bybit extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
-         * @param {string[]} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         * @param {string[]} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $market = null;
+        $parsedSymbols = array();
         if ($symbols !== null) {
-            $symbols = $this->market_symbols($symbols);
-            $market = $this->market($symbols[0]);
+            $marketTypeInfo = $this->handle_market_type_and_params('fetchTickers', null, $params);
+            $defaultType = $marketTypeInfo[0]; // don't omit here
+            // we can't use marketSymbols here due to the conflicing ids between markets
+            $currentType = null;
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                // using safeMarket here because if the user provides for instance BTCUSDT and "type" => "spot" in $params we should
+                // infer the $market $type from the $type provided and not from the conflicting id (BTCUSDT might be swap or spot)
+                $isExchangeSpecificSymbol = (mb_strpos($symbol, '/') === -1);
+                if ($isExchangeSpecificSymbol) {
+                    $market = $this->safe_market($symbol, null, null, $defaultType);
+                } else {
+                    $market = $this->market($symbol);
+                }
+                if ($currentType === null) {
+                    $currentType = $market['type'];
+                } elseif ($market['type'] !== $currentType) {
+                    throw new BadRequest($this->id . ' fetchTickers can only accept a list of $symbols of the same type');
+                }
+                $parsedSymbols[] = $market['symbol'];
+            }
         }
         $request = array(
             // 'symbol' => $market['id'],
@@ -2084,7 +2104,6 @@ class bybit extends Exchange {
             // 'expDate' => '', Expiry date. e.g., 25DEC22. For option only
         );
         $type = null;
-        $isTypeInParams = (is_array($params) && array_key_exists('type', $params));
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         if ($type === 'spot') {
             $request['category'] = 'spot';
@@ -2136,24 +2155,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $tickerList = $this->safe_value($result, 'list', array());
-        $tickers = array();
-        if ($market === null && $isTypeInParams) {
-            // create a "fake" $market for the $type
-            $market = array(
-                'type' => ($type === 'swap' || $type === 'future') ? 'swap' : $type,
-            );
-        }
-        for ($i = 0; $i < count($tickerList); $i++) {
-            $ticker = $this->parse_ticker($tickerList[$i], $market);
-            $symbol = $ticker['symbol'];
-            // this is needed because bybit returns
-            // futures with $type = swap
-            $marketInner = $this->market($symbol);
-            if ($marketInner['type'] === $type) {
-                $tickers[$symbol] = $ticker;
-            }
-        }
-        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
+        return $this->parse_tickers($tickerList, $parsedSymbols);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -2190,7 +2192,7 @@ class bybit extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -2346,7 +2348,7 @@ class bybit extends Exchange {
          * fetches funding rates for multiple markets
          * @see https://bybit-exchange.github.io/docs/v5/market/tickers
          * @param {string[]} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
          */
         $this->load_markets();
@@ -2427,7 +2429,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding rate
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
@@ -2704,7 +2706,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
@@ -2761,7 +2763,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/market/orderbook
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         if ($symbol === null) {
@@ -2985,7 +2987,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
          * @see https://bybit-exchange.github.io/docs/v5/asset/all-balance
          * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] wallet $type, ['spot', 'swap', 'fund']
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
@@ -3381,7 +3383,7 @@ class bybit extends Exchange {
          * fetches information on an order made by the user
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
          * @param {string} $symbol unified $symbol of the market the order was made in
-         * @param {array} [$params] $extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] $extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -3413,7 +3415,7 @@ class bybit extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK"
          * @param {bool} [$params->postOnly] true or false whether the $order is post-only
          * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
@@ -3875,7 +3877,7 @@ class bybit extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] The $price that a take profit order is triggered at
@@ -4035,7 +4037,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/order/cancel-order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] *spot only* whether the order is a stop order
          * @param {string} [$params->orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -4144,7 +4146,7 @@ class bybit extends Exchange {
          * cancel all open $orders
          * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
          * @param {string} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] true if stop order
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
@@ -4314,7 +4316,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] true if stop order
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
@@ -4428,7 +4430,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -4445,7 +4447,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] max number of orders to return, default is null
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] true if stop order
          * @param {string} [$params->type] market type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] market subType, ['linear', 'inverse']
@@ -4508,7 +4510,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open orders structures to retrieve
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] true if stop order
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
@@ -4617,7 +4619,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades to retrieve
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
          *
          */
@@ -4684,7 +4686,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] true if stop order
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
@@ -4807,7 +4809,7 @@ class bybit extends Exchange {
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
          * @param {string} $code unified $currency $code of the $currency for the deposit address
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
          */
         $this->load_markets();
@@ -4850,7 +4852,7 @@ class bybit extends Exchange {
          * fetch the deposit address for a $currency associated with this account
          * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
          * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
@@ -4898,7 +4900,7 @@ class bybit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for, default = 30 days before the current time
          * @param {int} [$limit] the maximum number of deposits structures to retrieve, default = 50, max = 50
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch deposits for, default = 30 days after $since
          *
          * EXCHANGE SPECIFIC PARAMETERS
@@ -4968,7 +4970,7 @@ class bybit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
@@ -5149,7 +5151,7 @@ class bybit extends Exchange {
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
@@ -5412,7 +5414,7 @@ class bybit extends Exchange {
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -5454,7 +5456,7 @@ class bybit extends Exchange {
          * fetch data on a single open contract trade $position
          * @see https://bybit-exchange.github.io/docs/v5/position
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         if ($symbol === null) {
@@ -5608,7 +5610,7 @@ class bybit extends Exchange {
          * fetch all open $positions
          * @see https://bybit-exchange.github.io/docs/v5/position
          * @param {string[]} $symbols list of unified $market $symbols
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
          * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
          * @param {string} [$params->baseCoin] Base coin. Supports linear, inverse & option
@@ -5926,7 +5928,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
          * @param {string} $marginMode account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
          * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->leverage] the rate of $leverage, is required if setting trade mode ($symbol)
          * @return {array} $response from the exchange
          */
@@ -6018,7 +6020,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/position/leverage
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->buyLeverage] $leverage for buy side
          * @param {string} [$params->sellLeverage] $leverage for sell side
          * @return {array} $response from the exchange
@@ -6066,7 +6068,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/position/position-$mode
          * @param {bool} $hedged
          * @param {string} $symbol used for unified account with inverse $market
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $response from the exchange
          */
         $this->load_markets();
@@ -6282,7 +6284,7 @@ class bybit extends Exchange {
          * fetch the rate of interest to borrow a $currency for margin trading
          * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
          * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structure~
          */
         $this->load_markets();
@@ -6341,7 +6343,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified market $symbol when fetch $interest in isolated markets
          * @param {number} [$since] the earliest time in ms to fetch borrrow $interest for
          * @param {number} [$limit] the maximum number of structures to retrieve
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
          */
         $this->load_markets();
@@ -6410,7 +6412,7 @@ class bybit extends Exchange {
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->transferId] UUID, which is unique across the platform
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
          */
@@ -6461,7 +6463,7 @@ class bybit extends Exchange {
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of transfer structures to retrieve
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
@@ -6518,7 +6520,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
@@ -6553,7 +6555,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
@@ -6701,7 +6703,7 @@ class bybit extends Exchange {
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
          */
         $this->load_markets();
@@ -6769,7 +6771,7 @@ class bybit extends Exchange {
          * fetch the trading $fees for a $market
          * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
          * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
          */
         $this->load_markets();
@@ -6808,7 +6810,7 @@ class bybit extends Exchange {
         /**
          * fetch the trading $fees for multiple markets
          * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] market $type, ['swap', 'option', 'spot']
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
          */
@@ -6906,7 +6908,7 @@ class bybit extends Exchange {
          * fetch deposit and withdraw fees
          * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
          * @param {string[]} $codes list of unified currency $codes
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
         $this->check_required_credentials();
@@ -7135,7 +7137,7 @@ class bybit extends Exchange {
          * fetch the historical $volatility of an option market based on an underlying asset
          * @see https://bybit-exchange.github.io/docs/v5/market/iv
          * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->period] the period in days to fetch the $volatility for => 7,14,21,30,60,90,180,270
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$volatility-structure $volatility history objects~
          */
@@ -7191,7 +7193,7 @@ class bybit extends Exchange {
          * fetches an option contracts $greeks, financial metrics used to measure the factors that affect the price of an options contract
          * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
          * @param {string} $symbol unified $symbol of the $market to fetch $greeks for
-         * @param {array} [$params] extra parameters specific to the bybit api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$greeks-structure $greeks structure~
          */
         $this->load_markets();
