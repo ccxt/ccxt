@@ -1222,7 +1222,7 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
