@@ -2923,7 +2923,19 @@ export default class cryptocom extends Exchange {
             request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         const response = await this.v1PrivatePostPrivateClosePosition (this.extend (request, params));
-        return this.parseOrders (response, market, undefined, undefined, params);
+        //
+        //    {
+        //        "id" : 1700830813298,
+        //        "method" : "private/close-position",
+        //        "code" : 0,
+        //        "result" : {
+        //            "client_oid" : "179a909d-5614-655b-0d0e-9e85c9a25c85",
+        //            "order_id" : "6142909897021751347"
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return [ this.parseOrder (result, market) ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
