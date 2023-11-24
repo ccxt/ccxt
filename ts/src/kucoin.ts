@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,7 +33,8 @@ export default class kucoin extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'borrowMargin': true,
+                'borrowCrossMargin': true,
+                'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -47,11 +48,11 @@ export default class kucoin extends Exchange {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
@@ -63,6 +64,8 @@ export default class kucoin extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
@@ -92,7 +95,8 @@ export default class kucoin extends Exchange {
                 'fetchTransactionFee': true,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
-                'repayMargin': true,
+                'repayCrossMargin': true,
+                'repayIsolatedMargin': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -853,7 +857,7 @@ export default class kucoin extends Exchange {
          * @description the latest known information on the availability of the exchange API
          * @see https://docs.kucoin.com/#service-status
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
         const response = await this.publicGetStatus (params);
         //
@@ -1185,28 +1189,28 @@ export default class kucoin extends Exchange {
          * @description fetch all the accounts associated with a profile
          * @see https://docs.kucoin.com/#list-accounts
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         const response = await this.privateGetAccounts (params);
         //
         //     {
-        //         code: "200000",
-        //         data: [
+        //         "code": "200000",
+        //         "data": [
         //             {
-        //                 balance: "0.00009788",
-        //                 available: "0.00009788",
-        //                 holds: "0",
-        //                 currency: "BTC",
-        //                 id: "5c6a4fd399a1d81c4f9cc4d0",
-        //                 type: "trade"
+        //                 "balance": "0.00009788",
+        //                 "available": "0.00009788",
+        //                 "holds": "0",
+        //                 "currency": "BTC",
+        //                 "id": "5c6a4fd399a1d81c4f9cc4d0",
+        //                 "type": "trade"
         //             },
         //             {
-        //                 balance: "0.00000001",
-        //                 available: "0.00000001",
-        //                 holds: "0",
-        //                 currency: "ETH",
-        //                 id: "5c6a49ec99a1d819392e8e9f",
-        //                 type: "trade"
+        //                 "balance": "0.00000001",
+        //                 "available": "0.00000001",
+        //                 "holds": "0",
+        //                 "currency": "ETH",
+        //                 "id": "5c6a49ec99a1d819392e8e9f",
+        //                 "type": "trade"
         //             }
         //         ]
         //     }
@@ -1238,7 +1242,7 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1270,7 +1274,7 @@ export default class kucoin extends Exchange {
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1305,7 +1309,7 @@ export default class kucoin extends Exchange {
         return this.parseDepositWithdrawFee (data, currency);
     }
 
-    parseDepositWithdrawFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
         //    {
         //        "currency": "USDT",
@@ -1371,7 +1375,7 @@ export default class kucoin extends Exchange {
         return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "BTC-USDT",   // symbol
@@ -1417,14 +1421,14 @@ export default class kucoin extends Exchange {
         // market/ticker ws subscription
         //
         //     {
-        //         bestAsk: '62258.9',
-        //         bestAskSize: '0.38579986',
-        //         bestBid: '62258.8',
-        //         bestBidSize: '0.0078381',
-        //         price: '62260.7',
-        //         sequence: '1621383297064',
-        //         size: '0.00002841',
-        //         time: 1634641777363
+        //         "bestAsk": "62258.9",
+        //         "bestAskSize": "0.38579986",
+        //         "bestBid": "62258.8",
+        //         "bestBidSize": "0.0078381",
+        //         "price": "62260.7",
+        //         "sequence": "1621383297064",
+        //         "size": "0.00002841",
+        //         "time": 1634641777363
         //     }
         //
         let percentage = this.safeString (ticker, 'changeRate');
@@ -1463,7 +1467,7 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name kucoin#fetchTickers
@@ -1471,7 +1475,7 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/#get-all-tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1519,7 +1523,7 @@ export default class kucoin extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name kucoin#fetchTicker
@@ -1527,7 +1531,7 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/#get-24hr-stats
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1561,7 +1565,7 @@ export default class kucoin extends Exchange {
         return this.parseTicker (response['data'], market);
     }
 
-    parseOHLCV (ohlcv, market = undefined): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1545904980",             // Start time of the candle cycle
@@ -1583,7 +1587,7 @@ export default class kucoin extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name kucoin#fetchOHLCV
@@ -1650,7 +1654,7 @@ export default class kucoin extends Exchange {
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @param {string} [params.network] the blockchain network name
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1679,7 +1683,7 @@ export default class kucoin extends Exchange {
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @param {string} [params.network] the blockchain network name
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1707,7 +1711,7 @@ export default class kucoin extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         let address = this.safeString (depositAddress, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if (address !== undefined) {
@@ -1738,7 +1742,7 @@ export default class kucoin extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} an array of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1771,23 +1775,22 @@ export default class kucoin extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name kucoin#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.kucoin.com/#get-part-order-book-aggregated
-         * @see https://docs.kucoin.com/#get-full-order-book-aggregated
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const level = this.safeInteger (params, 'level', 2);
         const request = { 'symbol': market['id'] };
-        let method = 'publicGetMarketOrderbookLevelLevelLimit';
         const isAuthenticated = this.checkRequiredCredentials (false);
         let response = undefined;
         if (!isAuthenticated || limit !== undefined) {
@@ -1802,10 +1805,10 @@ export default class kucoin extends Exchange {
                 }
                 request['limit'] = limit ? limit : 100;
             }
+            response = await this.publicGetMarketOrderbookLevelLevelLimit (this.extend (request, params));
         } else {
-            method = 'privateGetMarketOrderbookLevel2'; // recommended (v3)
+            response = await this.privateGetMarketOrderbookLevel2 (this.extend (request, params));
         }
-        response = await this[method] (this.extend (request, params));
         //
         // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //
@@ -1897,7 +1900,7 @@ export default class kucoin extends Exchange {
          * @param {bool} [params.autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
          * @param {bool} [params.hf] false, // true for hf order
          * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1930,8 +1933,8 @@ export default class kucoin extends Exchange {
         }
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "orderId": "5bd6e9286d99522a52e458de"
         //         }
         //    }
@@ -1950,7 +1953,7 @@ export default class kucoin extends Exchange {
          * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params]  Extra parameters specific to the exchange API endpoint
          * @param {bool} [params.hf] false, // true for hf orders
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const ordersRequests = [];
@@ -2104,7 +2107,7 @@ export default class kucoin extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2136,7 +2139,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#cancelOrder
@@ -2157,7 +2160,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const stop = this.safeValue (params, 'stop', false);
+        const stop = this.safeValue2 (params, 'stop', 'trigger', false);
         const hf = this.safeValue (params, 'hf', false);
         if (hf) {
             if (symbol === undefined) {
@@ -2166,29 +2169,31 @@ export default class kucoin extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let method = 'privateDeleteOrdersOrderId';
+        let response = undefined;
+        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'hf', 'trigger' ]);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (stop) {
-                method = 'privateDeleteStopOrderCancelOrderByClientOid';
+                response = await this.privateDeleteStopOrderCancelOrderByClientOid (this.extend (request, params));
             } else if (hf) {
-                method = 'privateDeleteHfOrdersClientOrderClientOid';
+                response = await this.privateDeleteHfOrdersClientOrderClientOid (this.extend (request, params));
             } else {
-                method = 'privateDeleteOrderClientOrderClientOid';
+                response = await this.privateDeleteOrderClientOrderClientOid (this.extend (request, params));
             }
         } else {
-            if (stop) {
-                method = 'privateDeleteStopOrderOrderId';
-            } else if (hf) {
-                method = 'privateDeleteHfOrdersOrderId';
-            }
             request['orderId'] = id;
+            if (stop) {
+                response = await this.privateDeleteStopOrderOrderId (this.extend (request, params));
+            } else if (hf) {
+                response = await this.privateDeleteHfOrdersOrderId (this.extend (request, params));
+            } else {
+                response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+            }
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'hf' ]);
-        return await this[method] (this.extend (request, params));
+        return response;
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#cancelAllOrders
@@ -2220,19 +2225,21 @@ export default class kucoin extends Exchange {
                 throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
         }
-        let method = 'privateDeleteOrders';
+        let response = undefined;
         if (stop) {
-            method = 'privateDeleteStopOrderCancel';
+            response = await this.privateDeleteStopOrderCancel (this.extend (request, query));
         } else if (hf) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol parameter for hf orders');
             }
-            method = 'privateDeleteHfOrders';
+            response = await this.privateDeleteHfOrders (this.extend (request, query));
+        } else {
+            response = await this.privateDeleteOrders (this.extend (request, query));
         }
-        return await this[method] (this.extend (request, query));
+        return response;
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrdersByStatus
@@ -2255,7 +2262,7 @@ export default class kucoin extends Exchange {
          * @param {string} [params.orderIds] *stop orders only* comma seperated order ID list
          * @param {bool} [params.stop] True if fetching a stop order
          * @param {bool} [params.hf] false, // true for hf order
-         * @returns An [array of order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let lowercaseStatus = status.toLowerCase ();
@@ -2286,22 +2293,23 @@ export default class kucoin extends Exchange {
         if (until) {
             request['endAt'] = until;
         }
-        let method = 'privateGetOrders';
+        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
+        let response = undefined;
         if (stop) {
-            method = 'privateGetStopOrder';
+            response = await this.privateGetStopOrder (this.extend (request, query));
         } else if (hf) {
             if (lowercaseStatus === 'active') {
-                method = 'privateGetHfOrdersActive';
+                response = await this.privateGetHfOrdersActive (this.extend (request, query));
             } else if (lowercaseStatus === 'done') {
-                method = 'privateGetHfOrdersDone';
+                response = await this.privateGetHfOrdersDone (this.extend (request, query));
             }
+        } else {
+            response = await this.privateGetOrders (this.extend (request, query));
         }
-        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
-        const response = await this[method] (this.extend (request, query));
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "currentPage": 1,
         //             "pageSize": 1,
         //             "totalNum": 153408,
@@ -2346,7 +2354,7 @@ export default class kucoin extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kucoin#fetchClosedOrders
@@ -2366,7 +2374,7 @@ export default class kucoin extends Exchange {
          * @param {bool} [params.stop] True if fetching a stop order
          * @param {bool} [params.hf] false, // true for hf order
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -2377,7 +2385,7 @@ export default class kucoin extends Exchange {
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kucoin#fetchOpenOrders
@@ -2400,7 +2408,7 @@ export default class kucoin extends Exchange {
          * @param {bool} [params.stop] True if fetching a stop order
          * @param {bool} [params.hf] false, // true for hf order
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -2411,7 +2419,7 @@ export default class kucoin extends Exchange {
         return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrder
@@ -2428,7 +2436,7 @@ export default class kucoin extends Exchange {
          * @param {bool} [params.stop] true if fetching a stop order
          * @param {bool} [params.hf] false, // true for hf order
          * @param {bool} [params.clientOid] unique order id created by users to identify their orders
-         * @returns An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2445,19 +2453,19 @@ export default class kucoin extends Exchange {
             }
             request['symbol'] = market['id'];
         }
-        params = this.omit (params, [ 'stop', 'hf' ]);
-        let method = 'privateGetOrdersOrderId';
+        params = this.omit (params, [ 'stop', 'hf', 'clientOid', 'clientOrderId' ]);
+        let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (stop) {
-                method = 'privateGetStopOrderQueryOrderByClientOid';
                 if (symbol !== undefined) {
                     request['symbol'] = market['id'];
                 }
+                response = await this.privateGetStopOrderQueryOrderByClientOid (this.extend (request, params));
             } else if (hf) {
-                method = 'privateGetHfOrdersClientOrderClientOid';
+                response = await this.privateGetHfOrdersClientOrderClientOid (this.extend (request, params));
             } else {
-                method = 'privateGetOrderClientOrderClientOid';
+                response = await this.privateGetOrderClientOrderClientOid (this.extend (request, params));
             }
         } else {
             // a special case for undefined ids
@@ -2466,23 +2474,23 @@ export default class kucoin extends Exchange {
             if (id === undefined) {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires an order id');
             }
-            if (stop) {
-                method = 'privateGetStopOrderOrderId';
-            } else if (hf) {
-                method = 'privateGetHfOrdersOrderId';
-            }
             request['orderId'] = id;
+            if (stop) {
+                response = await this.privateGetStopOrderOrderId (this.extend (request, params));
+            } else if (hf) {
+                response = await this.privateGetHfOrdersOrderId (this.extend (request, params));
+            } else {
+                response = await this.privateGetOrdersOrderId (this.extend (request, params));
+            }
         }
-        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
-        const response = await this[method] (this.extend (request, params));
         let responseData = this.safeValue (response, 'data');
-        if (method === 'privateGetStopOrderQueryOrderByClientOid') {
+        if (Array.isArray (responseData)) {
             responseData = this.safeValue (responseData, 0);
         }
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -2664,7 +2672,7 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrderTrades
@@ -2676,7 +2684,7 @@ export default class kucoin extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const request = {
             'orderId': id,
@@ -2684,7 +2692,7 @@ export default class kucoin extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchMyTrades
@@ -2698,7 +2706,7 @@ export default class kucoin extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {bool} [params.hf] false, // true for hf order
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -2719,33 +2727,28 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = this.options['fetchMyTradesMethod'];
+        const method = this.options['fetchMyTradesMethod'];
         let parseResponseData = false;
+        let response = undefined;
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
         if (hf) {
-            method = 'privateGetHfFills';
+            response = await this.privateGetHfFills (this.extend (request, params));
         } else if (method === 'private_get_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
                 request['startAt'] = since;
             }
+            response = await this.privateGetFills (this.extend (request, params));
         } else if (method === 'private_get_limit_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
             parseResponseData = true;
-        } else if (method === 'private_get_hist_orders') {
-            // despite that this endpoint is called `HistOrders`
-            // it returns historical trades instead of orders
-            // returns trades earlier than 2019-02-18T00:00:00Z only
-            if (since !== undefined) {
-                request['startAt'] = this.parseToInt (since / 1000);
-            }
+            response = await this.privateGetLimitFills (this.extend (request, params));
         } else {
             throw new ExchangeError (this.id + ' fetchMyTradesMethod() invalid method');
         }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "currentPage": 1,
@@ -2796,7 +2799,7 @@ export default class kucoin extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name kucoin#fetchTrades
@@ -2806,7 +2809,7 @@ export default class kucoin extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2839,7 +2842,7 @@ export default class kucoin extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -2852,16 +2855,16 @@ export default class kucoin extends Exchange {
         //     }
         //
         //     {
-        //         sequence: '1568787654360',
-        //         symbol: 'BTC-USDT',
-        //         side: 'buy',
-        //         size: '0.00536577',
-        //         price: '9345',
-        //         takerOrderId: '5e356c4a9f1a790008f8d921',
-        //         time: '1580559434436443257',
-        //         type: 'match',
-        //         makerOrderId: '5e356bffedf0010008fa5d7f',
-        //         tradeId: '5e356c4aeefabd62c62a1ece'
+        //         "sequence": "1568787654360",
+        //         "symbol": "BTC-USDT",
+        //         "side": "buy",
+        //         "size": "0.00536577",
+        //         "price": "9345",
+        //         "takerOrderId": "5e356c4a9f1a790008f8d921",
+        //         "time": "1580559434436443257",
+        //         "type": "match",
+        //         "makerOrderId": "5e356bffedf0010008fa5d7f",
+        //         "tradeId": "5e356c4aeefabd62c62a1ece"
         //     }
         //
         // fetchMyTrades (private) v2
@@ -2888,19 +2891,19 @@ export default class kucoin extends Exchange {
         // fetchMyTrades v2 alternative format since 2019-05-21 https://github.com/ccxt/ccxt/pull/5162
         //
         //     {
-        //         symbol: "OPEN-BTC",
-        //         forceTaker:  false,
-        //         orderId: "5ce36420054b4663b1fff2c9",
-        //         fee: "0",
-        //         feeCurrency: "",
-        //         type: "",
-        //         feeRate: "0",
-        //         createdAt: 1558417615000,
-        //         size: "12.8206",
-        //         stop: "",
-        //         price: "0",
-        //         funds: "0",
-        //         tradeId: "5ce390cf6e0db23b861c6e80"
+        //         "symbol": "OPEN-BTC",
+        //         "forceTaker":  false,
+        //         "orderId": "5ce36420054b4663b1fff2c9",
+        //         "fee": "0",
+        //         "feeCurrency": "",
+        //         "type": "",
+        //         "feeRate": "0",
+        //         "createdAt": 1558417615000,
+        //         "size": "12.8206",
+        //         "stop": "",
+        //         "price": "0",
+        //         "funds": "0",
+        //         "tradeId": "5ce390cf6e0db23b861c6e80"
         //     }
         //
         // fetchMyTrades (private) v1 (historical)
@@ -2978,7 +2981,7 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/#actual-fee-rate-of-the-trading-pair
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2988,12 +2991,12 @@ export default class kucoin extends Exchange {
         const response = await this.privateGetTradeFees (this.extend (request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: [
+        //         "code": "200000",
+        //         "data": [
         //           {
-        //             symbol: 'BTC-USDT',
-        //             takerFeeRate: '0.001',
-        //             makerFeeRate: '0.001'
+        //             "symbol": "BTC-USDT",
+        //             "takerFeeRate": "0.001",
+        //             "makerFeeRate": "0.001"
         //           }
         //         ]
         //     }
@@ -3022,7 +3025,7 @@ export default class kucoin extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
@@ -3075,7 +3078,7 @@ export default class kucoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -3163,6 +3166,7 @@ export default class kucoin extends Exchange {
                 updated = updated * 1000;
             }
         }
+        const internal = this.safeValue (transaction, 'isInner');
         const tag = this.safeString (transaction, 'memo');
         return {
             'info': transaction,
@@ -3182,17 +3186,16 @@ export default class kucoin extends Exchange {
             'type': type,
             'status': this.parseTransactionStatus (rawStatus),
             'comment': this.safeString (transaction, 'remark'),
+            'internal': internal,
             'fee': fee,
             'updated': updated,
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kucoin#fetchDeposits
-         * @see https://docs.kucoin.com/#get-deposit-list
-         * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
          * @description fetch all deposits made to an account
          * @see https://docs.kucoin.com/#get-deposit-list
          * @see https://docs.kucoin.com/#get-v1-historical-deposits-list
@@ -3202,7 +3205,7 @@ export default class kucoin extends Exchange {
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -3219,22 +3222,22 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = 'privateGetDeposits';
-        if (since !== undefined) {
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        let response = undefined;
+        if (since !== undefined && since < 1550448000000) {
             // if since is earlier than 2019-02-18T00:00:00Z
-            if (since < 1550448000000) {
-                request['startAt'] = this.parseToInt (since / 1000);
-                method = 'privateGetHistDeposits';
-            } else {
+            request['startAt'] = this.parseToInt (since / 1000);
+            response = await this.privateGetHistDeposits (this.extend (request, params));
+        } else {
+            if (since !== undefined) {
                 request['startAt'] = since;
             }
+            response = await this.privateGetDeposits (this.extend (request, params));
         }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "currentPage": 1,
         //             "pageSize": 5,
         //             "totalNum": 2,
@@ -3273,7 +3276,7 @@ export default class kucoin extends Exchange {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kucoin#fetchWithdrawals
@@ -3286,7 +3289,7 @@ export default class kucoin extends Exchange {
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -3303,22 +3306,22 @@ export default class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let method = 'privateGetWithdrawals';
-        if (since !== undefined) {
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        let response = undefined;
+        if (since !== undefined && since < 1550448000000) {
             // if since is earlier than 2019-02-18T00:00:00Z
-            if (since < 1550448000000) {
-                request['startAt'] = this.parseToInt (since / 1000);
-                method = 'privateGetHistWithdrawals';
-            } else {
+            request['startAt'] = this.parseToInt (since / 1000);
+            response = await this.privateGetHistWithdrawals (this.extend (request, params));
+        } else {
+            if (since !== undefined) {
                 request['startAt'] = since;
             }
+            response = await this.privateGetWithdrawals (this.extend (request, params));
         }
-        [ request, params ] = this.handleUntilOption ('endAt', request, params);
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "currentPage": 1,
         //             "pageSize": 5,
         //             "totalNum": 2,
@@ -3369,7 +3372,7 @@ export default class kucoin extends Exchange {
         return account;
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name kucoin#fetchBalance
@@ -3379,7 +3382,7 @@ export default class kucoin extends Exchange {
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
          * @param {object} [params.type] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const code = this.safeString (params, 'code');
@@ -3393,24 +3396,24 @@ export default class kucoin extends Exchange {
         const type = this.safeString (accountsByType, requestedType, requestedType);
         params = this.omit (params, 'type');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        let method = 'privateGetAccounts';
+        let response = undefined;
         const request = {};
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
         const cross = (marginMode === 'cross') || (type === 'cross');
         if (isolated) {
-            method = 'privateGetIsolatedAccounts';
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
             }
+            response = await this.privateGetIsolatedAccounts (this.extend (request, query));
         } else if (cross) {
-            method = 'privateGetMarginAccount';
+            response = await this.privateGetMarginAccount (this.extend (request, query));
         } else {
             if (currency !== undefined) {
                 request['currency'] = currency['id'];
             }
             request['type'] = type;
+            response = await this.privateGetAccounts (this.extend (request, query));
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // Spot and Cross
         //
@@ -3431,32 +3434,32 @@ export default class kucoin extends Exchange {
         // Isolated
         //
         //    {
-        //        code: '200000',
-        //        data: {
-        //            totalConversionBalance: '0',
-        //            liabilityConversionBalance: '0',
-        //            assets: [
+        //        "code": "200000",
+        //        "data": {
+        //            "totalConversionBalance": "0",
+        //            "liabilityConversionBalance": "0",
+        //            "assets": [
         //                {
-        //                    symbol: 'MANA-USDT',
-        //                    status: 'CLEAR',
-        //                    debtRatio: '0',
-        //                    baseAsset: {
-        //                        currency: 'MANA',
-        //                        totalBalance: '0',
-        //                        holdBalance: '0',
-        //                        availableBalance: '0',
-        //                        liability: '0',
-        //                        interest: '0',
-        //                        borrowableAmount: '0'
+        //                    "symbol": "MANA-USDT",
+        //                    "status": "CLEAR",
+        //                    "debtRatio": "0",
+        //                    "baseAsset": {
+        //                        "currency": "MANA",
+        //                        "totalBalance": "0",
+        //                        "holdBalance": "0",
+        //                        "availableBalance": "0",
+        //                        "liability": "0",
+        //                        "interest": "0",
+        //                        "borrowableAmount": "0"
         //                    },
-        //                    quoteAsset: {
-        //                        currency: 'USDT',
-        //                        totalBalance: '0',
-        //                        holdBalance: '0',
-        //                        availableBalance: '0',
-        //                        liability: '0',
-        //                        interest: '0',
-        //                        borrowableAmount: '0'
+        //                    "quoteAsset": {
+        //                        "currency": "USDT",
+        //                        "totalBalance": "0",
+        //                        "holdBalance": "0",
+        //                        "availableBalance": "0",
+        //                        "liability": "0",
+        //                        "interest": "0",
+        //                        "borrowableAmount": "0"
         //                    }
         //                },
         //                ...
@@ -3525,7 +3528,7 @@ export default class kucoin extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -3549,25 +3552,25 @@ export default class kucoin extends Exchange {
             const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
             //
             //     {
-            //         'code': '200000',
-            //         'data': {
-            //             'applyId': '605a87217dff1500063d485d',
-            //             'bizNo': 'bcd6e5e1291f4905af84dc',
-            //             'payAccountType': 'CONTRACT',
-            //             'payTag': 'DEFAULT',
-            //             'remark': '',
-            //             'recAccountType': 'MAIN',
-            //             'recTag': 'DEFAULT',
-            //             'recRemark': '',
-            //             'recSystem': 'KUCOIN',
-            //             'status': 'PROCESSING',
-            //             'currency': 'XBT',
-            //             'amount': '0.00001',
-            //             'fee': '0',
-            //             'sn': '573688685663948',
-            //             'reason': '',
-            //             'createdAt': 1616545569000,
-            //             'updatedAt': 1616545569000
+            //         "code": "200000",
+            //         "data": {
+            //             "applyId": "605a87217dff1500063d485d",
+            //             "bizNo": "bcd6e5e1291f4905af84dc",
+            //             "payAccountType": "CONTRACT",
+            //             "payTag": "DEFAULT",
+            //             "remark": '',
+            //             "recAccountType": "MAIN",
+            //             "recTag": "DEFAULT",
+            //             "recRemark": '',
+            //             "recSystem": "KUCOIN",
+            //             "status": "PROCESSING",
+            //             "currency": "XBT",
+            //             "amount": "0.00001",
+            //             "fee": "0",
+            //             "sn": "573688685663948",
+            //             "reason": '',
+            //             "createdAt": 1616545569000,
+            //             "updatedAt": 1616545569000
             //         }
             //     }
             //
@@ -3596,9 +3599,9 @@ export default class kucoin extends Exchange {
             const response = await this.privatePostAccountsInnerTransfer (this.extend (request, params));
             //
             //     {
-            //         'code': '200000',
-            //         'data': {
-            //              'orderId': '605a6211e657f00006ad0ad6'
+            //         "code": "200000",
+            //         "data": {
+            //              "orderId": "605a6211e657f00006ad0ad6"
             //         }
             //     }
             //
@@ -3607,12 +3610,12 @@ export default class kucoin extends Exchange {
         }
     }
 
-    parseTransfer (transfer, currency = undefined) {
+    parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer (spot)
         //
         //    {
-        //        'orderId': '605a6211e657f00006ad0ad6'
+        //        "orderId": "605a6211e657f00006ad0ad6"
         //    }
         //
         //    {
@@ -3623,23 +3626,23 @@ export default class kucoin extends Exchange {
         // transfer (futures)
         //
         //     {
-        //         'applyId': '605a87217dff1500063d485d',
-        //         'bizNo': 'bcd6e5e1291f4905af84dc',
-        //         'payAccountType': 'CONTRACT',
-        //         'payTag': 'DEFAULT',
-        //         'remark': '',
-        //         'recAccountType': 'MAIN',
-        //         'recTag': 'DEFAULT',
-        //         'recRemark': '',
-        //         'recSystem': 'KUCOIN',
-        //         'status': 'PROCESSING',
-        //         'currency': 'XBT',
-        //         'amount': '0.00001',
-        //         'fee': '0',
-        //         'sn': '573688685663948',
-        //         'reason': '',
-        //         'createdAt': 1616545569000,
-        //         'updatedAt': 1616545569000
+        //         "applyId": "605a87217dff1500063d485d",
+        //         "bizNo": "bcd6e5e1291f4905af84dc",
+        //         "payAccountType": "CONTRACT",
+        //         "payTag": "DEFAULT",
+        //         "remark": '',
+        //         "recAccountType": "MAIN",
+        //         "recTag": "DEFAULT",
+        //         "recRemark": '',
+        //         "recSystem": "KUCOIN",
+        //         "status": "PROCESSING",
+        //         "currency": "XBT",
+        //         "amount": "0.00001",
+        //         "fee": "0",
+        //         "sn": "573688685663948",
+        //         "reason": '',
+        //         "createdAt": 1616545569000,
+        //         "updatedAt": 1616545569000
         //     }
         //
         const timestamp = this.safeInteger (transfer, 'createdAt');
@@ -3715,7 +3718,7 @@ export default class kucoin extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseLedgerEntry (item, currency = undefined) {
+    parseLedgerEntry (item, currency: Currency = undefined) {
         //
         //     {
         //         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
@@ -3798,7 +3801,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchLedger
@@ -3811,7 +3814,7 @@ export default class kucoin extends Exchange {
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -3907,7 +3910,7 @@ export default class kucoin extends Exchange {
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
     }
 
-    parseBorrowRate (info, currency = undefined) {
+    parseBorrowRate (info, currency: Currency = undefined) {
         //
         //     {
         //         "tradeId": "62db2dcaff219600012b56cd",
@@ -3931,7 +3934,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchBorrowInterest
@@ -3944,7 +3947,7 @@ export default class kucoin extends Exchange {
          * @param {int} [limit] the maximum number of structures to retrieve
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
-         * @returns {object[]} a list of [borrow interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure}
+         * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
          */
         await this.loadMarkets ();
         let marginMode = undefined;
@@ -3953,42 +3956,36 @@ export default class kucoin extends Exchange {
             marginMode = 'cross'; // cross as default marginMode
         }
         const request = {};
-        let method = 'privateGetMarginBorrowOutstanding';
-        if (marginMode === 'isolated') {
-            if (code !== undefined) {
-                const currency = this.currency (code);
-                request['balanceCurrency'] = currency['id'];
-            }
-            method = 'privateGetIsolatedAccounts';
-        } else {
-            if (code !== undefined) {
-                const currency = this.currency (code);
-                request['currency'] = currency['id'];
-            }
+        let response = undefined;
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['quoteCurrency'] = currency['id'];
         }
-        const response = await this[method] (this.extend (request, params));
+        if (marginMode === 'isolated') {
+            response = await this.privateGetIsolatedAccounts (this.extend (request, params));
+        } else {
+            response = await this.privateGetMarginAccounts (this.extend (request, params));
+        }
         //
         // Cross
         //
         //     {
         //         "code": "200000",
         //         "data": {
-        //             "currentPage": 1,
-        //             "pageSize": 10,
-        //             "totalNum": 1,
-        //             "totalPage": 1,
-        //             "items": [
+        //             "totalAssetOfQuoteCurrency": "0",
+        //             "totalLiabilityOfQuoteCurrency": "0",
+        //             "debtRatio": "0",
+        //             "status": "EFFECTIVE",
+        //             "accounts": [
         //                 {
-        //                     "tradeId": "62e1e320ff219600013b44e2",
-        //                     "currency": "USDT",
-        //                     "principal": "100",
-        //                     "accruedInterest": "0.00016667",
-        //                     "liability": "100.00016667",
-        //                     "repaidSize": "0",
-        //                     "dailyIntRate": "0.00004",
-        //                     "term": 7,
-        //                     "createdAt": 1658970912000,
-        //                     "maturityTime": 1659575713000
+        //                     "currency": "1INCH",
+        //                     "total": "0",
+        //                     "available": "0",
+        //                     "hold": "0",
+        //                     "liability": "0",
+        //                     "maxBorrowSize": "0",
+        //                     "borrowEnabled": true,
+        //                     "transferInEnabled": true
         //                 }
         //             ]
         //         }
@@ -4003,79 +4000,85 @@ export default class kucoin extends Exchange {
         //             "liabilityConversionBalance": "0.01480001",
         //             "assets": [
         //                 {
-        //                     "symbol": "NKN-USDT",
-        //                     "status": "CLEAR",
+        //                     "symbol": "MANA-USDT",
         //                     "debtRatio": "0",
+        //                     "status": "BORROW",
         //                     "baseAsset": {
-        //                         "currency": "NKN",
-        //                         "totalBalance": "0",
-        //                         "holdBalance": "0",
-        //                         "availableBalance": "0",
-        //                         "liability": "0",
-        //                         "interest": "0",
-        //                         "borrowableAmount": "0"
+        //                         "currency": "MANA",
+        //                         "borrowEnabled": true,
+        //                         "repayEnabled": true,
+        //                         "transferEnabled": true,
+        //                         "borrowed": "0",
+        //                         "totalAsset": "0",
+        //                         "available": "0",
+        //                         "hold": "0",
+        //                         "maxBorrowSize": "1000"
         //                     },
         //                     "quoteAsset": {
         //                         "currency": "USDT",
-        //                         "totalBalance": "0",
-        //                         "holdBalance": "0",
-        //                         "availableBalance": "0",
-        //                         "liability": "0",
-        //                         "interest": "0",
-        //                         "borrowableAmount": "0"
+        //                         "borrowEnabled": true,
+        //                         "repayEnabled": true,
+        //                         "transferEnabled": true,
+        //                         "borrowed": "0",
+        //                         "totalAsset": "0",
+        //                         "available": "0",
+        //                         "hold": "0",
+        //                         "maxBorrowSize": "50000"
         //                     }
-        //                 },
+        //                 }
         //             ]
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const assets = (marginMode === 'isolated') ? this.safeValue (data, 'assets', []) : this.safeValue (data, 'items', []);
+        const assets = (marginMode === 'isolated') ? this.safeValue (data, 'assets', []) : this.safeValue (data, 'accounts', []);
         return this.parseBorrowInterests (assets, undefined);
     }
 
-    parseBorrowInterest (info, market = undefined) {
+    parseBorrowInterest (info, market: Market = undefined) {
         //
         // Cross
         //
         //     {
-        //         "tradeId": "62e1e320ff219600013b44e2",
-        //         "currency": "USDT",
-        //         "principal": "100",
-        //         "accruedInterest": "0.00016667",
-        //         "liability": "100.00016667",
-        //         "repaidSize": "0",
-        //         "dailyIntRate": "0.00004",
-        //         "term": 7,
-        //         "createdAt": 1658970912000,
-        //         "maturityTime": 1659575713000
-        //     },
+        //         "currency": "1INCH",
+        //         "total": "0",
+        //         "available": "0",
+        //         "hold": "0",
+        //         "liability": "0",
+        //         "maxBorrowSize": "0",
+        //         "borrowEnabled": true,
+        //         "transferInEnabled": true
+        //     }
         //
         // Isolated
         //
         //     {
-        //         "symbol": "BTC-USDT",
-        //         "status": "CLEAR",
+        //         "symbol": "MANA-USDT",
         //         "debtRatio": "0",
+        //         "status": "BORROW",
         //         "baseAsset": {
-        //             "currency": "BTC",
-        //             "totalBalance": "0",
-        //             "holdBalance": "0",
-        //             "availableBalance": "0",
-        //             "liability": "0",
-        //             "interest": "0",
-        //             "borrowableAmount": "0.0592"
+        //             "currency": "MANA",
+        //             "borrowEnabled": true,
+        //             "repayEnabled": true,
+        //             "transferEnabled": true,
+        //             "borrowed": "0",
+        //             "totalAsset": "0",
+        //             "available": "0",
+        //             "hold": "0",
+        //             "maxBorrowSize": "1000"
         //         },
         //         "quoteAsset": {
         //             "currency": "USDT",
-        //             "totalBalance": "149.99991731",
-        //             "holdBalance": "0",
-        //             "availableBalance": "149.99991731",
-        //             "liability": "0",
-        //             "interest": "0",
-        //             "borrowableAmount": "1349"
+        //             "borrowEnabled": true,
+        //             "repayEnabled": true,
+        //             "transferEnabled": true,
+        //             "borrowed": "0",
+        //             "totalAsset": "0",
+        //             "available": "0",
+        //             "hold": "0",
+        //             "maxBorrowSize": "50000"
         //         }
-        //     },
+        //     }
         //
         const marketId = this.safeString (info, 'symbol');
         const marginMode = (marketId === undefined) ? 'cross' : 'isolated';
@@ -4091,7 +4094,7 @@ export default class kucoin extends Exchange {
             interest = this.safeNumber (isolatedBase, 'interest');
             currencyId = this.safeString (isolatedBase, 'currency');
         } else {
-            amountBorrowed = this.safeNumber (info, 'principal');
+            amountBorrowed = this.safeNumber (info, 'liability');
             interest = this.safeNumber (info, 'accruedInterest');
             currencyId = this.safeString (info, 'currency');
         }
@@ -4108,41 +4111,25 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
+    async borrowCrossMargin (code: string, amount, params = {}) {
         /**
          * @method
-         * @name kucoin#borrowMargin
+         * @name kucoin#borrowCrossMargin
          * @description create a loan to borrow margin
          * @see https://docs.kucoin.com/#1-margin-borrowing
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the kucoin api endpoints
          * @param {string} [params.timeInForce] either IOC or FOK
-         * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
-         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
-        const isIsolated = marginMode === 'isolated';
-        params = this.omit (params, 'marginMode');
-        this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
             'size': this.currencyToPrecision (code, amount),
+            'timeInForce': 'FOK',
         };
-        const timeInForce = this.safeStringN (params, [ 'timeInForce', 'type', 'borrowStrategy' ], 'IOC');
-        if (isIsolated) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol parameter for isolated margin');
-            }
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
-            request['isIsolated'] = true;
-        }
-        params = this.omit (params, [ 'timeInForce', 'type', 'borrowStrategy' ]);
-        request['timeInForce'] = timeInForce;
         const response = await this.privatePostMarginBorrow (this.extend (request, params));
         //
         //     {
@@ -4160,37 +4147,63 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
+    async borrowIsolatedMargin (symbol: string, code: string, amount, params = {}) {
         /**
          * @method
-         * @name kucoin#repayMargin
+         * @name kucoin#borrowIsolatedMargin
+         * @description create a loan to borrow margin
+         * @see https://docs.kucoin.com/#1-margin-borrowing
+         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {object} [params] extra parameters specific to the kucoin api endpoints
+         * @param {string} [params.timeInForce] either IOC or FOK
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'size': this.currencyToPrecision (code, amount),
+            'symbol': market['id'],
+            'timeInForce': 'FOK',
+            'isIsolated': true,
+        };
+        const response = await this.privatePostMarginBorrow (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": "200",
+        //         "msg": "success",
+        //         "retry": false,
+        //         "data": {
+        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //             "actualSize": 10
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseMarginLoan (data, currency);
+    }
+
+    async repayCrossMargin (code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name kucoin#repayCrossMargin
          * @description repay borrowed margin and interest
          * @see https://docs.kucoin.com/#2-repayment
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
-         * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kucoin api endpoints
-         * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
-         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
-        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
-        const isIsolated = marginMode === 'isolated';
-        params = this.omit (params, 'marginMode');
-        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
             'size': this.currencyToPrecision (code, amount),
         };
-        if (isIsolated) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol parameter for isolated margin');
-            }
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
-            request['isIsolated'] = true;
-        }
         const response = await this.privatePostMarginRepay (this.extend (request, params));
         //
         //     {
@@ -4208,7 +4221,45 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info, currency = undefined) {
+    async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+        /**
+         * @method
+         * @name kucoin#repayIsolatedMargin
+         * @description repay borrowed margin and interest
+         * @see https://docs.kucoin.com/#2-repayment
+         * @param {string} symbol unified market symbol
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {object} [params] extra parameters specific to the kucoin api endpoints
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'size': this.currencyToPrecision (code, amount),
+            'symbol': market['id'],
+            'isIsolated': true,
+        };
+        const response = await this.privatePostMarginRepay (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": "200",
+        //         "msg": "success",
+        //         "retry": false,
+        //         "data": {
+        //             "orderNo": "5da6dba0f943c0c81f5d5db5",
+        //             "actualSize": 10
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseMarginLoan (data, currency);
+    }
+
+    parseMarginLoan (info, currency: Currency = undefined) {
         //
         //     {
         //         "orderNo": "5da6dba0f943c0c81f5d5db5",
@@ -4228,7 +4279,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchDepositWithdrawFees
@@ -4236,7 +4287,7 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/#get-currencies
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
-         * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.publicGetCurrencies (params);

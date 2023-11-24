@@ -32,16 +32,17 @@ class bithumb extends bithumb$1 {
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -288,7 +289,7 @@ class bithumb extends bithumb$1 {
          * @name bithumb#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const request = {
@@ -305,7 +306,7 @@ class bithumb extends bithumb$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -396,7 +397,7 @@ class bithumb extends bithumb$1 {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const result = {};
@@ -453,7 +454,7 @@ class bithumb extends bithumb$1 {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -488,11 +489,11 @@ class bithumb extends bithumb$1 {
         //
         //     [
         //         1576823400000, // 기준 시간
-        //         '8284000', // 시가
-        //         '8286000', // 종가
-        //         '8289000', // 고가
-        //         '8276000', // 저가
-        //         '15.41503692' // 거래량
+        //         "8284000", // 시가
+        //         "8286000", // 종가
+        //         "8289000", // 고가
+        //         "8276000", // 저가
+        //         "15.41503692" // 거래량
         //     ]
         //
         return [
@@ -526,23 +527,23 @@ class bithumb extends bithumb$1 {
         const response = await this.publicGetCandlestickBaseIdQuoteIdInterval(this.extend(request, params));
         //
         //     {
-        //         'status': '0000',
-        //         'data': {
+        //         "status": "0000",
+        //         "data": {
         //             [
         //                 1576823400000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8286000', // 종가
-        //                 '8289000', // 고가
-        //                 '8276000', // 저가
-        //                 '15.41503692' // 거래량
+        //                 "8284000", // 시가
+        //                 "8286000", // 종가
+        //                 "8289000", // 고가
+        //                 "8276000", // 저가
+        //                 "15.41503692" // 거래량
         //             ],
         //             [
         //                 1576824000000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8281000', // 종가
-        //                 '8289000', // 고가
-        //                 '8275000', // 저가
-        //                 '6.19584467' // 거래량
+        //                 "8284000", // 시가
+        //                 "8281000", // 종가
+        //                 "8289000", // 고가
+        //                 "8275000", // 저가
+        //                 "6.19584467" // 거래량
         //             ],
         //         }
         //     }
@@ -637,7 +638,7 @@ class bithumb extends bithumb$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -677,7 +678,7 @@ class bithumb extends bithumb$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -714,7 +715,7 @@ class bithumb extends bithumb$1 {
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
@@ -732,24 +733,24 @@ class bithumb extends bithumb$1 {
         //     {
         //         "status": "0000",
         //         "data": {
-        //             order_date: '1603161798539254',
-        //             type: 'ask',
-        //             order_status: 'Cancel',
-        //             order_currency: 'BTC',
-        //             payment_currency: 'KRW',
-        //             watch_price: '0',
-        //             order_price: '13344000',
-        //             order_qty: '0.0125',
-        //             cancel_date: '1603161803809993',
-        //             cancel_type: '사용자취소',
-        //             contract: [
+        //             "order_date": "1603161798539254",
+        //             "type": "ask",
+        //             "order_status": "Cancel",
+        //             "order_currency": "BTC",
+        //             "payment_currency": "KRW",
+        //             "watch_price": "0",
+        //             "order_price": "13344000",
+        //             "order_qty": "0.0125",
+        //             "cancel_date": "1603161803809993",
+        //             "cancel_type": "사용자취소",
+        //             "contract": [
         //                 {
-        //                     transaction_date: '1603161799976383',
-        //                     price: '13344000',
-        //                     units: '0.0015',
-        //                     fee_currency: 'KRW',
-        //                     fee: '0',
-        //                     total: '20016'
+        //                     "transaction_date": "1603161799976383",
+        //                     "price": "13344000",
+        //                     "units": "0.0015",
+        //                     "fee_currency": "KRW",
+        //                     "fee": "0",
+        //                     "total": "20016"
         //                 }
         //             ],
         //         }
@@ -777,7 +778,7 @@ class bithumb extends bithumb$1 {
         //         "order_status": "Completed", // Completed, Cancel ...
         //         "order_currency": "BTC",
         //         "payment_currency": "KRW",
-        //         "watch_price": '0', // present in Cancel order
+        //         "watch_price": "0", // present in Cancel order
         //         "order_price": "8601000",
         //         "order_qty": "0.007",
         //         "cancel_date": "", // filled in Cancel order
@@ -872,9 +873,9 @@ class bithumb extends bithumb$1 {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -921,14 +922,14 @@ class bithumb extends bithumb$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+        }
         const side_in_params = ('side' in params);
         if (!side_in_params) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
-        }
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a `symbol` argument');
         }
         const market = this.market(symbol);
         const side = (params['side'] === 'buy') ? 'bid' : 'ask';
@@ -958,7 +959,7 @@ class bithumb extends bithumb$1 {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
@@ -1009,6 +1010,7 @@ class bithumb extends bithumb$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

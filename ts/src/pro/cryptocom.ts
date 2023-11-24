@@ -3,9 +3,9 @@
 
 import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -25,6 +25,7 @@ export default class cryptocom extends cryptocomRest {
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchOHLCV': true,
+                'watchPositions': true,
                 'createOrderWs': true,
                 'cancelOrderWs': true,
                 'cancelAllOrders': true,
@@ -42,6 +43,10 @@ export default class cryptocom extends cryptocomRest {
                 },
             },
             'options': {
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true, // or false
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
             },
             'streaming': {
             },
@@ -71,7 +76,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -115,14 +120,14 @@ export default class cryptocom extends cryptocomRest {
         //     "depth":150,
         //     "data": [
         //          {
-        //              'bids': [
+        //              "bids": [
         //                  [122.21, 0.74041, 4]
         //              ],
-        //              'asks': [
+        //              "asks": [
         //                  [122.29, 0.00002, 1]
         //              ]
-        //              't': 1648123943803,
-        //              's':754560122
+        //              "t": 1648123943803,
+        //              "s":754560122
         //          }
         //      ]
         // }
@@ -157,7 +162,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -204,13 +209,13 @@ export default class cryptocom extends cryptocomRest {
     handleTrades (client: Client, message) {
         //
         // {
-        //     code: 0,
-        //     method: 'subscribe',
-        //     result: {
-        //       instrument_name: 'BTC_USDT',
-        //       subscription: 'trade.BTC_USDT',
-        //       channel: 'trade',
-        //       data: [
+        //     "code": 0,
+        //     "method": "subscribe",
+        //     "result": {
+        //       "instrument_name": "BTC_USDT",
+        //       "subscription": "trade.BTC_USDT",
+        //       "channel": "trade",
+        //       "data": [
         //             {
         //                 "dataTime":1648122434405,
         //                 "d":"2358394540212355488",
@@ -250,7 +255,7 @@ export default class cryptocom extends cryptocomRest {
         this.resolvePromiseIfMessagehashMatches (client, 'multipleTrades::', symbol, stored);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchMyTrades
@@ -260,7 +265,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -285,7 +290,7 @@ export default class cryptocom extends cryptocomRest {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -357,12 +362,12 @@ export default class cryptocom extends cryptocomRest {
     handleOHLCV (client: Client, message) {
         //
         //  {
-        //       instrument_name: 'BTC_USDT',
-        //       subscription: 'candlestick.1m.BTC_USDT',
-        //       channel: 'candlestick',
-        //       depth: 300,
-        //       interval: '1m',
-        //       data: [ [Object] ]
+        //       "instrument_name": "BTC_USDT",
+        //       "subscription": "candlestick.1m.BTC_USDT",
+        //       "channel": "candlestick",
+        //       "depth": 300,
+        //       "interval": "1m",
+        //       "data": [ [Object] ]
         //   }
         //
         const messageHash = this.safeString (message, 'subscription');
@@ -387,7 +392,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#watchOrders
@@ -397,7 +402,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -466,6 +471,132 @@ export default class cryptocom extends cryptocomRest {
         }
     }
 
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchPositions
+         * @description watch all open positions
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const id = this.nonce ();
+        const request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': [ 'user.position_balance' ],
+            },
+            'nonce': id,
+        };
+        let messageHash = 'positions';
+        symbols = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbols)) {
+            messageHash = '::' + symbols.join (',');
+        }
+        const client = this.client (url);
+        this.setPositionsCache (client, symbols);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const newPositions = await this.watch (url, messageHash, this.extend (request, params));
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash);
+            }
+        } else {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash) {
+        const positions = await this.fetchPositions ();
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append (position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (cache, 'positions');
+    }
+
+    handlePositions (client, message) {
+        //
+        //    {
+        //        "subscription": "user.position_balance",
+        //        "channel": "user.position_balance",
+        //        "data": [{
+        //            "balances": [{
+        //                "instrument_name": "USD",
+        //                "quantity": "8.9979961950886",
+        //                "update_timestamp_ms": 1695598760597,
+        //            }],
+        //            "positions": [{
+        //                "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+        //                "instrument_name": "LTCUSD-PERP",
+        //                "type": "PERPETUAL_SWAP",
+        //                "quantity": "1.8",
+        //                "cost": "114.766",
+        //                "open_position_pnl": "-0.0216206",
+        //                "session_pnl": "0.00962994",
+        //                "update_timestamp_ms": 1695598760597,
+        //                "open_pos_cost": "114.766",
+        //            }],
+        //        }],
+        //    }
+        //
+        // each account is connected to a different endpoint
+        // and has exactly one subscriptionhash which is the account type
+        const data = this.safeValue (message, 'data', []);
+        const firstData = this.safeValue (data, 0, {});
+        const rawPositions = this.safeValue (firstData, 'positions', []);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition (rawPosition);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, 'positions');
+    }
+
     async watchBalance (params = {}) {
         /**
          * @method
@@ -473,7 +604,7 @@ export default class cryptocom extends cryptocomRest {
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const messageHash = 'user.balance';
         return await this.watchPrivateSubscribe (messageHash, params);
@@ -556,7 +687,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         params = this.createOrderRequest (symbol, type, side, amount, price, params);
@@ -586,7 +717,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (order, messageHash);
     }
 
-    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#cancelOrder
@@ -595,7 +726,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {string} id the order id of the order to cancel
          * @param {string} [symbol] unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         params = this.extend ({
@@ -609,7 +740,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchPrivateRequest (messageHash, request);
     }
 
-    async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cryptocom#cancelAllOrdersWs
@@ -617,7 +748,7 @@ export default class cryptocom extends cryptocomRest {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
          * @param {string} symbol unified market symbol of the orders to cancel
          * @param {object} [params] extra parameters specific to the cryptocom api endpoint
-         * @returns {object} Returns exchange raw message {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -702,10 +833,10 @@ export default class cryptocom extends cryptocomRest {
     handleErrorMessage (client: Client, message) {
         //
         //    {
-        //        id: 0,
-        //        code: 10004,
-        //        method: 'subscribe',
-        //        message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
+        //        "id": 0,
+        //        "code": 10004,
+        //        "method": "subscribe",
+        //        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         //    }
         //
         const errorCode = this.safeString (message, 'code');
@@ -742,6 +873,7 @@ export default class cryptocom extends cryptocomRest {
             'user.order': this.handleOrders,
             'user.trade': this.handleTrades,
             'user.balance': this.handleBalance,
+            'user.position_balance': this.handlePositions,
         };
         const result = this.safeValue2 (message, 'result', 'info');
         const channel = this.safeString (result, 'channel');
@@ -768,18 +900,18 @@ export default class cryptocom extends cryptocomRest {
         //        "code": 0
         //    }
         // auth
-        //     { id: 1648132625434, method: 'public/auth', code: 0 }
+        //     { id: 1648132625434, method: "public/auth", code: 0 }
         // ohlcv
         //    {
-        //        code: 0,
-        //        method: 'subscribe',
-        //        result: {
-        //          instrument_name: 'BTC_USDT',
-        //          subscription: 'candlestick.1m.BTC_USDT',
-        //          channel: 'candlestick',
-        //          depth: 300,
-        //          interval: '1m',
-        //          data: [ [Object] ]
+        //        "code": 0,
+        //        "method": "subscribe",
+        //        "result": {
+        //          "instrument_name": "BTC_USDT",
+        //          "subscription": "candlestick.1m.BTC_USDT",
+        //          "channel": "candlestick",
+        //          "depth": 300,
+        //          "interval": "1m",
+        //          "data": [ [Object] ]
         //        }
         //      }
         // ticker
@@ -841,7 +973,7 @@ export default class cryptocom extends cryptocomRest {
 
     handleAuthenticate (client: Client, message) {
         //
-        //  { id: 1648132625434, method: 'public/auth', code: 0 }
+        //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
         const future = this.safeValue (client.futures, 'authenticated');
         future.resolve (true);

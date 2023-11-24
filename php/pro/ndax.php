@@ -47,7 +47,7 @@ class ndax extends \ccxt\async\ndax {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the ndax api endpoint
-             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -116,7 +116,7 @@ class ndax extends \ccxt\async\ndax {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the ndax api endpoint
-             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -234,10 +234,10 @@ class ndax extends \ccxt\async\ndax {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         m => 1,
-        //         $i => 1,
-        //         n => 'SubscribeTicker',
-        //         o => [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
+        //         "m" => 1,
+        //         "i" => 1,
+        //         "n" => "SubscribeTicker",
+        //         "o" => [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
         $payload = $this->safe_value($message, 'o', array());
@@ -330,7 +330,7 @@ class ndax extends \ccxt\async\ndax {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the ndax api endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
             Async\await($this->load_markets());
@@ -372,10 +372,10 @@ class ndax extends \ccxt\async\ndax {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         m => 3,
-        //         $i => 2,
-        //         n => 'Level2UpdateEvent',
-        //         o => [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
+        //         "m" => 3,
+        //         "i" => 2,
+        //         "n" => "Level2UpdateEvent",
+        //         "o" => [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
         $payload = $this->safe_value($message, 'o', array());
@@ -448,10 +448,10 @@ class ndax extends \ccxt\async\ndax {
     public function handle_order_book_subscription(Client $client, $message, $subscription) {
         //
         //     {
-        //         m => 1,
-        //         i => 1,
-        //         n => 'SubscribeLevel2',
-        //         o => [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
+        //         "m" => 1,
+        //         "i" => 1,
+        //         "n" => "SubscribeLevel2",
+        //         "o" => [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
         $payload = $this->safe_value($message, 'o', array());
@@ -483,10 +483,10 @@ class ndax extends \ccxt\async\ndax {
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
-        //         m => 1,
-        //         i => 1,
-        //         n => 'SubscribeLevel2',
-        //         o => '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m" => 1,
+        //         "i" => 1,
+        //         "n" => "SubscribeLevel2",
+        //         "o" => "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
@@ -512,17 +512,17 @@ class ndax extends \ccxt\async\ndax {
         //     }
         //
         //     {
-        //         m => 1,
-        //         i => 1,
-        //         n => 'SubscribeLevel2',
-        //         o => '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m" => 1,
+        //         "i" => 1,
+        //         "n" => "SubscribeLevel2",
+        //         "o" => "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         //     {
-        //         m => 3,
-        //         i => 2,
-        //         n => 'Level2UpdateEvent',
-        //         o => '[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]'
+        //         "m" => 3,
+        //         "i" => 2,
+        //         "n" => "Level2UpdateEvent",
+        //         "o" => "[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]"
         //     }
         //
         $payload = $this->safe_string($message, 'o');

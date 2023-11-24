@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Order, OrderSide, OrderType
-from typing import Optional
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -69,14 +68,13 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowInterest': None,
-                'fetchBorrowRate': None,
                 'fetchBorrowRateHistories': None,
                 'fetchBorrowRateHistory': None,
-                'fetchBorrowRates': None,
-                'fetchBorrowRatesPerSymbol': None,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': 'emulated',
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': False,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
@@ -89,6 +87,8 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchL3OrderBook': False,
                 'fetchLedger': None,
                 'fetchLeverage': False,
@@ -789,14 +789,14 @@ class tokocrypto(Exchange, ImplicitAPI):
             result.append(entry)
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://www.tokocrypto.com/apidocs/#order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -845,7 +845,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'lastUpdateId')
         return orderbook
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # aggregate trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -947,10 +947,10 @@ class tokocrypto(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market)
         id = self.safe_string_2(trade, 't', 'a')
         id = self.safe_string_2(trade, 'id', 'tradeId', id)
-        side = None
+        side: Str = None
         orderId = self.safe_string(trade, 'orderId')
         buyerMaker = self.safe_value_2(trade, 'm', 'isBuyerMaker')
-        takerOrMaker = None
+        takerOrMaker: Str = None
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
             takerOrMaker = 'taker'
@@ -985,7 +985,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://www.tokocrypto.com/apidocs/#recent-trades-list
         :see: https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
@@ -994,7 +994,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1061,51 +1061,51 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #
         #     {
-        #         symbol: 'ETHBTC',
-        #         priceChange: '0.00068700',
-        #         priceChangePercent: '2.075',
-        #         weightedAvgPrice: '0.03342681',
-        #         prevClosePrice: '0.03310300',
-        #         lastPrice: '0.03378900',
-        #         lastQty: '0.07700000',
-        #         bidPrice: '0.03378900',
-        #         bidQty: '7.16800000',
-        #         askPrice: '0.03379000',
-        #         askQty: '24.00000000',
-        #         openPrice: '0.03310200',
-        #         highPrice: '0.03388900',
-        #         lowPrice: '0.03306900',
-        #         volume: '205478.41000000',
-        #         quoteVolume: '6868.48826294',
-        #         openTime: 1601469986932,
-        #         closeTime: 1601556386932,
-        #         firstId: 196098772,
-        #         lastId: 196186315,
-        #         count: 87544
+        #         "symbol": "ETHBTC",
+        #         "priceChange": "0.00068700",
+        #         "priceChangePercent": "2.075",
+        #         "weightedAvgPrice": "0.03342681",
+        #         "prevClosePrice": "0.03310300",
+        #         "lastPrice": "0.03378900",
+        #         "lastQty": "0.07700000",
+        #         "bidPrice": "0.03378900",
+        #         "bidQty": "7.16800000",
+        #         "askPrice": "0.03379000",
+        #         "askQty": "24.00000000",
+        #         "openPrice": "0.03310200",
+        #         "highPrice": "0.03388900",
+        #         "lowPrice": "0.03306900",
+        #         "volume": "205478.41000000",
+        #         "quoteVolume": "6868.48826294",
+        #         "openTime": 1601469986932,
+        #         "closeTime": 1601556386932,
+        #         "firstId": 196098772,
+        #         "lastId": 196186315,
+        #         "count": 87544
         #     }
         #
         # coinm
         #     {
-        #         baseVolume: '214549.95171161',
-        #         closeTime: '1621965286847',
-        #         count: '1283779',
-        #         firstId: '152560106',
-        #         highPrice: '39938.3',
-        #         lastId: '153843955',
-        #         lastPrice: '37993.4',
-        #         lastQty: '1',
-        #         lowPrice: '36457.2',
-        #         openPrice: '37783.4',
-        #         openTime: '1621878840000',
-        #         pair: 'BTCUSD',
-        #         priceChange: '210.0',
-        #         priceChangePercent: '0.556',
-        #         symbol: 'BTCUSD_PERP',
-        #         volume: '81990451',
-        #         weightedAvgPrice: '38215.08713747'
+        #         "baseVolume": "214549.95171161",
+        #         "closeTime": "1621965286847",
+        #         "count": "1283779",
+        #         "firstId": "152560106",
+        #         "highPrice": "39938.3",
+        #         "lastId": "153843955",
+        #         "lastPrice": "37993.4",
+        #         "lastQty": "1",
+        #         "lowPrice": "36457.2",
+        #         "openPrice": "37783.4",
+        #         "openTime": "1621878840000",
+        #         "pair": "BTCUSD",
+        #         "priceChange": "210.0",
+        #         "priceChangePercent": "0.556",
+        #         "symbol": "BTCUSD_PERP",
+        #         "volume": "81990451",
+        #         "weightedAvgPrice": "38215.08713747"
         #     }
         #
         timestamp = self.safe_integer(ticker, 'closeTime')
@@ -1144,13 +1144,13 @@ class tokocrypto(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         defaultMethod = 'binanceGetTicker24hr'
@@ -1163,13 +1163,13 @@ class tokocrypto(Exchange, ImplicitAPI):
             return market['baseId'] + market['quoteId']
         return market['id']
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1182,19 +1182,19 @@ class tokocrypto(Exchange, ImplicitAPI):
             return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
-    async def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
         fetches the bid and ask price and volume for multiple markets
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         response = await self.binanceGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
@@ -1238,7 +1238,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1289,7 +1289,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         :see: https://www.tokocrypto.com/apidocs/#account-information-signed
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1297,7 +1297,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
@@ -1371,7 +1371,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         #
         # spot
         #
@@ -1395,25 +1395,25 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         # createOrder
         #     {
-        #         orderId: '145265071',
-        #         bOrderListId: '0',
-        #         clientId: '49c09c3c2cd54419a59c05441f517b3c',
-        #         bOrderId: '35247529',
-        #         symbol: 'USDT_BIDR',
-        #         symbolType: '1',
-        #         side: '0',
-        #         type: '1',
-        #         price: '11915',
-        #         origQty: '2',
-        #         origQuoteQty: '23830.00',
-        #         executedQty: '0.00000000',
-        #         executedPrice: '0',
-        #         executedQuoteQty: '0.00',
-        #         timeInForce: '1',
-        #         stopPrice: '0',
-        #         icebergQty: '0',
-        #         status: '0',
-        #         createTime: '1662711074372'
+        #         "orderId": "145265071",
+        #         "bOrderListId": "0",
+        #         "clientId": "49c09c3c2cd54419a59c05441f517b3c",
+        #         "bOrderId": "35247529",
+        #         "symbol": "USDT_BIDR",
+        #         "symbolType": "1",
+        #         "side": "0",
+        #         "type": "1",
+        #         "price": "11915",
+        #         "origQty": "2",
+        #         "origQuoteQty": "23830.00",
+        #         "executedQty": "0.00000000",
+        #         "executedPrice": "0",
+        #         "executedQuoteQty": "0.00",
+        #         "timeInForce": "1",
+        #         "stopPrice": "0",
+        #         "icebergQty": "0",
+        #         "status": "0",
+        #         "createTime": "1662711074372"
         #     }
         #
         # createOrder with {"newOrderRespType": "FULL"}
@@ -1544,7 +1544,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
         :param float [params.triggerPrice]: the price at which a trigger order would be triggered
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1682,13 +1682,13 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_value(response, 'data', {})
         return self.parse_order(rawOrder, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'orderId': id,
@@ -1729,15 +1729,15 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_value(list, 0, {})
         return self.parse_order(rawOrder)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -1795,7 +1795,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetch all unfilled currently open orders
@@ -1803,12 +1803,12 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {'type': 1}  # -1 = all, 1 = open, 2 = closed
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on multiple closed orders made by the user
@@ -1816,19 +1816,19 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {'type': 2}  # -1 = all, 1 = open, 2 = closed
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#cancel-order-signed
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         request = {
             'orderId': id,
@@ -1864,7 +1864,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_value(response, 'data', {})
         return self.parse_order(rawOrder)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         fetch all trades made by the user
@@ -1872,7 +1872,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
@@ -1925,7 +1925,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1971,7 +1971,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://www.tokocrypto.com/apidocs/#deposit-history-signed
         fetch all deposits made to an account
@@ -1980,7 +1980,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
         :param int [params.until]: the latest time in ms to fetch deposits for
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         currency = None
@@ -2026,7 +2026,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         deposits = self.safe_value(data, 'list', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://www.tokocrypto.com/apidocs/#withdraw-signed
         fetch all withdrawals made from an account
@@ -2034,7 +2034,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the tokocrypto api endpoint
-        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
         request = {}
@@ -2097,7 +2097,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2213,7 +2213,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the bybit api endpoint
-        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
