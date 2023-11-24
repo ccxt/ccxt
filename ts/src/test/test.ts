@@ -711,8 +711,6 @@ export default class testMainClass extends baseMainTestClass {
             'fetchTransactions': [ code ],
             'fetchDeposits': [ code ],
             'fetchWithdrawals': [ code ],
-            'fetchBorrowRates': [ ],
-            'fetchBorrowRate': [ code ],
             'fetchBorrowInterest': [ code, symbol ],
             // 'addMargin': [ ],
             // 'reduceMargin': [ ],
@@ -735,7 +733,6 @@ export default class testMainClass extends baseMainTestClass {
             'fetchDepositAddressesByNetwork': [ code ],
             // 'editOrder': [ ],
             'fetchBorrowRateHistory': [ code ],
-            'fetchBorrowRatesPerSymbol': [ ],
             'fetchLedgerEntry': [ code ],
             // 'fetchWithdrawal': [ ],
             // 'transfer': [ ],
@@ -992,6 +989,15 @@ export default class testMainClass extends baseMainTestClass {
         } else if (type === 'urlencoded') {
             storedOutput = this.urlencodedToDict (storedOutput);
             newOutput = this.urlencodedToDict (newOutput);
+        } else if (type === 'both') {
+            if (storedOutput.startsWith ('{') || storedOutput.startsWith ('[')) {
+                storedOutput = jsonParse (storedOutput);
+                newOutput = jsonParse (newOutput);
+            } else {
+                storedOutput = this.urlencodedToDict (storedOutput);
+                newOutput = this.urlencodedToDict (newOutput);
+
+            }
         }
         this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
     }

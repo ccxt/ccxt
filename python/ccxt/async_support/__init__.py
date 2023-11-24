@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.55'
+__version__ = '4.1.62'
 
 # -----------------------------------------------------------------------------
 
@@ -121,7 +121,6 @@ from ccxt.async_support.hollaex import hollaex                                  
 from ccxt.async_support.htx import htx                                          # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
 from ccxt.async_support.huobijp import huobijp                                  # noqa: F401
-from ccxt.async_support.huobipro import huobipro                                # noqa: F401
 from ccxt.async_support.idex import idex                                        # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve            # noqa: F401
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
@@ -136,13 +135,10 @@ from ccxt.async_support.luno import luno                                        
 from ccxt.async_support.lykke import lykke                                      # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
 from ccxt.async_support.mexc import mexc                                        # noqa: F401
-from ccxt.async_support.mexc3 import mexc3                                      # noqa: F401
 from ccxt.async_support.ndax import ndax                                        # noqa: F401
 from ccxt.async_support.novadax import novadax                                  # noqa: F401
 from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
 from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
-from ccxt.async_support.okex import okex                                        # noqa: F401
-from ccxt.async_support.okex5 import okex5                                      # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
@@ -227,7 +223,6 @@ exchanges = [
     'htx',
     'huobi',
     'huobijp',
-    'huobipro',
     'idex',
     'independentreserve',
     'indodax',
@@ -242,13 +237,10 @@ exchanges = [
     'lykke',
     'mercado',
     'mexc',
-    'mexc3',
     'ndax',
     'novadax',
     'oceanex',
     'okcoin',
-    'okex',
-    'okex5',
     'okx',
     'p2b',
     'paymium',

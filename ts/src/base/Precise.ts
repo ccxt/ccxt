@@ -1,16 +1,16 @@
-import { Str } from "./types";
+import { Str, Int } from './types';
 
 const zero = BigInt (0);
 const minusOne = BigInt (-1);
 const base = BigInt (10);
 class Precise {
-    decimals = undefined;
+    decimals: number;
 
-    integer = undefined;
+    integer: bigint;
 
     base = undefined;
 
-    constructor (number, decimals = undefined) {
+    constructor (number, decimals: Int = undefined) {
         if (decimals === undefined) {
             let modifier = 0;
             number = number.toLowerCase ();
@@ -37,7 +37,7 @@ class Precise {
 
     div (other, precision = 18) {
         const distance = precision - this.decimals + other.decimals;
-        let numerator = undefined;
+        let numerator: bigint;
         if (distance === 0) {
             numerator = this.integer;
         } else if (distance < 0) {

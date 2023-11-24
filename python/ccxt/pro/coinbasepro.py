@@ -10,6 +10,7 @@ from ccxt.base.types import Int, Str, Strings, Ticker
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
@@ -115,7 +116,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         name = 'ticker'
         return await self.subscribe(name, symbol, name, params)
@@ -127,7 +128,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbolsLength = len(symbols)
@@ -147,7 +148,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -187,9 +188,10 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
-        self.check_required_symbol('watchMyTrades', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
         await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'user'
@@ -207,7 +209,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         """
         symbols = self.market_symbols(symbols, None, False)
         await self.load_markets()
@@ -228,7 +230,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         symbols = self.market_symbols(symbols, None, False)
         await self.load_markets()
@@ -249,7 +251,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
@@ -269,7 +271,7 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         name = 'level2'
         await self.load_markets()
@@ -463,7 +465,6 @@ class coinbasepro(ccxt.async_support.coinbasepro):
             'rate': feeRate,
             'cost': feeCost,
             'currency': feeCurrency,
-            'type': None,
         }
         return parsed
 

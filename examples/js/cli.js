@@ -152,7 +152,7 @@ function createResponseTemplate(exchange, methodName, args, result) {
         'description': 'Fill this with a description of the method call',
         'method': methodName,
         'input': args,
-        'httpResponse': exchange.last_json_response,
+        'httpResponse': exchange.last_json_response ?? exchange.last_http_response,
         'parsedResponse': result
     }
     log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')
@@ -264,8 +264,11 @@ async function run () {
     } else {
 
         let args = params
-            .map (s => s.match (/^[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
-            .map (s => (() => { try { return eval ('(() => (' + s + ')) ()') } catch (e) { return s } }) ())
+            .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
+            .map (s => (() => { 
+                if (s.match ( /^\d+$/g)) return s
+                try {return eval ('(() => (' + s + ')) ()') } catch (e) { return s }
+            }) ())
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 

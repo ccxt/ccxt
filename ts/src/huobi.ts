@@ -2370,7 +2370,9 @@ export default class huobi extends Exchange {
             }
             method = 'spotPrivateGetV1OrderMatchresults';
         } else {
-            this.checkRequiredSymbol ('fetchMyTrades', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+            }
             request['contract'] = market['id'];
             request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
             if (since !== undefined) {
@@ -3359,7 +3361,9 @@ export default class huobi extends Exchange {
                 request['order-id'] = id;
             }
         } else {
-            this.checkRequiredSymbol ('fetchOrder', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+            }
             request['contract_code'] = market['id'];
             if (market['linear']) {
                 let marginMode = undefined;
@@ -3540,7 +3544,9 @@ export default class huobi extends Exchange {
     async fetchSpotOrdersByStates (states, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
-            this.checkRequiredSymbol ('fetchOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+            }
         }
         await this.loadMarkets ();
         let market = undefined;
@@ -3612,7 +3618,9 @@ export default class huobi extends Exchange {
     }
 
     async fetchContractOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        this.checkRequiredSymbol ('fetchContractOrders', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchContractOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3948,7 +3956,9 @@ export default class huobi extends Exchange {
             params = this.omit (params, 'account-id');
             response = await this.spotPrivateGetV1OrderOpenOrders (this.extend (request, params));
         } else {
-            this.checkRequiredSymbol ('fetchOpenOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+            }
             if (limit !== undefined) {
                 request['page_size'] = limit;
             }
@@ -4926,7 +4936,9 @@ export default class huobi extends Exchange {
                 response = await this.spotPrivatePostV1OrderOrdersSubmitCancelClientOrder (this.extend (request, params));
             }
         } else {
-            this.checkRequiredSymbol ('cancelOrder', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            }
             const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             if (clientOrderId === undefined) {
                 request['order_id'] = id;
@@ -5059,7 +5071,9 @@ export default class huobi extends Exchange {
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchcancel (this.extend (request, params));
         } else {
-            this.checkRequiredSymbol ('cancelOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+            }
             let clientOrderIds = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeString2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
@@ -5212,7 +5226,9 @@ export default class huobi extends Exchange {
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders (this.extend (request, params));
         } else {
-            this.checkRequiredSymbol ('cancelAllOrders', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+            }
             if (market['future']) {
                 request['symbol'] = market['settleId'];
             }
@@ -5947,7 +5963,9 @@ export default class huobi extends Exchange {
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
-        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -6516,7 +6534,9 @@ export default class huobi extends Exchange {
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object} response from the exchange
          */
-        this.checkRequiredSymbol ('setLeverage', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('setLeverage', market, params);
@@ -7655,7 +7675,9 @@ export default class huobi extends Exchange {
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
         let method = undefined;
         if (marginMode === 'isolated') {
-            this.checkRequiredSymbol ('borrowMargin', symbol);
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
+            }
             const market = this.market (symbol);
             request['symbol'] = market['id'];
             method = 'privatePostMarginOrders';

@@ -264,6 +264,7 @@ interface Exchange {
     privatePostV5PositionConfirmPendingMmr (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AccountSetHedgingMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpModify (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpReset (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferInterTransfer (params?: {}): Promise<implicitReturnType>;

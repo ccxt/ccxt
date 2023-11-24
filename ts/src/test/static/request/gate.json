@@ -215,6 +215,30 @@
                 "url": "https://api.gateio.ws/api/v4/wallet/withdrawals",
                 "input": []
             }
+        ],
+        "fetchLiquidations": [
+            {
+                "description": "Fetch Liquidations",
+                "method": "fetchLiquidations",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/liq_orders?contract=BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from swap to spot",
+                "method": "transfer",
+                "url": "https://api.gateio.ws/api/v4/wallet/transfers",
+                "input": [
+                  "USDT",
+                  "1",
+                  "swap",
+                  "spot"
+                ],
+                "output": "{\"currency\":\"usdt\",\"amount\":\"1\",\"from\":\"futures\",\"to\":\"spot\",\"settle\":\"usdt\"}"
+            }
         ]
     }
 }

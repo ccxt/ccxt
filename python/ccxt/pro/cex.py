@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
 
 
@@ -52,7 +53,7 @@ class cex(ccxt.async_support.cex):
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://cex.io/websocket-api#get-balance
         :param dict [params]: extra parameters specific to the cex api endpoint
-        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.authenticate(params)
         messageHash = 'balance'
@@ -111,7 +112,7 @@ class cex(ccxt.async_support.cex):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the cex api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -217,7 +218,7 @@ class cex(ccxt.async_support.cex):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the cex api endpoint
         :param str [params.method]: public or private
-        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -251,7 +252,7 @@ class cex(ccxt.async_support.cex):
         watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the cex api endpoint
-        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -363,9 +364,10 @@ class cex(ccxt.async_support.cex):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the cex api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        self.check_required_symbol('watchOrders', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
         await self.load_markets()
         await self.authenticate(params)
         url = self.urls['api']['ws']
@@ -396,9 +398,10 @@ class cex(ccxt.async_support.cex):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the cex api endpoint
-        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
-        self.check_required_symbol('watchMyTrades', symbol)
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
         await self.load_markets()
         await self.authenticate(params)
         url = self.urls['api']['ws']
@@ -804,7 +807,7 @@ class cex(ccxt.async_support.cex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the cex api endpoint
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         await self.authenticate()

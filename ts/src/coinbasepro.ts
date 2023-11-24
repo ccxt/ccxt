@@ -234,6 +234,7 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -305,6 +306,7 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#fetchMarkets
          * @description retrieves data on all markets for coinbasepro
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -426,8 +428,9 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
@@ -494,8 +497,9 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
@@ -511,7 +515,7 @@ export default class coinbasepro extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         // level 1 - only the best bid and ask
@@ -628,9 +632,10 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -678,7 +683,7 @@ export default class coinbasepro extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -798,9 +803,11 @@ export default class coinbasepro extends Exchange {
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        this.checkRequiredSymbol ('fetchMyTrades', symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -836,7 +843,7 @@ export default class coinbasepro extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -866,8 +873,9 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
@@ -959,7 +967,7 @@ export default class coinbasepro extends Exchange {
             }
             if (until === undefined) {
                 const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
-                if (since % parsedTimeframeMilliseconds === 0) {
+                if (this.isRoundNumber (since % parsedTimeframeMilliseconds)) {
                     request['end'] = this.iso8601 (this.sum ((limit - 1) * parsedTimeframeMilliseconds, since));
                 } else {
                     request['end'] = this.iso8601 (this.sum (limit * parsedTimeframeMilliseconds, since));
@@ -1093,7 +1101,7 @@ export default class coinbasepro extends Exchange {
          * @description fetches information on an order made by the user
          * @param {string} symbol not used by coinbasepro fetchOrder
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1121,7 +1129,7 @@ export default class coinbasepro extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1146,7 +1154,7 @@ export default class coinbasepro extends Exchange {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @param {int} [params.until] the latest time in ms to fetch open orders for
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'status': 'all',
@@ -1166,7 +1174,7 @@ export default class coinbasepro extends Exchange {
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @param {int} [params.until] the latest time in ms to fetch open orders for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let paginate = false;
@@ -1206,7 +1214,7 @@ export default class coinbasepro extends Exchange {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @param {int} [params.until] the latest time in ms to fetch open orders for
-         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const request = {
             'status': 'done',
@@ -1226,7 +1234,7 @@ export default class coinbasepro extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1317,7 +1325,7 @@ export default class coinbasepro extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1349,7 +1357,7 @@ export default class coinbasepro extends Exchange {
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1370,11 +1378,13 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#deposit
          * @description Creates a new deposit address, as required by coinbasepro
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositpaymentmethod
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postdepositcoinbaseaccount
          * @param {string} code Unified CCXT currency code (e.g. `"USDT"`)
          * @param {float} amount The amount of currency to send in the deposit (e.g. `20`)
          * @param {string} address Not used by coinbasepro
          * @param {object} [params] Parameters specific to the exchange API endpoint (e.g. `{"network": "TRX"}`)
-         * @returns a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1410,12 +1420,14 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#withdraw
          * @description make a withdrawal
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
@@ -1539,7 +1551,7 @@ export default class coinbasepro extends Exchange {
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
-         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         if (code === undefined) {
@@ -1592,7 +1604,7 @@ export default class coinbasepro extends Exchange {
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
          * @param {string} [params.id] account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
-         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -1693,11 +1705,13 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend ({ 'type': 'deposit' }, params));
     }
@@ -1707,11 +1721,13 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend ({ 'type': 'withdraw' }, params));
     }
@@ -1818,9 +1834,10 @@ export default class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#createDepositAddress
          * @description create a currency deposit address
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the coinbasepro api endpoint
-         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
