@@ -212,11 +212,12 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     checkIfSpecificTestIsChosen () {
-        const keys = Object.keys (this.testFiles);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (getCliArgValue ('--' + key)) {
-                this.onlySpecificTest = key;
+        const methodNames = Object.keys (this.testFiles);
+        for (let i = 0; i < methodNames.length; i++) {
+            const methodName = methodNames[i];
+            if (getCliArgValue ('--' + methodName)) {
+                this.onlySpecificTest = methodName;
+                break;
             }
         }
     }
