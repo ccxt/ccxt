@@ -61,7 +61,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         assert (!isClosed, logPrefix + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable));
         assert (!isClosedFetched, logPrefix + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable_fetched));
         // cancel the order
-        await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonFillable['id']);
+        await testCreateOrderCancelOrder (exchange, symbol, buyOrder_nonFillable['id']);
         verboseOutput (exchange, symbol, 'SCENARIO 1 PASSED !!!');
     } catch (e) {
         throw new Error (logPrefix + ' ' + method + ' failed for Scenario 1: ' + e.toString ());
@@ -78,7 +78,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
         const finalAmountToBuy = getMinimumAmountForLimitPrice (exchange, market, limitBuyPrice_fillable);
         const buyOrder_fillable = await testCreateOrderSubmitSafeOrder (exchange, symbol, 'limit', 'buy', finalAmountToBuy, limitBuyPrice_fillable, {}, skippedProperties);
         // try to cancel remnant (if any) of order
-        await testCreateOrder_tryCancelOrder (exchange, symbol, buyOrder_fillable, skippedProperties);
+        await testCreateOrderTryCancelOrder (exchange, symbol, buyOrder_fillable, skippedProperties);
         // now, as order is closed/canceled, we can reliably fetch the order information
         const buyOrder_filled_fetched = await testSharedMethods.tryFetchOrder (exchange, symbol, buyOrder_fillable['id'], skippedProperties);
         // we need to find out the amount of base asset that was bought
@@ -117,7 +117,7 @@ async function testCreateOrder (exchange, skippedProperties, symbol) {
 
 // ----------------------------------------------------------------------------
 
-async function testCreateOrder_cancelOrder (exchange, symbol, orderId = undefined) {
+async function testCreateOrderCancelOrder (exchange, symbol, orderId = undefined) {
     // cancel the order (one of the below methods is guaranteed to be existent, as this was checked in the start of this test)
     let usedMethod = '';
     let cancelResult = undefined;
@@ -153,7 +153,7 @@ async function testCreateOrderSubmitSafeOrder (exchange, symbol, orderType, side
         // if test failed for some reason, then we stop any futher testing and throw exception. However, before it, we should try to cancel that order, if possible.
         if (orderType !== 'market') // market order is not cancelable
         {
-            await testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedProperties);
+            await testCreateOrderTryCancelOrder (exchange, symbol, order, skippedProperties);
         }
         // now, we can throw the initial error
         throw e;
@@ -203,7 +203,7 @@ function getMinimumAmountForLimitPrice (exchange, market, price) {
     return finalAmountToBuy;
 }
 
-async function testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedProperties) {
+async function testCreateOrderTryCancelOrder (exchange, symbol, order, skippedProperties) {
     // fetch order for maximum accuracy
     const orderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, order['id'], skippedProperties);
     // check their status
@@ -213,7 +213,7 @@ async function testCreateOrder_tryCancelOrder (exchange, symbol, order, skippedP
     if (isClosedFetched === undefined || isOpenFetched) {
         verboseOutput (exchange, symbol, 'trying to cancel the remaining amount of partially filled order...');
         try {
-            await testCreateOrder_cancelOrder (exchange, symbol, order['id']);
+            await testCreateOrderCancelOrder (exchange, symbol, order['id']);
         } catch (e) {
             // we don't throw exception here, because order might have been closed/filled already, before 'cancelOrder' call reaches server, so it is tolerable
             console.log (warningPrefix + ' ' +  exchange['id'] + ' ' + symbol + ' order ' + order['id'] + ' a moment ago order was reported as pending, but could not be cancelled at this moment: ' + exchange.json (order) + '. Exception message: ' + e.toString ());
