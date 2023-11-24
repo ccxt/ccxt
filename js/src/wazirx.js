@@ -472,7 +472,13 @@ export default class wazirx extends Exchange {
             request['limit'] = Math.min(limit, 1000); // Default 500; max 1000.
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'publicGetTrades');
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'privateGetHistoricalTrades') {
+            response = await this.privateGetHistoricalTrades(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetTrades(this.extend(request, params));
+        }
         // [
         //     {
         //         "id":322307791,

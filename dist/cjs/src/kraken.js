@@ -1526,8 +1526,8 @@ class kraken extends kraken$1 {
         //
         //     market
         //     limit (price = limit price)
-        //     stop-loss (price = stop loss price)
-        //     take-profit (price = take profit price)
+        //     stop-loss (price = stop loss trigger price)
+        //     take-profit (price = take profit trigger price)
         //     stop-loss-limit (price = stop loss trigger price, price2 = triggered limit price)
         //     take-profit-limit (price = take profit trigger price, price2 = triggered limit price)
         //     settle-position
@@ -1798,6 +1798,15 @@ class kraken extends kraken$1 {
         return result;
     }
     async fetchOrdersByIds(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchOrdersByIds
+         * @description fetch orders by the list of order id
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+         * @param {string[]|undefined} ids list of order id
+         * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets();
         const response = await this.privatePostQueryOrders(this.extend({
             'trades': true,
@@ -2293,6 +2302,15 @@ class kraken extends kraken$1 {
         return await this.fetchDepositAddress(code, this.extend(request, params));
     }
     async fetchDepositMethods(code, params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchDepositMethods
+         * @description fetch deposit methods for a currency associated with this account
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @returns {object} of deposit methods
+         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {

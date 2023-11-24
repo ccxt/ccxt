@@ -324,15 +324,15 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
-        method = 'publicGetOrderbook'
-        if limit is not None:
-            if limit <= 100:
-                method += 'Top'  # get just the top of the orderbook when limit is low
         market = self.market(symbol)
         request = {
             'pair': market['id'],
         }
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if limit is not None and limit <= 100:
+            response = self.publicGetOrderbookTop(self.extend(request, params))
+        else:
+            response = self.publicGetOrderbook(self.extend(request, params))
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
 
@@ -758,25 +758,24 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        method = 'privatePost'
         market = self.market(symbol)
         request = {
             'pair': market['id'],
         }
+        response = None
         if type == 'market':
-            method += 'Marketorder'
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
             if side == 'buy':
                 request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
             else:
                 request['base_volume'] = self.amount_to_precision(market['symbol'], amount)
+            response = self.privatePostMarketorder(self.extend(request, params))
         else:
-            method += 'Postorder'
             request['volume'] = self.amount_to_precision(market['symbol'], amount)
             request['price'] = self.price_to_precision(market['symbol'], price)
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostPostorder(self.extend(request, params))
         return self.safe_order({
             'info': response,
             'id': response['order_id'],

@@ -1459,8 +1459,8 @@ class kraken(Exchange, ImplicitAPI):
         #
         #     market
         #     limit(price = limit price)
-        #     stop-loss(price = stop loss price)
-        #     take-profit(price = take profit price)
+        #     stop-loss(price = stop loss trigger price)
+        #     take-profit(price = take profit trigger price)
         #     stop-loss-limit(price = stop loss trigger price, price2 = triggered limit price)
         #     take-profit-limit(price = take profit trigger price, price2 = triggered limit price)
         #     settle-position
@@ -1694,6 +1694,13 @@ class kraken(Exchange, ImplicitAPI):
         return result
 
     def fetch_orders_by_ids(self, ids, symbol: Str = None, params={}):
+        """
+        fetch orders by the list of order id
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+        :param str[]|None ids: list of order id
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict[]: a list of `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         response = self.privatePostQueryOrders(self.extend({
             'trades': True,  # whether or not to include trades in output(optional, default False)
@@ -2148,6 +2155,13 @@ class kraken(Exchange, ImplicitAPI):
         return self.fetch_deposit_address(code, self.extend(request, params))
 
     def fetch_deposit_methods(self, code: str, params={}):
+        """
+        fetch deposit methods for a currency associated with self account
+        :see: https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :returns dict: of deposit methods
+        """
         self.load_markets()
         currency = self.currency(code)
         request = {

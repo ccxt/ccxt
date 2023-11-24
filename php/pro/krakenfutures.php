@@ -422,7 +422,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {int} [limit] not used by krakenfutures watchBalance
              * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint
              * @param {string} [$params->account] can be either 'futures' or 'flex_futures'
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
+             * @return {array} a object of wallet types each with a balance structure array(@link https://docs.ccxt.com/#/?id=balance-structure)
              */
             Async\await($this->load_markets());
             $name = 'balances';
@@ -1295,6 +1295,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $holdingResult[$code] = $newAccount;
             }
             $this->balance['cash'] = $holdingResult;
+            $this->balance['cash'] = $this->safe_balance($this->balance['cash']);
             $client->resolve ($holdingResult, $messageHash);
         }
         if ($futures !== null) {
@@ -1318,6 +1319,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $futuresResult[$symbol][$code] = $newAccount;
             }
             $this->balance['margin'] = $futuresResult;
+            $this->balance['margin'] = $this->safe_balance($this->balance['margin']);
             $client->resolve ($this->balance['margin'], $messageHash . 'futures');
         }
         if ($flexFutures !== null) {
@@ -1339,6 +1341,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 $flexFuturesResult[$code] = $newAccount;
             }
             $this->balance['flex'] = $flexFuturesResult;
+            $this->balance['flex'] = $this->safe_balance($this->balance['flex']);
             $client->resolve ($this->balance['flex'], $messageHash . 'flex_futures');
         }
         $client->resolve ($this->balance, $messageHash);

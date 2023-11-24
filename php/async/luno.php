@@ -340,17 +340,16 @@ class luno extends Exchange {
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
-            $method = 'publicGetOrderbook';
-            if ($limit !== null) {
-                if ($limit <= 100) {
-                    $method .= 'Top'; // get just the top of the orderbook when $limit is low
-                }
-            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($limit !== null && $limit <= 100) {
+                $response = Async\await($this->publicGetOrderbookTop (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetOrderbook (array_merge($request, $params)));
+            }
             $timestamp = $this->safe_integer($response, 'timestamp');
             return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
         }) ();
@@ -828,13 +827,12 @@ class luno extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $method = 'privatePost';
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
+            $response = null;
             if ($type === 'market') {
-                $method .= 'Marketorder';
                 $request['type'] = strtoupper($side);
                 // todo add createMarketBuyOrderRequires $price logic is implemented in the other exchanges
                 if ($side === 'buy') {
@@ -842,13 +840,13 @@ class luno extends Exchange {
                 } else {
                     $request['base_volume'] = $this->amount_to_precision($market['symbol'], $amount);
                 }
+                $response = Async\await($this->privatePostMarketorder (array_merge($request, $params)));
             } else {
-                $method .= 'Postorder';
                 $request['volume'] = $this->amount_to_precision($market['symbol'], $amount);
                 $request['price'] = $this->price_to_precision($market['symbol'], $price);
                 $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
+                $response = Async\await($this->privatePostPostorder (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['order_id'],
