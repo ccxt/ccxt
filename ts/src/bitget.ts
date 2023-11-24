@@ -6106,7 +6106,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchFundingRate
          * @description fetch the current funding rate
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-current-funding-rate
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -6116,34 +6116,39 @@ export default class bitget extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
+        let productType = undefined;
+        [ productType, params ] = this.handleProductTypeAndParams (market, params);
         const request = {
             'symbol': market['id'],
+            'productType': productType,
         };
-        const response = await this.publicMixGetMixV1MarketCurrentFundRate (this.extend (request, params));
+        const response = await this.publicMixGetV2MixMarketCurrentFundRate (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1652401684275,
-        //         "data": {
-        //             "symbol": "BTCUSDT_UMCBL",
-        //             "fundingRate": "-0.000182"
-        //         }
+        //         "requestTime": 1700811542124,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "fundingRate": "0.000106"
+        //             }
+        //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        return this.parseFundingRate (data, market);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseFundingRate (data[0], market);
     }
 
     parseFundingRate (contract, market: Market = undefined) {
         //
         //     {
-        //         "symbol": "BTCUSDT_UMCBL",
+        //         "symbol": "BTCUSDT",
         //         "fundingRate": "-0.000182"
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
         return {
             'info': contract,
             'symbol': symbol,
