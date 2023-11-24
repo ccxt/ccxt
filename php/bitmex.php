@@ -424,6 +424,7 @@ class bitmex extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all markets for bitmex
+         * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -1324,7 +1325,7 @@ class bitmex extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the bitmex api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~

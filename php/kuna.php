@@ -690,7 +690,7 @@ class kuna extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market. The average is not returned in the $response, but the median can be accessed via $response['info']['price']
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market. The average is not returned in the $response, but the median can be accessed via $response['info']['price']
          * @see https://docs.kuna.io/docs/get-market-info-by-tickers
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the kuna api endpoint

@@ -1374,7 +1374,7 @@ class phemex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
              * @see https://phemex-docs.github.io/#$query-24-hours-ticker-for-all-$symbols-2     // spot
              * @see https://phemex-docs.github.io/#$query-24-ticker-for-all-$symbols             // linear
              * @see https://phemex-docs.github.io/#$query-24-hours-ticker-for-all-$symbols       // inverse

@@ -923,7 +923,7 @@ export default class okcoin extends Exchange {
          * @method
          * @name okcoin#fetchTickers
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the okcoin api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}

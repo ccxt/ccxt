@@ -2587,7 +2587,7 @@ class gate extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
              * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
              * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2

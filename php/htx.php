@@ -2082,7 +2082,7 @@ class htx extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-$tickers-for-all-pairs
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-$market-data-overview
          * @see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-$market-data-overview

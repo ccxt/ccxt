@@ -187,6 +187,7 @@ class mexc(Exchange, ImplicitAPI):
                             'capital/deposit/address': 1,
                             'capital/transfer': 1,
                             'capital/transfer/tranId': 1,
+                            'capital/transfer/internal': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'capital/convert': 1,
                             'capital/convert/list': 1,
@@ -224,6 +225,7 @@ class mexc(Exchange, ImplicitAPI):
                             'batchOrders': 10,
                             'capital/withdraw/apply': 1,
                             'capital/transfer': 1,
+                            'capital/transfer/internal': 1,
                             'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'capital/convert': 1,
@@ -1685,7 +1687,7 @@ class mexc(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`

@@ -2478,7 +2478,7 @@ class bitget extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-$symbol-ticker
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned

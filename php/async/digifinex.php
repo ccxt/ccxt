@@ -957,7 +957,7 @@ class digifinex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#$ticker-price
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#$tickers
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned

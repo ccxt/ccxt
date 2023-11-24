@@ -1462,7 +1462,7 @@ class bitrue(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
         :see: https://www.bitrue.com/api-docs#ticker
         :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker

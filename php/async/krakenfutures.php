@@ -466,7 +466,7 @@ class krakenfutures extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-$tickers
              * @param {string[]} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the krakenfutures api endpoint

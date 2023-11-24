@@ -637,7 +637,7 @@ export default class lbank extends Exchange {
         /**
          * @method
          * @name lbank2#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
          * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned

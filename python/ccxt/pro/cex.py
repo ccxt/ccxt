@@ -249,7 +249,7 @@ class cex(ccxt.async_support.cex):
     async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         :see: https://cex.io/websocket-api#ticker-subscription
-        watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`

@@ -1123,14 +1123,15 @@ class bitmart(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request = {}
-        method = None
+        response = None
         if market['swap']:
-            method = 'publicGetContractV1Tickers'
             request['contract_symbol'] = market['id']
+            response = self.publicGetContractV1Tickers(self.extend(request, params))
         elif market['spot']:
-            method = 'publicGetSpotV1Ticker'
             request['symbol'] = market['id']
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.publicGetSpotV1Ticker(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchTicker() does not support ' + market['type'] + ' markets, only spot and swap markets are accepted')
         #
         # spot
         #
@@ -1197,7 +1198,7 @@ class bitmart(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bitmart api endpoint
@@ -1211,11 +1212,13 @@ class bitmart(Exchange, ImplicitAPI):
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        method = self.get_supported_mapping(type, {
-            'spot': 'publicGetSpotV2Ticker',
-            'swap': 'publicGetContractV1Tickers',
-        })
-        response = getattr(self, method)(params)
+        response = None
+        if type == 'spot':
+            response = self.publicGetSpotV2Ticker(params)
+        elif type == 'swap':
+            response = self.publicGetContractV1Tickers(params)
+        else:
+            raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted')
         data = self.safe_value(response, 'data', {})
         tickers = self.safe_value(data, 'tickers', [])
         result = {}
@@ -1758,19 +1761,22 @@ class bitmart(Exchange, ImplicitAPI):
         self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateGetSpotV1Wallet',
-            'swap': 'privateGetContractPrivateAssetsDetail',
-            'account': 'privateGetAccountV1Wallet',
-            'margin': 'privateGetSpotV1MarginIsolatedAccount',
-        })
         marginMode = self.safe_string(params, 'marginMode')
         isMargin = self.safe_value(params, 'margin', False)
         params = self.omit(params, ['margin', 'marginMode'])
         if marginMode is not None or isMargin:
-            method = 'privateGetSpotV1MarginIsolatedAccount'
             marketType = 'margin'
-        response = getattr(self, method)(params)
+        response = None
+        if marketType == 'spot':
+            response = self.privateGetSpotV1Wallet(params)
+        elif marketType == 'swap':
+            response = self.privateGetContractPrivateAssetsDetail(params)
+        elif marketType == 'account':
+            response = self.privateGetAccountV1Wallet(params)
+        elif marketType == 'margin':
+            response = self.privateGetSpotV1MarginIsolatedAccount(params)
+        else:
+            raise NotSupported(self.id + ' fetchBalance() does not support ' + marketType + ' markets, only spot, swap and account and margin markets are accepted')
         #
         # spot
         #

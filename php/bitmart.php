@@ -1123,15 +1123,16 @@ class bitmart extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array();
-        $method = null;
+        $response = null;
         if ($market['swap']) {
-            $method = 'publicGetContractV1Tickers';
             $request['contract_symbol'] = $market['id'];
+            $response = $this->publicGetContractV1Tickers (array_merge($request, $params));
         } elseif ($market['spot']) {
-            $method = 'publicGetSpotV1Ticker';
             $request['symbol'] = $market['id'];
+            $response = $this->publicGetSpotV1Ticker (array_merge($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchTicker() does not support ' . $market['type'] . ' markets, only spot and swap markets are accepted');
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -1200,7 +1201,7 @@ class bitmart extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          * @see https://developer-pro.bitmart.com/en/spot/#get-$ticker-of-all-pairs-v2
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the bitmart api endpoint
@@ -1215,11 +1216,14 @@ class bitmart extends Exchange {
             $market = $this->market($symbol);
         }
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        $method = $this->get_supported_mapping($type, array(
-            'spot' => 'publicGetSpotV2Ticker',
-            'swap' => 'publicGetContractV1Tickers',
-        ));
-        $response = $this->$method ($params);
+        $response = null;
+        if ($type === 'spot') {
+            $response = $this->publicGetSpotV2Ticker ($params);
+        } elseif ($type === 'swap') {
+            $response = $this->publicGetContractV1Tickers ($params);
+        } else {
+            throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets, only spot and swap markets are accepted');
+        }
         $data = $this->safe_value($response, 'data', array());
         $tickers = $this->safe_value($data, 'tickers', array());
         $result = array();
@@ -1801,20 +1805,24 @@ class bitmart extends Exchange {
         $this->load_markets();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateGetSpotV1Wallet',
-            'swap' => 'privateGetContractPrivateAssetsDetail',
-            'account' => 'privateGetAccountV1Wallet',
-            'margin' => 'privateGetSpotV1MarginIsolatedAccount',
-        ));
         $marginMode = $this->safe_string($params, 'marginMode');
         $isMargin = $this->safe_value($params, 'margin', false);
         $params = $this->omit($params, array( 'margin', 'marginMode' ));
         if ($marginMode !== null || $isMargin) {
-            $method = 'privateGetSpotV1MarginIsolatedAccount';
             $marketType = 'margin';
         }
-        $response = $this->$method ($params);
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = $this->privateGetSpotV1Wallet ($params);
+        } elseif ($marketType === 'swap') {
+            $response = $this->privateGetContractPrivateAssetsDetail ($params);
+        } elseif ($marketType === 'account') {
+            $response = $this->privateGetAccountV1Wallet ($params);
+        } elseif ($marketType === 'margin') {
+            $response = $this->privateGetSpotV1MarginIsolatedAccount ($params);
+        } else {
+            throw new NotSupported($this->id . ' fetchBalance() does not support ' . $marketType . ' markets, only spot, swap and account and margin markets are accepted');
+        }
         //
         // spot
         //

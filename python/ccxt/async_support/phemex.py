@@ -1324,7 +1324,7 @@ class phemex(Exchange, ImplicitAPI):
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols-2     # spot
         :see: https://phemex-docs.github.io/#query-24-ticker-for-all-symbols             # linear
         :see: https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       # inverse
