@@ -6930,7 +6930,10 @@ export default class gate extends Exchange {
          * @method
          * @name gate#closePositions
          * @description closes open positions for a market
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} side 'buy' or 'sell'
          * @param {object} [params] extra parameters specific to the okx api endpoint
