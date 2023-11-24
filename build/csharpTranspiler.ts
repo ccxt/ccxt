@@ -511,10 +511,9 @@ class NewTranspiler {
     }
 
     async transpileWS(force = false) {
-        const exchanges = ['binance']
         const tsFolder = './ts/src/pro/';
-        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.length), true )
+        const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:exchanges.ws }
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.ws), true )
     }
 
     async transpileEverything (force = false, child = false) {

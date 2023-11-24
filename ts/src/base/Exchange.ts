@@ -1490,9 +1490,9 @@ export default class Exchange {
         return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
     }
 
-    findMessageHashes (futures, element: string): string[] {
+    findMessageHashes (client, element: string): string[] {
         const result = [];
-        const messageHashes = Object.keys (futures);
+        const messageHashes = Object.keys (client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             if (messageHash.indexOf (element) >= 0) {
