@@ -46,7 +46,7 @@ class baseMainTestClass {
     publicTests = {};
     rootDir = DIR_NAME + '/../../../';
     rootDirForSkips = DIR_NAME + '/../../../';
-    onlySpecificTest = undefined;
+    onlySpecificTests = [];
     envVars = process.env;
     ext = import.meta.url.split ('.')[1];
 }
@@ -216,7 +216,7 @@ export default class testMainClass extends baseMainTestClass {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (getCliArgValue ('--' + key)) {
-                this.onlySpecificTest = key;
+                this.onlySpecificTests.push (key);
             }
         }
     }
@@ -309,7 +309,7 @@ export default class testMainClass extends baseMainTestClass {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
-        } else if (this.onlySpecificTest !== undefined && this.onlySpecificTest !== methodNameInTest) {
+        } else if (this.onlySpecificTests.length > 0 && !exchange.inArray (methodNameInTest, this.onlySpecificTests)) {
             skipMessage = '[INFO:IGNORED_TEST]';
         } else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
