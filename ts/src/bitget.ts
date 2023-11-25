@@ -7230,54 +7230,53 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchIsolatedBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-margin-interest-rate-and-max-borrowable-amount
+         * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         * @param {string} [params.symbol] required for isolated margin
          * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['info']['symbolName'],
+            'symbol': market['id'],
         };
-        const response = await this.publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit (this.extend (request, params));
+        const response = await this.privateMarginGetV2MarginIsolatedInterestRateAndLimit (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1698208075332,
+        //         "requestTime": 1700878692567,
         //         "data": [
         //             {
         //                 "symbol": "BTCUSDT",
         //                 "leverage": "10",
         //                 "baseCoin": "BTC",
-        //                 "baseTransferInAble": true,
-        //                 "baseBorrowAble": true,
+        //                 "baseTransferable": true,
+        //                 "baseBorrowable": true,
         //                 "baseDailyInterestRate": "0.00007",
-        //                 "baseYearlyInterestRate": "0.02555",
-        //                 "baseMaxBorrowableAmount": "35",
-        //                 "baseVips": [
-        //                     {
-        //                         "level": "0",
-        //                         "dailyInterestRate": "0.00007",
-        //                         "yearlyInterestRate": "0.02555",
-        //                         "discountRate": "1"
-        //                     },
+        //                 "baseAnnuallyInterestRate": "0.02555",
+        //                 "baseMaxBorrowableAmount": "27",
+        //                 "baseVipList": [
+        //                     {"level":"0","dailyInterestRate":"0.00007","limit":"27","annuallyInterestRate":"0.02555","discountRate":"1"},
+        //                     {"level":"1","dailyInterestRate":"0.0000679","limit":"27.81","annuallyInterestRate":"0.0247835","discountRate":"0.97"},
+        //                     {"level":"2","dailyInterestRate":"0.0000644","limit":"29.16","annuallyInterestRate":"0.023506","discountRate":"0.92"},
+        //                     {"level":"3","dailyInterestRate":"0.0000602","limit":"31.32","annuallyInterestRate":"0.021973","discountRate":"0.86"},
+        //                     {"level":"4","dailyInterestRate":"0.0000525","limit":"35.91","annuallyInterestRate":"0.0191625","discountRate":"0.75"},
+        //                     {"level":"5","dailyInterestRate":"0.000042","limit":"44.82","annuallyInterestRate":"0.01533","discountRate":"0.6"}
         //                 ],
         //                 "quoteCoin": "USDT",
-        //                 "quoteTransferInAble": true,
-        //                 "quoteBorrowAble": true,
-        //                 "quoteDailyInterestRate": "0.00012627",
-        //                 "quoteYearlyInterestRate": "0.04608855",
+        //                 "quoteTransferable": true,
+        //                 "quoteBorrowable": true,
+        //                 "quoteDailyInterestRate": "0.00041095",
+        //                 "quoteAnnuallyInterestRate": "0.14999675",
         //                 "quoteMaxBorrowableAmount": "300000",
-        //                 "quoteVips": [
-        //                     {
-        //                         "level": "0",
-        //                         "dailyInterestRate": "0.000126279",
-        //                         "yearlyInterestRate": "0.046091835",
-        //                         "discountRate": "1"
-        //                     },
+        //                 "quoteList": [
+        //                     {"level":"0","dailyInterestRate":"0.00041095","limit":"300000","annuallyInterestRate":"0.14999675","discountRate":"1"},
+        //                     {"level":"1","dailyInterestRate":"0.00039863","limit":"309000","annuallyInterestRate":"0.14549995","discountRate":"0.97"},
+        //                     {"level":"2","dailyInterestRate":"0.00037808","limit":"324000","annuallyInterestRate":"0.1379992","discountRate":"0.92"},
+        //                     {"level":"3","dailyInterestRate":"0.00035342","limit":"348000","annuallyInterestRate":"0.1289983","discountRate":"0.86"},
+        //                     {"level":"4","dailyInterestRate":"0.00030822","limit":"399000","annuallyInterestRate":"0.1125003","discountRate":"0.75"},
+        //                     {"level":"5","dailyInterestRate":"0.00024657","limit":"498000","annuallyInterestRate":"0.08999805","discountRate":"0.6"}
         //                 ]
         //             }
         //         ]
@@ -7296,37 +7295,37 @@ export default class bitget extends Exchange {
         //         "symbol": "BTCUSDT",
         //         "leverage": "10",
         //         "baseCoin": "BTC",
-        //         "baseTransferInAble": true,
-        //         "baseBorrowAble": true,
+        //         "baseTransferable": true,
+        //         "baseBorrowable": true,
         //         "baseDailyInterestRate": "0.00007",
-        //         "baseYearlyInterestRate": "0.02555",
-        //         "baseMaxBorrowableAmount": "35",
-        //         "baseVips": [
-        //             {
-        //                 "level": "0",
-        //                 "dailyInterestRate": "0.00007",
-        //                 "yearlyInterestRate": "0.02555",
-        //                 "discountRate": "1"
-        //             },
+        //         "baseAnnuallyInterestRate": "0.02555",
+        //         "baseMaxBorrowableAmount": "27",
+        //         "baseVipList": [
+        //             {"level":"0","dailyInterestRate":"0.00007","limit":"27","annuallyInterestRate":"0.02555","discountRate":"1"},
+        //             {"level":"1","dailyInterestRate":"0.0000679","limit":"27.81","annuallyInterestRate":"0.0247835","discountRate":"0.97"},
+        //             {"level":"2","dailyInterestRate":"0.0000644","limit":"29.16","annuallyInterestRate":"0.023506","discountRate":"0.92"},
+        //             {"level":"3","dailyInterestRate":"0.0000602","limit":"31.32","annuallyInterestRate":"0.021973","discountRate":"0.86"},
+        //             {"level":"4","dailyInterestRate":"0.0000525","limit":"35.91","annuallyInterestRate":"0.0191625","discountRate":"0.75"},
+        //             {"level":"5","dailyInterestRate":"0.000042","limit":"44.82","annuallyInterestRate":"0.01533","discountRate":"0.6"}
         //         ],
         //         "quoteCoin": "USDT",
-        //         "quoteTransferInAble": true,
-        //         "quoteBorrowAble": true,
-        //         "quoteDailyInterestRate": "0.00012627",
-        //         "quoteYearlyInterestRate": "0.04608855",
+        //         "quoteTransferable": true,
+        //         "quoteBorrowable": true,
+        //         "quoteDailyInterestRate": "0.00041095",
+        //         "quoteAnnuallyInterestRate": "0.14999675",
         //         "quoteMaxBorrowableAmount": "300000",
-        //         "quoteVips": [
-        //             {
-        //                 "level": "0",
-        //                 "dailyInterestRate": "0.000126279",
-        //                 "yearlyInterestRate": "0.046091835",
-        //                 "discountRate": "1"
-        //             },
+        //         "quoteList": [
+        //             {"level":"0","dailyInterestRate":"0.00041095","limit":"300000","annuallyInterestRate":"0.14999675","discountRate":"1"},
+        //             {"level":"1","dailyInterestRate":"0.00039863","limit":"309000","annuallyInterestRate":"0.14549995","discountRate":"0.97"},
+        //             {"level":"2","dailyInterestRate":"0.00037808","limit":"324000","annuallyInterestRate":"0.1379992","discountRate":"0.92"},
+        //             {"level":"3","dailyInterestRate":"0.00035342","limit":"348000","annuallyInterestRate":"0.1289983","discountRate":"0.86"},
+        //             {"level":"4","dailyInterestRate":"0.00030822","limit":"399000","annuallyInterestRate":"0.1125003","discountRate":"0.75"},
+        //             {"level":"5","dailyInterestRate":"0.00024657","limit":"498000","annuallyInterestRate":"0.08999805","discountRate":"0.6"}
         //         ]
         //     }
         //
         const marketId = this.safeString (info, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, undefined, 'spot');
         const baseId = this.safeString (info, 'baseCoin');
         const quoteId = this.safeString (info, 'quoteCoin');
         const timestamp = this.safeInteger (info, 'timestamp');
@@ -7348,7 +7347,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchCrossBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-margin-interest-rate-and-borrowable
+         * @see https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {string} [params.symbol] required for isolated margin
@@ -7359,28 +7358,28 @@ export default class bitget extends Exchange {
         const request = {
             'coin': currency['code'],
         };
-        const response = await this.publicMarginGetMarginV1CrossPublicInterestRateAndLimit (this.extend (request, params));
+        const response = await this.privateMarginGetV2MarginCrossedInterestRateAndLimit (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1698208150986,
+        //         "requestTime": 1700879047861,
         //         "data": [
         //             {
         //                 "coin": "BTC",
         //                 "leverage": "3",
-        //                 "transferInAble": true,
-        //                 "borrowAble": true,
+        //                 "transferable": true,
+        //                 "borrowable": true,
         //                 "dailyInterestRate": "0.00007",
-        //                 "yearlyInterestRate": "0.02555",
+        //                 "annualInterestRate": "0.02555",
         //                 "maxBorrowableAmount": "26",
-        //                 "vips": [
-        //                     {
-        //                         "level": "0",
-        //                         "dailyInterestRate": "0.00007",
-        //                         "yearlyInterestRate": "0.02555",
-        //                         "discountRate": "1"
-        //                     },
+        //                 "vipList": [
+        //                     {"level":"0","limit":"26","dailyInterestRate":"0.00007","annualInterestRate":"0.02555","discountRate":"1"},
+        //                     {"level":"1","limit":"26.78","dailyInterestRate":"0.0000679","annualInterestRate":"0.0247835","discountRate":"0.97"},
+        //                     {"level":"2","limit":"28.08","dailyInterestRate":"0.0000644","annualInterestRate":"0.023506","discountRate":"0.92"},
+        //                     {"level":"3","limit":"30.16","dailyInterestRate":"0.0000602","annualInterestRate":"0.021973","discountRate":"0.86"},
+        //                     {"level":"4","limit":"34.58","dailyInterestRate":"0.0000525","annualInterestRate":"0.0191625","discountRate":"0.75"},
+        //                     {"level":"5","limit":"43.16","dailyInterestRate":"0.000042","annualInterestRate":"0.01533","discountRate":"0.6"}
         //                 ]
         //             }
         //         ]
@@ -7398,18 +7397,18 @@ export default class bitget extends Exchange {
         //     {
         //         "coin": "BTC",
         //         "leverage": "3",
-        //         "transferInAble": true,
-        //         "borrowAble": true,
+        //         "transferable": true,
+        //         "borrowable": true,
         //         "dailyInterestRate": "0.00007",
-        //         "yearlyInterestRate": "0.02555",
+        //         "annualInterestRate": "0.02555",
         //         "maxBorrowableAmount": "26",
-        //         "vips": [
-        //             {
-        //                 "level": "0",
-        //                 "dailyInterestRate": "0.00007",
-        //                 "yearlyInterestRate": "0.02555",
-        //                 "discountRate": "1"
-        //             },
+        //         "vipList": [
+        //             {"level":"0","limit":"26","dailyInterestRate":"0.00007","annualInterestRate":"0.02555","discountRate":"1"},
+        //             {"level":"1","limit":"26.78","dailyInterestRate":"0.0000679","annualInterestRate":"0.0247835","discountRate":"0.97"},
+        //             {"level":"2","limit":"28.08","dailyInterestRate":"0.0000644","annualInterestRate":"0.023506","discountRate":"0.92"},
+        //             {"level":"3","limit":"30.16","dailyInterestRate":"0.0000602","annualInterestRate":"0.021973","discountRate":"0.86"},
+        //             {"level":"4","limit":"34.58","dailyInterestRate":"0.0000525","annualInterestRate":"0.0191625","discountRate":"0.75"},
+        //             {"level":"5","limit":"43.16","dailyInterestRate":"0.000042","annualInterestRate":"0.01533","discountRate":"0.6"}
         //         ]
         //     }
         //
