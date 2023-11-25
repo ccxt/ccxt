@@ -1607,7 +1607,11 @@ class Transpiler {
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
-                    const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
+                    let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
+                    if (resolveType === 'object[]') {
+                        resolveType = 'mixed'; // in PHP objects are not compatible with ArrayCache, so removing this type for now;
+                    }
+                    // const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
                     const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
                     return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
@@ -2747,11 +2751,11 @@ class Transpiler {
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
 
         if (classes === null) {
-            log.bright.yellow ('0 files transpiled.')
-            return;
+        log.bright.yellow ('0 files transpiled.')
+        return;
         }
         if (child) {
-            return
+        return
         }
 
         if (!transpilingSingleExchange) {
