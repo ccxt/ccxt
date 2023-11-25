@@ -5,7 +5,7 @@ from pprint import pprint
 # make sure your version is the latest
 print('CCXT Version:', ccxt.__version__)
 
-exchange = ccxt.okex({
+exchange = ccxt.okx({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_API_SECRET',
     'password': 'YOUR_API_PASSWORD',

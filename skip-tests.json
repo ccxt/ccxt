@@ -16,6 +16,7 @@
         }
     },
     "alpaca": {
+        "skip": "private endpoints",
         "skipWs": true
     },
     "ascendex": {
@@ -954,7 +955,6 @@
         "skipWs": true
     },
     "htx": {
-        "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "limits":"messed",
@@ -1250,6 +1250,7 @@
         }
     },
     "paymium": {
+        "skip": "exchange is down",
         "skipMethods": {
             "loadMarkets": {
                 "precision": "not provided",

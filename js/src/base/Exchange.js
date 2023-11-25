@@ -408,7 +408,7 @@ export default class Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
-                'fetchPositionsBySymbol': undefined,
+                'fetchPositionsForSymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
@@ -1894,11 +1894,13 @@ export default class Exchange {
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.safeNumber(fee, 'cost');
-                if ('rate' in fee) {
-                    fee['rate'] = this.safeNumber(fee, 'rate');
+                // copy fee to avoid modification by reference
+                const feeCopy = this.deepExtend(fee);
+                feeCopy['cost'] = this.safeNumber(feeCopy, 'cost');
+                if ('rate' in feeCopy) {
+                    feeCopy['rate'] = this.safeNumber(feeCopy, 'rate');
                 }
-                reducedFees.push(fee);
+                reducedFees.push(feeCopy);
             }
             order['fees'] = reducedFees;
             if (parseFee && (reducedLength === 1)) {
@@ -2183,11 +2185,13 @@ export default class Exchange {
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.safeNumber(fee, 'cost');
-                if ('rate' in fee) {
-                    fee['rate'] = this.safeNumber(fee, 'rate');
+                // copy fee to avoid modification by reference
+                const feeCopy = this.deepExtend(fee);
+                feeCopy['cost'] = this.safeNumber(feeCopy, 'cost');
+                if ('rate' in feeCopy) {
+                    feeCopy['rate'] = this.safeNumber(feeCopy, 'rate');
                 }
-                reducedFees.push(fee);
+                reducedFees.push(feeCopy);
             }
             if (parseFees) {
                 trade['fees'] = reducedFees;
@@ -3018,16 +3022,16 @@ export default class Exchange {
     async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         return this.watchPositions(symbols, since, limit, params);
     }
-    async fetchPositionsBySymbol(symbol, params = {}) {
+    async fetchPositionsForSymbol(symbol, params = {}) {
         /**
          * @method
-         * @name exchange#fetchPositionsBySymbol
-         * @description specifically fetches positions for specific symbol, unlike fetchPositions (which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
-         * @param {string} symbol unified market symbol of the market the position is held in
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - one position for "one-way" mode, and two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
-        throw new NotSupported(this.id + ' fetchPositionsBySymbol() is not supported yet');
+        throw new NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
     async fetchPositions(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchPositions() is not supported yet');
@@ -3303,7 +3307,7 @@ export default class Exchange {
         /**
          * @ignore
          * @method
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         return this.handleOptionAndParams(params, methodName, 'marginMode', defaultValue);
@@ -3459,7 +3463,7 @@ export default class Exchange {
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         throw new NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
@@ -3984,7 +3988,7 @@ export default class Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
@@ -4006,7 +4010,7 @@ export default class Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
@@ -4028,7 +4032,7 @@ export default class Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
@@ -4232,7 +4236,7 @@ export default class Exchange {
          * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {
