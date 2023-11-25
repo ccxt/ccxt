@@ -926,6 +926,7 @@ export default class bitteam extends Exchange {
             'pairId': market['numericId'].toString (),
             'type': type,
             'side': side,
+            'amount': this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit') {
             if (price === undefined) {
@@ -933,7 +934,7 @@ export default class bitteam extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        // todo: check price for the market orders
+        // todo: check price for the market orders - the exchange requires price
         const response = await this.privatePostTradeApiCcxtOrdercreate (this.extend (request, params));
         //
         //     {
