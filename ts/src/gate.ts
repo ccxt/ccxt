@@ -5605,7 +5605,6 @@ export default class gate extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleOptionAndParams (params, 'repayMargin', 'marginMode', 'cross');
         this.checkRequiredArgument ('repayMargin', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
-        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
