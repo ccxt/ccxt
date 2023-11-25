@@ -4565,7 +4565,7 @@ export default class Exchange {
         }
     }
 
-    checkRequiredMarginArgument (methodName: string, symbol: string, marginMode: string) {
+    checkRequiredMarginArgument (methodName: string, symbol: Str, marginMode: string) {
         /**
          * @ignore
          * @method
