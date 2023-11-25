@@ -6876,7 +6876,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#borrowCrossMargin
          * @description create a loan to borrow margin
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
+         * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Borrow
          * @param {string} code unified currency code of the currency to borrow
          * @param {string} amount the amount to borrow
          * @param {object} [params] extra parameters specific to the bitget api endpoint
@@ -6885,21 +6885,19 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'coin': currency['info']['coinName'],
+            'coin': currency['code'],
             'borrowAmount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privateMarginPostMarginV1CrossAccountBorrow (this.extend (request, params));
-        //
-        // cross
+        const response = await this.privateMarginPostV2MarginCrossedAccountBorrow (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1697251314271,
+        //         "requestTime": 1700876470931,
         //         "data": {
-        //             "clientOid": null,
-        //             "coin": "BTC",
-        //             "borrowAmount": "0.0001"
+        //             "loanId": "1112122013642272769",
+        //             "coin": "USDT",
+        //             "borrowAmount": "4"
         //         }
         //     }
         //
@@ -7000,8 +6998,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#repayCrossMargin
          * @description repay borrowed margin and interest
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+         * @see https://www.bitget.com/api-doc/margin/cross/account/Cross-Repay
          * @param {string} code unified currency code of the currency to repay
          * @param {string} amount the amount to repay
          * @param {object} [params] extra parameters specific to the bitget api endpoint
@@ -7010,22 +7007,20 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'coin': currency['info']['coinName'],
+            'coin': currency['code'],
             'repayAmount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privateMarginPostMarginV1CrossAccountRepay (this.extend (request, params));
-        //
-        // cross
+        const response = await this.privateMarginPostV2MarginCrossedAccountRepay (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1697252151042,
+        //         "requestTime": 1700876704885,
         //         "data": {
         //             "remainDebtAmount": "0",
-        //             "clientOid": null,
-        //             "coin": "BTC",
-        //             "repayAmount": "0.00010001"
+        //             "repayId": "1112122994945830912",
+        //             "coin": "USDT",
+        //             "repayAmount": "4.00006834"
         //         }
         //     }
         //
@@ -7047,9 +7042,9 @@ export default class bitget extends Exchange {
         // cross: borrowMargin
         //
         //     {
-        //         "clientOid": null,
-        //         "coin": "BTC",
-        //         "borrowAmount": "0.0001"
+        //         "loanId": "1112122013642272769",
+        //         "coin": "USDT",
+        //         "borrowAmount": "4"
         //     }
         //
         // isolated: repayMargin
@@ -7066,9 +7061,9 @@ export default class bitget extends Exchange {
         //
         //     {
         //         "remainDebtAmount": "0",
-        //         "clientOid": null,
-        //         "coin": "BTC",
-        //         "repayAmount": "0.00010001"
+        //         "repayId": "1112122994945830912",
+        //         "coin": "USDT",
+        //         "repayAmount": "4.00006834"
         //     }
         //
         const currencyId = this.safeString (info, 'coin');
@@ -7078,7 +7073,7 @@ export default class bitget extends Exchange {
             symbol = this.safeSymbol (marketId);
         }
         return {
-            'id': this.safeString (info, 'clientOid'),
+            'id': this.safeString2 (info, 'loanId', 'repayId'),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber2 (info, 'borrowAmount', 'repayAmount'),
             'symbol': symbol,
