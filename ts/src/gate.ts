@@ -5603,12 +5603,9 @@ export default class gate extends Exchange {
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleOptionAndParams (params, 'borrowMargin', 'marginMode', 'cross');
-        if (marginMode === undefined) {
-            throw new ArgumentsRequired (this.id + ' borrowMargin() requires marginMode param: "cross" or "isolated"');
-        }
-        this.checkRequiredArgument ('setLeverage', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
-        this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
+        [ marginMode, params ] = this.handleOptionAndParams (params, 'repayMargin', 'marginMode', 'cross');
+        this.checkRequiredArgument ('repayMargin', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
+        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -5684,10 +5681,7 @@ export default class gate extends Exchange {
          */
         let marginMode = undefined;
         [ marginMode, params ] = this.handleOptionAndParams (params, 'borrowMargin', 'marginMode', 'cross');
-        if (marginMode === undefined) {
-            throw new ArgumentsRequired (this.id + ' borrowMargin() requires marginMode param: "cross" or "isolated"');
-        }
-        this.checkRequiredArgument ('setLeverage', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
+        this.checkRequiredArgument ('borrowMargin', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
         this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
