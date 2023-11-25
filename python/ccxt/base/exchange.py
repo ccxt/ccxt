@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.61'
+__version__ = '4.1.64'
 
 # -----------------------------------------------------------------------------
 
@@ -2389,10 +2389,12 @@ class Exchange(object):
                 if 'rate' in reducedFees[i]:
                     reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
             if not parseFee and (reducedLength == 0):
-                fee['cost'] = self.safe_number(fee, 'cost')
-                if 'rate' in fee:
-                    fee['rate'] = self.safe_number(fee, 'rate')
-                reducedFees.append(fee)
+                # copy fee to avoid modification by reference
+                feeCopy = self.deep_extend(fee)
+                feeCopy['cost'] = self.safe_number(feeCopy, 'cost')
+                if 'rate' in feeCopy:
+                    feeCopy['rate'] = self.safe_number(feeCopy, 'rate')
+                reducedFees.append(feeCopy)
             order['fees'] = reducedFees
             if parseFee and (reducedLength == 1):
                 order['fee'] = reducedFees[0]
@@ -2629,10 +2631,12 @@ class Exchange(object):
                 if 'rate' in reducedFees[i]:
                     reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
             if not parseFee and (reducedLength == 0):
-                fee['cost'] = self.safe_number(fee, 'cost')
-                if 'rate' in fee:
-                    fee['rate'] = self.safe_number(fee, 'rate')
-                reducedFees.append(fee)
+                # copy fee to avoid modification by reference
+                feeCopy = self.deep_extend(fee)
+                feeCopy['cost'] = self.safe_number(feeCopy, 'cost')
+                if 'rate' in feeCopy:
+                    feeCopy['rate'] = self.safe_number(feeCopy, 'rate')
+                reducedFees.append(feeCopy)
             if parseFees:
                 trade['fees'] = reducedFees
             if parseFee and (reducedLength == 1):
@@ -3580,7 +3584,7 @@ class Exchange(object):
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Array: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
         return self.handle_option_and_params(params, methodName, 'marginMode', defaultValue)
@@ -3725,7 +3729,7 @@ class Exchange(object):
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
@@ -4178,7 +4182,7 @@ class Exchange(object):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
@@ -4196,7 +4200,7 @@ class Exchange(object):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          * @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
@@ -4214,7 +4218,7 @@ class Exchange(object):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
@@ -4389,7 +4393,7 @@ class Exchange(object):
         :param str code: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if self.has['fetchDepositsWithdrawals']:

@@ -1898,11 +1898,13 @@ class Exchange {
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.safeNumber(fee, 'cost');
-                if ('rate' in fee) {
-                    fee['rate'] = this.safeNumber(fee, 'rate');
+                // copy fee to avoid modification by reference
+                const feeCopy = this.deepExtend(fee);
+                feeCopy['cost'] = this.safeNumber(feeCopy, 'cost');
+                if ('rate' in feeCopy) {
+                    feeCopy['rate'] = this.safeNumber(feeCopy, 'rate');
                 }
-                reducedFees.push(fee);
+                reducedFees.push(feeCopy);
             }
             order['fees'] = reducedFees;
             if (parseFee && (reducedLength === 1)) {
@@ -2187,11 +2189,13 @@ class Exchange {
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.safeNumber(fee, 'cost');
-                if ('rate' in fee) {
-                    fee['rate'] = this.safeNumber(fee, 'rate');
+                // copy fee to avoid modification by reference
+                const feeCopy = this.deepExtend(fee);
+                feeCopy['cost'] = this.safeNumber(feeCopy, 'cost');
+                if ('rate' in feeCopy) {
+                    feeCopy['rate'] = this.safeNumber(feeCopy, 'rate');
                 }
-                reducedFees.push(fee);
+                reducedFees.push(feeCopy);
             }
             if (parseFees) {
                 trade['fees'] = reducedFees;
@@ -3307,7 +3311,7 @@ class Exchange {
         /**
          * @ignore
          * @method
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         return this.handleOptionAndParams(params, methodName, 'marginMode', defaultValue);
@@ -3463,7 +3467,7 @@ class Exchange {
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         throw new errors.NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
@@ -3988,7 +3992,7 @@ class Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
@@ -4010,7 +4014,7 @@ class Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
@@ -4032,7 +4036,7 @@ class Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
@@ -4236,7 +4240,7 @@ class Exchange {
          * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {

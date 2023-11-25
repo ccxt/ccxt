@@ -100,6 +100,14 @@
                 ],
                 "output": "timestamp=1699460638178&symbol=LTC_USDT&type=1&side=0&quantity=0.1&price=50&recvWindow=5000&signature=b76f6c95fd5741bd01ec7f9f40098e613af736014b4ebc79f6be3519993312ee"
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://api.binance.com/api/v3/ticker/24hr",
+                "input": []
+            }
         ]
     }
 }
