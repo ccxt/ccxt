@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitteam.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, ExchangeNotAvailable } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
@@ -262,6 +262,7 @@ export default class bitteam extends Exchange {
                 // todo
                 'exact': {
                     '403002': BadRequest, // {"ok":false,"code":403002,"data":{},"message":"Order cannot be deleted, status does not match"}
+                    '450000': InsufficientFunds, // {"ok":false,"code":450000,"data":null,"message":"Insufficient funds"}
                 },
                 'broad': {
                     'Service Unavailable': ExchangeNotAvailable, // {"message":"Service Unavailable","code":403000,"ok":false}
@@ -925,7 +926,6 @@ export default class bitteam extends Exchange {
             'pairId': market['numericId'].toString (),
             'type': type,
             'side': side,
-            'amount': this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit') {
             if (price === undefined) {
@@ -933,8 +933,7 @@ export default class bitteam extends Exchange {
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        // todo: check trigger orders
-        // todo: check clientOrderId
+        // todo: check price for the market orders
         const response = await this.privatePostTradeApiCcxtOrdercreate (this.extend (request, params));
         //
         //     {
@@ -1113,7 +1112,7 @@ export default class bitteam extends Exchange {
         const id = this.safeString (order, 'id');
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
-        const clientOrderId = this.safeString (order, 'orderCid'); // todo: check
+        const clientOrderId = this.safeString (order, 'orderCid');
         let timestamp = undefined;
         const createdAt = this.safeString (order, 'createdAt');
         if (createdAt !== undefined) {
@@ -1127,7 +1126,11 @@ export default class bitteam extends Exchange {
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
         const feeRaw = this.safeValue (order, 'fee');
-        const price = this.safeString (order, 'price');
+        let price = this.safeString (order, 'executedPrice', '0');
+        // todo: check
+        if (price === '0') {
+            price = this.safeString (order, 'price');
+        }
         const stopPrice = this.safeString (order, 'stopPrice');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'executed');
@@ -1186,7 +1189,6 @@ export default class bitteam extends Exchange {
         const statuses = {
             'market': 'market',
             'limit': 'limit',
-            'conditional': 'limit', // todo: check
         };
         return this.safeString (statuses, status, status);
     }
