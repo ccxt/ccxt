@@ -20,7 +20,7 @@ export default class bitget extends Exchange {
             'id': 'bitget',
             'name': 'Bitget',
             'countries': [ 'SG' ],
-            'version': 'v1',
+            'version': 'v2',
             'rateLimit': 50, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'certified': true,
             'pro': true,
@@ -3974,13 +3974,16 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                request['side'] = side;
+                let requestSide = side;
                 if (reduceOnly) {
                     request['reduceOnly'] = 'YES';
                     request['tradeSide'] = 'Close';
+                    // on bitget if the position is long the side is always buy, and if the position is short the side is always sell
+                    requestSide = (side === 'buy') ? 'sell' : 'buy';
                 } else {
                     request['tradeSide'] = 'Open';
                 }
+                request['side'] = requestSide;
             }
             if (isTriggerOrder) {
                 request['planType'] = 'normal_plan';
