@@ -5135,7 +5135,7 @@ export default class bitget extends Exchange {
         // spot
         //
         //     {
-        //          "code": "00000",
+        //         "code": "00000",
         //         "msg": "success",
         //         "requestTime": 1700791085380,
         //         "data": [
@@ -5309,7 +5309,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         if (market['spot']) {
             if ((marginMode !== undefined) || stop) {
                 return this.safeValue (data, 'orderList', []);
@@ -5317,8 +5317,10 @@ export default class bitget extends Exchange {
         } else {
             return this.safeValue (data, 'entrustedList', []);
         }
-        const parsedData = JSON.parse (response);
-        return this.safeValue (parsedData, 'data', []);
+        if (typeof response === 'string') {
+            response = JSON.parse (response);
+        }
+        return this.safeValue (response, 'data', []);
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
