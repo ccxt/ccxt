@@ -944,6 +944,13 @@ export default class gate extends Exchange {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
                 const markets = this.markets_by_id[symbol];
+                const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
+                for (let i = 0; i < markets.length; i++) {
+                    const market = markets[i];
+                    if (market[defaultType]) {
+                        return market;
+                    }
+                }
                 return markets[0];
             } else if ((symbol.indexOf ('-C') > -1) || (symbol.indexOf ('-P') > -1)) {
                 return this.createExpiredOptionMarket (symbol);
