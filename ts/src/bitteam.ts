@@ -2,7 +2,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, ExchangeNotAvailable } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class bitteam
@@ -36,12 +36,12 @@ export default class bitteam extends Exchange {
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
-                'createStopOrder': false, // todo
+                'createStopOrder': false,
                 'deposit': false,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchBidsAsks': false, // todo: check
+                'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -67,7 +67,7 @@ export default class bitteam extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
-                'fetchLedger': false, // todo
+                'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarketLeverageTiers': false,
@@ -80,7 +80,7 @@ export default class bitteam extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderBooks': false, // todo: check
+                'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -88,8 +88,8 @@ export default class bitteam extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': true, // todo: check for another endpoint
-                'fetchTickers': false, // todo: check
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false, // todo
@@ -132,17 +132,22 @@ export default class bitteam extends Exchange {
                 'public': {
                     'get': {
                         'trade/api/asset': 1, // not unified
-                        'trade/api/currencies': 1,
+                        'trade/api/currencies': 1, // fetchCurrencies
                         'trade/api/login-confirmation': 1, // not unified
-                        'trade/api/orderbooks/{symbol}': 1,
+                        'trade/api/orderbooks/{symbol}': 1, // fetchOrderBook
                         'trade/api/orders': 1, // not unified
-                        'trade/api/pair/{name}': 1,
-                        'trade/api/pairs': 1,
+                        'trade/api/pair/{name}': 1, // fetchTicker
+                        'trade/api/pairs': 1, // fetchMarkets
                         'trade/api/pairs/precisions': 1, // not unified
                         'trade/api/rates': 1, // not unified
                         'trade/api/stats': 1, // not unified returns 500000
                         'trade/api/trade/{id}': 1, // not unified
-                        'trade/api/trades': 1,
+                        'trade/api/trades': 1, // not unified
+                        'trade/api/cmc/assets': 1, // not unified
+                        'trade/api/cmc/orderbook/{pair}': 1, // not unified
+                        'trade/api/cmc/summary': 1, // fetchTickers
+                        'trade/api/cmc/ticker': 1, // not unified
+                        'trade/api/cmc/trades/{pair}': 1, // fetchTrades
                     },
                     'post': {
                         'trade/api/login-oauth': 1, // not unified
@@ -152,10 +157,10 @@ export default class bitteam extends Exchange {
                 'private': {
                     'get': {
                         'trade/api/address/wallets': 1, // not unified returns 401000
-                        'trade/api/ccxt/balance': 1,
-                        'trade/api/ccxt/order/{id}': 1,
-                        'trade/api/ccxt/ordersOfUser': 1,
-                        'trade/api/ccxt/tradesOfUser': 1,
+                        'trade/api/ccxt/balance': 1, // fetchBalance
+                        'trade/api/ccxt/order/{id}': 1, // fetchOrder
+                        'trade/api/ccxt/ordersOfUser': 1, // fetchOrders
+                        'trade/api/ccxt/tradesOfUser': 1, // fetchMyTrades
                         'trade/api/discount': 1, // not unified returns 401000
                         'trade/api/discounts': 1, // not unified returns 401000
                         'trade/api/forgot-2fa': 1, // not unified returns 401000
@@ -169,9 +174,9 @@ export default class bitteam extends Exchange {
                         'trade/api/sumsub/data': 1, // not unified returns 401000
                         'trade/api/sumsub/obtain': 1, // not unified returns 401000
                         'trade/api/sumsub/status': 1, // not unified returns 401000
-                        'trade/api/tradesByUser': 1, // todo: check
+                        'trade/api/tradesByUser': 1, // not unified
                         'trade/api/transactionsByUser': 1, // not unified returns 401000
-                        'trade/api/transactionsOfUser': 1,
+                        'trade/api/transactionsOfUser': 1, // fetchDepositsWithdrawals
                         'trade/api/transaction/{id}': 1, // not unified returns 401000
                         'trade/api/user/api-keys': 1, // not unified returns 401000
                         'trade/api/user/stats': 1, // not unified returns 401000
@@ -183,16 +188,16 @@ export default class bitteam extends Exchange {
                         'trade/api/access-check': 1, // not unified returns 401000
                         'trade/api/all-orders/cancel': 1, // not unified returns 401000
                         'trade/api/before-transaction-email': 1, // not unified returns 401000
-                        'trade/api/ccxt/cancel-all-order': 1,
-                        'trade/api/ccxt/cancelorder': 1,
-                        'trade/api/ccxt/ordercreate': 1,
+                        'trade/api/ccxt/cancel-all-order': 1, // cancelAllOrders
+                        'trade/api/ccxt/cancelorder': 1, // cancelOrder
+                        'trade/api/ccxt/ordercreate': 1, // createOrder
                         'trade/api/confirm-email': 1, // not unified returns 401000
                         'trade/api/disable-2fa': 1, // not unified returns 401000
                         'trade/api/enable-2fa': 1, // not unified returns 401000
                         'trade/api/logout': 1, // not unified returns 401000
-                        'trade/api/order/cancel': 1, // todo check
+                        'trade/api/order/cancel': 1, // not unified
                         'trade/api/order/conditional/create': 1, // not unified returns 401000
-                        'trade/api/order/create': 1, // todo check
+                        'trade/api/order/create': 1, // not unified
                         'trade/api/p2p/create-transaction': 1, // not unified returns 401000
                         'trade/api/p2p/get-balance': 1, // not unified returns 401000
                         'trade/api/p2p/set-token': 1,  // not unified
@@ -263,10 +268,6 @@ export default class bitteam extends Exchange {
                 },
             },
         });
-    }
-
-    calculateRateLimiterCost (api, method, path, params, config = {}) {
-        return 1;
     }
 
     async fetchMarkets (params = {}) {
@@ -1200,6 +1201,62 @@ export default class bitteam extends Exchange {
         return Precise.stringMul (valueRawString, precisionString);
     }
 
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name bitteam#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcSummary
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the bitteam api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets ();
+        let response = await this.publicGetTradeApiCmcSummary ();
+        //
+        //     [
+        //         {
+        //             "trading_pairs": "BTC_USDT",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USDT",
+        //             "last_price": 37669.955001,
+        //             "lowest_ask": 37670.055,
+        //             "highest_bid": 37669.955,
+        //             "base_volume": 6.81156888,
+        //             "quote_volume": 257400.516878529,
+        //             "price_change_percent_24h": -0.29,
+        //             "highest_price_24h": 38389.994463,
+        //             "lowest_price_24h": 37574.894999
+        //         },
+        //         {
+        //             "trading_pairs": "BNB_USDT",
+        //             "base_currency": "BNB",
+        //             "quote_currency": "USDT",
+        //             "last_price": 233.525142,
+        //             "lowest_ask": 233.675,
+        //             "highest_bid": 233.425,
+        //             "base_volume": 245.0199339,
+        //             "quote_volume": 57356.91823827642,
+        //             "price_change_percent_24h": -0.32,
+        //             "highest_price_24h": 236.171123,
+        //             "lowest_price_24h": 231.634637
+        //         },
+        //         ...
+        //     ]
+        //
+        const tickers = [];
+        // todo: check
+        if (!Array.isArray (response)) {
+            response = [];
+        }
+        for (let i = 0; i < response.length; i++) {
+            const rawTicker = response[i];
+            const ticker = this.parseTicker (rawTicker);
+            tickers.push (ticker);
+        }
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
+    }
+
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -1406,6 +1463,7 @@ export default class bitteam extends Exchange {
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         //
+        // fetchTicker
         //     {
         //         "id": 2,
         //         "name": "eth_usdt",
@@ -1469,20 +1527,45 @@ export default class bitteam extends Exchange {
         //         ...
         //     }
         //
-        const bids = this.safeValue (ticker, 'bids', []);
-        const bestBid = this.safeValue (bids, 0, {});
-        const bestBidPrice = this.safeString (bestBid, 'price');
-        const bestBidVolume = this.safeString (bestBid, 'quantity');
-        const asks = this.safeValue (ticker, 'asks', []);
-        const bestAsk = this.safeValue (asks, 0, {});
-        const bestAskPrice = this.safeString (bestAsk, 'price');
-        const bestAskVolume = this.safeString (bestAsk, 'quantity');
-        const baseVolume = this.safeString (ticker, 'volume24');
-        const quoteVolume = this.safeString (ticker, 'quoteVolume24');
-        const high = this.safeString (ticker, 'highPrice24');
-        const low = this.safeString (ticker, 'lowPrice24');
-        const close = this.safeString (ticker, 'lastPrice');
-        const changePcnt = this.safeString (ticker, 'change24'); // todo: check
+        // fetchTickers
+        //     {
+        //         "trading_pairs": "BTC_USDT",
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USDT",
+        //         "last_price": 37669.955001,
+        //         "lowest_ask": 37670.055,
+        //         "highest_bid": 37669.955,
+        //         "base_volume": 6.81156888,
+        //         "quote_volume": 257400.516878529,
+        //         "price_change_percent_24h": -0.29,
+        //         "highest_price_24h": 38389.994463,
+        //         "lowest_price_24h": 37574.894999
+        //     }
+        const marketId = this.safeStringLower (ticker, 'trading_pairs');
+        market = this.safeMarket (marketId, market);
+        let bestBidPrice = undefined;
+        let bestAskPrice = undefined;
+        let bestBidVolume = undefined;
+        let bestAskVolume = undefined;
+        const bids = this.safeValue (ticker, 'bids');
+        const asks = this.safeValue (ticker, 'asks');
+        if ((bids !== undefined) && (Array.isArray (bids)) && (asks !== undefined) && (Array.isArray (asks))) {
+            const bestBid = this.safeValue (bids, 0, {});
+            bestBidPrice = this.safeString (bestBid, 'price');
+            bestBidVolume = this.safeString (bestBid, 'quantity');
+            const bestAsk = this.safeValue (asks, 0, {});
+            bestAskPrice = this.safeString (bestAsk, 'price');
+            bestAskVolume = this.safeString (bestAsk, 'quantity');
+        } else {
+            bestBidPrice = this.safeString (ticker, 'highest_bid');
+            bestAskPrice = this.safeString (ticker, 'lowest_ask');
+        }
+        const baseVolume = this.safeString2 (ticker, 'volume24', 'base_volume');
+        const quoteVolume = this.safeString2 (ticker, 'quoteVolume24', 'quote_volume');
+        const high = this.safeString2 (ticker, 'highPrice24', 'highest_price_24h');
+        const low = this.safeString2 (ticker, 'lowPrice24', 'lowest_price_24h');
+        const close = this.safeString2 (ticker, 'lastPrice', 'last_price');
+        const changePcnt = this.safeString2 (ticker, 'change24', 'price_change_percent_24h');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': undefined,
@@ -1497,7 +1580,7 @@ export default class bitteam extends Exchange {
             'askVolume': bestAskVolume,
             'vwap': undefined,
             'previousClose': undefined,
-            'change': undefined, // todo: check
+            'change': undefined,
             'percentage': changePcnt,
             'average': undefined,
             'baseVolume': baseVolume,
@@ -1511,147 +1594,41 @@ export default class bitteam extends Exchange {
          * @method
          * @name bitteam#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiTrades
+         * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcTradesPair
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch (default 10)
+         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
-        // todo: check the offset and order
         await this.loadMarkets ();
-        let market = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['pairId'] = market['numericId'];
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.publicGetTradeApiTrades (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+        };
+        const response = await this.publicGetTradeApiCmcTradesPair (this.extend (request, params));
         //
-        //     {
-        //         "ok": true,
-        //         "result": {
-        //             "count": 148660,
-        //             "count1sec": 0.5833333333333334,
-        //             "trades": [
-        //                 {
-        //                     "id": 34780955,
-        //                     "tradeId": "2151622",
-        //                     "makerOrderId": 106450569,
-        //                     "takerOrderId": 106450582,
-        //                     "pairId": 36,
-        //                     "quantity": 1.47110229391e+21,
-        //                     "price": 23997000000000000,
-        //                     "isBuyerMaker": true,
-        //                     "baseDecimals": 18,
-        //                     "quoteDecimals": 18,
-        //                     "side": "sell",
-        //                     "timestamp": 1700442122,
-        //                     "rewarded": true,
-        //                     "makerUserId": 15712,
-        //                     "takerUserId": 848,
-        //                     "baseCurrencyId": 5,
-        //                     "quoteCurrencyId": 9,
-        //                     "feeMaker": {
-        //                         "amount": "2942204587820000000",
-        //                         "symbol": "btt",
-        //                         "userId": 15712,
-        //                         "decimals": 18,
-        //                         "symbolId": 5
-        //                     },
-        //                     "feeTaker": {
-        //                         "amount": "70604080000000000",
-        //                         "symbol": "del",
-        //                         "userId": 848,
-        //                         "decimals": 18,
-        //                         "symbolId": 9
-        //                     },
-        //                     "pair": "btt_del",
-        //                     "createdAt": "2023-11-20T01:02:02.487Z",
-        //                     "updatedAt": "2023-11-20T01:05:00.091Z"
-        //                 },
-        //                 {
-        //                     "id": 34786377,
-        //                     "tradeId": "1296391",
-        //                     "makerOrderId": 106468055,
-        //                     "takerOrderId": 106468065,
-        //                     "pairId": 39,
-        //                     "quantity": 580415219,
-        //                     "price": 1000347,
-        //                     "isBuyerMaker": false,
-        //                     "baseDecimals": 8,
-        //                     "quoteDecimals": 6,
-        //                     "side": "buy",
-        //                     "timestamp": 1700453414,
-        //                     "rewarded": true,
-        //                     "makerUserId": 15916,
-        //                     "takerUserId": 15916,
-        //                     "baseCurrencyId": 24,
-        //                     "quoteCurrencyId": 3,
-        //                     "feeMaker": {
-        //                         "amount": "1160830.438",
-        //                         "symbol": "usdt",
-        //                         "userId": 15916,
-        //                         "decimals": 6,
-        //                         "symbolId": 3
-        //                     },
-        //                     "feeTaker": {
-        //                         "amount": "11612.33246161986",
-        //                         "symbol": "busd",
-        //                         "userId": 15916,
-        //                         "decimals": 8,
-        //                         "symbolId": 24
-        //                     },
-        //                     "pair": "busd_usdt",
-        //                     "createdAt": "2023-11-20T04:10:14.168Z",
-        //                     "updatedAt": "2023-11-20T04:10:14.168Z"
-        //                 },
-        //                 {
-        //                     "id": 34786379,
-        //                     "tradeId": "3463675",
-        //                     "makerOrderId": 106468062,
-        //                     "takerOrderId": 106468067,
-        //                     "pairId": 24,
-        //                     "quantity": 2.21507950051e+21,
-        //                     "price": 17524,
-        //                     "isBuyerMaker": false,
-        //                     "baseDecimals": 18,
-        //                     "quoteDecimals": 6,
-        //                     "side": "buy",
-        //                     "timestamp": 1700453414,
-        //                     "rewarded": true,
-        //                     "makerUserId": 11249,
-        //                     "takerUserId": 11249,
-        //                     "baseCurrencyId": 9,
-        //                     "quoteCurrencyId": 3,
-        //                     "feeMaker": {
-        //                         "amount": "4430159001020000000",
-        //                         "symbol": "usdt",
-        //                         "userId": 11249,
-        //                         "decimals": 6,
-        //                         "symbolId": 3
-        //                     },
-        //                     "feeTaker": {
-        //                         "amount": "77634.10633387448",
-        //                         "symbol": "del",
-        //                         "userId": 11249,
-        //                         "decimals": 18,
-        //                         "symbolId": 9
-        //                     },
-        //                     "pair": "del_usdt",
-        //                     "createdAt": "2023-11-20T04:10:14.568Z",
-        //                     "updatedAt": "2023-11-20T04:10:14.568Z"
-        //                 }
-        //             ]
-        //         }
-        //     }
+        //     [
+        //         {
+        //             "trade_id": 34970337,
+        //             "price": 37769.994793,
+        //             "base_volume": 0.00119062,
+        //             "quote_volume": 44.96971120044166,
+        //             "timestamp": 1700827234000,
+        //             "type": "buy"
+        //         },
+        //         {
+        //             "trade_id": 34970347,
+        //             "price": 37769.634497,
+        //             "base_volume": 0.00104009,
+        //             "quote_volume": 39.28381914398473,
+        //             "timestamp": 1700827248000,
+        //             "type": "buy"
+        //         },
+        //         ...
+        //     ]
         //
-        const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1817,86 +1794,100 @@ export default class bitteam extends Exchange {
         //
         // fetchTrades
         //     {
-        //         "id": 34780955,
-        //         "tradeId": "2151622",
-        //         "makerOrderId": 106450569,
-        //         "takerOrderId": 106450582,
-        //         "pairId": 36,
-        //         "quantity": 1.47110229391e+21,
-        //         "price": 23997000000000000,
+        //         "trade_id": 34970337,
+        //         "price": 37769.994793,
+        //         "base_volume": 0.00119062,
+        //         "quote_volume": 44.96971120044166,
+        //         "timestamp": 1700827234000,
+        //         "type": "buy"
+        //     },
+        //
+        // fetchMyTrades
+        //     {
+        //         "id": 34875793,
+        //         "tradeId": "4368010",
+        //         "makerOrderId": 106742914,
+        //         "takerOrderId": 106745926,
+        //         "pairId": 2,
+        //         "quantity": "0.0027193",
+        //         "price": "1993.674994",
         //         "isBuyerMaker": true,
         //         "baseDecimals": 18,
-        //         "quoteDecimals": 18,
+        //         "quoteDecimals": 6,
         //         "side": "sell",
-        //         "timestamp": 1700442122,
+        //         "timestamp": 1700602983,
         //         "rewarded": true,
-        //         "makerUserId": 15712,
-        //         "takerUserId": 848,
-        //         "baseCurrencyId": 5,
-        //         "quoteCurrencyId": 9,
+        //         "makerUserId": 21639,
+        //         "takerUserId": 15912,
+        //         "baseCurrencyId": 2,
+        //         "quoteCurrencyId": 3,
         //         "feeMaker": {
-        //             "amount": "2942204587820000000",
-        //             "symbol": "btt",
-        //             "userId": 15712,
+        //             "amount": "0.00000543",
+        //             "symbol": "eth",
+        //             "userId": 21639,
         //             "decimals": 18,
-        //             "symbolId": 5
+        //             "symbolId": 2
         //         },
         //         "feeTaker": {
-        //             "amount": "70604080000000000",
-        //             "symbol": "del",
-        //             "userId": 848,
-        //             "decimals": 18,
-        //             "symbolId": 9
+        //             "amount": "0",
+        //             "symbol": "usdt",
+        //             "userId": 15912,
+        //             "decimals": 6,
+        //             "symbolId": 3,
+        //             "discountAmount": "0",
+        //             "discountSymbol": "btt",
+        //             "discountDecimals": 18,
+        //             "discountSymbolId": 5
         //         },
-        //         "pair": "btt_del",
-        //         "createdAt": "2023-11-20T01:02:02.487Z",
-        //         "updatedAt": "2023-11-20T01:05:00.091Z"
-        //     },
+        //         "pair": "eth_usdt",
+        //         "createdAt": "2023-11-21T21:43:02.758Z",
+        //         "updatedAt": "2023-11-21T21:45:00.147Z"
+        //     }
         //
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const id = this.safeString (trade, 'id');
-        const timestamp = this.safeTimestamp (trade, 'timestamp');
-        const price = this.parseValueToPricision (trade, 'price', trade, 'quoteDecimals');
-        const amount = this.parseValueToPricision (trade, 'quantity', trade, 'baseDecimals');
-        const side = this.safeString (trade, 'side');
-        const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
+        const id = this.safeString2 (trade, 'id', 'trade_id');
+        const timestamp = this.safeTimestamp (trade, 'timestamp'); // todo: parse both for seconds and ms
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString2 (trade, 'quantity', 'base_volume');
+        const cost = this.safeString (trade, 'quote_volume');
+        let side = this.safeString2 (trade, 'side', 'type');
+        // fetchMyOrders response retruns the side of the taker
         let takerOrMaker = undefined;
-        // todo: check logic
-        if (isBuyerMaker !== undefined) {
-            if (isBuyerMaker === true) {
-                if (side === 'buy') {
-                    takerOrMaker = 'maker';
-                } else if (side === 'sell') {
-                    takerOrMaker = 'taker';
-                }
-            } else {
-                if (side === 'buy') {
-                    takerOrMaker = 'taker';
-                } else if (side === 'sell') {
-                    takerOrMaker = 'maker';
-                }
-            }
-        }
-        let fee = undefined;
         let feeInfo = undefined;
         let order = undefined;
-        if (takerOrMaker === 'taker') {
-            feeInfo = this.safeValue (trade, 'feeTaker');
-            order = this.safeString (trade, 'takerOrderId');
-        } else if (takerOrMaker === 'maker') {
-            feeInfo = this.safeValue (trade, 'feeMaker');
-            order = this.safeString (trade, 'makerOrderId');
-        }
-        // todo: bad values for fees that are not in USDT from fetchOrders
-        if (feeInfo !== undefined) {
-            const feeCost = this.parseValueToPricision (feeInfo, 'amount', feeInfo, 'decimals');
+        let type = undefined;
+        let fee = undefined;
+        const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
+        // if trade from fetchMyOrders
+        // todo!!!: wrong logic - wrong fee is not always equals to '0'
+        if (isBuyerMaker !== undefined) {
+            const feeMaker = this.safeValue (trade, 'feeMaker', {});
+            const makerFeeAmount = this.safeString (feeMaker, 'amount'); // equals '0' if user is taker
+            const feeTaker = this.safeValue (trade, 'feeTaker', {});
+            const takerFeeAmount = this.safeString (feeTaker, 'amount'); // equals '0' if user is maker
+            if (makerFeeAmount === '0') {
+                // user is taker
+                takerOrMaker = 'taker';
+                type = 'market';
+                feeInfo = feeTaker;
+                order = this.safeString (trade, 'takerOrderId');
+                side = (isBuyerMaker) ? 'sell' : 'buy';
+            } else if (takerFeeAmount === '0') {
+                // user is maker
+                takerOrMaker = 'maker';
+                type = 'limit';
+                feeInfo = feeMaker;
+                order = this.safeString (trade, 'makerOrderId');
+                side = (isBuyerMaker) ? 'buy' : 'sell';
+            }
             const feeCurrencyId = this.safeString (feeInfo, 'symbol');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            const feeCost = this.safeString (feeInfo, 'amount');
             fee = {
+                'currency': this.safeCurrencyCode (feeCurrencyId),
                 'cost': feeCost,
-                'currency': feeCurrencyCode,
+                'rate': undefined,
             };
         }
         return this.safeTrade ({
@@ -1905,12 +1896,12 @@ export default class bitteam extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined, // todo: or set it to limit when maker and market when taker?
+            'type': type, // todo: check
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': undefined,
+            'cost': cost,
             'fee': fee,
             'info': trade,
         }, market);
@@ -1972,6 +1963,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
+        // todo: check
         const timestamp = this.milliseconds ();
         const balance = {
             'info': response,
@@ -1987,8 +1979,9 @@ export default class bitteam extends Exchange {
             const free = this.safeString (currencyBalance, 'free');
             const used = this.safeString (currencyBalance, 'used');
             const total = this.safeString (currencyBalance, 'total');
+            const currency = this.safeValue (this.currencies, currencyCode);
             // checking for proper currency code
-            currencyCode = this.safeCurrencyCode (currencyCode, this.currencies[currencyCode]);
+            currencyCode = this.safeCurrencyCode (currencyCode, currency);
             balance[currencyCode] = {
                 'free': free,
                 'used': used,
