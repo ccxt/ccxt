@@ -6686,17 +6686,12 @@ export default class bitget extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromSwap = fromAccount === 'swap';
-        const toSwap = toAccount === 'swap';
-        const usdt = currency['code'] === 'USDT';
-        if (fromSwap) {
-            fromAccount = usdt ? 'mix_usdt' : 'mix_usd';
-        } else if (toSwap) {
-            toAccount = usdt ? 'mix_usdt' : 'mix_usd';
-        }
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromType = this.safeString (accountsByType, fromAccount);
+        const toType = this.safeString (accountsByType, toAccount);
         const request = {
-            'fromType': fromAccount,
-            'toType': toAccount,
+            'fromType': fromType,
+            'toType': toType,
             'amount': amount,
             'coin': currency['code'],
         };
@@ -6707,7 +6702,7 @@ export default class bitget extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateSpotPostSpotV1WalletTransferV2 (this.extend (request, params));
+        const response = await this.privateSpotPostV2SpotWalletTransfer (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
