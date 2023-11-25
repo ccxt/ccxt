@@ -2751,11 +2751,11 @@ class Transpiler {
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
 
         if (classes === null) {
-        log.bright.yellow ('0 files transpiled.')
-        return;
+            log.bright.yellow ('0 files transpiled.')
+            return;
         }
         if (child) {
-        return
+            return
         }
 
         if (!transpilingSingleExchange) {
