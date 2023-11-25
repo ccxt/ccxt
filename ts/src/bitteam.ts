@@ -159,7 +159,7 @@ export default class bitteam extends Exchange {
                         'trade/api/address/wallets': 1, // not unified returns 401000
                         'trade/api/ccxt/balance': 1, // fetchBalance
                         'trade/api/ccxt/order/{id}': 1, // fetchOrder
-                        'trade/api/ccxt/ordersOfUser': 1, // fetchOrders
+                        'trade/api/ccxt/ordersOfUser': 1, // fetchOrders, fetchClosedOrders, fetchCanceledOrders, fetchOpenOrders
                         'trade/api/ccxt/tradesOfUser': 1, // fetchMyTrades
                         'trade/api/discount': 1, // not unified returns 401000
                         'trade/api/discounts': 1, // not unified returns 401000
@@ -266,6 +266,8 @@ export default class bitteam extends Exchange {
                 },
                 'broad': {
                     'Service Unavailable': ExchangeNotAvailable, // {"message":"Service Unavailable","code":403000,"ok":false}
+                    'is not allowed': BadRequest, // {"message":"\"createdAt\" is not allowed","path":["createdAt"],"type":"object.unknown","context":{"child":"createdAt","label":"createdAt","value":"DESC","key":"createdAt"}}
+                    'must be of type': BadRequest, // {"message":"\"order\" must be of type object","path":["order"],"type":"object.base","context":{"type":"object","label":"order","value":"107218781","key":"order"}}
                 },
             },
         });
@@ -380,7 +382,7 @@ export default class bitteam extends Exchange {
         const quoteId = this.safeString (parts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const active = this.safeValue (market, 'active'); // todo: exchange returns true for inactive markets
+        const active = this.safeValue (market, 'active');
         const amountPrecision = this.safeInteger (market, 'baseStep');
         const pricePrecision = this.safeInteger (market, 'quoteStep');
         // const limits = this.safeValue (market, 'settings', {});
@@ -550,7 +552,7 @@ export default class bitteam extends Exchange {
             const numericId = this.safeInteger (currency, 'id');
             const code = this.safeCurrencyCode (id);
             const active = this.safeValue (currency, 'active', false);
-            const precision = this.safeInteger (currency, 'precision'); // todo: or decimals key?
+            const precision = this.safeInteger (currency, 'precision');
             const txLimits = this.safeValue (currency, 'txLimits', {});
             const minWithdraw = this.safeString (txLimits, 'minWithdraw');
             const maxWithdraw = this.safeString (txLimits, 'maxWithdraw');
@@ -683,8 +685,9 @@ export default class bitteam extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        // todo: check offset and order (ASC/DESC)
-        // also filtration by symbol breaks pagination
+        // todo: limit and offset params work bad - looks like the exchange keeps orders badly sorted by timestamp
+        // limit = 0 returns all orders
+        // also filtration by symbol breaks pagination (maybe should set limit to 0?)
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1166,7 +1169,7 @@ export default class bitteam extends Exchange {
             'filled': filled,
             'remaining': undefined,
             'fee': fee,
-            'trades': undefined, // todo: check
+            'trades': undefined,
             'info': order,
             'postOnly': false,
         }, market);
@@ -1248,7 +1251,6 @@ export default class bitteam extends Exchange {
         //     ]
         //
         const tickers = [];
-        // todo: check
         if (!Array.isArray (response)) {
             response = [];
         }
@@ -1646,7 +1648,7 @@ export default class bitteam extends Exchange {
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        // todo: check the offset and order
+        // todo: offset owerwrites limit
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1851,21 +1853,22 @@ export default class bitteam extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const id = this.safeString2 (trade, 'id', 'trade_id');
-        const timestamp = this.safeTimestamp (trade, 'timestamp'); // todo: parse both for seconds and ms
+        let timestamp = this.safeString (trade, 'timestamp');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString2 (trade, 'quantity', 'base_volume');
         const cost = this.safeString (trade, 'quote_volume');
         let side = this.safeString2 (trade, 'side', 'type');
-        // fetchMyOrders response retruns the side of the taker
+        // fetchMyTrades response retruns the side of the taker
         let takerOrMaker = undefined;
         let feeInfo = undefined;
         let order = undefined;
         let type = undefined;
         let fee = undefined;
         const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
-        // if trade from fetchMyOrders
+        // if trade from fetchMyTrades
         // todo!!!: wrong logic - wrong fee is not always equals to '0'
         if (isBuyerMaker !== undefined) {
+            timestamp = Precise.stringMul (timestamp, '1000');
             const feeMaker = this.safeValue (trade, 'feeMaker', {});
             const makerFeeAmount = this.safeString (feeMaker, 'amount'); // equals '0' if user is taker
             const feeTaker = this.safeValue (trade, 'feeTaker', {});
@@ -2247,9 +2250,8 @@ export default class bitteam extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const ok = this.safeValue (response, 'ok');
         const responseCode = this.safeString (response, 'code');
-        if ((ok !== undefined) && (!ok)) {
+        if (code !== 200) {
             const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message');
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
