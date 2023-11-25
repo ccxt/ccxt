@@ -6774,39 +6774,26 @@ export default class bitget extends Exchange {
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {
         //
-        // {
-        //     "chains": [
-        //       {
-        //         "browserUrl": "https://bscscan.com/tx/",
-        //         "chain": "BEP20",
-        //         "depositConfirm": "15",
-        //         "extraWithDrawFee": "0",
-        //         "minDepositAmount": "0.000001",
-        //         "minWithdrawAmount": "0.0000078",
-        //         "needTag": "false",
-        //         "rechargeable": "true",
-        //         "withdrawConfirm": "15",
-        //         "withdrawFee": "0.0000051",
-        //         "withdrawable": "true"
-        //       },
-        //       {
-        //         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
-        //         "chain": "BTC",
-        //         "depositConfirm": "1",
-        //         "extraWithDrawFee": "0",
-        //         "minDepositAmount": "0.0001",
-        //         "minWithdrawAmount": "0.002",
-        //         "needTag": "false",
-        //         "rechargeable": "true",
-        //         "withdrawConfirm": "1",
-        //         "withdrawFee": "0.0005",
-        //         "withdrawable": "true"
-        //       }
-        //     ],
-        //     "coinId": "1",
-        //     "coinName": "BTC",
-        //     "transfer": "true"
-        // }
+        //     {
+        //         "chains": [
+        //             {
+        //                 "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+        //                 "chain": "BTC",
+        //                 "depositConfirm": "1",
+        //                 "extraWithdrawFee": "0",
+        //                 "minDepositAmount": "0.0001",
+        //                 "minWithdrawAmount": "0.005",
+        //                 "needTag": "false",
+        //                 "rechargeable": "true",
+        //                 "withdrawConfirm": "1",
+        //                 "withdrawFee": "0.0004",
+        //                 "withdrawable": "true"
+        //             },
+        //         ],
+        //         "coin": "BTC",
+        //         "coinId": "1",
+        //         "transfer": "true""
+        //     }
         //
         const chains = this.safeValue (fee, 'chains', []);
         const chainsLength = chains.length;
@@ -6844,15 +6831,44 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
+         * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicSpotGetSpotV1PublicCurrencies (params);
-        const data = this.safeValue (response, 'data');
-        return this.parseDepositWithdrawFees (data, codes, 'coinName');
+        const response = await this.publicSpotGetV2SpotPublicCoins (params);
+        //
+        //     {
+        //         "code": "00000",
+        //         "data": [
+        //             {
+        //                 "chains": [
+        //                     {
+        //                         "browserUrl": "https://blockchair.com/bitcoin/transaction/",
+        //                         "chain": "BTC",
+        //                         "depositConfirm": "1",
+        //                         "extraWithdrawFee": "0",
+        //                         "minDepositAmount": "0.0001",
+        //                         "minWithdrawAmount": "0.005",
+        //                         "needTag": "false",
+        //                         "rechargeable": "true",
+        //                         "withdrawConfirm": "1",
+        //                         "withdrawFee": "0.0004",
+        //                         "withdrawable": "true"
+        //                     },
+        //                 ],
+        //                 "coin": "BTC",
+        //                 "coinId": "1",
+        //                 "transfer": "true""
+        //             }
+        //         ],
+        //         "msg": "success",
+        //         "requestTime": "1700120731773"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseDepositWithdrawFees (data, codes, 'coin');
     }
 
     async borrowCrossMargin (code: string, amount, params = {}) {
