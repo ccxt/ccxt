@@ -5603,7 +5603,7 @@ export default class gate extends Exchange {
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleOptionAndParams (params, 'repayMargin', 'marginMode', 'cross');
+        [ marginMode, params ] = this.handleOptionAndParams (params, 'repayMargin', 'marginMode');
         this.checkRequiredArgument ('repayMargin', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -5682,7 +5682,7 @@ export default class gate extends Exchange {
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleOptionAndParams (params, 'borrowMargin', 'marginMode', 'cross');
+        [ marginMode, params ] = this.handleOptionAndParams (params, 'borrowMargin', 'marginMode');
         this.checkRequiredArgument ('borrowMargin', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
         this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
