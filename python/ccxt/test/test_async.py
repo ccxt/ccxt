@@ -101,7 +101,7 @@ rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
 LOG_CHARS_LENGTH = 10000
 ext = 'py'
-supportedProxyTests = ['proxyUrl', 'httpProxy']
+proxyTestFileName = 'proxies';
 
 
 class baseMainTestClass():
@@ -117,6 +117,7 @@ class baseMainTestClass():
     env_vars = envVars
     ext = ext
     root_dir_for_skips = rootDirForSkips
+    proxy_test_file_name = proxyTestFileName
     pass
 
 

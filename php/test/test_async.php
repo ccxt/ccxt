@@ -35,7 +35,7 @@ define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('LOG_CHARS_LENGTH', 10000);
 define('ext', 'php');
-define('supportedProxyTests', ['proxyUrl', 'httpProxy']);
+define('proxyTestFileName', 'proxies');
 
 class baseMainTestClass {
     public $lang = 'PHP';
@@ -58,6 +58,7 @@ class baseMainTestClass {
     public $root_dir = root_dir;
     public $env_vars = envVars;
     public $root_dir_for_skips = rootDirForSkips;
+    public $proxy_test_file_name = proxyTestFileName;
     public $ext = ext;
     public $LOG_CHARS_LENGTH = LOG_CHARS_LENGTH;
 }

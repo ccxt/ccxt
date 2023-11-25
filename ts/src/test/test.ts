@@ -26,6 +26,7 @@ const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
 // non-transpiled part, but shared names among langs
+const proxyTestFileName = 'proxies';
 class baseMainTestClass {
     lang = 'JS';
     idTests = false;
@@ -47,6 +48,7 @@ class baseMainTestClass {
     rootDir = DIR_NAME + '/../../../';
     rootDirForSkips = DIR_NAME + '/../../../';
     envVars = process.env;
+    proxyTestFileName = proxyTestFileName;
     ext = import.meta.url.split ('.')[1];
 }
 // const rootDir = DIR_NAME + '/../../../';
@@ -129,12 +131,11 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
-const supportedProxyTests = [ 'proxies' ];
-
 async function setTestFiles (holderClass, properties) {
     // exchange tests
-    for (let i = 0; i < properties.length; i++) {
-        const name = properties[i];
+    const finalPropList = properties.concat ([ proxyTestFileName ]);
+    for (let i = 0; i < finalPropList.length; i++) {
+        const name = finalPropList[i];
         const filePathWoExt = DIR_NAME + '/Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
@@ -146,16 +147,6 @@ async function setTestFiles (holderClass, properties) {
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
         const filePathWoExt = DIR_NAME + '/base/errors/test.' + name;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
-            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            holderClass.testFiles[name] = await importTestFile (filePathWoExt);
-        }
-    }
-    // proxy tests
-    const proxyTests = supportedProxyTests;
-    for (let i = 0; i < proxyTests.length; i++) {
-        const name = proxyTests[i];
-        const filePathWoExt = DIR_NAME + '/Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
@@ -306,7 +297,7 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         let skipMessage = undefined;
-        const isProxyTest = exchange.inArray (methodName, supportedProxyTests);
+        const isProxyTest = methodName === this.proxyTestFileName;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
@@ -798,26 +789,24 @@ export default class testMainClass extends baseMainTestClass {
 
     async testProxies (exchange) {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
-        for (let i = 0; i < supportedProxyTests.length; i++) {
-            const proxyTestName = supportedProxyTests[i];
-            if (this.info) {
-                dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, proxyTestName);
+        const proxyTestName = this.proxyTestFileName;
+        if (this.info) {
+            dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, proxyTestName);
+        }
+        // try proxy several times
+        const maxRetries = 3;
+        let exception = undefined;
+        for (let j = 0; j < maxRetries; j++) {
+            try {
+                await this.testMethod (proxyTestName, exchange, [], true);
+                break; // if successfull, then break
+            } catch (e) {
+                exception = e;
             }
-            // try proxy several times
-            const maxRetries = 3;
-            let exception = undefined;
-            for (let j = 0; j < maxRetries; j++) {
-                try {
-                    await this.testMethod (proxyTestName, exchange, [], true);
-                    break; // if successfull, then break
-                } catch (e) {
-                    exception = e;
-                }
-            }
-            // if exception was set, then throw it
-            if (exception) {
-                throw new Error ('[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception));
-            }
+        }
+        // if exception was set, then throw it
+        if (exception) {
+            throw new Error ('[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception));
         }
     }
 
