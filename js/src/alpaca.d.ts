@@ -6,6 +6,7 @@ import { Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade 
  */
 export default class alpaca extends Exchange {
     describe(): any;
+    fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<import("./base/types.js").MarketInterface[]>;
     parseMarket(asset: any): Market;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -14,8 +15,11 @@ export default class alpaca extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrder(order: any, market?: Market): Order;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;

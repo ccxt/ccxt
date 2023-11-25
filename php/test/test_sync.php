@@ -982,6 +982,14 @@ class testMainClass extends baseMainTestClass {
         } elseif ($type === 'urlencoded') {
             $stored_output = $this->urlencoded_to_dict($stored_output);
             $new_output = $this->urlencoded_to_dict($new_output);
+        } elseif ($type === 'both') {
+            if (str_starts_with($stored_output, '{') || str_starts_with($stored_output, '[')) {
+                $stored_output = json_parse($stored_output);
+                $new_output = json_parse($new_output);
+            } else {
+                $stored_output = $this->urlencoded_to_dict($stored_output);
+                $new_output = $this->urlencoded_to_dict($new_output);
+            }
         }
         $this->assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output);
     }

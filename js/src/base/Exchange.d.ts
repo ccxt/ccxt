@@ -352,7 +352,7 @@ export default class Exchange {
             fetchPermissions: any;
             fetchPosition: any;
             fetchPositions: any;
-            fetchPositionsBySymbol: any;
+            fetchPositionsForSymbol: any;
             fetchPositionsRisk: any;
             fetchPremiumIndexOHLCV: any;
             fetchStatus: string;
@@ -691,7 +691,7 @@ export default class Exchange {
     watchPosition(symbol?: string, params?: {}): Promise<Position>;
     watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     watchPositionForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    fetchPositionsBySymbol(symbol: string, params?: {}): Promise<Position[]>;
+    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<Position[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
