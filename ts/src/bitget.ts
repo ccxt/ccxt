@@ -7429,8 +7429,8 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchBorrowInterest
          * @description fetch the interest owed by the user for borrowing currency for margin trading
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-interest-records
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-interest-records
+         * @see https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Interest-Records
+         * @see https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Interest-Records
          * @param {string} [code] unified currency code
          * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
          * @param {int} [since] the earliest time in ms to fetch borrow interest for
@@ -7447,7 +7447,7 @@ export default class bitget extends Exchange {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['coin'] = currency['id'];
+            request['coin'] = currency['code'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -7455,7 +7455,7 @@ export default class bitget extends Exchange {
             request['startTime'] = this.milliseconds () - 7776000000;
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['limit'] = limit;
         }
         let response = undefined;
         let marginMode = undefined;
@@ -7464,10 +7464,10 @@ export default class bitget extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');
             }
-            request['symbol'] = market['info']['symbolName'];
-            response = await this.privateMarginGetMarginV1IsolatedInterestList (this.extend (request, params));
+            request['symbol'] = market['id'];
+            response = await this.privateMarginGetV2MarginIsolatedInterestHistory (this.extend (request, params));
         } else if (marginMode === 'cross') {
-            response = await this.privateMarginGetMarginV1CrossInterestList (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginCrossedInterestHistory (this.extend (request, params));
         }
         //
         // isolated
@@ -7475,22 +7475,23 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1698282523888,
+        //         "requestTime": 1700879935189,
         //         "data": {
         //             "resultList": [
         //                 {
-        //                     "interestId": "1100560904468705284",
+        //                     "interestId": "1112125304879067137",
         //                     "interestCoin": "USDT",
-        //                     "interestRate": "0.000126279",
+        //                     "dailyInterestRate": "0.00041095",
         //                     "loanCoin": "USDT",
-        //                     "amount": "0.00000298",
-        //                     "type": "scheduled",
+        //                     "interestAmount": "0.0000685",
+        //                     "interstType": "first",
         //                     "symbol": "BTCUSDT",
-        //                     "ctime": "1698120000000"
+        //                     "cTime": "1700877255648",
+        //                     "uTime": "1700877255648"
         //                 },
         //             ],
-        //             "maxId": "1100560904468705284",
-        //             "minId": "1096915487398965249"
+        //             "maxId": "1112125304879067137",
+        //             "minId": "1100138015672119298"
         //         }
         //     }
         //
@@ -7499,20 +7500,21 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1698282552126,
+        //         "requestTime": 1700879597044,
         //         "data": {
         //             "resultList": [
         //                 {
-        //                     "interestId": "1099126154352799744",
+        //                     "interestId": "1112122013642272769",
         //                     "interestCoin": "USDT",
-        //                     "interestRate": "0.000126279",
+        //                     "dailyInterestRate": "0.00041",
         //                     "loanCoin": "USDT",
-        //                     "amount": "0.00002631",
-        //                     "type": "scheduled",
-        //                     "ctime": "1697778000000"
+        //                     "interestAmount": "0.00006834",
+        //                     "interstType": "first",
+        //                     "cTime": "1700876470957",
+        //                     "uTime": "1700876470957"
         //                 },
         //             ],
-        //             "maxId": "1099126154352799744",
+        //             "maxId": "1112122013642272769",
         //             "minId": "1096917004629716993"
         //         }
         //     }
@@ -7528,38 +7530,40 @@ export default class bitget extends Exchange {
         // isolated
         //
         //     {
-        //         "interestId": "1100560904468705284",
+        //         "interestId": "1112125304879067137",
         //         "interestCoin": "USDT",
-        //         "interestRate": "0.000126279",
+        //         "dailyInterestRate": "0.00041095",
         //         "loanCoin": "USDT",
-        //         "amount": "0.00000298",
-        //         "type": "scheduled",
+        //         "interestAmount": "0.0000685",
+        //         "interstType": "first",
         //         "symbol": "BTCUSDT",
-        //         "ctime": "1698120000000"
+        //         "cTime": "1700877255648",
+        //         "uTime": "1700877255648"
         //     }
         //
         // cross
         //
         //     {
-        //         "interestId": "1099126154352799744",
+        //         "interestId": "1112122013642272769",
         //         "interestCoin": "USDT",
-        //         "interestRate": "0.000126279",
+        //         "dailyInterestRate": "0.00041",
         //         "loanCoin": "USDT",
-        //         "amount": "0.00002631",
-        //         "type": "scheduled",
-        //         "ctime": "1697778000000"
+        //         "interestAmount": "0.00006834",
+        //         "interstType": "first",
+        //         "cTime": "1700876470957",
+        //         "uTime": "1700876470957"
         //     }
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
         const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
-        const timestamp = this.safeInteger (info, 'ctime');
+        const timestamp = this.safeInteger (info, 'cTime');
         return {
             'symbol': this.safeString (market, 'symbol'),
             'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'interestCoin')),
-            'interest': this.safeNumber (info, 'amount'),
-            'interestRate': this.safeNumber (info, 'interestRate'),
+            'interest': this.safeNumber (info, 'interestAmount'),
+            'interestRate': this.safeNumber (info, 'dailyInterestRate'),
             'amountBorrowed': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
