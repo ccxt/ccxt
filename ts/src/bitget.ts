@@ -6910,7 +6910,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#borrowIsolatedMargin
          * @description create a loan to borrow margin
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-borrow
+         * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Borrow
          * @param {string} symbol unified market symbol
          * @param {string} code unified currency code of the currency to borrow
          * @param {string} amount the amount to borrow
@@ -6920,32 +6920,27 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const market = this.market (symbol);
-        const marketId = market['id'];
-        const parts = marketId.split ('_');
-        const marginMarketId = this.safeStringUpper (parts, 0);
         const request = {
-            'coin': currency['info']['coinName'],
+            'coin': currency['code'],
             'borrowAmount': this.currencyToPrecision (code, amount),
-            'symbol': marginMarketId,
+            'symbol': market['id'],
         };
-        const response = await this.privateMarginPostMarginV1IsolatedAccountBorrow (this.extend (request, params));
-        //
-        // isolated
+        const response = await this.privateMarginPostV2MarginIsolatedAccountBorrow (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1697250952516,
+        //         "requestTime": 1700877255605,
         //         "data": {
-        //             "clientOid": null,
+        //             "loanId": "1112125304879067137",
         //             "symbol": "BTCUSDT",
-        //             "coin": "BTC",
-        //             "borrowAmount": "0.001"
+        //             "coin": "USDT",
+        //             "borrowAmount": "4"
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseMarginLoan (data, currency);
+        return this.parseMarginLoan (data, currency, market);
     }
 
     async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
@@ -6953,8 +6948,7 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#repayIsolatedMargin
          * @description repay borrowed margin and interest
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#isolated-repay
+         * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Repay
          * @param {string} symbol unified market symbol
          * @param {string} code unified currency code of the currency to repay
          * @param {string} amount the amount to repay
@@ -6964,33 +6958,28 @@ export default class bitget extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const market = this.market (symbol);
-        const marketId = market['id'];
-        const parts = marketId.split ('_');
-        const marginMarketId = this.safeStringUpper (parts, 0);
         const request = {
-            'coin': currency['info']['coinName'],
+            'coin': currency['code'],
             'repayAmount': this.currencyToPrecision (code, amount),
-            'symbol': marginMarketId,
+            'symbol': market['id'],
         };
-        const response = await this.privateMarginPostMarginV1IsolatedAccountRepay (this.extend (request, params));
-        //
-        // isolated
+        const response = await this.privateMarginPostV2MarginIsolatedAccountRepay (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1697251988593,
+        //         "requestTime": 1700877518012,
         //         "data": {
         //             "remainDebtAmount": "0",
-        //             "clientOid": null,
+        //             "repayId": "1112126405439270912",
         //             "symbol": "BTCUSDT",
-        //             "coin": "BTC",
-        //             "repayAmount": "0.00100001"
+        //             "coin": "USDT",
+        //             "repayAmount": "8.000137"
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseMarginLoan (data, currency);
+        return this.parseMarginLoan (data, currency, market);
     }
 
     async repayCrossMargin (code: string, amount, params = {}) {
@@ -7028,15 +7017,15 @@ export default class bitget extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info, currency: Currency = undefined, market: Market = undefined) {
         //
         // isolated: borrowMargin
         //
         //     {
-        //         "clientOid": null,
+        //         "loanId": "1112125304879067137",
         //         "symbol": "BTCUSDT",
-        //         "coin": "BTC",
-        //         "borrowAmount": "0.001"
+        //         "coin": "USDT",
+        //         "borrowAmount": "4"
         //     }
         //
         // cross: borrowMargin
@@ -7051,10 +7040,10 @@ export default class bitget extends Exchange {
         //
         //     {
         //         "remainDebtAmount": "0",
-        //         "clientOid": null,
+        //         "repayId": "1112126405439270912",
         //         "symbol": "BTCUSDT",
-        //         "coin": "BTC",
-        //         "repayAmount": "0.00100001"
+        //         "coin": "USDT",
+        //         "repayAmount": "8.000137"
         //     }
         //
         // cross: repayMargin
@@ -7070,7 +7059,7 @@ export default class bitget extends Exchange {
         const marketId = this.safeString (info, 'symbol');
         let symbol = undefined;
         if (marketId !== undefined) {
-            symbol = this.safeSymbol (marketId);
+            symbol = this.safeSymbol (marketId, market, undefined, 'spot');
         }
         return {
             'id': this.safeString2 (info, 'loanId', 'repayId'),
