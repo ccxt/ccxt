@@ -1170,7 +1170,8 @@ export default class cex extends cexRest {
     handleMessage (client: Client, message) {
         const ok = this.safeString (message, 'ok');
         if (ok === 'error') {
-            return this.handleErrorMessage (client, message);
+            this.handleErrorMessage (client, message);
+            return;
         }
         const event = this.safeString (message, 'e');
         const handlers = {
@@ -1193,9 +1194,8 @@ export default class cex extends cexRest {
         };
         const handler = this.safeValue (handlers, event);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
         }
-        return message;
     }
 
     handleAuthenticationMessage (client: Client, message) {

@@ -716,13 +716,15 @@ export default class woo extends wooRest {
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
+            return;
         }
         const topic = this.safeString (message, 'topic');
         if (topic !== undefined) {
             method = this.safeValue (methods, topic);
             if (method !== undefined) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
+                return;
             }
             const splitTopic = topic.split ('@');
             const splitLength = splitTopic.length;
@@ -730,19 +732,19 @@ export default class woo extends wooRest {
                 const name = this.safeString (splitTopic, 1);
                 method = this.safeValue (methods, name);
                 if (method !== undefined) {
-                    return method.call (this, client, message);
+                    method.call (this, client, message);
+                    return;
                 }
                 const splitName = name.split ('_');
                 const splitNameLength = splitTopic.length;
                 if (splitNameLength === 2) {
                     method = this.safeValue (methods, this.safeString (splitName, 0));
                     if (method !== undefined) {
-                        return method.call (this, client, message);
+                        method.call (this, client, message);
                     }
                 }
             }
         }
-        return message;
     }
 
     ping (client: Client) {

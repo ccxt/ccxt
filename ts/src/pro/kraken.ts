@@ -1359,10 +1359,8 @@ export default class kraken extends krakenRest {
                 'ownTrades': this.handleMyTrades,
             };
             const method = this.safeValue2 (methods, name, channelName);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message, subscription);
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
             }
         } else {
             if (this.handleErrorMessage (client, message)) {
@@ -1377,10 +1375,8 @@ export default class kraken extends krakenRest {
                     'cancelAllStatus': this.handleCancelAllOrders,
                 };
                 const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
+                if (method !== undefined) {
+                    method.call (this, client, message);
                 }
             }
         }

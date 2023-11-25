@@ -1147,10 +1147,8 @@ export default class bitfinex2 extends bitfinex2Rest {
             } else {
                 method = this.safeValue2 (publicMethods, name, channel);
             }
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message, subscription);
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
             }
         } else {
             const event = this.safeString (message, 'event');
@@ -1161,10 +1159,8 @@ export default class bitfinex2 extends bitfinex2Rest {
                     'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
+                if (method !== undefined) {
+                    method.call (this, client, message);
                 }
             }
         }

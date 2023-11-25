@@ -1069,7 +1069,7 @@ export default class kucoin extends kucoinRest {
         };
         const method = this.safeValue (methods, type);
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 }

@@ -327,6 +327,5 @@ export default class luno extends lunoRest {
             const handler = handlers[j];
             handler.call (this, client, message, subscriptions[0]);
         }
-        return message;
     }
 }

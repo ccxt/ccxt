@@ -560,11 +560,13 @@ export default class probit extends probitRest {
         //
         const errorCode = this.safeString (message, 'errorCode');
         if (errorCode !== undefined) {
-            return this.handleErrorMessage (client, message);
+            this.handleErrorMessage (client, message);
+            return;
         }
         const type = this.safeString (message, 'type');
         if (type === 'authorization') {
-            return this.handleAuthenticate (client, message);
+            this.handleAuthenticate (client, message);
+            return;
         }
         const handlers = {
             'marketdata': this.handleMarketData,
@@ -576,7 +578,8 @@ export default class probit extends probitRest {
         const channel = this.safeString (message, 'channel');
         const handler = this.safeValue (handlers, channel);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
+            return;
         }
         const error = new NotSupported (this.id + ' handleMessage: unknown message: ' + this.json (message));
         client.reject (error);

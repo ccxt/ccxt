@@ -1543,7 +1543,8 @@ export default class okx extends okxRest {
         //
         //
         if (message === 'pong') {
-            return this.handlePong (client, message);
+            this.handlePong (client, message);
+            return;
         }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
@@ -1562,10 +1563,8 @@ export default class okx extends okxRest {
                 'mass-cancel': this.handleCancelAllOrders,
             };
             const method = this.safeValue (methods, event);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         } else {
             const arg = this.safeValue (message, 'arg', {});
@@ -1591,11 +1590,9 @@ export default class okx extends okxRest {
             if (method === undefined) {
                 if (channel.indexOf ('candle') === 0) {
                     this.handleOHLCV (client, message);
-                } else {
-                    return message;
                 }
             } else {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }

@@ -1018,9 +1018,10 @@ export default class coinex extends coinexRest {
         };
         const handler = this.safeValue (handlers, method);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
+            return;
         }
-        return this.handleSubscriptionStatus (client, message);
+        this.handleSubscriptionStatus (client, message);
     }
 
     handleAuthenticationMessage (client: Client, message) {

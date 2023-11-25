@@ -581,7 +581,8 @@ export default class exmo extends exmoRest {
         };
         const eventHandler = this.safeValue (events, event);
         if (eventHandler !== undefined) {
-            return eventHandler.call (this, client, message);
+            eventHandler.call (this, client, message);
+            return;
         }
         if ((event === 'update') || (event === 'snapshot')) {
             const topic = this.safeString (message, 'topic');
@@ -603,7 +604,8 @@ export default class exmo extends exmoRest {
                 };
                 const handler = this.safeValue (handlers, channel);
                 if (handler !== undefined) {
-                    return handler.call (this, client, message);
+                    handler.call (this, client, message);
+                    return;
                 }
             }
         }

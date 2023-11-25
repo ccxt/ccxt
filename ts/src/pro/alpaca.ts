@@ -673,7 +673,8 @@ export default class alpaca extends alpacaRest {
 
     handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
-            return this.handleCryptoMessage (client, message);
+            this.handleCryptoMessage (client, message);
+            return;
         }
         this.handleTradingMessage (client, message);
     }

@@ -526,7 +526,7 @@ export default class ndax extends ndaxRest {
         //
         const payload = this.safeString (message, 'o');
         if (payload === undefined) {
-            return message;
+            return;
         }
         message['o'] = JSON.parse (payload);
         const methods = {
@@ -541,10 +541,8 @@ export default class ndax extends ndaxRest {
         };
         const event = this.safeString (message, 'n');
         const method = this.safeValue (methods, event);
-        if (method === undefined) {
-            return message;
-        } else {
-            return method.call (this, client, message);
+        if (method !== undefined) {
+            method.call (this, client, message);
         }
     }
 }

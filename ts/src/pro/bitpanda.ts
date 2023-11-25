@@ -1239,7 +1239,8 @@ export default class bitpanda extends bitpandaRest {
     handleMessage (client: Client, message) {
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
-            return this.handleErrorMessage (client, message);
+            this.handleErrorMessage (client, message);
+            return;
         }
         const type = this.safeValue (message, 'type');
         const handlers = {
@@ -1270,7 +1271,8 @@ export default class bitpanda extends bitpandaRest {
         };
         const handler = this.safeValue (handlers, type);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
+            return;
         }
         throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
     }

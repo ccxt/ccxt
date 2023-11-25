@@ -621,10 +621,8 @@ export default class bitmart extends bitmartRest {
                     'subscribe': this.handleSubscriptionStatus,
                 };
                 const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
+                if (method !== undefined) {
+                    method.call (this, client, message);
                 }
             }
         } else {
@@ -647,10 +645,8 @@ export default class bitmart extends bitmartRest {
             if (privateName === 'order') {
                 method = this.handleOrders;
             }
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         }
     }

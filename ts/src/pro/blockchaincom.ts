@@ -791,7 +791,8 @@ export default class blockchaincom extends blockchaincomRest {
         };
         const handler = this.safeValue (handlers, channel);
         if (handler !== undefined) {
-            return handler.call (this, client, message);
+            handler.call (this, client, message);
+            return;
         }
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }

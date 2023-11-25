@@ -1020,7 +1020,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         };
         const method = this.safeValue (methods, type);
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 

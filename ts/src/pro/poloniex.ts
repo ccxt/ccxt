@@ -1201,13 +1201,13 @@ export default class poloniex extends poloniexRest {
             if (orderId === '0') {
                 this.handleErrorMessage (client, item);
             } else {
-                return this.handleOrderRequest (client, message);
+                this.handleOrderRequest (client, message);
             }
         } else {
             const data = this.safeValue (message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }

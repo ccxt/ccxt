@@ -713,13 +713,11 @@ export default class bitvavo extends bitvavoRest {
         if (method === undefined) {
             const action = this.safeString (message, 'action');
             method = this.safeValue (methods, action);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         } else {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 }

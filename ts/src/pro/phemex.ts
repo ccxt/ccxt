@@ -1427,18 +1427,23 @@ export default class phemex extends phemexRest {
             const method = client.subscriptions[id];
             delete client.subscriptions[id];
             if (method !== true) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
+                return;
             }
         }
         const methodName = this.safeString (message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf ('perp_market24h_pack_p') >= 0)) {
-            return this.handleTicker (client, message);
+            this.handleTicker (client, message);
+            return;
         } else if (('trades' in message) || ('trades_p' in message)) {
-            return this.handleTrades (client, message);
+            this.handleTrades (client, message);
+            return;
         } else if (('kline' in message) || ('kline_p' in message)) {
-            return this.handleOHLCV (client, message);
+            this.handleOHLCV (client, message);
+            return;
         } else if (('book' in message) || ('orderbook_p' in message)) {
-            return this.handleOrderBook (client, message);
+            this.handleOrderBook (client, message);
+            return;
         }
         if (('orders' in message) || ('orders_p' in message)) {
             const orders = this.safeValue2 (message, 'orders', 'orders_p', {});

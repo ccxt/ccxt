@@ -902,7 +902,6 @@ export default class ascendex extends ascendexRest {
                 this.handleBalance (client, message);
             }
         }
-        return message;
     }
 
     handleSubscriptionStatus (client: Client, message) {

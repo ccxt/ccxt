@@ -748,7 +748,8 @@ export default class wazirx extends wazirxRest {
     handleMessage (client: Client, message) {
         const status = this.safeString (message, 'status');
         if (status === 'error') {
-            return this.handleError (client, message);
+            this.handleError (client, message);
+            return;
         }
         const event = this.safeString (message, 'event');
         const eventHandlers = {
@@ -758,7 +759,8 @@ export default class wazirx extends wazirxRest {
         };
         const eventHandler = this.safeValue (eventHandlers, event);
         if (eventHandler !== undefined) {
-            return eventHandler.call (this, client, message);
+            eventHandler.call (this, client, message);
+            return;
         }
         const stream = this.safeString (message, 'stream', '');
         const streamHandlers = {

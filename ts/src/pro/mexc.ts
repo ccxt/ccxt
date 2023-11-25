@@ -1152,7 +1152,8 @@ export default class mexc extends mexcRest {
             return;
         }
         if ('msg' in message) {
-            return this.handleSubscriptionStatus (client, message);
+            this.handleSubscriptionStatus (client, message);
+            return;
         }
         const c = this.safeString (message, 'c');
         let channel = undefined;

@@ -632,7 +632,7 @@ export default class bitfinex extends bitfinexRest {
             //     ]
             //
             if (message[1] === 'hb') {
-                return message; // skip heartbeats within subscription channels for now
+                return; // skip heartbeats within subscription channels for now
             }
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
@@ -647,10 +647,8 @@ export default class bitfinex extends bitfinexRest {
                 'oc': this.handleOrders,
             };
             const method = this.safeValue2 (methods, channel, name);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message, subscription);
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
             }
         } else {
             // todo add bitfinex handleErrorMessage
@@ -671,10 +669,8 @@ export default class bitfinex extends bitfinexRest {
                     'auth': this.handleAuthenticationMessage,
                 };
                 const method = this.safeValue (methods, event);
-                if (method === undefined) {
-                    return message;
-                } else {
-                    return method.call (this, client, message);
+                if (method !== undefined) {
+                    method.call (this, client, message);
                 }
             }
         }
