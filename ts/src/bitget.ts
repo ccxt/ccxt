@@ -1327,17 +1327,22 @@ export default class bitget extends Exchange {
                     },
                 },
                 'accountsByType': {
-                    'main': 'EXCHANGE',
-                    'spot': 'EXCHANGE',
-                    'future': 'USDT_MIX',
-                    'contract': 'CONTRACT',
-                    'mix': 'USD_MIX',
+                    'spot': 'spot',
+                    'cross': 'crossed_margin',
+                    'isolated': 'isolated_margin',
+                    'swap': 'usdt_futures',
+                    'usdc_swap': 'usdc_futures',
+                    'future': 'coin_futures',
+                    'p2p': 'p2p',
                 },
                 'accountsById': {
-                    'EXCHANGE': 'spot',
-                    'USDT_MIX': 'future',
-                    'CONTRACT': 'swap',
-                    'USD_MIX': 'swap',
+                    'spot': 'spot',
+                    'crossed_margin': 'cross',
+                    'isolated_margin': 'isolated',
+                    'usdt_futures': 'swap',
+                    'usdc_futures': 'usdc_swap',
+                    'coin_futures': 'future',
+                    'p2p': 'p2p',
                 },
                 'sandboxMode': false,
                 'networks': {
@@ -5358,7 +5363,7 @@ export default class bitget extends Exchange {
         let request = {};
         if (code !== undefined) {
             currency = this.currency (code);
-            request['coin'] = currency['id'];
+            request['coin'] = currency['code'];
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
@@ -6608,58 +6613,56 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
+         * @see https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
-         * @param {int} [limit] the maximum number of  transfers structures to retrieve
+         * @param {int} [limit] the maximum number of transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the bitget api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTransfers', code, since, limit, params);
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
+        await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         const fromAccount = this.safeString (params, 'fromAccount', type);
         params = this.omit (params, 'fromAccount');
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         type = this.safeString (accountsByType, fromAccount);
+        const currency = this.currency (code);
         let request = {
+            'coin': currency['code'],
             'fromType': type,
         };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coinId'] = currency['id'];
-        }
         if (since !== undefined) {
-            request['before'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('after', request, params);
-        const response = await this.privateSpotGetSpotV1AccountTransferRecords (this.extend (request, params));
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = await this.privateSpotGetV2SpotAccountTransferRecords (this.extend (request, params));
         //
         //     {
-        //         "code":"00000",
-        //         "message":"success",
-        //         "data":[{
-        //             "cTime":"1622697148",
-        //             "coinId":"22",
-        //             "coinName":"usdt",
-        //             "groupType":"deposit",
-        //             "bizType":"transfer-in",
-        //             "quantity":"1",
-        //             "balance": "1",
-        //             "fees":"0",
-        //             "billId":"1291"
-        //         }]
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700873854651,
+        //         "data": [
+        //             {
+        //                 "coin": "USDT",
+        //                 "status": "Successful",
+        //                 "toType": "crossed_margin",
+        //                 "toSymbol": "",
+        //                 "fromType": "spot",
+        //                 "fromSymbol": "",
+        //                 "size": "11.64958799",
+        //                 "ts": "1700729673028",
+        //                 "clientOid": "1111506298504744960",
+        //                 "transferId": "24930940"
+        //             },
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -6670,15 +6673,14 @@ export default class bitget extends Exchange {
         /**
          * @method
          * @name bitget#transfer
-         * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer-v2
+         * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the bitget api endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMS
+         * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
          * @param {string} [params.clientOid] custom id
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
@@ -6696,54 +6698,60 @@ export default class bitget extends Exchange {
             'fromType': fromAccount,
             'toType': toAccount,
             'amount': amount,
-            'coin': currency['info']['coinName'],
+            'coin': currency['code'],
         };
+        const symbol = this.safeString (params, 'symbol');
+        params = this.omit (params, 'symbol');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         const response = await this.privateSpotPostSpotV1WalletTransferV2 (this.extend (request, params));
         //
-        //    {
-        //        "code": "00000",
-        //        "msg": "success",
-        //        "requestTime": 1668119107154,
-        //        "data": "SUCCESS"
-        //    }
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1700874302021,
+        //         "data": {
+        //             "transferId": "1112112916581847040",
+        //             "clientOrderId": null
+        //         }
+        //     }
         //
-        return this.parseTransfer (response, currency);
+        const data = this.safeValue (response, 'data', {});
+        data['ts'] = this.safeInteger (response, 'requestTime');
+        return this.parseTransfer (data, currency);
     }
 
     parseTransfer (transfer, currency: Currency = undefined) {
         //
         // transfer
         //
-        //    {
-        //        "code": "00000",
-        //        "msg": "success",
-        //        "requestTime": 1668119107154,
-        //        "data": "SUCCESS"
-        //    }
+        //     {
+        //         "transferId": "1112112916581847040",
+        //         "clientOrderId": null,
+        //         "ts": 1700874302021
+        //     }
         //
         // fetchTransfers
         //
         //     {
-        //         "cTime":"1622697148",
-        //         "coinId":"22",
-        //         "coinName":"usdt",
-        //         "groupType":"deposit",
-        //         "bizType":"transfer-in",
-        //         "quantity":"1",
-        //         "balance": "1",
-        //         "fees":"0",
-        //         "billId":"1291"
+        //         "coin": "USDT",
+        //         "status": "Successful",
+        //         "toType": "crossed_margin",
+        //         "toSymbol": "",
+        //         "fromType": "spot",
+        //         "fromSymbol": "",
+        //         "size": "11.64958799",
+        //         "ts": "1700729673028",
+        //         "clientOid": "1111506298504744960",
+        //         "transferId": "24930940"
         //     }
         //
-        let timestamp = this.safeInteger2 (transfer, 'requestTime', 'tradeTime');
-        if (timestamp === undefined) {
-            timestamp = this.safeTimestamp (transfer, 'cTime');
-        }
-        const msg = this.safeStringLowerN (transfer, [ 'msg', 'status' ]);
-        let currencyId = this.safeString2 (transfer, 'code', 'coinName');
-        if (currencyId === '00000') {
-            currencyId = undefined;
-        }
+        const timestamp = this.safeInteger (transfer, 'ts');
+        const status = this.safeStringLower (transfer, 'status');
+        const currencyId = this.safeString (transfer, 'coin');
         const fromAccountRaw = this.safeString (transfer, 'fromType');
         const accountsById = this.safeValue (this.options, 'accountsById', {});
         const fromAccount = this.safeString (accountsById, fromAccountRaw, fromAccountRaw);
@@ -6751,15 +6759,22 @@ export default class bitget extends Exchange {
         const toAccount = this.safeString (accountsById, toAccountRaw, toAccountRaw);
         return {
             'info': transfer,
-            'id': this.safeString2 (transfer, 'id', 'billId'),
+            'id': this.safeString (transfer, 'transferId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': this.safeCurrencyCode (currencyId),
-            'amount': this.safeNumberN (transfer, [ 'size', 'quantity', 'amount' ]),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'size'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (msg),
+            'status': this.parseTransferStatus (status),
         };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'successful': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {
@@ -6843,14 +6858,6 @@ export default class bitget extends Exchange {
         const response = await this.publicSpotGetSpotV1PublicCurrencies (params);
         const data = this.safeValue (response, 'data');
         return this.parseDepositWithdrawFees (data, codes, 'coinName');
-    }
-
-    parseTransferStatus (status) {
-        const statuses = {
-            'success': 'ok',
-            'successful': 'ok',
-        };
-        return this.safeString (statuses, status, status);
     }
 
     async borrowCrossMargin (code: string, amount, params = {}) {
