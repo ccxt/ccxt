@@ -26,15 +26,12 @@ async function example_webSockets () {
     myEx.httpProxy = 'http://5.75.153.75:8002'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
     myEx.wsProxy = 'http://5.75.153.75:8002'; // "wsProxy" or "wssProxy" (depending on your proxy protocol)
     await myEx.loadMarkets ();
-    myEx.handleMessage = ws_helper_callback; // todo for PHP: specifically this custom example does not work in PHP to retrieve the target message, however proxies do work in PHP for websockets independently from this example
-    const fakeExchangeWsUrl = 'ws://5.75.153.75:9876';
-    await myEx.watch (fakeExchangeWsUrl, 'test', 'test');
-    console.log ('WS proxy test finished');
+    while (true) {
+        const ticker = await myEx.watchTicker ('BTC/USDT');
+        console.log (ticker);
+    }
 }
 
-function ws_helper_callback (client, message) {
-    console.log ('WS received:', message);
-}
 
 await example_proxyUrl ();
 // await example_httpProxy ();
