@@ -5318,22 +5318,6 @@ export default class bitget extends Exchange {
         return this.safeValue (parsedData, 'data', []);
     }
 
-    addPaginationCursorToResult (response, data) {
-        const endId = this.safeValue (response, 'endId');
-        if (endId !== undefined) {
-            const dataLength = data.length;
-            if (dataLength > 0) {
-                const first = data[0];
-                const last = data[dataLength - 1];
-                first['endId'] = endId;
-                last['endId'] = endId;
-                data[0] = first;
-                data[dataLength - 1] = last;
-            }
-        }
-        return data;
-    }
-
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
