@@ -5613,7 +5613,7 @@ export default class gate extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         let response = undefined;
-        if (marginMode === 'cross') {
+        if ((marginMode === 'cross') && (symbol === undefined)) {
             response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
         } else if ((marginMode === 'isolated') || (symbol !== undefined)) {
             if (symbol === undefined) {
@@ -5693,7 +5693,7 @@ export default class gate extends Exchange {
             'amount': this.currencyToPrecision (code, amount),
         };
         let response = undefined;
-        if (marginMode === 'cross') {
+        if ((marginMode === 'cross') && (symbol === undefined)) {
             response = await this.privateMarginPostCrossLoans (this.extend (request, params));
         } else if ((marginMode === 'isolated') || (symbol !== undefined)) {
             if (symbol === undefined) {
