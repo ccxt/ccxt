@@ -7077,8 +7077,8 @@ export default class bitget extends Exchange {
          * @method
          * @name bitget#fetchMyLiquidations
          * @description retrieves the users liquidated positions
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-liquidation-records
-         * @see https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-liquidation-records
+         * @see https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Liquidation-Records
+         * @see https://www.bitget.com/api-doc/margin/isolated/record/Get-Isolated-Liquidation-Records
          * @param {string} [symbol] unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -7105,7 +7105,7 @@ export default class bitget extends Exchange {
             request['startTime'] = this.milliseconds () - 7776000000;
         }
         if (limit !== undefined) {
-            request['pageSize'] = limit;
+            request['limit'] = limit;
         }
         let response = undefined;
         let marginMode = undefined;
@@ -7114,10 +7114,10 @@ export default class bitget extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyLiquidations() requires a symbol argument');
             }
-            request['symbol'] = market['info']['symbolName'];
-            response = await this.privateMarginGetMarginV1IsolatedLiquidationList (this.extend (request, params));
+            request['symbol'] = market['id'];
+            response = await this.privateMarginGetV2MarginIsolatedLiquidationHistory (this.extend (request, params));
         } else if (marginMode === 'cross') {
-            response = await this.privateMarginGetMarginV1CrossLiquidationList (this.extend (request, params));
+            response = await this.privateMarginGetV2MarginCrossedLiquidationHistory (this.extend (request, params));
         }
         //
         // isolated
@@ -7133,10 +7133,11 @@ export default class bitget extends Exchange {
         //                     "symbol": "BTCUSDT",
         //                     "liqStartTime": "1653453245342",
         //                     "liqEndTime": "16312423423432",
-        //                     "liqRisk": "1.01",
+        //                     "liqRiskRatio": "1.01",
         //                     "totalAssets": "1242.34",
         //                     "totalDebt": "1100",
-        //                     "LiqFee": "1.2",
+        //                     "liqFee": "1.2",
+        //                     "uTime": "1668134458717",
         //                     "cTime": "1653453245342"
         //                 }
         //             ],
@@ -7157,10 +7158,11 @@ export default class bitget extends Exchange {
         //                     "liqId": "123",
         //                     "liqStartTime": "1653453245342",
         //                     "liqEndTime": "16312423423432",
-        //                     "liqRisk": "1.01",
+        //                     "liqRiskRatio": "1.01",
         //                     "totalAssets": "1242.34",
         //                     "totalDebt": "1100",
         //                     "LiqFee": "1.2",
+        //                     "uTime": "1668134458717",
         //                     "cTime": "1653453245342"
         //                 }
         //             ],
@@ -7183,10 +7185,11 @@ export default class bitget extends Exchange {
         //         "symbol": "BTCUSDT",
         //         "liqStartTime": "1653453245342",
         //         "liqEndTime": "16312423423432",
-        //         "liqRisk": "1.01",
+        //         "liqRiskRatio": "1.01",
         //         "totalAssets": "1242.34",
         //         "totalDebt": "1100",
-        //         "LiqFee": "1.2",
+        //         "liqFee": "1.2",
+        //         "uTime": "1692690126000"
         //         "cTime": "1653453245342"
         //     }
         //
@@ -7196,16 +7199,17 @@ export default class bitget extends Exchange {
         //         "liqId": "123",
         //         "liqStartTime": "1653453245342",
         //         "liqEndTime": "16312423423432",
-        //         "liqRisk": "1.01",
+        //         "liqRiskRatio": "1.01",
         //         "totalAssets": "1242.34",
         //         "totalDebt": "1100",
         //         "LiqFee": "1.2",
+        //         "uTime": "1692690126000"
         //         "cTime": "1653453245342"
         //     }
         //
         const marketId = this.safeString (liquidation, 'symbol');
         const timestamp = this.safeInteger (liquidation, 'liqEndTime');
-        const liquidationFee = this.safeString (liquidation, 'LiqFee');
+        const liquidationFee = this.safeString2 (liquidation, 'LiqFee', 'liqFee');
         const totalDebt = this.safeString (liquidation, 'totalDebt');
         const quoteValueString = Precise.stringAdd (liquidationFee, totalDebt);
         return this.safeLiquidation ({
