@@ -2470,6 +2470,6 @@ export default class kucoinfutures extends kucoin {
         } else {
             response = await this.futuresPrivatePostOrders (this.extend (request, params));
         }
-        return this.parseOrders (response, market, undefined, undefined, params);
+        return this.parseOrder (response, market);
     }
 }

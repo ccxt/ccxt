@@ -6947,8 +6947,7 @@ export default class gate extends Exchange {
             'close': true,
         };
         params = this.extend (request, params);
-        const order = await this.createOrder (symbol, 'market', side, 0, undefined, params);
-        return [ order ];
+        return await this.createOrder (symbol, 'market', side, 0, undefined, params);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

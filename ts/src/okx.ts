@@ -7204,7 +7204,7 @@ export default class okx extends Exchange {
             request['ccy'] = currency['id'];
         }
         const response = await this.privatePostTradeClosePosition (this.extend (request, params));
-        return this.parseOrders (response, market, undefined, undefined, params);
+        return this.parseOrder (response, market);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

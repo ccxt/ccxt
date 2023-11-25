@@ -8643,6 +8643,6 @@ export default class htx extends Exchange {
                 response = await this.contractPrivatePostLinearSwapApiV1SwapLightningClosePosition (this.extend (request, params));
             }
         }
-        return this.parseOrders (response, market, undefined, undefined, params);
+        return this.parseOrder (response, market);
     }
 }
