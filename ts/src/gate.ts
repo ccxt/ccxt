@@ -5615,7 +5615,10 @@ export default class gate extends Exchange {
         let response = undefined;
         if (marginMode === 'cross') {
             response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
-        } else {
+        } else if ((marginMode === 'isolated') || (symbol !== undefined)) {
+            if (symbol === undefined) {
+                throw new BadRequest (this.id + ' repayMargin() requires a symbol argument for isolated margin');
+            }
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
             request['type'] = 'repay';
@@ -5692,7 +5695,10 @@ export default class gate extends Exchange {
         let response = undefined;
         if (marginMode === 'cross') {
             response = await this.privateMarginPostCrossLoans (this.extend (request, params));
-        } else {
+        } else if ((marginMode === 'isolated') || (symbol !== undefined)) {
+            if (symbol === undefined) {
+                throw new BadRequest (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
+            }
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
             request['type'] = 'borrow';
