@@ -1006,7 +1006,8 @@ export default class kucoin extends kucoinRest {
         //
         const topic = this.safeString (message, 'topic');
         if (topic === '/market/ticker:all') {
-            return this.handleTicker (client, message);
+            this.handleTicker (client, message);
+            return;
         }
         const subject = this.safeString (message, 'subject');
         const methods = {
@@ -1021,10 +1022,8 @@ export default class kucoin extends kucoinRest {
             'stopOrder': this.handleOrder,
         };
         const method = this.safeValue (methods, subject);
-        if (method === undefined) {
-            return message;
-        } else {
-            return method.call (this, client, message);
+        if (method !== undefined) {
+            method.call (this, client, message);
         }
     }
 

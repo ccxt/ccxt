@@ -1798,10 +1798,9 @@ export default class htx extends htxRest {
                 'kline': this.handleOHLCV,
             };
             const method = this.safeValue (methods, methodName);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
+            if (method !== undefined) {
+                method.call (this, client, message);
+                return;
             }
         }
         // private spot subjects

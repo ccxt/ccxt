@@ -745,9 +745,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const topic = this.safeString (message, 'topic');
         const isSnapshot = topic.indexOf ('Depth') >= 0;
         if (isSnapshot) {
-            return this.handeL2Snapshot (client, message);
+            this.handeL2Snapshot (client, message);
+            return;
         }
-        return this.handleL2OrderBook (client, message);
+        this.handleL2OrderBook (client, message);
     }
 
     handleL2OrderBook (client: Client, message) {

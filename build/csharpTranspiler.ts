@@ -62,8 +62,11 @@ class NewTranspiler {
 
     getWsRegexes() {
         return [
+            [/typeof\(stored\)/gm, 'stored'],
             [/typeof\(client\)/gm, 'client'],
+            [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
             [/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions'],
+            [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
             [/(orderbook)(\.reset.+)/gm, '($1 as ccxt.OrderBook)$2'],
@@ -71,9 +74,9 @@ class NewTranspiler {
             //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
             [/(\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
             [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IndexedOrderBookSide).store($2)'],
-            [/(\w+)(\.store\(.+\))/gm, '($1 as OrderBookSide)$2'],
+            [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as OrderBookSide).store($1,$2)'],
             [/(\w+)(\.storeArray\(.+\))/gm, '($1 as OrderBookSide)$2'],
-            [/(.+)\.store\((.+),(.+)\)/gm, '($1 as OrderBookSide).store($2,$3)'],
+            // [/(.+)\.store\((.+),(.+)\)/gm, '($1 as OrderBookSide).store($2,$3)'],
             [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
             [/(\w+)(\.limit\(\))/gm, '($1 as ccxt.OrderBook)$2'],
             [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],

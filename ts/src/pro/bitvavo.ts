@@ -606,7 +606,7 @@ export default class bitvavo extends bitvavoRest {
         return message;
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
