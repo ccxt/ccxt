@@ -21,6 +21,11 @@ interface Exchange {
     publicGetTradeApiStats (params?: {}): Promise<implicitReturnType>;
     publicGetTradeApiTradeId (params?: {}): Promise<implicitReturnType>;
     publicGetTradeApiTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiCmcAssets (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiCmcOrderbookPair (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiCmcSummary (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiCmcTicker (params?: {}): Promise<implicitReturnType>;
+    publicGetTradeApiCmcTradesPair (params?: {}): Promise<implicitReturnType>;
     publicPostTradeApiLoginOauth (params?: {}): Promise<implicitReturnType>;
     publicPostTradeApiResetPassword (params?: {}): Promise<implicitReturnType>;
     privateGetTradeApiAddressWallets (params?: {}): Promise<implicitReturnType>;
