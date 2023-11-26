@@ -101,6 +101,7 @@ rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
 LOG_CHARS_LENGTH = 10000
 ext = 'py'
+proxyTestFileName = 'proxies'
 
 
 class baseMainTestClass():
@@ -116,6 +117,7 @@ class baseMainTestClass():
     env_vars = envVars
     ext = ext
     root_dir_for_skips = rootDirForSkips
+    proxy_test_file_name = proxyTestFileName
     pass
 
 
@@ -317,6 +319,7 @@ class testMainClass(baseMainTestClass):
         timeout = exchange.safe_value(skipped_settings_for_exchange, 'timeout')
         if timeout is not None:
             exchange.timeout = timeout
+        exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
         exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
@@ -338,7 +341,9 @@ class testMainClass(baseMainTestClass):
         if not is_public and (method_name_in_test in self.checked_public_tests) and (method_name != 'fetchCurrencies'):
             return
         skip_message = None
-        if not is_load_markets and (not (method_name in exchange.has) or not exchange.has[method_name]):
+        is_proxy_test = method_name == self.proxy_test_file_name
+        supported_by_exchange = (method_name in exchange.has) and exchange.has[method_name]
+        if not is_load_markets and not supported_by_exchange and not is_proxy_test:
             skip_message = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
         elif (method_name in self.skipped_methods) and (isinstance(self.skipped_methods[method_name], str)):
             skip_message = '[INFO:SKIPPED_TEST]'
@@ -662,6 +667,24 @@ class testMainClass(baseMainTestClass):
             if self.info:
                 dump(self.add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
 
+    async def test_proxies(self, exchange):
+        # these tests should be synchronously executed, because of conflicting nature of proxy settings
+        proxy_test_name = self.proxy_test_file_name
+        if self.info:
+            dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, proxy_test_name)
+        # try proxy several times
+        max_retries = 3
+        exception = None
+        for j in range(0, max_retries):
+            try:
+                await self.test_method(proxy_test_name, exchange, [], True)
+                break  # if successfull, then break
+            except Exception as e:
+                exception = e
+        # if exception was set, then throw it
+        if exception:
+            raise Error('[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception))
+
     async def start_test(self, exchange, symbol):
         # we do not need to test aliases
         if exchange.alias:
@@ -673,6 +696,9 @@ class testMainClass(baseMainTestClass):
             if not result:
                 await close(exchange)
                 return
+            if exchange.id == 'binance':
+                # we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+                await self.test_proxies(exchange)
             await self.test_exchange(exchange, symbol)
             await close(exchange)
         except Exception as e:

@@ -342,7 +342,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -365,7 +365,7 @@ class poloniex extends \ccxt\async\poloniex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.poloniex.com/#public-channels-market-data-ticker
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -381,7 +381,7 @@ class poloniex extends \ccxt\async\poloniex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.poloniex.com/#public-channels-market-data-ticker
              * @param {string} symbol unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -403,7 +403,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
@@ -424,7 +424,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @see https://docs.poloniex.com/#public-channels-market-data-book-level-2
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by poloniex watchOrderBook
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
@@ -444,7 +444,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] not used by poloniex watchOrders
              * @param {int} [$limit] not used by poloniex watchOrders
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -494,7 +494,7 @@ class poloniex extends \ccxt\async\poloniex {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
