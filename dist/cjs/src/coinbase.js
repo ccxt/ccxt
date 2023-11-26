@@ -1593,7 +1593,7 @@ class coinbase extends coinbase$1 {
          */
         await this.loadMarkets();
         const request = {
-            'limit': 100,
+            'limit': 250,
         };
         let response = undefined;
         const isV3 = this.safeValue(params, 'v3', false);
