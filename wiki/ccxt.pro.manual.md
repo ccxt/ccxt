@@ -774,6 +774,8 @@ That explains why some exchanges reasonably think that OHLCVs are not necessary 
 
 If your application is not very time-critical, you can still subscribe to OHLCV streams, for charting purposes. If the underlying `exchange.has['watchOHLCV']`, you can `watchOHLCV()/watch_ohlcv()` as shown below:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
 // JavaScript
 if (exchange.has['watchOHLCV']) {
@@ -789,7 +791,7 @@ if (exchange.has['watchOHLCV']) {
     }
 }
 ```
-
+#### **Python**
 ```python
 # Python
 if exchange.has['watchOHLCV']:
@@ -802,7 +804,7 @@ if exchange.has['watchOHLCV']:
             # stop the loop on exception or leave it commented to retry
             # raise e
 ```
-
+#### **PHP**
 ```php
 // PHP
 if ($exchange->has['watchOHLCV']) {
@@ -818,6 +820,7 @@ if ($exchange->has['watchOHLCV']) {
     });
 }
 ```
+<!-- tabs:end -->
 
 
 ### watchOHLCVForSymbols
@@ -996,20 +999,23 @@ if ($exchange->has['watchBalance']) {
 
 ### watchOrders
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
 // JavaScript
 watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
-
+#### **Python**
 ```python
 # Python
 watch_orders(symbol=None, since=None, limit=None, params={})
 ```
-
+#### **PHP**
 ```php
 // PHP
 watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```
+<!-- tabs:end -->
 
 ### watchMyTrades
 
