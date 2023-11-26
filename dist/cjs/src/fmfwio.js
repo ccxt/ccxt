@@ -13,11 +13,11 @@ class fmfwio extends hitbtc {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/159177712-b685b40c-5269-4cea-ac83-f7894c49525d.jpg',
                 'api': {
-                    'public': 'https://api.fmfw.io',
-                    'private': 'https://api.fmfw.io',
+                    'public': 'https://api.fmfw.io/api/3',
+                    'private': 'https://api.fmfw.io/api/3',
                 },
                 'www': 'https://fmfw.io',
-                'doc': 'https://api.fmfw.io/api/2/explore/',
+                'doc': 'https://api.fmfw.io/',
                 'fees': 'https://fmfw.io/fees-and-limits',
                 'referral': 'https://fmfw.io/referral/da948b21d6c92d69',
             },

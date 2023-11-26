@@ -1,0 +1,259 @@
+{
+  "exchange": "okx",
+  "skipKeys": [],
+  "options": {
+  },
+  "methods": {
+    "fetchOpenOrders": [
+      {
+        "description": "fetch swap limit open order with take profit and stop loss",
+        "method": "fetchOpenOrders",
+        "input": [
+          "ADA/USDT:USDT",
+          null,
+          1
+        ],
+        "httpResponse": {
+          "code": "0",
+          "data": [
+            {
+              "accFillSz": "0",
+              "algoClOrdId": "",
+              "algoId": "",
+              "attachAlgoClOrdId": "",
+              "attachAlgoOrds": [],
+              "avgPx": "",
+              "cTime": "1700135060018",
+              "cancelSource": "",
+              "cancelSourceReason": "",
+              "category": "normal",
+              "ccy": "",
+              "clOrdId": "e847386590ce4dBC28d905b5946bad5a",
+              "fee": "0",
+              "feeCcy": "USDT",
+              "fillPx": "",
+              "fillSz": "0",
+              "fillTime": "",
+              "instId": "ADA-USDT-SWAP",
+              "instType": "SWAP",
+              "lever": "3",
+              "ordId": "645348448086081536",
+              "ordType": "post_only",
+              "pnl": "0",
+              "posSide": "long",
+              "px": "0.2",
+              "pxType": "",
+              "pxUsd": "",
+              "pxVol": "",
+              "quickMgnType": "",
+              "rebate": "0",
+              "rebateCcy": "USDT",
+              "reduceOnly": "false",
+              "side": "buy",
+              "slOrdPx": "",
+              "slTriggerPx": "",
+              "slTriggerPxType": "",
+              "source": "",
+              "state": "live",
+              "stpId": "",
+              "stpMode": "",
+              "sz": "50",
+              "tag": "e847386590ce4dBC",
+              "tdMode": "cross",
+              "tgtCcy": "",
+              "tpOrdPx": "",
+              "tpTriggerPx": "",
+              "tpTriggerPxType": "",
+              "tradeId": "",
+              "uTime": "1700135060018"
+            }
+          ],
+          "msg": ""
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "accFillSz": "0",
+              "algoClOrdId": "",
+              "algoId": "",
+              "attachAlgoClOrdId": "",
+              "attachAlgoOrds": [],
+              "avgPx": "",
+              "cTime": "1700135060018",
+              "cancelSource": "",
+              "cancelSourceReason": "",
+              "category": "normal",
+              "ccy": "",
+              "clOrdId": "e847386590ce4dBC28d905b5946bad5a",
+              "fee": "0",
+              "feeCcy": "USDT",
+              "fillPx": "",
+              "fillSz": "0",
+              "fillTime": "",
+              "instId": "ADA-USDT-SWAP",
+              "instType": "SWAP",
+              "lever": "3",
+              "ordId": "645348448086081536",
+              "ordType": "post_only",
+              "pnl": "0",
+              "posSide": "long",
+              "px": "0.2",
+              "pxType": "",
+              "pxUsd": "",
+              "pxVol": "",
+              "quickMgnType": "",
+              "rebate": "0",
+              "rebateCcy": "USDT",
+              "reduceOnly": "false",
+              "side": "buy",
+              "slOrdPx": "",
+              "slTriggerPx": "",
+              "slTriggerPxType": "",
+              "source": "",
+              "state": "live",
+              "stpId": "",
+              "stpMode": "",
+              "sz": "50",
+              "tag": "e847386590ce4dBC",
+              "tdMode": "cross",
+              "tgtCcy": "",
+              "tpOrdPx": "",
+              "tpTriggerPx": "",
+              "tpTriggerPxType": "",
+              "tradeId": "",
+              "uTime": "1700135060018"
+            },
+            "id": "645348448086081536",
+            "clientOrderId": "e847386590ce4dBC28d905b5946bad5a",
+            "timestamp": 1700135060018,
+            "datetime": "2023-11-16T11:44:20.018Z",
+            "lastTradeTimestamp": null,
+            "lastUpdateTimestamp": 1700135060018,
+            "symbol": "ADA/USDT:USDT",
+            "type": "limit",
+            "timeInForce": "PO",
+            "postOnly": true,
+            "side": "buy",
+            "price": 0.2,
+            "stopLossPrice": null,
+            "takeProfitPrice": null,
+            "stopPrice": null,
+            "triggerPrice": null,
+            "average": null,
+            "cost": 0,
+            "amount": 50,
+            "filled": 0,
+            "remaining": 50,
+            "status": "open",
+            "fee": {
+              "cost": 0,
+              "currency": "USDT"
+            },
+            "trades": [],
+            "reduceOnly": false,
+            "fees": [
+              {
+                "cost": 0,
+                "currency": "USDT"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "fetchMyTrades": [
+        {
+            "description": "Fetch spot trade",
+            "method": "fetchMyTrades",
+            "input": [
+              null,
+              null,
+              1
+            ],
+            "httpResponse": {
+              "code": "0",
+              "data": [
+                {
+                  "side": "buy",
+                  "fillSz": "0.1",
+                  "fillPx": "67.84",
+                  "fillPxVol": "",
+                  "fillFwdPx": "",
+                  "fee": "-0.0001",
+                  "fillPnl": "0",
+                  "ordId": "639895991331667968",
+                  "feeRate": "-0.001",
+                  "instType": "SPOT",
+                  "fillPxUsd": "",
+                  "instId": "LTC-USDT",
+                  "clOrdId": "e847386590ce4dBCff0cf9a74b5f3bcf",
+                  "posSide": "net",
+                  "billId": "639895991340056576",
+                  "fillMarkVol": "",
+                  "tag": "e847386590ce4dBC",
+                  "fillTime": "1698835093027",
+                  "execType": "T",
+                  "fillIdxPx": "",
+                  "tradeId": "56181695",
+                  "fillMarkPx": "",
+                  "feeCcy": "LTC",
+                  "ts": "1698835093028"
+                }
+              ],
+              "msg": ""
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "side": "buy",
+                  "fillSz": "0.1",
+                  "fillPx": "67.84",
+                  "fillPxVol": "",
+                  "fillFwdPx": "",
+                  "fee": "-0.0001",
+                  "fillPnl": "0",
+                  "ordId": "639895991331667968",
+                  "feeRate": "-0.001",
+                  "instType": "SPOT",
+                  "fillPxUsd": "",
+                  "instId": "LTC-USDT",
+                  "clOrdId": "e847386590ce4dBCff0cf9a74b5f3bcf",
+                  "posSide": "net",
+                  "billId": "639895991340056576",
+                  "fillMarkVol": "",
+                  "tag": "e847386590ce4dBC",
+                  "fillTime": "1698835093027",
+                  "execType": "T",
+                  "fillIdxPx": "",
+                  "tradeId": "56181695",
+                  "fillMarkPx": "",
+                  "feeCcy": "LTC",
+                  "ts": "1698835093028"
+                },
+                "timestamp": 1698835093028,
+                "datetime": "2023-11-01T10:38:13.028Z",
+                "symbol": "LTC/USDT",
+                "id": "56181695",
+                "order": "639895991331667968",
+                "type": null,
+                "takerOrMaker": "taker",
+                "side": "buy",
+                "price": 67.84,
+                "amount": 0.1,
+                "cost": 6.784,
+                "fee": {
+                  "cost": 0.0001,
+                  "currency": "LTC"
+                },
+                "fees": [
+                  {
+                    "cost": 0.0001,
+                    "currency": "LTC"
+                  }
+                ]
+              }
+            ]
+        }
+    ]
+  }
+}

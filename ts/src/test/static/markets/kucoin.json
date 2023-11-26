@@ -1,0 +1,1157 @@
+{
+    "BTC/USDT": {
+        "id": "BTC-USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-8,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": 10000000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0.1,
+                "max": 99999999
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "BTC-USDT",
+            "name": "BTC-USDT",
+            "baseCurrency": "BTC",
+            "quoteCurrency": "USDT",
+            "feeCurrency": "USDT",
+            "market": "USDS",
+            "baseMinSize": "0.00001",
+            "quoteMinSize": "0.1",
+            "baseMaxSize": "10000000000",
+            "quoteMaxSize": "99999999",
+            "baseIncrement": "0.00000001",
+            "quoteIncrement": "0.000001",
+            "priceIncrement": "0.1",
+            "priceLimitRate": "0.1",
+            "minFunds": "0.1",
+            "isMarginEnabled": true,
+            "enableTrading": true
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.001
+                ],
+                [
+                    200,
+                    0.0009
+                ],
+                [
+                    500,
+                    0.0008
+                ],
+                [
+                    1000,
+                    0.0007
+                ],
+                [
+                    2000,
+                    0.0007
+                ],
+                [
+                    4000,
+                    0.0006
+                ],
+                [
+                    8000,
+                    0.0005
+                ],
+                [
+                    15000,
+                    0.00045
+                ],
+                [
+                    25000,
+                    0.0004
+                ],
+                [
+                    40000,
+                    0.00035
+                ],
+                [
+                    60000,
+                    0.0003
+                ],
+                [
+                    80000,
+                    0.00025
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.0009
+                ],
+                [
+                    200,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    2000,
+                    0
+                ],
+                [
+                    4000,
+                    0
+                ],
+                [
+                    8000,
+                    0
+                ],
+                [
+                    15000,
+                    -0.00005
+                ],
+                [
+                    25000,
+                    -0.00005
+                ],
+                [
+                    40000,
+                    -0.00005
+                ],
+                [
+                    60000,
+                    -0.00005
+                ],
+                [
+                    80000,
+                    -0.00005
+                ]
+            ]
+        }
+    },
+    "ETH/USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 1e-7,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 10000000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0.01,
+                "max": 999999999
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "ETH-USDT",
+            "name": "ETH-USDT",
+            "baseCurrency": "ETH",
+            "quoteCurrency": "USDT",
+            "feeCurrency": "USDT",
+            "market": "USDS",
+            "baseMinSize": "0.0001",
+            "quoteMinSize": "0.01",
+            "baseMaxSize": "10000000000",
+            "quoteMaxSize": "999999999",
+            "baseIncrement": "0.0000001",
+            "quoteIncrement": "0.000001",
+            "priceIncrement": "0.01",
+            "priceLimitRate": "0.1",
+            "minFunds": "0.1",
+            "isMarginEnabled": true,
+            "enableTrading": true
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.001
+                ],
+                [
+                    200,
+                    0.0009
+                ],
+                [
+                    500,
+                    0.0008
+                ],
+                [
+                    1000,
+                    0.0007
+                ],
+                [
+                    2000,
+                    0.0007
+                ],
+                [
+                    4000,
+                    0.0006
+                ],
+                [
+                    8000,
+                    0.0005
+                ],
+                [
+                    15000,
+                    0.00045
+                ],
+                [
+                    25000,
+                    0.0004
+                ],
+                [
+                    40000,
+                    0.00035
+                ],
+                [
+                    60000,
+                    0.0003
+                ],
+                [
+                    80000,
+                    0.00025
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.0009
+                ],
+                [
+                    200,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    2000,
+                    0
+                ],
+                [
+                    4000,
+                    0
+                ],
+                [
+                    8000,
+                    0
+                ],
+                [
+                    15000,
+                    -0.00005
+                ],
+                [
+                    25000,
+                    -0.00005
+                ],
+                [
+                    40000,
+                    -0.00005
+                ],
+                [
+                    60000,
+                    -0.00005
+                ],
+                [
+                    80000,
+                    -0.00005
+                ]
+            ]
+        }
+    },
+    "ADA/USDT": {
+        "id": "ADA-USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 10000000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0.1,
+                "max": 99999999
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "ADA-USDT",
+            "name": "ADA-USDT",
+            "baseCurrency": "ADA",
+            "quoteCurrency": "USDT",
+            "feeCurrency": "USDT",
+            "market": "USDS",
+            "baseMinSize": "1",
+            "quoteMinSize": "0.1",
+            "baseMaxSize": "10000000000",
+            "quoteMaxSize": "99999999",
+            "baseIncrement": "0.0001",
+            "quoteIncrement": "0.000001",
+            "priceIncrement": "0.000001",
+            "priceLimitRate": "0.1",
+            "minFunds": "0.1",
+            "isMarginEnabled": true,
+            "enableTrading": true
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.001
+                ],
+                [
+                    200,
+                    0.0009
+                ],
+                [
+                    500,
+                    0.0008
+                ],
+                [
+                    1000,
+                    0.0007
+                ],
+                [
+                    2000,
+                    0.0007
+                ],
+                [
+                    4000,
+                    0.0006
+                ],
+                [
+                    8000,
+                    0.0005
+                ],
+                [
+                    15000,
+                    0.00045
+                ],
+                [
+                    25000,
+                    0.0004
+                ],
+                [
+                    40000,
+                    0.00035
+                ],
+                [
+                    60000,
+                    0.0003
+                ],
+                [
+                    80000,
+                    0.00025
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.0009
+                ],
+                [
+                    200,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    2000,
+                    0
+                ],
+                [
+                    4000,
+                    0
+                ],
+                [
+                    8000,
+                    0
+                ],
+                [
+                    15000,
+                    -0.00005
+                ],
+                [
+                    25000,
+                    -0.00005
+                ],
+                [
+                    40000,
+                    -0.00005
+                ],
+                [
+                    60000,
+                    -0.00005
+                ],
+                [
+                    80000,
+                    -0.00005
+                ]
+            ]
+        }
+    },
+    "LTC/USDT": {
+        "id": "LTC-USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 10000000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0.1,
+                "max": 99999999
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "LTC-USDT",
+            "name": "LTC-USDT",
+            "baseCurrency": "LTC",
+            "quoteCurrency": "USDT",
+            "feeCurrency": "USDT",
+            "market": "USDS",
+            "baseMinSize": "0.001",
+            "quoteMinSize": "0.1",
+            "baseMaxSize": "10000000000",
+            "quoteMaxSize": "99999999",
+            "baseIncrement": "0.000001",
+            "quoteIncrement": "0.000001",
+            "priceIncrement": "0.001",
+            "priceLimitRate": "0.1",
+            "minFunds": "0.1",
+            "isMarginEnabled": true,
+            "enableTrading": true
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.001
+                ],
+                [
+                    200,
+                    0.0009
+                ],
+                [
+                    500,
+                    0.0008
+                ],
+                [
+                    1000,
+                    0.0007
+                ],
+                [
+                    2000,
+                    0.0007
+                ],
+                [
+                    4000,
+                    0.0006
+                ],
+                [
+                    8000,
+                    0.0005
+                ],
+                [
+                    15000,
+                    0.00045
+                ],
+                [
+                    25000,
+                    0.0004
+                ],
+                [
+                    40000,
+                    0.00035
+                ],
+                [
+                    60000,
+                    0.0003
+                ],
+                [
+                    80000,
+                    0.00025
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.0009
+                ],
+                [
+                    200,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    2000,
+                    0
+                ],
+                [
+                    4000,
+                    0
+                ],
+                [
+                    8000,
+                    0
+                ],
+                [
+                    15000,
+                    -0.00005
+                ],
+                [
+                    25000,
+                    -0.00005
+                ],
+                [
+                    40000,
+                    -0.00005
+                ],
+                [
+                    60000,
+                    -0.00005
+                ],
+                [
+                    80000,
+                    -0.00005
+                ]
+            ]
+        }
+    },
+    "XRP/USDT": {
+        "id": "XRP-USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.1,
+                "max": 10000000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0.1,
+                "max": 99999999
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "XRP-USDT",
+            "name": "XRP-USDT",
+            "baseCurrency": "XRP",
+            "quoteCurrency": "USDT",
+            "feeCurrency": "USDT",
+            "market": "USDS",
+            "baseMinSize": "0.1",
+            "quoteMinSize": "0.1",
+            "baseMaxSize": "10000000000",
+            "quoteMaxSize": "99999999",
+            "baseIncrement": "0.0001",
+            "quoteIncrement": "0.000001",
+            "priceIncrement": "0.00001",
+            "priceLimitRate": "0.1",
+            "minFunds": "0.1",
+            "isMarginEnabled": true,
+            "enableTrading": true
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.001
+                ],
+                [
+                    200,
+                    0.0009
+                ],
+                [
+                    500,
+                    0.0008
+                ],
+                [
+                    1000,
+                    0.0007
+                ],
+                [
+                    2000,
+                    0.0007
+                ],
+                [
+                    4000,
+                    0.0006
+                ],
+                [
+                    8000,
+                    0.0005
+                ],
+                [
+                    15000,
+                    0.00045
+                ],
+                [
+                    25000,
+                    0.0004
+                ],
+                [
+                    40000,
+                    0.00035
+                ],
+                [
+                    60000,
+                    0.0003
+                ],
+                [
+                    80000,
+                    0.00025
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.0009
+                ],
+                [
+                    200,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    2000,
+                    0
+                ],
+                [
+                    4000,
+                    0
+                ],
+                [
+                    8000,
+                    0
+                ],
+                [
+                    15000,
+                    -0.00005
+                ],
+                [
+                    25000,
+                    -0.00005
+                ],
+                [
+                    40000,
+                    -0.00005
+                ],
+                [
+                    60000,
+                    -0.00005
+                ],
+                [
+                    80000,
+                    -0.00005
+                ]
+            ]
+        }
+    },
+    "DOGE/USDT": {
+        "id": "DOGE-USDT",
+        "symbol": "DOGE/USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 10000000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0.1,
+                "max": 99999999
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "DOGE-USDT",
+            "name": "DOGE-USDT",
+            "baseCurrency": "DOGE",
+            "quoteCurrency": "USDT",
+            "feeCurrency": "USDT",
+            "market": "USDS",
+            "baseMinSize": "1",
+            "quoteMinSize": "0.1",
+            "baseMaxSize": "10000000000",
+            "quoteMaxSize": "99999999",
+            "baseIncrement": "0.0001",
+            "quoteIncrement": "0.00001",
+            "priceIncrement": "0.00001",
+            "priceLimitRate": "0.1",
+            "minFunds": "0.1",
+            "isMarginEnabled": true,
+            "enableTrading": true
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.001
+                ],
+                [
+                    200,
+                    0.0009
+                ],
+                [
+                    500,
+                    0.0008
+                ],
+                [
+                    1000,
+                    0.0007
+                ],
+                [
+                    2000,
+                    0.0007
+                ],
+                [
+                    4000,
+                    0.0006
+                ],
+                [
+                    8000,
+                    0.0005
+                ],
+                [
+                    15000,
+                    0.00045
+                ],
+                [
+                    25000,
+                    0.0004
+                ],
+                [
+                    40000,
+                    0.00035
+                ],
+                [
+                    60000,
+                    0.0003
+                ],
+                [
+                    80000,
+                    0.00025
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.0009
+                ],
+                [
+                    200,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    2000,
+                    0
+                ],
+                [
+                    4000,
+                    0
+                ],
+                [
+                    8000,
+                    0
+                ],
+                [
+                    15000,
+                    -0.00005
+                ],
+                [
+                    25000,
+                    -0.00005
+                ],
+                [
+                    40000,
+                    -0.00005
+                ],
+                [
+                    60000,
+                    -0.00005
+                ],
+                [
+                    80000,
+                    -0.00005
+                ]
+            ]
+        }
+    },
+    "TRX/USDT": {
+        "id": "TRX-USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 10,
+                "max": 10000000000
+            },
+            "price": {},
+            "cost": {
+                "min": 0.1,
+                "max": 99999999
+            },
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "TRX-USDT",
+            "name": "TRX-USDT",
+            "baseCurrency": "TRX",
+            "quoteCurrency": "USDT",
+            "feeCurrency": "USDT",
+            "market": "USDS",
+            "baseMinSize": "10",
+            "quoteMinSize": "0.1",
+            "baseMaxSize": "10000000000",
+            "quoteMaxSize": "99999999",
+            "baseIncrement": "0.0001",
+            "quoteIncrement": "0.000001",
+            "priceIncrement": "0.000001",
+            "priceLimitRate": "0.1",
+            "minFunds": "0.1",
+            "isMarginEnabled": true,
+            "enableTrading": true
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.001
+                ],
+                [
+                    200,
+                    0.0009
+                ],
+                [
+                    500,
+                    0.0008
+                ],
+                [
+                    1000,
+                    0.0007
+                ],
+                [
+                    2000,
+                    0.0007
+                ],
+                [
+                    4000,
+                    0.0006
+                ],
+                [
+                    8000,
+                    0.0005
+                ],
+                [
+                    15000,
+                    0.00045
+                ],
+                [
+                    25000,
+                    0.0004
+                ],
+                [
+                    40000,
+                    0.00035
+                ],
+                [
+                    60000,
+                    0.0003
+                ],
+                [
+                    80000,
+                    0.00025
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.001
+                ],
+                [
+                    50,
+                    0.0009
+                ],
+                [
+                    200,
+                    0.0007
+                ],
+                [
+                    500,
+                    0.0005
+                ],
+                [
+                    1000,
+                    0.0003
+                ],
+                [
+                    2000,
+                    0
+                ],
+                [
+                    4000,
+                    0
+                ],
+                [
+                    8000,
+                    0
+                ],
+                [
+                    15000,
+                    -0.00005
+                ],
+                [
+                    25000,
+                    -0.00005
+                ],
+                [
+                    40000,
+                    -0.00005
+                ],
+                [
+                    60000,
+                    -0.00005
+                ],
+                [
+                    80000,
+                    -0.00005
+                ]
+            ]
+        }
+    }
+}

@@ -23,7 +23,6 @@ interface Exchange {
     v1PrivateGetClientTradeTid(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetOrderOidTrades(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetClientTrades(params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientInfo(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetAssetDeposit(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetAssetHistory(params?: {}): Promise<implicitReturnType>;
     v1PrivateGetSubAccountAll(params?: {}): Promise<implicitReturnType>;
@@ -53,7 +52,15 @@ interface Exchange {
     v3PrivateGetAccountinfo(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetPositions(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBuypower(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetReferrals(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetReferralRewards(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertAssetInfo(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertRfq(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertTrade(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertTrades(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostAlgoOrder(params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostConvertRft(params?: {}): Promise<implicitReturnType>;
     v3PrivatePutOrderOid(params?: {}): Promise<implicitReturnType>;
     v3PrivatePutOrderClientClientOrderId(params?: {}): Promise<implicitReturnType>;
     v3PrivatePutAlgoOrderOid(params?: {}): Promise<implicitReturnType>;

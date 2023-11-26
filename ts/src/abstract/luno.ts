@@ -23,24 +23,21 @@ interface Exchange {
     privateGetFundingAddress (params?: {}): Promise<implicitReturnType>;
     privateGetListorders (params?: {}): Promise<implicitReturnType>;
     privateGetListtrades (params?: {}): Promise<implicitReturnType>;
+    privateGetSendFee (params?: {}): Promise<implicitReturnType>;
     privateGetOrdersId (params?: {}): Promise<implicitReturnType>;
-    privateGetQuotesId (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawalsId (params?: {}): Promise<implicitReturnType>;
     privateGetTransfers (params?: {}): Promise<implicitReturnType>;
     privatePostAccounts (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountsIdName (params?: {}): Promise<implicitReturnType>;
+    privatePostAddressValidate (params?: {}): Promise<implicitReturnType>;
     privatePostPostorder (params?: {}): Promise<implicitReturnType>;
     privatePostMarketorder (params?: {}): Promise<implicitReturnType>;
     privatePostStoporder (params?: {}): Promise<implicitReturnType>;
     privatePostFundingAddress (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
     privatePostSend (params?: {}): Promise<implicitReturnType>;
-    privatePostQuotes (params?: {}): Promise<implicitReturnType>;
     privatePostOauth2Grant (params?: {}): Promise<implicitReturnType>;
     privatePutAccountsIdName (params?: {}): Promise<implicitReturnType>;
-    privatePutQuotesId (params?: {}): Promise<implicitReturnType>;
-    privateDeleteQuotesId (params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsId (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}

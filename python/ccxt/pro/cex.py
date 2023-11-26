@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, Str, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
@@ -51,10 +50,10 @@ class cex(ccxt.async_support.cex):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://cex.io/websocket-api#get-balance
-        :param dict params: extra parameters specific to the cex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://cex.io/websocket-api#get-balance
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.authenticate(params)
         messageHash = 'balance'
@@ -70,22 +69,22 @@ class cex(ccxt.async_support.cex):
     def handle_balance(self, client: Client, message):
         #
         #     {
-        #         e: 'get-balance',
-        #         data: {
-        #             balance: {
-        #                 BTC: '0.00000000',
-        #                 USD: '0.00',
+        #         "e": "get-balance",
+        #         "data": {
+        #             "balance": {
+        #                 "BTC": "0.00000000",
+        #                 "USD": "0.00",
         #                 ...
         #             },
-        #             obalance: {
-        #                 BTC: '0.00000000',
-        #                 USD: '0.00',
+        #             "obalance": {
+        #                 "BTC": "0.00000000",
+        #                 "USD": "0.00",
         #                 ...
         #             },
-        #             time: 1663761159605
+        #             "time": 1663761159605
         #         },
-        #         oid: 1,
-        #         ok: 'ok'
+        #         "oid": 1,
+        #         "ok": "ok"
         #     }
         #
         data = self.safe_value(message, 'data', {})
@@ -105,15 +104,15 @@ class cex(ccxt.async_support.cex):
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, 'balance')
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol. Note: can only watch one symbol at a time.
-        see https://cex.io/websocket-api#old-pair-room
+        :see: https://cex.io/websocket-api#old-pair-room
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the cex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -145,10 +144,10 @@ class cex(ccxt.async_support.cex):
     def handle_trades_snapshot(self, client: Client, message):
         #
         #     {
-        #         e: 'history',
-        #         data: [
-        #             'sell:1665467367741:3888551:19058.8:14541219',
-        #             'buy:1665467367741:1059339:19071.5:14541218',
+        #         "e": "history",
+        #         "data": [
+        #             "sell:1665467367741:3888551:19058.8:14541219",
+        #             "buy:1665467367741:1059339:19071.5:14541218",
         #         ]
         #     }
         #
@@ -166,9 +165,9 @@ class cex(ccxt.async_support.cex):
     def parse_ws_old_trade(self, trade, market=None):
         #
         #  snapshot trade
-        #    'sell:1665467367741:3888551:19058.8:14541219'
+        #    "sell:1665467367741:3888551:19058.8:14541219"
         #  update trade
-        #    ['buy', '1665467516704', '98070', '19057.7', '14541220']
+        #    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         #
         if not isinstance(trade, list):
             trade = trade.split(':')
@@ -196,9 +195,9 @@ class cex(ccxt.async_support.cex):
     def handle_trade(self, client: Client, message):
         #
         #     {
-        #         e: 'history-update',
-        #         data: [
-        #             ['buy', '1665467516704', '98070', '19057.7', '14541220']
+        #         "e": "history-update",
+        #         "data": [
+        #             ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         #         ]
         #     }
         #
@@ -214,11 +213,11 @@ class cex(ccxt.async_support.cex):
 
     async def watch_ticker(self, symbol: str, params={}):
         """
-        see https://cex.io/websocket-api#ticker-subscription
+        :see: https://cex.io/websocket-api#ticker-subscription
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the cex api endpoint
-        :param str|None params['method']: public or private
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: public or private
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -247,12 +246,12 @@ class cex(ccxt.async_support.cex):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, subscriptionHash)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
-        see https://cex.io/websocket-api#ticker-subscription
-        watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the cex api endpoint
+        :see: https://cex.io/websocket-api#ticker-subscription
+        watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -279,13 +278,13 @@ class cex(ccxt.async_support.cex):
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         e: 'tick',
-        #         data: {
-        #             symbol1: 'LRC',
-        #             symbol2: 'USD',
-        #             price: '0.305',
-        #             open24: '0.301',
-        #             volume: '241421.641700'
+        #         "e": "tick",
+        #         "data": {
+        #             "symbol1": "LRC",
+        #             "symbol2": "USD",
+        #             "price": "0.305",
+        #             "open24": "0.301",
+        #             "volume": "241421.641700"
         #         }
         #     }
         #
@@ -301,25 +300,25 @@ class cex(ccxt.async_support.cex):
         #
         #  public
         #    {
-        #        symbol1: 'LRC',
-        #        symbol2: 'USD',
-        #        price: '0.305',
-        #        open24: '0.301',
-        #        volume: '241421.641700'
+        #        "symbol1": "LRC",
+        #        "symbol2": "USD",
+        #        "price": "0.305",
+        #        "open24": "0.301",
+        #        "volume": "241421.641700"
         #    }
         #  private
         #    {
-        #        timestamp: '1663764969',
-        #        low: '18756.3',
-        #        high: '19200',
-        #        last: '19200',
-        #        volume: '0.94735907',
-        #        volume30d: '64.61299999',
-        #        bid: 19217.2,
-        #        ask: 19247.5,
-        #        priceChange: '44.3',
-        #        priceChangePercentage: '0.23',
-        #        pair: ['BTC', 'USDT']
+        #        "timestamp": "1663764969",
+        #        "low": "18756.3",
+        #        "high": "19200",
+        #        "last": "19200",
+        #        "volume": "0.94735907",
+        #        "volume30d": "64.61299999",
+        #        "bid": 19217.2,
+        #        "ask": 19247.5,
+        #        "priceChange": "44.3",
+        #        "priceChangePercentage": "0.23",
+        #        "pair": ["BTC", "USDT"]
         #    }
         pair = self.safe_value(ticker, 'pair', [])
         baseId = self.safe_string(ticker, 'symbol1')
@@ -357,18 +356,18 @@ class cex(ccxt.async_support.cex):
             'info': ticker,
         }, market)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods(~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
-        see https://docs.cex.io/#ws-api-open-orders
+        :see: https://docs.cex.io/#ws-api-open-orders
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the cex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
         await self.load_markets()
         await self.authenticate(params)
         url = self.urls['api']['ws']
@@ -389,20 +388,20 @@ class cex(ccxt.async_support.cex):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of trades associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods(~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
-        see https://docs.cex.io/#ws-api-open-orders
+        :see: https://docs.cex.io/#ws-api-open-orders
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the cex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
         await self.load_markets()
         await self.authenticate(params)
         url = self.urls['api']['ws']
@@ -434,44 +433,44 @@ class cex(ccxt.async_support.cex):
     def handle_my_trades(self, client: Client, message):
         #
         #     {
-        #         e: 'tx',
-        #         data: {
-        #             d: 'order:59091012956:a:USD',
-        #             c: 'user:up105393824:a:USD',
-        #             a: '0.01',
-        #             ds: 0,
-        #             cs: '15.27',
-        #             user: 'up105393824',
-        #             symbol: 'USD',
-        #             order: 59091012956,
-        #             amount: '-18.49',
-        #             type: 'buy',
-        #             time: '2022-09-24T19:36:18.466Z',
-        #             balance: '15.27',
-        #             id: '59091012966'
+        #         "e": "tx",
+        #         "data": {
+        #             "d": "order:59091012956:a:USD",
+        #             "c": "user:up105393824:a:USD",
+        #             "a": "0.01",
+        #             "ds": 0,
+        #             "cs": "15.27",
+        #             "user": "up105393824",
+        #             "symbol": "USD",
+        #             "order": 59091012956,
+        #             "amount": "-18.49",
+        #             "type": "buy",
+        #             "time": "2022-09-24T19:36:18.466Z",
+        #             "balance": "15.27",
+        #             "id": "59091012966"
         #         }
         #     }
         #     {
-        #         e: 'tx',
-        #         data: {
-        #             d: 'order:59091012956:a:BTC',
-        #             c: 'user:up105393824:a:BTC',
-        #             a: '0.00096420',
-        #             ds: 0,
-        #             cs: '0.00096420',
-        #             user: 'up105393824',
-        #             symbol: 'BTC',
-        #             symbol2: 'USD',
-        #             amount: '0.00096420',
-        #             buy: 59091012956,
-        #             order: 59091012956,
-        #             sell: 59090796005,
-        #             price: 19135,
-        #             type: 'buy',
-        #             time: '2022-09-24T19:36:18.466Z',
-        #             balance: '0.00096420',
-        #             fee_amount: '0.05',
-        #             id: '59091012962'
+        #         "e": "tx",
+        #         "data": {
+        #             "d": "order:59091012956:a:BTC",
+        #             "c": "user:up105393824:a:BTC",
+        #             "a": "0.00096420",
+        #             "ds": 0,
+        #             "cs": "0.00096420",
+        #             "user": "up105393824",
+        #             "symbol": "BTC",
+        #             "symbol2": "USD",
+        #             "amount": "0.00096420",
+        #             "buy": 59091012956,
+        #             "order": 59091012956,
+        #             "sell": 59090796005,
+        #             "price": 19135,
+        #             "type": "buy",
+        #             "time": "2022-09-24T19:36:18.466Z",
+        #             "balance": "0.00096420",
+        #             "fee_amount": "0.05",
+        #             "id": "59091012962"
         #         }
         #     }
         data = self.safe_value(message, 'data', {})
@@ -488,24 +487,24 @@ class cex(ccxt.async_support.cex):
     def parse_ws_trade(self, trade, market=None):
         #
         #     {
-        #         d: 'order:59091012956:a:BTC',
-        #         c: 'user:up105393824:a:BTC',
-        #         a: '0.00096420',
-        #         ds: 0,
-        #         cs: '0.00096420',
-        #         user: 'up105393824',
-        #         symbol: 'BTC',
-        #         symbol2: 'USD',
-        #         amount: '0.00096420',
-        #         buy: 59091012956,
-        #         order: 59091012956,
-        #         sell: 59090796005,
-        #         price: 19135,
-        #         type: 'buy',
-        #         time: '2022-09-24T19:36:18.466Z',
-        #         balance: '0.00096420',
-        #         fee_amount: '0.05',
-        #         id: '59091012962'
+        #         "d": "order:59091012956:a:BTC",
+        #         "c": "user:up105393824:a:BTC",
+        #         "a": "0.00096420",
+        #         "ds": 0,
+        #         "cs": "0.00096420",
+        #         "user": "up105393824",
+        #         "symbol": "BTC",
+        #         "symbol2": "USD",
+        #         "amount": "0.00096420",
+        #         "buy": 59091012956,
+        #         "order": 59091012956,
+        #         "sell": 59090796005,
+        #         "price": 19135,
+        #         "type": "buy",
+        #         "time": "2022-09-24T19:36:18.466Z",
+        #         "balance": "0.00096420",
+        #         "fee_amount": "0.05",
+        #         "id": "59091012962"
         #     }
         # Note symbol and symbol2 are inverse on sell and ammount is in symbol currency.
         #
@@ -580,37 +579,37 @@ class cex(ccxt.async_support.cex):
         #     }
         #  fullfilledOrder
         #     {
-        #         e: 'order',
-        #         data: {
-        #             id: '59098421630',
-        #             remains: '0',
-        #             pair: {
-        #                 symbol1: 'BTC',
-        #                 symbol2: 'USD'
+        #         "e": "order",
+        #         "data": {
+        #             "id": "59098421630",
+        #             "remains": "0",
+        #             "pair": {
+        #                 "symbol1": "BTC",
+        #                 "symbol2": "USD"
         #             }
         #         }
         #     }
         #     {
-        #         e: 'tx',
-        #         data: {
-        #             d: 'order:59425993014:a:BTC',
-        #             c: 'user:up105393824:a:BTC',
-        #             a: '0.00098152',
-        #             ds: 0,
-        #             cs: '0.00098152',
-        #             user: 'up105393824',
-        #             symbol: 'BTC',
-        #             symbol2: 'USD',
-        #             amount: '0.00098152',
-        #             buy: 59425993014,
-        #             order: 59425993014,
-        #             sell: 59425986168,
-        #             price: 19306.6,
-        #             type: 'buy',
-        #             time: '2022-10-02T01:11:15.148Z',
-        #             balance: '0.00098152',
-        #             fee_amount: '0.05',
-        #             id: '59425993020'
+        #         "e": "tx",
+        #         "data": {
+        #             "d": "order:59425993014:a:BTC",
+        #             "c": "user:up105393824:a:BTC",
+        #             "a": "0.00098152",
+        #             "ds": 0,
+        #             "cs": "0.00098152",
+        #             "user": "up105393824",
+        #             "symbol": "BTC",
+        #             "symbol2": "USD",
+        #             "amount": "0.00098152",
+        #             "buy": 59425993014,
+        #             "order": 59425993014,
+        #             "sell": 59425986168,
+        #             "price": 19306.6,
+        #             "type": "buy",
+        #             "time": "2022-10-02T01:11:15.148Z",
+        #             "balance": "0.00098152",
+        #             "fee_amount": "0.05",
+        #             "id": "59425993020"
         #         }
         #     }
         #
@@ -675,24 +674,24 @@ class cex(ccxt.async_support.cex):
         #      }
         #  transaction
         #      {
-        #           d: 'order:59425993014:a:BTC',
-        #           c: 'user:up105393824:a:BTC',
-        #           a: '0.00098152',
-        #           ds: 0,
-        #           cs: '0.00098152',
-        #           user: 'up105393824',
-        #           symbol: 'BTC',
-        #           symbol2: 'USD',
-        #           amount: '0.00098152',
-        #           buy: 59425993014,
-        #           order: 59425993014,
-        #           sell: 59425986168,
-        #           price: 19306.6,
-        #           type: 'buy',
-        #           time: '2022-10-02T01:11:15.148Z',
-        #           balance: '0.00098152',
-        #           fee_amount: '0.05',
-        #           id: '59425993020'
+        #           "d": "order:59425993014:a:BTC",
+        #           "c": "user:up105393824:a:BTC",
+        #           "a": "0.00098152",
+        #           "ds": 0,
+        #           "cs": "0.00098152",
+        #           "user": "up105393824",
+        #           "symbol": "BTC",
+        #           "symbol2": "USD",
+        #           "amount": "0.00098152",
+        #           "buy": 59425993014,
+        #           "order": 59425993014,
+        #           "sell": 59425986168,
+        #           "price": 19306.6,
+        #           "type": "buy",
+        #           "time": "2022-10-02T01:11:15.148Z",
+        #           "balance": "0.00098152",
+        #           "fee_amount": "0.05",
+        #           "id": "59425993020"
         #       }
         #
         isTransaction = self.safe_value(order, 'd') is not None
@@ -770,17 +769,17 @@ class cex(ccxt.async_support.cex):
     def handle_orders_snapshot(self, client: Client, message):
         #
         #     {
-        #         e: 'open-orders',
-        #         data: [{
-        #             id: '59098421630',
-        #             time: '1664062285425',
-        #             type: 'buy',
-        #             price: '18920',
-        #             amount: '0.00100000',
-        #             pending: '0.00100000'
+        #         "e": "open-orders",
+        #         "data": [{
+        #             "id": "59098421630",
+        #             "time": "1664062285425",
+        #             "type": "buy",
+        #             "price": "18920",
+        #             "amount": "0.00100000",
+        #             "pending": "0.00100000"
         #         }],
-        #         oid: 1,
-        #         ok: 'ok'
+        #         "oid": 1,
+        #         "ok": "ok"
         #     }
         #
         symbol = self.safe_string(message, 'oid')  # symbol is set in watchOrders
@@ -801,13 +800,13 @@ class cex(ccxt.async_support.cex):
         if ordersLength > 0:
             client.resolve(myOrders, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://cex.io/websocket-api#orderbook-subscribe
+        :see: https://cex.io/websocket-api#orderbook-subscribe
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the cex api endpoint
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -836,24 +835,24 @@ class cex(ccxt.async_support.cex):
     def handle_order_book_snapshot(self, client: Client, message):
         #
         #     {
-        #         e: 'order-book-subscribe',
-        #         data: {
-        #             timestamp: 1663762032,
-        #             timestamp_ms: 1663762031680,
-        #             bids: [
+        #         "e": "order-book-subscribe",
+        #         "data": {
+        #             "timestamp": 1663762032,
+        #             "timestamp_ms": 1663762031680,
+        #             "bids": [
         #                 [241.947, 155.91626],
         #                 [241, 154],
         #             ],
-        #             asks: [
+        #             "asks": [
         #                 [242.947, 155.91626],
         #                 [243, 154],    ],
-        #             pair: 'BTC:USDT',
-        #             id: 616267120,
-        #             sell_total: '13.59066946',
-        #             buy_total: '163553.625948'
+        #             "pair": "BTC:USDT",
+        #             "id": 616267120,
+        #             "sell_total": "13.59066946",
+        #             "buy_total": "163553.625948"
         #         },
-        #         oid: '1',
-        #         ok: 'ok'
+        #         "oid": "1",
+        #         "ok": "ok"
         #     }
         #
         data = self.safe_value(message, 'data', {})
@@ -884,13 +883,13 @@ class cex(ccxt.async_support.cex):
     def handle_order_book_update(self, client: Client, message):
         #
         #     {
-        #         e: 'md_update',
-        #         data: {
-        #             id: 616267121,
-        #             pair: 'BTC:USDT',
-        #             time: 1663762031719,
-        #             bids: [],
-        #             asks: [
+        #         "e": "md_update",
+        #         "data": {
+        #             "id": 616267121,
+        #             "pair": "BTC:USDT",
+        #             "time": 1663762031719,
+        #             "bids": [],
+        #             "asks": [
         #                 [122, 23]
         #             ]
         #         }
@@ -923,16 +922,16 @@ class cex(ccxt.async_support.cex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
-        see https://cex.io/websocket-api#minute-data
+        :see: https://cex.io/websocket-api#minute-data
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. It will return the last 120 minutes with the selected timeframe and then 1m candle updates after that.
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents.
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the cex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -954,19 +953,19 @@ class cex(ccxt.async_support.cex):
     def handle_init_ohlcv(self, client: Client, message):
         #
         #     {
-        #         e: 'init-ohlcv-data',
-        #         data: [
+        #         "e": "init-ohlcv-data",
+        #         "data": [
         #             [
         #                 1663660680,
-        #                 '19396.4',
-        #                 '19396.4',
-        #                 '19396.4',
-        #                 '19396.4',
-        #                 '1262861'
+        #                 "19396.4",
+        #                 "19396.4",
+        #                 "19396.4",
+        #                 "19396.4",
+        #                 "1262861"
         #             ],
         #             ...
         #         ],
-        #         pair: 'BTC:USDT'
+        #         "pair": "BTC:USDT"
         #     }
         #
         pair = self.safe_string(message, 'pair')
@@ -990,9 +989,9 @@ class cex(ccxt.async_support.cex):
     def handle_ohlcv24(self, client: Client, message):
         #
         #     {
-        #         e: 'ohlcv24',
-        #         data: ['18793.2', '19630', '18793.2', '19104.1', '314157273'],
-        #         pair: 'BTC:USDT'
+        #         "e": "ohlcv24",
+        #         "data": ['18793.2', '19630', '18793.2', "19104.1", "314157273"],
+        #         "pair": "BTC:USDT"
         #     }
         #
         return message
@@ -1000,16 +999,16 @@ class cex(ccxt.async_support.cex):
     def handle_ohlcv1m(self, client: Client, message):
         #
         #     {
-        #         e: 'ohlcv1m',
-        #         data: {
-        #             pair: 'BTC:USD',
-        #             time: '1665436800',
-        #             o: '19279.6',
-        #             h: '19279.6',
-        #             l: '19266.7',
-        #             c: '19266.7',
-        #             v: 3343884,
-        #             d: 3343884
+        #         "e": "ohlcv1m",
+        #         "data": {
+        #             "pair": "BTC:USD",
+        #             "time": "1665436800",
+        #             "o": "19279.6",
+        #             "h": "19279.6",
+        #             "l": "19266.7",
+        #             "c": "19266.7",
+        #             "v": 3343884,
+        #             "d": 3343884
         #         }
         #     }
         #
@@ -1032,11 +1031,11 @@ class cex(ccxt.async_support.cex):
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
-        #         e: 'ohlcv',
-        #         data: [
-        #             [1665461100, '19068.2', '19068.2', '19068.2', '19068.2', 268478]
+        #         "e": "ohlcv",
+        #         "data": [
+        #             [1665461100, '19068.2', '19068.2', '19068.2', "19068.2", 268478]
         #         ],
-        #         pair: 'BTC:USD'
+        #         "pair": "BTC:USD"
         #     }
         #
         data = self.safe_value(message, 'data', [])
@@ -1069,10 +1068,10 @@ class cex(ccxt.async_support.cex):
     def handle_error_message(self, client: Client, message):
         #
         #     {
-        #         e: 'get-balance',
-        #         data: {error: 'Please Login'},
-        #         oid: 1,
-        #         ok: 'error'
+        #         "e": "get-balance",
+        #         "data": {error: "Please Login"},
+        #         "oid": 1,
+        #         "ok": "error"
         #     }
         #
         raise ExchangeError(self.id + ' ' + self.json(message))

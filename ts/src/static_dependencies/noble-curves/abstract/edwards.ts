@@ -71,6 +71,7 @@ export type CurveFn = {
   CURVE: ReturnType<typeof validateOpts>;
   getPublicKey: (privateKey: Hex) => Uint8Array;
   sign: (message: Hex, privateKey: Hex) => Uint8Array;
+  signModified?: (message: Hex, privateKey: Hex) => Uint8Array;
   verify: (sig: Hex, message: Hex, publicKey: Hex) => boolean;
   ExtendedPoint: ExtPointConstructor;
   utils: {
@@ -421,7 +422,6 @@ export function twistedEdwards(curveDef: CurveType): CurveFn {
 
   /** Signs message with privateKey. RFC8032 5.1.6 */
   function sign(msg: Hex, privKey: Hex, context?: Hex): Uint8Array {
-    /*
     msg = ensureBytes('message', msg);
     if (preHash) msg = preHash(msg); // for ed25519ph etc.
     const { prefix, scalar, pointBytes } = getExtendedPublicKey(privKey);
@@ -432,7 +432,9 @@ export function twistedEdwards(curveDef: CurveType): CurveFn {
     assertGE0(s); // 0 <= s < l
     const res = ut.concatBytes(R, ut.numberToBytesLE(s, Fp.BYTES));
     return ensureBytes('result', res, nByteLength * 2); // 64-byte signature
-     */
+  }
+
+  function signModified(msg: Hex, privKey: Hex, context?: Hex): Uint8Array {
     msg = ensureBytes('message', msg);
     const privKeyBytes = ensureBytes ('privKey', privKey);
     const privKeyNumber = ut.bytesToNumberLE (privKeyBytes);
@@ -489,6 +491,7 @@ export function twistedEdwards(curveDef: CurveType): CurveFn {
     CURVE,
     getPublicKey,
     sign,
+    signModified,
     verify,
     ExtendedPoint: Point,
     utils,
