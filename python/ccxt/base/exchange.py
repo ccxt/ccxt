@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.65'
+__version__ = '4.1.66'
 
 # -----------------------------------------------------------------------------
 
@@ -1740,54 +1740,108 @@ class Exchange(object):
         return None
 
     def check_proxy_url_settings(self, url=None, method=None, headers=None, body=None):
-        proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
-        proxyUrlCallback = self.proxyUrlCallback if (self.proxyUrlCallback is not None) else self.proxy_url_callback
-        if proxyUrlCallback is not None:
-            proxyUrl = proxyUrlCallback(url, method, headers, body)
+        usedProxies = []
+        proxyUrl = None
+        if self.proxyUrl is not None:
+            usedProxies.append('proxyUrl')
+            proxyUrl = self.proxyUrl
+        if self.proxy_url is not None:
+            usedProxies.append('proxy_url')
+            proxyUrl = self.proxy_url
+        if self.proxyUrlCallback is not None:
+            usedProxies.append('proxyUrlCallback')
+            proxyUrl = self.proxyUrlCallback(url, method, headers, body)
+        if self.proxy_url_callback is not None:
+            usedProxies.append('proxy_url_callback')
+            proxyUrl = self.proxy_url_callback(url, method, headers, body)
         # backwards-compatibility
         if self.proxy is not None:
+            usedProxies.append('proxy')
             if callable(self.proxy):
                 proxyUrl = self.proxy(url, method, headers, body)
             else:
                 proxyUrl = self.proxy
-        val = 0
-        if proxyUrl is not None:
-            val = val + 1
-        if proxyUrlCallback is not None:
-            val = val + 1
-        if val > 1:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
+        length = len(usedProxies)
+        if length > 1:
+            joinedProxyNames = ','.join(usedProxies)
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy_url settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
         return proxyUrl
 
     def check_proxy_settings(self, url=None, method=None, headers=None, body=None):
-        httpProxy = self.httpProxy if (self.httpProxy is not None) else self.http_proxy
-        httpProxyCallback = self.httpProxyCallback if (self.httpProxyCallback is not None) else self.http_proxy_callback
-        if httpProxyCallback is not None:
-            httpProxy = httpProxyCallback(url, method, headers, body)
-        httpsProxy = self.httpsProxy if (self.httpsProxy is not None) else self.https_proxy
-        httpsProxyCallback = self.httpsProxyCallback if (self.httpsProxyCallback is not None) else self.https_proxy_callback
-        if httpsProxyCallback is not None:
-            httpsProxy = httpsProxyCallback(url, method, headers, body)
-        socksProxy = self.socksProxy if (self.socksProxy is not None) else self.socks_proxy
-        socksProxyCallback = self.socksProxyCallback if (self.socksProxyCallback is not None) else self.socks_proxy_callback
-        if socksProxyCallback is not None:
-            socksProxy = socksProxyCallback(url, method, headers, body)
-        val = 0
-        if httpProxy is not None:
-            val = val + 1
-        if httpProxyCallback is not None:
-            val = val + 1
-        if httpsProxy is not None:
-            val = val + 1
-        if httpsProxyCallback is not None:
-            val = val + 1
-        if socksProxy is not None:
-            val = val + 1
-        if socksProxyCallback is not None:
-            val = val + 1
-        if val > 1:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
+        usedProxies = []
+        httpProxy = None
+        httpsProxy = None
+        socksProxy = None
+        # httpProxy
+        if self.httpProxy is not None:
+            usedProxies.append('httpProxy')
+            httpProxy = self.httpProxy
+        if self.http_proxy is not None:
+            usedProxies.append('http_proxy')
+            httpProxy = self.http_proxy
+        if self.httpProxyCallback is not None:
+            usedProxies.append('httpProxyCallback')
+            httpProxy = self.httpProxyCallback(url, method, headers, body)
+        if self.http_proxy_callback is not None:
+            usedProxies.append('http_proxy_callback')
+            httpProxy = self.http_proxy_callback(url, method, headers, body)
+        # httpsProxy
+        if self.httpsProxy is not None:
+            usedProxies.append('httpsProxy')
+            httpsProxy = self.httpsProxy
+        if self.https_proxy is not None:
+            usedProxies.append('https_proxy')
+            httpsProxy = self.https_proxy
+        if self.httpsProxyCallback is not None:
+            usedProxies.append('httpsProxyCallback')
+            httpsProxy = self.httpsProxyCallback(url, method, headers, body)
+        if self.https_proxy_callback is not None:
+            usedProxies.append('https_proxy_callback')
+            httpsProxy = self.https_proxy_callback(url, method, headers, body)
+        # socksProxy
+        if self.socksProxy is not None:
+            usedProxies.append('socksProxy')
+            socksProxy = self.socksProxy
+        if self.socks_proxy is not None:
+            usedProxies.append('socks_proxy')
+            socksProxy = self.socks_proxy
+        if self.socksProxyCallback is not None:
+            usedProxies.append('socksProxyCallback')
+            socksProxy = self.socksProxyCallback(url, method, headers, body)
+        if self.socks_proxy_callback is not None:
+            usedProxies.append('socks_proxy_callback')
+            socksProxy = self.socks_proxy_callback(url, method, headers, body)
+        # check
+        length = len(usedProxies)
+        if length > 1:
+            joinedProxyNames = ','.join(usedProxies)
+            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
         return [httpProxy, httpsProxy, socksProxy]
+
+    def check_ws_proxy_settings(self):
+        usedProxies = []
+        wsProxy = None
+        wssProxy = None
+        # wsProxy
+        if self.wsProxy is not None:
+            usedProxies.append('wsProxy')
+            wsProxy = self.wsProxy
+        if self.ws_proxy is not None:
+            usedProxies.append('ws_proxy')
+            wsProxy = self.ws_proxy
+        # wsProxy
+        if self.wssProxy is not None:
+            usedProxies.append('wssProxy')
+            wssProxy = self.wssProxy
+        if self.wss_proxy is not None:
+            usedProxies.append('wss_proxy')
+            wssProxy = self.wss_proxy
+        # check
+        length = len(usedProxies)
+        if length > 1:
+            joinedProxyNames = ','.join(usedProxies)
+            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy')
+        return [wsProxy, wssProxy]
 
     def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
         if proxyAgentSet and proxyUrlSet:

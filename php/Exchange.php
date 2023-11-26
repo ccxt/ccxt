@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.65';
+$version = '4.1.66';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.65';
+    const VERSION = '4.1.66';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2186,71 +2186,135 @@ class Exchange {
     }
 
     public function check_proxy_url_settings($url = null, $method = null, $headers = null, $body = null) {
-        $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
-        $proxyUrlCallback = ($this->proxyUrlCallback !== null) ? $this->proxyUrlCallback : $this->proxy_url_callback;
-        if ($proxyUrlCallback !== null) {
-            $proxyUrl = $proxyUrlCallback ($url, $method, $headers, $body);
+        $usedProxies = array();
+        $proxyUrl = null;
+        if ($this->proxyUrl !== null) {
+            $usedProxies[] = 'proxyUrl';
+            $proxyUrl = $this->proxyUrl;
+        }
+        if ($this->proxy_url !== null) {
+            $usedProxies[] = 'proxy_url';
+            $proxyUrl = $this->proxy_url;
+        }
+        if ($this->proxyUrlCallback !== null) {
+            $usedProxies[] = 'proxyUrlCallback';
+            $proxyUrl = $this->proxyUrlCallback ($url, $method, $headers, $body);
+        }
+        if ($this->proxy_url_callback !== null) {
+            $usedProxies[] = 'proxy_url_callback';
+            $proxyUrl = $this->proxy_url_callback ($url, $method, $headers, $body);
         }
         // backwards-compatibility
         if ($this->proxy !== null) {
+            $usedProxies[] = 'proxy';
             if (is_callable($this->proxy)) {
                 $proxyUrl = $this->proxy ($url, $method, $headers, $body);
             } else {
                 $proxyUrl = $this->proxy;
             }
         }
-        $val = 0;
-        if ($proxyUrl !== null) {
-            $val = $val + 1;
-        }
-        if ($proxyUrlCallback !== null) {
-            $val = $val + 1;
-        }
-        if ($val > 1) {
-            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, httpProxy, httpsProxy, socksProxy');
+        $length = count($usedProxies);
+        if ($length > 1) {
+            $joinedProxyNames = implode(',', $usedProxies);
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy_url settings (' . $joinedProxyNames . '), please use only one from : $proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return $proxyUrl;
     }
 
     public function check_proxy_settings($url = null, $method = null, $headers = null, $body = null) {
-        $httpProxy = ($this->httpProxy !== null) ? $this->httpProxy : $this->http_proxy;
-        $httpProxyCallback = ($this->httpProxyCallback !== null) ? $this->httpProxyCallback : $this->http_proxy_callback;
-        if ($httpProxyCallback !== null) {
-            $httpProxy = $httpProxyCallback ($url, $method, $headers, $body);
+        $usedProxies = array();
+        $httpProxy = null;
+        $httpsProxy = null;
+        $socksProxy = null;
+        // $httpProxy
+        if ($this->httpProxy !== null) {
+            $usedProxies[] = 'httpProxy';
+            $httpProxy = $this->httpProxy;
         }
-        $httpsProxy = ($this->httpsProxy !== null) ? $this->httpsProxy : $this->https_proxy;
-        $httpsProxyCallback = ($this->httpsProxyCallback !== null) ? $this->httpsProxyCallback : $this->https_proxy_callback;
-        if ($httpsProxyCallback !== null) {
-            $httpsProxy = $httpsProxyCallback ($url, $method, $headers, $body);
+        if ($this->http_proxy !== null) {
+            $usedProxies[] = 'http_proxy';
+            $httpProxy = $this->http_proxy;
         }
-        $socksProxy = ($this->socksProxy !== null) ? $this->socksProxy : $this->socks_proxy;
-        $socksProxyCallback = ($this->socksProxyCallback !== null) ? $this->socksProxyCallback : $this->socks_proxy_callback;
-        if ($socksProxyCallback !== null) {
-            $socksProxy = $socksProxyCallback ($url, $method, $headers, $body);
+        if ($this->httpProxyCallback !== null) {
+            $usedProxies[] = 'httpProxyCallback';
+            $httpProxy = $this->httpProxyCallback ($url, $method, $headers, $body);
         }
-        $val = 0;
-        if ($httpProxy !== null) {
-            $val = $val + 1;
+        if ($this->http_proxy_callback !== null) {
+            $usedProxies[] = 'http_proxy_callback';
+            $httpProxy = $this->http_proxy_callback ($url, $method, $headers, $body);
         }
-        if ($httpProxyCallback !== null) {
-            $val = $val + 1;
+        // $httpsProxy
+        if ($this->httpsProxy !== null) {
+            $usedProxies[] = 'httpsProxy';
+            $httpsProxy = $this->httpsProxy;
         }
-        if ($httpsProxy !== null) {
-            $val = $val + 1;
+        if ($this->https_proxy !== null) {
+            $usedProxies[] = 'https_proxy';
+            $httpsProxy = $this->https_proxy;
         }
-        if ($httpsProxyCallback !== null) {
-            $val = $val + 1;
+        if ($this->httpsProxyCallback !== null) {
+            $usedProxies[] = 'httpsProxyCallback';
+            $httpsProxy = $this->httpsProxyCallback ($url, $method, $headers, $body);
         }
-        if ($socksProxy !== null) {
-            $val = $val + 1;
+        if ($this->https_proxy_callback !== null) {
+            $usedProxies[] = 'https_proxy_callback';
+            $httpsProxy = $this->https_proxy_callback ($url, $method, $headers, $body);
         }
-        if ($socksProxyCallback !== null) {
-            $val = $val + 1;
+        // $socksProxy
+        if ($this->socksProxy !== null) {
+            $usedProxies[] = 'socksProxy';
+            $socksProxy = $this->socksProxy;
         }
-        if ($val > 1) {
-            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, $httpProxy, $httpsProxy, socksProxy');
+        if ($this->socks_proxy !== null) {
+            $usedProxies[] = 'socks_proxy';
+            $socksProxy = $this->socks_proxy;
+        }
+        if ($this->socksProxyCallback !== null) {
+            $usedProxies[] = 'socksProxyCallback';
+            $socksProxy = $this->socksProxyCallback ($url, $method, $headers, $body);
+        }
+        if ($this->socks_proxy_callback !== null) {
+            $usedProxies[] = 'socks_proxy_callback';
+            $socksProxy = $this->socks_proxy_callback ($url, $method, $headers, $body);
+        }
+        // check
+        $length = count($usedProxies);
+        if ($length > 1) {
+            $joinedProxyNames = implode(',', $usedProxies);
+            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $httpProxy, $httpsProxy, httpProxyCallback, httpsProxyCallback, $socksProxy, socksProxyCallback');
         }
         return array( $httpProxy, $httpsProxy, $socksProxy );
+    }
+
+    public function check_ws_proxy_settings() {
+        $usedProxies = array();
+        $wsProxy = null;
+        $wssProxy = null;
+        // $wsProxy
+        if ($this->wsProxy !== null) {
+            $usedProxies[] = 'wsProxy';
+            $wsProxy = $this->wsProxy;
+        }
+        if ($this->ws_proxy !== null) {
+            $usedProxies[] = 'ws_proxy';
+            $wsProxy = $this->ws_proxy;
+        }
+        // $wsProxy
+        if ($this->wssProxy !== null) {
+            $usedProxies[] = 'wssProxy';
+            $wssProxy = $this->wssProxy;
+        }
+        if ($this->wss_proxy !== null) {
+            $usedProxies[] = 'wss_proxy';
+            $wssProxy = $this->wss_proxy;
+        }
+        // check
+        $length = count($usedProxies);
+        if ($length > 1) {
+            $joinedProxyNames = implode(',', $usedProxies);
+            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, wssProxy');
+        }
+        return array( $wsProxy, $wssProxy );
     }
 
     public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
