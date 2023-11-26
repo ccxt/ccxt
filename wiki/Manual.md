@@ -137,7 +137,7 @@ The CCXT library currently supports the following 95 cryptocurrency exchange mar
 | [![independentreserve](https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg)](https://www.independentreserve.com)                                             | independentreserve | [Independent Reserve](https://www.independentreserve.com)                                             | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.independentreserve.com/API)                                             |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![indodax](https://user-images.githubusercontent.com/51840849/87070508-9358c880-c221-11ea-8dc5-5391afbbb422.jpg)](https://indodax.com/ref/testbitcoincoid/1)                                                 | indodax            | [INDODAX](https://indodax.com/ref/testbitcoincoid/1)                                                  | [![API Version 2.0](https://img.shields.io/badge/2.0-lightgray)](https://github.com/btcid/indodax-official-api-docs)                             |                                                                                                                             |                                                                              |
 | [![kraken](https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg)](https://www.kraken.com)                                                                     | kraken             | [Kraken](https://www.kraken.com)                                                                      | [![API Version 0](https://img.shields.io/badge/0-lightgray)](https://www.kraken.com/features/api)                                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![krakenfutures](https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg)](https://futures.kraken.com/)                                                         | krakenfutures      | [Kraken Futures](https://futures.kraken.com/)                                                         | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API)            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![krakenfutures](https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg)](https://futures.kraken.com/)                                                         | krakenfutures      | [Kraken Futures](https://futures.kraken.com/)                                                         | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://docs.futures.kraken.com/#introduction)                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![kucoin](https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg)](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                                         | kucoin             | [KuCoin](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                                          | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.kucoin.com)                                                            | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![kucoinfutures](https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg)](https://futures.kucoin.com/?rcode=E5wkqe)                                            | kucoinfutures      | [KuCoin Futures](https://futures.kucoin.com/?rcode=E5wkqe)                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.kucoin.com/futures)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![kuna](https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg)](https://kuna.io?r=kunaid-gvfihe8az7o4)                                                        | kuna               | [Kuna](https://kuna.io?r=kunaid-gvfihe8az7o4)                                                         | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://kuna.io/documents/api)                                                      |                                                                                                                             |                                                                              |
@@ -5880,62 +5880,58 @@ In some specific cases you may want a proxy, when:
 However, beware that each added intermediary might add some latency to requests.
 
 ### Supported proxy types
-CCXT supports the following proxy types:
+CCXT supports the following proxy types (note, each of them also have [callback support](#
+using-proxy-callbacks)):
 
 #### proxyUrl
 
-This property prepends an url to API requests. This can also be used to setup a CORS proxy.
+This property prepends an url to API requests. It might be useful for simple redirection or [bypassing CORS browser restriction](#cors-access-control-allow-origin).
 ```
-ex = ccxt.binance({'proxyUrl': 'YOUR_PROXY_URL'})
-
-// or set anytime after instantiation
-
+ex = ccxt.binance();
 ex.proxyUrl = 'YOUR_PROXY_URL';
 ```
-
-while 'YOUR_PROXY_URL' could be like (note the backslash):
-- `http://127.0.0.1:8080/`
+while 'YOUR_PROXY_URL' could be like (use the slash accordingly):
 - `https://cors-anywhere.herokuapp.com/`
+- `http://127.0.0.1:8080/`
 - `http://your-website.com/sample-script.php?url=`
 - etc
 
-So requests will be made to `http://127.0.0.1:8080/https://exchange.xyz/api/endpoint`. You can test if that works by:
-```
-// Python
-print(await ex.fetch('https://api.ipify.org/')) // for sync version remove 'await'
+So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://exchange.xyz/api/endpoint`. ( You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl` -  "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/tree/master/examples)).
 
-// JS
-console.log(await ex.fetch('https://api.ipify.org/'));
-
-// PHP
-print(\React\Async\await($my_ex->fetch('https://api.ipify.org/'))); // for sync version remove '\React\Async\await'
-```
-` You can also have a small proxy script running on your device/webserver to use it in `.proxyUrl`. See a sample script named "sample-local-proxy-server" in [examples folder](https://github.com/ccxt/ccxt/examples).
+This approach works **only for REST** requests, but not for websocket connections. ((_How to test if your proxy works_)[#test-if-your-proxy-works])
 
 #### httpProxy and httpsProxy
-If you have an access to a remote [http or https proxy](https://stackoverflow.com/q/10440690/2377343), you can set:
+To set a real http(s) proxy for your scripts, you need to have an access to a remote [http or https proxy](https://stackoverflow.com/q/10440690/2377343), so calls will be made directly to the target exchange, tunneled through your proxy server:
 ```
 ex.httpProxy = 'http://1.2.3.4:8080/';
 // or
 ex.httpsProxy = 'http://1.2.3.4:8080/';
 ```
+This approach only affects **non-websocket** requests of ccxt. To route CCXT's WebSockets connections through proxy, you need to specifically set `wsProxy` (or `wssProxy`) property, in addition to the `httpProxy` (or `httpsProxy`), so your script should be like:
+```
+ex.httpProxy = 'http://1.2.3.4:8080/';
+ex.wsProxy   = 'http://1.2.3.4:8080/';
+```
+So, both connections (HTTP & WS) would go through proxies.
+((_How to test if your proxy works_)[#test-if-your-proxy-works])
+
+
 #### socksProxy
 You can also use [socks proxy](https://www.google.com/search?q=what+is+socks+proxy) with the following format:
 ```
 ex.socksProxy = 'socks5://1.2.3.4:8080/';
 ```
+This approach works for websocket connections too. ((_How to test if your proxy works_)[#test-if-your-proxy-works])
+
+#### Test if your proxy works
+After setting any of the above listed proxy properties in your ccxt snippet, you can test whether it works by pinging some IP echoing websites - check a "proxy-usage" file in [examples](https://github.com/ccxt/ccxt/blob/master/examples/).
 
 #### using proxy callbacks
-**Note, in addition to above properties, you can also set callbacks instead of strings to any from `proxyUrlCallback, http(s)ProxyCallback, socksProxyCallback`. The callback signature should be like:
+**Instead of setting a property, you can also use callbacks `proxyUrlCallback, http(s)ProxyCallback, socksProxyCallback`:
 ```
-function my_callback(url, method, headers, body) {
-    if (my_condition) {
-        return 'http://222.222.222.222';
-    } else {
-        return 'http://333.333.333.333';
-    }
-}
+myEx.proxyUrlCallback = function (url, method, headers, body) { ... return 'http://1.2.3.4/'; }
 ```
+
 ### extra proxy related details
 
 #### userAgent
