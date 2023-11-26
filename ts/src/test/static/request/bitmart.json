@@ -3,6 +3,46 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "Fetch spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api-cloud.bitmart.com/spot/v1/ticker?symbol=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api-cloud.bitmart.com/contract/v1/tickers?contract_symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api-cloud.bitmart.com/spot/v2/ticker",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api-cloud.bitmart.com/contract/v1/tickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy",
@@ -240,6 +280,26 @@
                 "input": [
                     {
                         "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch accoun Balance",
+                "method": "fetchBalance",
+                "url": "https://api-cloud.bitmart.com/account/v1/wallet",
+                "input": [
+                    {
+                        "type": "account"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch margin Balance",
+                "method": "fetchBalance",
+                "url": "https://api-cloud.bitmart.com/spot/v1/margin/isolated/account",
+                "input": [
+                    {
+                        "type": "margin"
                     }
                 ]
             }
