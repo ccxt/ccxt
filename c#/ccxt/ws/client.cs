@@ -37,22 +37,14 @@ public partial class Exchange
     {
         try
         {
-            // var url = "wss://stream.binance.com:9443/ws/0";
-            // // { method: 'SUBSCRIBE', params: [ 'btcusdt@ticker' ], id: 1 }
-            // var subMessage = new Dictionary<string, object> {
-            //     { "method", "SUBSCRIBE" },
-            //     { "params", new List<string> { "btcusdt@ticker" } },
-            //     { "id", 1 }
 
-            // };
             var binance = new binanceWs();
             await binance.loadMarkets();
             binance.verbose = true;
             while (true)
             {
-                var message = await binance.watchOHLCV("BTC/USDT");
+                var message = await binance.watchOrderBook("BTC/USDT", 1);
                 Console.WriteLine(JsonConvert.SerializeObject(message, Formatting.Indented));
-                Console.WriteLine("message" + Exchange.Json(message));
             }
 
         }
@@ -351,7 +343,7 @@ public partial class Exchange
                         var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         var deserializedMessages = JsonHelper.Deserialize(message);
 
-                        if (this.verbose || true) // remove || true
+                        if (this.verbose) // remove || true
                         {
                             Console.WriteLine($"On message: {message}");
                         }

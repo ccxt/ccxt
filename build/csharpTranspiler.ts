@@ -72,9 +72,9 @@ class NewTranspiler {
             [/(orderbook)(\.reset.+)/gm, '($1 as ccxt.OrderBook)$2'],
             [/(\w+)(\.cache)/gm, '($1 as ccxt.OrderBook)$2'],
             //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
-            [/(\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
+            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
             [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IndexedOrderBookSide).store($2)'],
-            [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as OrderBookSide).store($1,$2)'],
+            [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as OrderBookSide).store($2)'],
             [/(\w+)(\.storeArray\(.+\))/gm, '($1 as OrderBookSide)$2'],
             // [/(.+)\.store\((.+),(.+)\)/gm, '($1 as OrderBookSide).store($2,$3)'],
             [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
@@ -82,6 +82,7 @@ class NewTranspiler {
             [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
             [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
             [/this\.delay\((\w+),(.+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
+            // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
             [/(\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'],
             [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
             [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
@@ -546,6 +547,7 @@ class NewTranspiler {
     async transpileWS(force = false) {
         const tsFolder = './ts/src/pro/';
         const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:exchanges.ws }
+        // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['binance'] }
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.ws), true )
     }
 
