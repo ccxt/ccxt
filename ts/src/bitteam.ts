@@ -2,7 +2,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class bitteam
@@ -57,8 +57,8 @@ export default class bitteam extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
-                'fetchDepositWithdrawFee': false, // todo
-                'fetchDepositWithdrawFees': false, // todo
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -74,7 +74,7 @@ export default class bitteam extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
@@ -92,11 +92,11 @@ export default class bitteam extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': false, // todo
-                'fetchTradingFees': false, // todo
-                'fetchTradingLimits': false, // todo
-                'fetchTransactionFee': false, // todo
-                'fetchTransactionFees': false, // todo
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTradingLimits': false,
+                'fetchTransactionFee': false,
+                'fetchTransactionFees': false,
                 'fetchTransactions': true,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -114,11 +114,16 @@ export default class bitteam extends Exchange {
                 'ws': false,
             },
             'timeframes': {
-                // todo
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '1h': '60',
+                '1d': '1D',
             },
             'urls': {
                 'logo': '', // todo
                 'api': {
+                    'history': 'https://history.bit.team',
                     'public': 'https://bit.team',
                     'private': 'https://bit.team',
                 },
@@ -126,9 +131,13 @@ export default class bitteam extends Exchange {
                 'doc': [
                     'https://bit.team/trade/api/documentation',
                 ],
-                'fees': '', // todo
             },
             'api': {
+                'history': {
+                    'get': {
+                        'api/tw/history/{trade_pair}/{resolution}': 1, // fetchOHLCV
+                    },
+                },
                 'public': {
                     'get': {
                         'trade/api/asset': 1, // not unified
@@ -225,7 +234,6 @@ export default class bitteam extends Exchange {
                 },
             },
             'fees': {
-                // todo: check fees
                 'trading': {
                     'feeSide': 'get',
                     'tierBased': false,
@@ -268,6 +276,7 @@ export default class bitteam extends Exchange {
                 'broad': {
                     'is not allowed': BadRequest, // {"message":"\"createdAt\" is not allowed","path":["createdAt"],"type":"object.unknown","context":{"child":"createdAt","label":"createdAt","value":"DESC","key":"createdAt"}}
                     'must be of type': BadRequest, // {"message":"\"order\" must be of type object","path":["order"],"type":"object.base","context":{"type":"object","label":"order","value":"107218781","key":"order"}}
+                    'must be one of': BadRequest, // {"message":"\"resolution\" must be one of [1, 5, 15, 60, 1D]","path":["resolution"],"type":"any.only","context":{"valids":["1","5","15","60","1D"],"label":"resolution","value":"1d","key":"resolution"}}
                     'Service Unavailable': ExchangeNotAvailable, // {"message":"Service Unavailable","code":403000,"ok":false}
                 },
             },
@@ -629,6 +638,79 @@ export default class bitteam extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name bitteam#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bitteam api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const resolution = this.safeString (this.timeframes, timeframe, timeframe);
+        const request = {
+            'trade_pair': market['id'],
+            'resolution': resolution,
+        };
+        const response = await this.historyGetApiTwHistoryTradePairResolution (this.extend (request, params));
+        //
+        //     {
+        //         "ok": true,
+        //         "result": {
+        //             "count": 364,
+        //             "data": [
+        //                 {
+        //                     "t": 1669593600,
+        //                     "o": 16211.259266,
+        //                     "h": 16476.985001,
+        //                     "l": 16023.714999,
+        //                     "c": 16430.636894,
+        //                     "v": 2.60150368999999
+        //                 },
+        //                 {
+        //                     "t": 1669680000,
+        //                     "o": 16430.636894,
+        //                     "h": 17065.229582,
+        //                     "l": 16346.114155,
+        //                     "c": 16882.297736,
+        //                     "v": 3.0872548400000115
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "t": 1669680000,
+        //         "o": 16430.636894,
+        //         "h": 17065.229582,
+        //         "l": 16346.114155,
+        //         "c": 16882.297736,
+        //         "v": 3.0872548400000115
+        //     },
+        //
+        return [
+            this.safeTimestamp (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
