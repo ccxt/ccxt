@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.66';
+$version = '4.1.67';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.66';
+    const VERSION = '4.1.67';
 
     public $browser;
     public $marketsLoading = null;
@@ -935,6 +935,7 @@ class Exchange extends \ccxt\Exchange {
             'contract' => null,
             'linear' => null,
             'inverse' => null,
+            'subType' => null,
             'taker' => null,
             'maker' => null,
             'contractSize' => null,
@@ -1012,6 +1013,13 @@ class Exchange extends \ccxt\Exchange {
                 'precision' => $this->precision,
                 'limits' => $this->limits,
             ), $this->fees['trading'], $value);
+            if ($market['linear']) {
+                $market['subType'] = 'linear';
+            } elseif ($market['inverse']) {
+                $market['subType'] = 'inverse';
+            } else {
+                $market['subType'] = null;
+            }
             $values[] = $market;
         }
         $this->markets = $this->index_by($values, 'symbol');

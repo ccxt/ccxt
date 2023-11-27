@@ -1744,6 +1744,7 @@ export default class Exchange {
             'contract': undefined,
             'linear': undefined,
             'inverse': undefined,
+            'subType': undefined,
             'taker': undefined,
             'maker': undefined,
             'contractSize': undefined,
@@ -1821,6 +1822,15 @@ export default class Exchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
+            if (market['linear']) {
+                market['subType'] = 'linear';
+            }
+            else if (market['inverse']) {
+                market['subType'] = 'inverse';
+            }
+            else {
+                market['subType'] = undefined;
+            }
             values.push(market);
         }
         this.markets = this.indexBy(values, 'symbol');

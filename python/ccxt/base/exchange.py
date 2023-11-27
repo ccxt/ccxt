@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.66'
+__version__ = '4.1.67'
 
 # -----------------------------------------------------------------------------
 
@@ -2192,6 +2192,7 @@ class Exchange(object):
             'contract': None,
             'linear': None,
             'inverse': None,
+            'subType': None,
             'taker': None,
             'maker': None,
             'contractSize': None,
@@ -2260,6 +2261,12 @@ class Exchange(object):
                 'precision': self.precision,
                 'limits': self.limits,
             }, self.fees['trading'], value)
+            if market['linear']:
+                market['subType'] = 'linear'
+            elif market['inverse']:
+                market['subType'] = 'inverse'
+            else:
+                market['subType'] = None
             values.append(market)
         self.markets = self.index_by(values, 'symbol')
         marketsSortedBySymbol = self.keysort(self.markets)

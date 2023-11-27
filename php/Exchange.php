@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.66';
+$version = '4.1.67';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.66';
+    const VERSION = '4.1.67';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2754,6 +2754,7 @@ class Exchange {
             'contract' => null,
             'linear' => null,
             'inverse' => null,
+            'subType' => null,
             'taker' => null,
             'maker' => null,
             'contractSize' => null,
@@ -2831,6 +2832,13 @@ class Exchange {
                 'precision' => $this->precision,
                 'limits' => $this->limits,
             ), $this->fees['trading'], $value);
+            if ($market['linear']) {
+                $market['subType'] = 'linear';
+            } elseif ($market['inverse']) {
+                $market['subType'] = 'inverse';
+            } else {
+                $market['subType'] = null;
+            }
             $values[] = $market;
         }
         $this->markets = $this->index_by($values, 'symbol');
