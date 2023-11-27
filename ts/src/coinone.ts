@@ -198,6 +198,73 @@ export default class coinone extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name coinone#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://docs.coinone.co.kr/reference/currencies
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.v2PublicGetCurrencies (params);
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701054555578,
+        //         "currencies": [
+        //           {
+        //             "name": "Polygon",
+        //             "symbol": "MATIC",
+        //             "deposit_status": "normal",
+        //             "withdraw_status": "normal",
+        //             "deposit_confirm_count": 150,
+        //             "max_precision": 8,
+        //             "deposit_fee": "0.0",
+        //             "withdrawal_min_amount": "1.0",
+        //             "withdrawal_fee": "3.0"
+        //           }
+        //         ]
+        //     }
+        //
+        const result = {};
+        const currencies = this.safeValue (response, 'currencies', []);
+        for (let i = 0; i < currencies.length; i++) {
+            const entry = currencies[i];
+            const id = this.safeString (entry, 'symbol');
+            const name = this.safeString (entry, 'name');
+            const code = this.safeCurrencyCode (id);
+            const withdrawStatus = this.safeString (entry, 'withdraw_status', '');
+            const depositStatus = this.safeString (entry, 'deposit_status', '');
+            const isWithdrawEnabled = withdrawStatus === 'normal';
+            const isDepositEnabled = depositStatus === 'normal';
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': entry,
+                'name': name,
+                'active': isWithdrawEnabled && isDepositEnabled,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'fee': this.safeNumber (entry, 'withdrawal_fee'),
+                'precision': this.safeNumber (entry, 'max_precision'),
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (entry, 'withdrawal_min_amount'),
+                        'max': undefined,
+                    },
+                },
+                'networks': {},
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
