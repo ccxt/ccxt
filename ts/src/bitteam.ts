@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitteam.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
@@ -261,13 +261,14 @@ export default class bitteam extends Exchange {
             'exceptions': {
                 // todo
                 'exact': {
+                    '401000': AuthenticationError, // {"ok":false,"code":401000,"data": {},"message": "Missing authentication"}
                     '403002': BadRequest, // {"ok":false,"code":403002,"data":{},"message":"Order cannot be deleted, status does not match"}
                     '450000': InsufficientFunds, // {"ok":false,"code":450000,"data":null,"message":"Insufficient funds"}
                 },
                 'broad': {
-                    'Service Unavailable': ExchangeNotAvailable, // {"message":"Service Unavailable","code":403000,"ok":false}
                     'is not allowed': BadRequest, // {"message":"\"createdAt\" is not allowed","path":["createdAt"],"type":"object.unknown","context":{"child":"createdAt","label":"createdAt","value":"DESC","key":"createdAt"}}
                     'must be of type': BadRequest, // {"message":"\"order\" must be of type object","path":["order"],"type":"object.base","context":{"type":"object","label":"order","value":"107218781","key":"order"}}
+                    'Service Unavailable': ExchangeNotAvailable, // {"message":"Service Unavailable","code":403000,"ok":false}
                 },
             },
         });
@@ -2250,10 +2251,15 @@ export default class bitteam extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const responseCode = this.safeString (response, 'code');
         if (code !== 200) {
+            if ((code === 404) && (url.indexOf ('/ccxt/order/') >= 0) && (method === 'GET')) {
+                const parts = url.split ('/order/');
+                const orderId = this.safeString (parts, 1);
+                throw new OrderNotFound (this.id + ' order ' + orderId + ' not found');
+            }
             const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message');
+            const responseCode = this.safeString (response, 'code');
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
