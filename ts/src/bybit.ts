@@ -2096,8 +2096,8 @@ export default class bybit extends Exchange {
         }
         const request = {
             // 'symbol': market['id'],
-            // 'baseCoin': '', Base coin. For option only
-            // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
+            // 'baseCoin': '', // Base coin. For option only
+            // 'expDate': '', // Expiry date. e.g., 25DEC22. For option only
         };
         let type = undefined;
         const isTypeInParams = ('type' in params);
