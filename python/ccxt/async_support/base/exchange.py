@@ -746,7 +746,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' watchPositions() is not supported yet')
 
     async def watch_position_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
-        return await self.watchPositions(symbols, since, limit, params)
+        return self.watchPositions(symbols, since, limit, params)
 
     async def fetch_positions_for_symbol(self, symbol: str, params={}):
         """
