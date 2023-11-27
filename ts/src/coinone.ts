@@ -659,10 +659,11 @@ export default class coinone extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "timestamp": "1416893212",
-        //         "price": "420000.0",
-        //         "qty": "0.1",
-        //         "is_ask": "1"
+        //         "id": "1701075265708001",
+        //         "timestamp": 1701075265708,
+        //         "price": "50020000",
+        //         "qty": "0.00155177",
+        //         "is_seller_maker": false
         //     }
         //
         // fetchMyTrades (private)
@@ -677,22 +678,12 @@ export default class coinone extends Exchange {
         //         "orderId": "E84A1AC2-8088-4FA0-B093-A3BCDB9B3C85"
         //     }
         //
-        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (undefined, market);
-        const is_ask = this.safeString (trade, 'is_ask');
-        let side = this.safeString (trade, 'type');
-        if (is_ask !== undefined) {
-            if (is_ask === '1') {
-                side = 'sell';
-            } else if (is_ask === '0') {
-                side = 'buy';
-            }
-        } else {
-            if (side === 'ask') {
-                side = 'sell';
-            } else if (side === 'bid') {
-                side = 'buy';
-            }
+        const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
+        let side = undefined;
+        if (isSellerMaker !== undefined) {
+            side = isSellerMaker ? 'sell' : 'buy';
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
@@ -732,6 +723,7 @@ export default class coinone extends Exchange {
          * @method
          * @name coinone#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -741,28 +733,33 @@ export default class coinone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'currency': market['id'],
-            'format': 'json',
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         };
-        const response = await this.publicGetTrades (this.extend (request, params));
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.v2PublicGetTradesQuoteCurrencyTargetCurrency (this.extend (request, params));
         //
         //     {
         //         "result": "success",
-        //         "errorCode": "0",
-        //         "timestamp": "1416895635",
-        //         "currency": "btc",
-        //         "completeOrders": [
+        //         "error_code": "0",
+        //         "server_time": 1701075315771,
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "transactions": [
         //             {
-        //                 "timestamp": "1416893212",
-        //                 "price": "420000.0",
-        //                 "qty": "0.1",
-        //                 "is_ask": "1"
+        //                 "id": "1701075265708001",
+        //                 "timestamp": 1701075265708,
+        //                 "price": "50020000",
+        //                 "qty": "0.00155177",
+        //                 "is_seller_maker": false
         //             }
         //         ]
         //     }
         //
-        const completeOrders = this.safeValue (response, 'completeOrders', []);
-        return this.parseTrades (completeOrders, market, since, limit);
+        const data = this.safeValue (response, 'transactions', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
