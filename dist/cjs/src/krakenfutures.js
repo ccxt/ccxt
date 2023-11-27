@@ -86,7 +86,7 @@ class krakenfutures extends krakenfutures$1 {
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
-                    'https://support.kraken.com/hc/en-us/categories/360001806372-Futures-API',
+                    'https://docs.futures.kraken.com/#introduction',
                 ],
                 'fees': 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral': undefined,
@@ -463,10 +463,10 @@ class krakenfutures extends krakenfutures$1 {
         /**
          * @method
          * @name krakenfutures#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
          * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -587,7 +587,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
@@ -1047,7 +1047,7 @@ class krakenfutures extends krakenfutures$1 {
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
          * @param {string[]} ids order ids
          * @param {string} [symbol] unified market symbol
-         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
@@ -1540,7 +1540,7 @@ class krakenfutures extends krakenfutures$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] *not used by the  api* the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the bybit api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
@@ -1802,7 +1802,7 @@ class krakenfutures extends krakenfutures$1 {
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
          * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
-         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
@@ -2035,7 +2035,7 @@ class krakenfutures extends krakenfutures$1 {
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets();
@@ -2229,26 +2229,26 @@ class krakenfutures extends krakenfutures$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        let method = 'privatePostTransfer';
-        const request = {
-            'amount': amount,
-        };
         if (fromAccount === 'spot') {
             throw new errors.BadRequest(this.id + ' transfer does not yet support transfers from spot');
         }
+        const request = {
+            'amount': amount,
+        };
+        let response = undefined;
         if (toAccount === 'spot') {
             if (this.parseAccount(fromAccount) !== 'cash') {
                 throw new errors.BadRequest(this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount);
             }
-            method = 'privatePostWithdrawal';
             request['currency'] = currency['id'];
+            response = await this.privatePostWithdrawal(this.extend(request, params));
         }
         else {
             request['fromAccount'] = this.parseAccount(fromAccount);
             request['toAccount'] = this.parseAccount(toAccount);
             request['unit'] = currency['id'];
+            response = await this.privatePostTransfer(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //    {
         //        "result": "success",
@@ -2270,7 +2270,7 @@ class krakenfutures extends krakenfutures$1 {
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the delta api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
@@ -2293,7 +2293,7 @@ class krakenfutures extends krakenfutures$1 {
          * @description fetch the set leverage for a market
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the krakenfutures api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         if (symbol === undefined) {

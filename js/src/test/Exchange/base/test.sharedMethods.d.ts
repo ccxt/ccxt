@@ -17,6 +17,8 @@ declare function assertFeeStructure(exchange: any, skippedProperties: any, metho
 declare function assertTimestampOrder(exchange: any, method: any, codeOrSymbol: any, items: any, ascending?: boolean): void;
 declare function assertInteger(exchange: any, skippedProperties: any, method: any, entry: any, key: any): void;
 declare function checkPrecisionAccuracy(exchange: any, skippedProperties: any, method: any, entry: any, key: any): void;
+declare function removeProxyOptions(exchange: any, skippedProperties: any): any[];
+declare function setProxyOptions(exchange: any, skippedProperties: any, proxyUrl: any, httpProxy: any, httpsProxy: any, socksProxy: any): void;
 declare const _default: {
     logTemplate: typeof logTemplate;
     assertTimestamp: typeof assertTimestamp;
@@ -37,5 +39,7 @@ declare const _default: {
     checkPrecisionAccuracy: typeof checkPrecisionAccuracy;
     assertValidCurrencyIdAndCode: typeof assertValidCurrencyIdAndCode;
     assertType: typeof assertType;
+    removeProxyOptions: typeof removeProxyOptions;
+    setProxyOptions: typeof setProxyOptions;
 };
 export default _default;

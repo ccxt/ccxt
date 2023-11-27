@@ -1,4 +1,4 @@
-import { RequestTimeout, NetworkError, NotSupported, BaseError } from '../../base/errors.js';
+import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
 import { Future, createFuture } from './Future.js';
 
@@ -142,7 +142,7 @@ export default class Client {
         if (!this.isOpen ()) {
             const error = new RequestTimeout ('Connection to ' + this.url + ' failed due to a connection timeout')
             this.onError (error)
-            this.connection.close (isNode ? 1006 : 1000)
+            this.connection.close (1006)
         }
     }
 

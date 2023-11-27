@@ -299,6 +299,7 @@ class Transpiler {
             [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
+            [ /\.checkConflictingProxies\s/g, '.check_conflicting_proxies'],
             [ /\.isRoundNumber\s/g, '.is_round_number'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
@@ -1607,7 +1608,11 @@ class Transpiler {
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
-                    const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
+                    let resolveType = (phpType.match (phpArrayRegex)  && phpType !== 'object[]')? 'array' : phpType // in PHP arrays are not compatible with ArrayCache, so removing this type for now;
+                    if (resolveType === 'object[]') {
+                        resolveType = 'mixed'; // in PHP objects are not compatible with ArrayCache, so removing this type for now;
+                    }
+                    // const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
                     const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
                     return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
@@ -2545,9 +2550,7 @@ class Transpiler {
             pyAsync: [
                 "import asyncio",
                 "import ccxt.async_support as ccxt  # noqa: E402",
-                "",
-                "",
-                "",
+                ""
             ],
             pyPro: [
                 "import asyncio",
@@ -2619,6 +2622,8 @@ class Transpiler {
                         [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
                         // cases like: exchange = new ccxt.pro['huobi' or varname] ()
                         [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                        // fix cases like: async\pro->kucoin
+                        [ /async\\pro->/g, 'pro\\' ],
                     ];
                     return this.regexAll (body, regexes);
                 };
@@ -2628,7 +2633,8 @@ class Transpiler {
                 finalBodies.phpAsync = fixPhp (phpAsyncBody);
 
                 // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
-                for (const funcName of allDetectedFunctionNames) {
+                for (const funcNameInit of allDetectedFunctionNames) {
+                    const funcName = unCamelCase (funcNameInit)
                     // match function bodies
                     const funcBodyRegex = new RegExp ('(?=def ' + funcName + '\\()(.*?)(?=\\n\\w)', 'gs');
                     // inside functions, find exchange initiations
@@ -2652,8 +2658,18 @@ class Transpiler {
                     finalBodies.pyAsync = finalBodies.pyAsync.replace (new RegExp ('await ' + funcName + '\\((.*?)\\)', 'g'), function(wholeMatch, innerMatch){ return '\nasyncio.run(' + wholeMatch.replace('await ','').trim() + ')';})
                 }
 
+                let finalPyHeaders = undefined;
+                if (isCcxtPro) {
+                    finalPyHeaders = fileHeaders.pyPro ;
+                } else {
+                    // these are cases when transpliation happens of not specific PRO file, i.e. "example" snippets, where just "new ccxt.pro" appears
+                    if (tsContent.match ('new ccxt.pro')){
+                        finalPyHeaders += 'import ccxt.pro  # noqa: E402' + '\n'
+                    }
+                    finalPyHeaders += '\n\n'
+                }
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + (isCcxtPro ? fileHeaders.pyPro : fileHeaders.pyAsync) + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
@@ -2733,6 +2749,9 @@ class Transpiler {
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
+        if (transpilingSingleExchange) {
+            force = true; // when transpiling single exchange, we always force
+        }
         if (!transpilingSingleExchange && !child) {
             createFolderRecursively (python2Folder)
             createFolderRecursively (python3Folder)

@@ -15,7 +15,7 @@ https://github.com/ccxt/ccxt/wiki/Manual#pagenumber-based-cursor-pagination
 
 symbol = 'ETH/BTC'
 
-exchange = ccxt.okex({
+exchange = ccxt.okx({
     'apiKey': 'YOUR_API_KEY',  # put your values here
     'secret': 'YOUR_SECRET',
 })

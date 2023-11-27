@@ -37,10 +37,17 @@ export default class Exchange {
     user_agent: {
         'User-Agent': string;
     } | false;
+    wsProxy: string;
+    ws_proxy: string;
+    wssProxy: string;
+    wss_proxy: string;
     userAgents: any;
     headers: any;
     origin: string;
     agent: any;
+    nodeHttpModuleLoaded: boolean;
+    httpAgent: any;
+    httpsAgent: any;
     minFundingAddressLength: number;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
@@ -352,7 +359,7 @@ export default class Exchange {
             fetchPermissions: any;
             fetchPosition: any;
             fetchPositions: any;
-            fetchPositionsBySymbol: any;
+            fetchPositionsForSymbol: any;
             fetchPositionsRisk: any;
             fetchPremiumIndexOHLCV: any;
             fetchStatus: string;
@@ -493,6 +500,14 @@ export default class Exchange {
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
     log(...args: any[]): void;
+    httpProxyAgentModule: any;
+    httpsProxyAgentModule: any;
+    socksProxyAgentModule: any;
+    socksProxyAgentModuleChecked: boolean;
+    proxyDictionaries: any;
+    proxyModulesLoaded: boolean;
+    loadProxyModules(): Promise<void>;
+    setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
@@ -526,12 +541,16 @@ export default class Exchange {
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
+    setProperty(obj: any, property: any, defaultValue?: any): void;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
     handleDeltas(orderbook: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     findTimeframe(timeframe: any, timeframes?: any): string;
-    checkProxySettings(url: any, method: any, headers: any, body: any): string[];
+    checkProxyUrlSettings(url?: any, method?: any, headers?: any, body?: any): any;
+    checkProxySettings(url?: any, method?: any, headers?: any, body?: any): any[];
+    checkWsProxySettings(): any[];
+    checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
@@ -691,7 +710,7 @@ export default class Exchange {
     watchPosition(symbol?: string, params?: {}): Promise<Position>;
     watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     watchPositionForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    fetchPositionsBySymbol(symbol: string, params?: {}): Promise<Position[]>;
+    fetchPositionsForSymbol(symbol: string, params?: {}): Promise<Position[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
