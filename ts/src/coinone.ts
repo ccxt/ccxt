@@ -482,6 +482,7 @@ export default class coinone extends Exchange {
          * @name coinone#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+         * @see https://docs.coinone.co.kr/v1.0/reference/ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -544,6 +545,7 @@ export default class coinone extends Exchange {
          * @method
          * @name coinone#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.coinone.co.kr/v1.0/reference/ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -551,11 +553,46 @@ export default class coinone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'currency': market['id'],
-            'format': 'json',
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
-        return this.parseTicker (response, market);
+        const response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency (this.extend (request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701073358487,
+        //         "tickers": [
+        //             {
+        //                 "quote_currency": "krw",
+        //                 "target_currency": "btc",
+        //                 "timestamp": 1701073357818,
+        //                 "high": "50543000.0",
+        //                 "low": "49945000.0",
+        //                 "first": "50487000.0",
+        //                 "last": "50062000.0",
+        //                 "quote_volume": "11349804285.3859",
+        //                 "target_volume": "226.07268994",
+        //                 "best_asks": [
+        //                     {
+        //                         "price": "50081000.0",
+        //                         "qty": "0.18471358"
+        //                     }
+        //                 ],
+        //                 "best_bids": [
+        //                     {
+        //                         "price": "50062000.0",
+        //                         "qty": "0.04213455"
+        //                     }
+        //                 ],
+        //                 "id": "1701073357818001"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'tickers', []);
+        const ticker = this.safeValue (data, 0, {});
+        return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
