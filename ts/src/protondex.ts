@@ -9,7 +9,7 @@ import { ripemd160 } from './static_dependencies/noble-hashes/ripemd160.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { CurveFn } from './static_dependencies/noble-curves/abstract/weierstrass.js';
 import { numberToBytesBE, concatBytes, hexToBytes } from './static_dependencies/noble-curves/abstract/utils.js';
-import { Int, Trade, OrderSide } from './base/types.js';
+import { Int, Trade, Order, OrderSide } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class protondex extends Exchange {
@@ -429,6 +429,10 @@ export default class protondex extends Exchange {
         const result = [];
         for (let i = 0; i < trades.length; i++) {
             trades[i]['account'] = params['account'];
+            if (params['allMarkets']) {
+                const mSymbol = this.safeString (params['allMarkets'], trades[i]['market_id']);
+                market = this.market (mSymbol);
+            }
             const trade = this.extend (this.parseTrade (trades[i], market));
             result.push (trade);
         }
@@ -486,6 +490,63 @@ export default class protondex extends Exchange {
         return this.parseTrades (data, market, 1, 100, { 'account': params['account'] });
     }
 
+    mapIdSymbol (allMarkets) {
+        const marketsmap = {};
+        for (let i = 0; i < allMarkets.length; i++) {
+            marketsmap[allMarkets[i].info.market_id] = this.safeString (allMarkets[i].info, 'symbol');
+        }
+        return marketsmap;
+    }
+
+    parseOrders (orders: object, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
+        //
+        // the value of orders is either a dict or a list
+        //
+        // dict
+        //
+        //     {
+        //         'id1': { ... },
+        //         'id2': { ... },
+        //         'id3': { ... },
+        //         ...
+        //     }
+        //
+        // list
+        //
+        //     [
+        //         { 'id': 'id1', ... },
+        //         { 'id': 'id2', ... },
+        //         { 'id': 'id3', ... },
+        //         ...
+        //     ]
+        //
+        let results = [];
+        if (Array.isArray (orders)) {
+            for (let i = 0; i < orders.length; i++) {
+                if (params['allMarkets']) {
+                    const mSymbol = this.safeString (params['allMarkets'], orders[i]['market_id']);
+                    market = this.market (mSymbol);
+                }
+                const order = this.parseOrder (orders[i], market);
+                results.push (order);
+            }
+        } else {
+            const ids = Object.keys (orders);
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                if (params['allMarkets']) {
+                    const mSymbol = this.safeString (params['allMarkets'], orders[i]['market_id']);
+                    market = this.market (mSymbol);
+                }
+                const order = this.parseOrder (this.extend ({ 'id': id }, orders[id]), market);
+                results.push (order);
+            }
+        }
+        results = this.sortBy (results, 'timestamp');
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (results, symbol, since, limit) as Order[];
+    }
+
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -499,14 +560,20 @@ export default class protondex extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        const allMarkets = await this.fetchMarkets ();
+        const marketIds = this.mapIdSymbol (allMarkets);
+        let market = undefined;
         if (params['account'] === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a account argument in params');
         }
         const request = {
             'account': params['account'],
-            'symbol': market['symbol'],
+            'status': 'delete',
         };
+        if (symbol !== null) {
+            market = this.market (symbol);
+            request['symbol'] = market['symbol'];
+        }
         request['offset'] = (params['offset'] !== undefined) ? params['offset'] : 0;
         request['limit'] = (limit !== undefined) ? limit : 100;
         const response = await this.publicGetOrdersHistory (this.extend (request, params));
@@ -535,7 +602,11 @@ export default class protondex extends Exchange {
                 const ordinalId = this.safeString (data[p], 'ordinal_order_id');
                 const account = this.safeString (data[p], 'account_name');
                 let currency = undefined;
-                const trades = await this.fetchOrderTrades (ordinalId, symbol, 1, 1, { 'account': account });
+                if (symbol === null) {
+                    symbol = this.safeString (marketIds, data[p]['market_id']);
+                    market = this.market (symbol);
+                }
+                const trades = await this.fetchOrderTrades (ordinalId, null, 1, 1, { 'account': account, 'allMarkets': marketIds });
                 for (let j = 0; j < trades.length; j++) {
                     cost += this.safeFloat (trades[j], 'cost');
                     amount += this.safeFloat (trades[j], 'amount');
@@ -554,7 +625,7 @@ export default class protondex extends Exchange {
                 closedOrders.push (data[p]);
             }
         }
-        return this.parseOrders (closedOrders, market);
+        return this.parseOrders (closedOrders, market, 1, 100, { 'allMarkets': marketIds });
     }
 
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -913,12 +984,15 @@ export default class protondex extends Exchange {
         if (params['account'] === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a account argument in params');
         }
-        const market = this.market (symbol);
+        let market = undefined;
         const request = {
             'account': params['account'],
-            'symbol': market['symbol'],
             'ordinal_order_ids': [ id ],
         };
+        if (symbol !== null) {
+            market = this.market (symbol);
+            request['symbol'] = market['symbol'];
+        }
         const response = await this.publicGetTradesHistory (this.extend (request, params));
         //
         //     [
@@ -950,7 +1024,7 @@ export default class protondex extends Exchange {
         //     ]
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseTrades (data, market, 1, 1, { 'account': params['account'] });
+        return this.parseTrades (data, market, 1, 1, { 'account': params['account'], 'allMarkets': params['allMarkets'] });
     }
 
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
