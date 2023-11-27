@@ -42,10 +42,10 @@ export default class coinone extends Exchange {
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchCurrencies': true,
                 'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddresses': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -441,12 +441,38 @@ export default class coinone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'currency': market['id'],
-            'format': 'json',
+            'quote_currency': market['quote'],
+            'target_currency': market['base'],
         };
-        const response = await this.publicGetOrderbook (this.extend (request, params));
-        const timestamp = this.safeTimestamp (response, 'timestamp');
-        return this.parseOrderBook (response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty');
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.v2PublicGetOrderbookQuoteCurrencyTargetCurrency (this.extend (request, params));
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "timestamp": 1701071108673,
+        //         "id": "1701071108673001",
+        //         "quote_currency": "KRW",
+        //         "target_currency": "BTC",
+        //         "order_book_unit": "0.0",
+        //         "bids": [
+        //             {
+        //                 "price": "50048000",
+        //                 "qty": "0.01080229"
+        //             }
+        //         ],
+        //         "asks": [
+        //             {
+        //                 "price": "50058000",
+        //                 "qty": "0.00272592"
+        //             }
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'qty');
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
