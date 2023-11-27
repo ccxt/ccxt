@@ -1541,7 +1541,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request = {
-            'limit': 100,
+            'limit': 250,
         }
         response = None
         isV3 = self.safe_value(params, 'v3', False)

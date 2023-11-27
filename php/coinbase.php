@@ -1588,7 +1588,7 @@ class coinbase extends Exchange {
          */
         $this->load_markets();
         $request = array(
-            'limit' => 100,
+            'limit' => 250,
         );
         $response = null;
         $isV3 = $this->safe_value($params, 'v3', false);

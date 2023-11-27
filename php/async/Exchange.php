@@ -41,17 +41,18 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.65';
+$version = '4.1.66';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.65';
+    const VERSION = '4.1.66';
 
     public $browser;
     public $marketsLoading = null;
     public $reloadingMarkets = null;
     public $tokenBucket;
     public Throttler $throttler;
+    public $default_connector = null;
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -66,15 +67,56 @@ class Exchange extends \ccxt\Exchange {
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->set_request_browser();
+        $this->default_connector = $this->create_connector();
+        $this->set_request_browser($this->default_connector);
         $this->throttler = new Throttler($this->tokenBucket);
     }
 
-    public function set_request_browser($connector_options = array()) {
+    public function set_request_browser($connector) {
+        $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
+    }
+
+    public function create_connector ($connector_options = array()){
         $connector = new React\Socket\Connector(array_merge(array(
             'timeout' => $this->timeout,
         ), $connector_options), Loop::get());
-        $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
+        return $connector;
+    }
+
+    private $proxyDictionaries = [];
+
+    public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
+        $connection_options_for_proxy = null;
+        if ($httpProxy) {
+            if (!array_key_exists($httpProxy, $this->proxyDictionaries)) {
+                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $instance = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
+                $this->proxyDictionaries[$httpProxy] = ['tcp' => $instance, 'dns' => false];
+            }
+            $connection_options_for_proxy = $this->proxyDictionaries[$httpProxy];
+        }  else if ($httpsProxy) {
+            if (!array_key_exists($httpsProxy, $this->proxyDictionaries)) {
+                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
+                $instance = new \Clue\React\HttpProxy\ProxyConnector($httpsProxy);
+                $this->proxyDictionaries[$httpsProxy] = ['tcp' => $instance, 'dns' => false];
+            }
+            $connection_options_for_proxy = $this->proxyDictionaries[$httpsProxy];
+        } else if ($socksProxy) {
+            $className = '\\Clue\\React\\Socks\\Client';
+            if (!class_exists($className)) {
+                throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
+            }
+            if (!array_key_exists($socksProxy, $this->proxyDictionaries)) {
+                $instance = new $className($socksProxy);
+                $this->proxyDictionaries[$socksProxy] = ['tcp' => $instance, 'dns' => false];
+            }
+            $connection_options_for_proxy = $this->proxyDictionaries[$socksProxy];
+        }
+        if ($connection_options_for_proxy) {
+            $connector = $this->create_connector($connection_options_for_proxy);
+            return $connector;
+        }
+        return null;
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -85,43 +127,37 @@ class Exchange extends \ccxt\Exchange {
 
             // ##### PROXY & HEADERS #####
             $headers = array_merge($this->headers, $headers ? $headers : array());
-
-            [ $proxyUrl, $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
+            // proxy-url
+            $proxyUrl = $this->check_proxy_url_settings($url, $method, $headers, $body);
             if ($proxyUrl !== null) {
-                $url = $proxyUrl . $url;
                 $headers['Origin'] = $this->origin;
-            } else if ($httpProxy !== null) {
-                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
-                $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpProxy);
-                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
-            }  else if ($httpsProxy !== null) {
-                include_once ($this->proxy_files_dir. 'reactphp-http-proxy/src/ProxyConnector.php');
-                $proxy = new \Clue\React\HttpProxy\ProxyConnector($httpsProxy);
-                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
-                $this->set_request_browser($request_browser_options);
-            } else if ($socksProxy !== null) {
-                $className = '\\Clue\\React\\Socks\\Client';
-                if (!class_exists($className)) {
-                    throw new NotSupported($this->id . ' - to use SOCKS proxy with ccxt, at first you need install module "composer require clue/socks-react"');
-                }
-                $proxy = new $className($socksProxy);
-                $request_browser_options = array( 'tcp' => $proxy, 'dns' => false );
-                $this->set_request_browser($request_browser_options);
+                $url = $proxyUrl . $url;
             }
-
+            // proxy agents
+            [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
+            $this->checkConflictingProxies($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
+            $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+            if ($connector) {
+                $this->set_request_browser($connector);
+            } else {
+                $this->set_request_browser($this->default_connector);
+            }
+            // user-agent
             $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
             if ($userAgent) {
                 if (gettype($userAgent) === 'string') {
-                    $headers['User-Agent'] = $userAgent;
+                    $headers = array_merge(['User-Agent' => $userAgent], $headers);
                 } elseif ((gettype($userAgent) === 'array') && array_key_exists('User-Agent', $userAgent)) {
-                    $headers['User-Agent'] = $userAgent['User-Agent'];
+                    $headers = array_merge($userAgent, $headers);
                 }
             }
-            // ######## end of proxies ########
-
+            // set final headers
+            $headers = $this->set_headers($headers);
+            // log
             if ($this->verbose) {
                 print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
             }
+            // end of proxies & headers
 
             $this->lastRestRequestTimestamp = $this->milliseconds();
 
@@ -328,64 +364,142 @@ class Exchange extends \ccxt\Exchange {
         return null;
     }
 
-    public function check_proxy_settings($url, $method, $headers, $body) {
-        $proxyUrl = ($this->proxyUrl !== null) ? $this->proxyUrl : $this->proxy_url;
-        $proxyUrlCallback = ($this->proxyUrlCallback !== null) ? $this->proxyUrlCallback : $this->proxy_url_callback;
-        if ($proxyUrlCallback !== null) {
-            $proxyUrl = $proxyUrlCallback ($url, $method, $headers, $body);
+    public function check_proxy_url_settings($url = null, $method = null, $headers = null, $body = null) {
+        $usedProxies = array();
+        $proxyUrl = null;
+        if ($this->proxyUrl !== null) {
+            $usedProxies[] = 'proxyUrl';
+            $proxyUrl = $this->proxyUrl;
+        }
+        if ($this->proxy_url !== null) {
+            $usedProxies[] = 'proxy_url';
+            $proxyUrl = $this->proxy_url;
+        }
+        if ($this->proxyUrlCallback !== null) {
+            $usedProxies[] = 'proxyUrlCallback';
+            $proxyUrl = $this->proxyUrlCallback ($url, $method, $headers, $body);
+        }
+        if ($this->proxy_url_callback !== null) {
+            $usedProxies[] = 'proxy_url_callback';
+            $proxyUrl = $this->proxy_url_callback ($url, $method, $headers, $body);
         }
         // backwards-compatibility
         if ($this->proxy !== null) {
+            $usedProxies[] = 'proxy';
             if (is_callable($this->proxy)) {
                 $proxyUrl = $this->proxy ($url, $method, $headers, $body);
             } else {
                 $proxyUrl = $this->proxy;
             }
         }
-        $httpProxy = ($this->httpProxy !== null) ? $this->httpProxy : $this->http_proxy;
-        $httpProxyCallback = ($this->httpProxyCallback !== null) ? $this->httpProxyCallback : $this->http_proxy_callback;
-        if ($httpProxyCallback !== null) {
-            $httpProxy = $httpProxyCallback ($url, $method, $headers, $body);
+        $length = count($usedProxies);
+        if ($length > 1) {
+            $joinedProxyNames = implode(',', $usedProxies);
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy_url settings (' . $joinedProxyNames . '), please use only one from : $proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
-        $httpsProxy = ($this->httpsProxy !== null) ? $this->httpsProxy : $this->https_proxy;
-        $httpsProxyCallback = ($this->httpsProxyCallback !== null) ? $this->httpsProxyCallback : $this->https_proxy_callback;
-        if ($httpsProxyCallback !== null) {
-            $httpsProxy = $httpsProxyCallback ($url, $method, $headers, $body);
+        return $proxyUrl;
+    }
+
+    public function check_proxy_settings($url = null, $method = null, $headers = null, $body = null) {
+        $usedProxies = array();
+        $httpProxy = null;
+        $httpsProxy = null;
+        $socksProxy = null;
+        // $httpProxy
+        if ($this->httpProxy !== null) {
+            $usedProxies[] = 'httpProxy';
+            $httpProxy = $this->httpProxy;
         }
-        $socksProxy = ($this->socksProxy !== null) ? $this->socksProxy : $this->socks_proxy;
-        $socksProxyCallback = ($this->socksProxyCallback !== null) ? $this->socksProxyCallback : $this->socks_proxy_callback;
-        if ($socksProxyCallback !== null) {
-            $socksProxy = $socksProxyCallback ($url, $method, $headers, $body);
+        if ($this->http_proxy !== null) {
+            $usedProxies[] = 'http_proxy';
+            $httpProxy = $this->http_proxy;
         }
-        $val = 0;
-        if ($proxyUrl !== null) {
-            $val = $val + 1;
+        if ($this->httpProxyCallback !== null) {
+            $usedProxies[] = 'httpProxyCallback';
+            $httpProxy = $this->httpProxyCallback ($url, $method, $headers, $body);
         }
-        if ($proxyUrlCallback !== null) {
-            $val = $val + 1;
+        if ($this->http_proxy_callback !== null) {
+            $usedProxies[] = 'http_proxy_callback';
+            $httpProxy = $this->http_proxy_callback ($url, $method, $headers, $body);
         }
-        if ($httpProxy !== null) {
-            $val = $val + 1;
+        // $httpsProxy
+        if ($this->httpsProxy !== null) {
+            $usedProxies[] = 'httpsProxy';
+            $httpsProxy = $this->httpsProxy;
         }
-        if ($httpProxyCallback !== null) {
-            $val = $val + 1;
+        if ($this->https_proxy !== null) {
+            $usedProxies[] = 'https_proxy';
+            $httpsProxy = $this->https_proxy;
         }
-        if ($httpsProxy !== null) {
-            $val = $val + 1;
+        if ($this->httpsProxyCallback !== null) {
+            $usedProxies[] = 'httpsProxyCallback';
+            $httpsProxy = $this->httpsProxyCallback ($url, $method, $headers, $body);
         }
-        if ($httpsProxyCallback !== null) {
-            $val = $val + 1;
+        if ($this->https_proxy_callback !== null) {
+            $usedProxies[] = 'https_proxy_callback';
+            $httpsProxy = $this->https_proxy_callback ($url, $method, $headers, $body);
         }
-        if ($socksProxy !== null) {
-            $val = $val + 1;
+        // $socksProxy
+        if ($this->socksProxy !== null) {
+            $usedProxies[] = 'socksProxy';
+            $socksProxy = $this->socksProxy;
         }
-        if ($socksProxyCallback !== null) {
-            $val = $val + 1;
+        if ($this->socks_proxy !== null) {
+            $usedProxies[] = 'socks_proxy';
+            $socksProxy = $this->socks_proxy;
         }
-        if ($val > 1) {
-            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : $proxyUrl, $httpProxy, $httpsProxy, $socksProxy, userAgent');
+        if ($this->socksProxyCallback !== null) {
+            $usedProxies[] = 'socksProxyCallback';
+            $socksProxy = $this->socksProxyCallback ($url, $method, $headers, $body);
         }
-        return array( $proxyUrl, $httpProxy, $httpsProxy, $socksProxy );
+        if ($this->socks_proxy_callback !== null) {
+            $usedProxies[] = 'socks_proxy_callback';
+            $socksProxy = $this->socks_proxy_callback ($url, $method, $headers, $body);
+        }
+        // check
+        $length = count($usedProxies);
+        if ($length > 1) {
+            $joinedProxyNames = implode(',', $usedProxies);
+            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $httpProxy, $httpsProxy, httpProxyCallback, httpsProxyCallback, $socksProxy, socksProxyCallback');
+        }
+        return array( $httpProxy, $httpsProxy, $socksProxy );
+    }
+
+    public function check_ws_proxy_settings() {
+        $usedProxies = array();
+        $wsProxy = null;
+        $wssProxy = null;
+        // $wsProxy
+        if ($this->wsProxy !== null) {
+            $usedProxies[] = 'wsProxy';
+            $wsProxy = $this->wsProxy;
+        }
+        if ($this->ws_proxy !== null) {
+            $usedProxies[] = 'ws_proxy';
+            $wsProxy = $this->ws_proxy;
+        }
+        // $wsProxy
+        if ($this->wssProxy !== null) {
+            $usedProxies[] = 'wssProxy';
+            $wssProxy = $this->wssProxy;
+        }
+        if ($this->wss_proxy !== null) {
+            $usedProxies[] = 'wss_proxy';
+            $wssProxy = $this->wss_proxy;
+        }
+        // check
+        $length = count($usedProxies);
+        if ($length > 1) {
+            $joinedProxyNames = implode(',', $usedProxies);
+            throw new ExchangeError($this->id . ' you have multiple conflicting settings (' . $joinedProxyNames . '), please use only one from => $wsProxy, wssProxy');
+        }
+        return array( $wsProxy, $wssProxy );
+    }
+
+    public function check_conflicting_proxies($proxyAgentSet, $proxyUrlSet) {
+        if ($proxyAgentSet && $proxyUrlSet) {
+            throw new ExchangeError($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
     }
 
     public function find_message_hashes($client, string $element) {

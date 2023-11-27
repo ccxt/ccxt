@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.65'
+__version__ = '4.1.66'
 
 # -----------------------------------------------------------------------------
 
@@ -123,15 +123,20 @@ class Exchange(BaseExchange):
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        request_headers = self.prepare_request_headers(headers)
+
         # ##### PROXY & HEADERS #####
-        final_proxy = None  # set default
-        final_session = None
-        proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
-        if proxyUrl:
+        request_headers = self.prepare_request_headers(headers)
+        self.last_request_headers = request_headers
+        # proxy-url
+        proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
+        if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})
             url = proxyUrl + url
-        elif httpProxy:
+        # proxy agents
+        final_proxy = None  # set default
+        final_session = None
+        httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+        if httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
             final_proxy = httpsProxy
@@ -140,6 +145,7 @@ class Exchange(BaseExchange):
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            self.open()  # ensure `asyncio_loop` is set
             connector = ProxyConnector.from_url(
                 socksProxy,
                 # extra args copied from self.open()
@@ -153,14 +159,18 @@ class Exchange(BaseExchange):
         elif self.aiohttp_proxy:
             final_proxy = self.aiohttp_proxy
 
+        proxyAgentSet = final_proxy is not None or socksProxy is not None
+        self.checkConflictingProxies(proxyAgentSet, proxyUrl)
+
         # avoid old proxies mixing
         if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
             raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
-        # ######## end of proxies ########
 
+        # log
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
         self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
+        # end of proxies & headers
 
         request_body = body
         encoded_body = body.encode() if body else None
@@ -355,7 +365,20 @@ class Exchange(BaseExchange):
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
+        self.set_client_session_proxy(url)
         return self.clients[url]
+
+    def set_client_session_proxy(self, url):
+        final_proxy = None  # set default
+        httpProxy, httpsProxy = self.check_ws_proxy_settings()
+        if httpProxy:
+            final_proxy = httpProxy
+        elif httpsProxy:
+            final_proxy = httpsProxy
+        if (final_proxy):
+            self.clients[url].proxy = final_proxy
+        else:
+            self.clients[url].proxy = None
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
@@ -367,6 +390,8 @@ class Exchange(BaseExchange):
         return {}
 
     def watch(self, url, message_hash, message=None, subscribe_hash=None, subscription=None):
+        # base exchange self.open starts the aiohttp Session in an async context
+        self.open()
         backoff_delay = 0
         client = self.client(url)
         if subscribe_hash is None and message_hash in client.futures:
@@ -378,8 +403,6 @@ class Exchange(BaseExchange):
         if not subscribed:
             client.subscriptions[subscribe_hash] = subscription or True
 
-        # base exchange self.open starts the aiohttp Session in an async context
-        self.open()
         connected = client.connected if client.connected.done() \
             else asyncio.ensure_future(client.connect(self.session, backoff_delay))
 
