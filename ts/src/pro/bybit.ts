@@ -1033,7 +1033,7 @@ export default class bybit extends bybitRest {
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {
         if (this.positions !== undefined) {
-            return this.positions;
+            return;
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         if (fetchPositionsSnapshot) {

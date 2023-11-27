@@ -394,7 +394,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const response = this.safeValue (message, 'response');
         if (response === undefined) {
-            return message;
+            return;
         }
         const marketId = this.safeString (response, 'market');
         const symbol = this.safeSymbol (marketId, undefined, '-');

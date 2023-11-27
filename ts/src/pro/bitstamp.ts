@@ -542,7 +542,6 @@ export default class bitstamp extends bitstampRest {
                 this.options['expiresIn'] = this.sum (time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
-                return response;
             }
         }
     }

@@ -105,7 +105,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString (message, 'event');
         if (event === 'subscribed') {
-            return message;
+            return;
         }
         const result = { 'info': message };
         const balances = this.safeValue (message, 'balances', []);
@@ -178,7 +178,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString (message, 'event');
         if (event === 'subscribed') {
-            return message;
+            // return;
         } else if (event === 'rejected') {
             throw new ExchangeError (this.id + ' ' + this.json (message));
         } else if (event === 'updated') {
@@ -262,7 +262,7 @@ export default class blockchaincom extends blockchaincomRest {
         const symbol = market['symbol'];
         let ticker = undefined;
         if (event === 'subscribed') {
-            return message;
+            return;
         } else if (event === 'snapshot') {
             ticker = this.parseTicker (message, market);
         } else if (event === 'updated') {
@@ -362,7 +362,7 @@ export default class blockchaincom extends blockchaincomRest {
         //
         const event = this.safeString (message, 'event');
         if (event !== 'updated') {
-            return message;
+            return;
         }
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
@@ -527,7 +527,7 @@ export default class blockchaincom extends blockchaincomRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         if (event === 'subscribed') {
-            return message;
+            return;
         } else if (event === 'rejected') {
             throw new ExchangeError (this.id + ' ' + this.json (message));
         } else if (event === 'snapshot') {
@@ -704,7 +704,7 @@ export default class blockchaincom extends blockchaincomRest {
             this.orderbooks[symbol] = storedOrderBook;
         }
         if (event === 'subscribed') {
-            return message;
+            return;
         } else if (event === 'snapshot') {
             const snapshot = this.parseCountedOrderBook (message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             storedOrderBook.reset (snapshot);
@@ -816,7 +816,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';

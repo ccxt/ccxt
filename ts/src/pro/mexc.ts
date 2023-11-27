@@ -1129,7 +1129,7 @@ export default class mexc extends mexcRest {
         //
         const msg = this.safeString (message, 'msg');
         if (msg === 'PONG') {
-            return this.handlePong (client, message);
+            this.handlePong (client, message);
         } else if (msg.indexOf ('@') > -1) {
             const parts = msg.split ('@');
             const channel = this.safeString (parts, 1);

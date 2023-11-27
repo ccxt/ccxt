@@ -725,7 +725,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         const messageHash = this.safeString (message, 'topic');
         const subject = this.safeString (message, 'subject');
         if (subject === 'received') {
-            return message;
+            return;
         }
         // At the time of writting this, there is no implementation to easily convert each order into the orderbook so raw messages are returned
         client.resolve (message, messageHash);
@@ -981,7 +981,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
-            return method.call (this, client, message);
+            method.call (this, client, message);
         }
     }
 

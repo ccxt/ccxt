@@ -349,7 +349,6 @@ export default class bitfinex2 extends bitfinex2Rest {
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
-        return message;
     }
 
     parseWsTrade (trade, market = undefined) {

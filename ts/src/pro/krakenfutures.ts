@@ -1481,7 +1481,7 @@ export default class krakenfutures extends krakenfuturesRest {
             };
             const method = this.safeValue (methods, feed);
             if (method !== undefined) {
-                return method.call (this, client, message);
+                method.call (this, client, message);
             }
         }
     }

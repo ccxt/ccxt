@@ -395,13 +395,13 @@ export default class ndax extends ndaxRest {
         const firstBidAsk = this.safeValue (payload, 0, []);
         const marketId = this.safeString (firstBidAsk, 7);
         if (marketId === undefined) {
-            return message;
+            return;
         }
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            return message;
+            return;
         }
         let timestamp = undefined;
         let nonce = undefined;
@@ -493,11 +493,8 @@ export default class ndax extends ndaxRest {
         const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message, subscription);
-            }
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
         }
     }
 

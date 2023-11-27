@@ -423,7 +423,7 @@ export default class woo extends wooRest {
         return true;
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'] + '/' + this.uid;
         const client = this.client (url);

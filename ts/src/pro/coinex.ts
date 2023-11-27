@@ -1057,7 +1057,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    authenticate (params = {}) {
+    async authenticate (params = {}) {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];

@@ -1680,7 +1680,8 @@ export default class htx extends htxRest {
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
-                return method.call (this, client, message, subscription);
+                method.call (this, client, message, subscription);
+                return;
             }
             // clean up
             if (id in client.subscriptions) {
