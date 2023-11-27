@@ -553,8 +553,6 @@ class gate extends gate$1 {
                 'AXIS': 'Axis DeFi',
                 'BIFI': 'Bitcoin File',
                 'BOX': 'DefiBox',
-                'BTCBEAR': 'BEAR',
-                'BTCBULL': 'BULL',
                 'BYN': 'BeyondFi',
                 'EGG': 'Goose Finance',
                 'GTC': 'Game.com',

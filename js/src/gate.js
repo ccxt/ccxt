@@ -556,8 +556,6 @@ export default class gate extends Exchange {
                 'AXIS': 'Axis DeFi',
                 'BIFI': 'Bitcoin File',
                 'BOX': 'DefiBox',
-                'BTCBEAR': 'BEAR',
-                'BTCBULL': 'BULL',
                 'BYN': 'BeyondFi',
                 'EGG': 'Goose Finance',
                 'GTC': 'Game.com',
