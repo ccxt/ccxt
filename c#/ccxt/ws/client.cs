@@ -167,6 +167,8 @@ public partial class Exchange
 
         public object lastPong = null;
 
+        public object keepAlive = null;
+
         public WebSocketClient(string url, handleMessageDelegate handleMessage)
         {
             this.url = url;

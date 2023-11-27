@@ -475,6 +475,7 @@ export default class htx extends htxRest {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
         }
+        return undefined;
     }
 
     handleDelta (bookside, delta) {
@@ -1688,7 +1689,6 @@ export default class htx extends htxRest {
                 delete client.subscriptions[id];
             }
         }
-        return message;
     }
 
     handleSystemStatus (client: Client, message) {

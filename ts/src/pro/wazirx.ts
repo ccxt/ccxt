@@ -776,7 +776,8 @@ export default class wazirx extends wazirxRest {
         for (let i = 0; i < streams.length; i++) {
             if (this.inArray (streams[i], stream)) {
                 const handler = streamHandlers[streams[i]];
-                return handler.call (this, client, message);
+                handler.call (this, client, message);
+                return;
             }
         }
         throw new NotSupported (this.id + ' this message type is not supported yet. Message: ' + this.json (message));

@@ -564,6 +564,6 @@ export default class coinbase extends coinbaseRest {
             throw new ExchangeError (errorMessage);
         }
         const method = this.safeValue (methods, channel);
-        return method.call (this, client, message);
+        method.call (this, client, message);
     }
 }

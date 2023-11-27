@@ -944,10 +944,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
             'position.adjustRiskLimit': this.handlePosition,
         };
         const method = this.safeValue (methods, subject);
-        if (method === undefined) {
-            return message;
-        } else {
-            return method.call (this, client, message);
+        if (method !== undefined) {
+            method.call (this, client, message);
         }
     }
 

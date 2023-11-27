@@ -150,6 +150,8 @@ public partial class Exchange
 
     // WS options
     public object tickers = new dict();
+
+    public object transactions = new dict();
     public object myTrades = new dict();
     public object orders = new dict();
     public object triggerOrders = new dict();

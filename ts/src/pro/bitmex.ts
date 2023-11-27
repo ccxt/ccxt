@@ -1394,7 +1394,7 @@ export default class bitmex extends bitmexRest {
                 const request = this.safeValue (message, 'request', {});
                 const op = this.safeValue (request, 'op');
                 if (op === 'authKeyExpires') {
-                    this.handleAuthenticationMessage.call (this, client, message);
+                    this.handleAuthenticationMessage (client, message);
                 }
             } else {
                 method.call (this, client, message);

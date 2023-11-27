@@ -65,7 +65,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         });
     }
 
-    negotiate (privateChannel, params = {}) {
+    async negotiate (privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue (this.options, 'urls', {});
         if (connectId in urls) {

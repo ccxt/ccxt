@@ -145,7 +145,7 @@ export default class coinex extends coinexRest {
             this.tickers[symbol] = parsedTicker;
             newTickers.push (parsedTicker);
         }
-        const messageHashes = this.findMessageHashes (client.futures, 'tickers::');
+        const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
@@ -1047,7 +1047,8 @@ export default class coinex extends coinexRest {
         if (subscription !== undefined) {
             const futureIndex = this.safeString (subscription, 'future');
             if (futureIndex === 'ohlcv') {
-                return this.handleOHLCV (client, message);
+                this.handleOHLCV (client, message);
+                return;
             }
             const future = this.safeValue (client.futures, futureIndex);
             if (future !== undefined) {
