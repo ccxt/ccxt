@@ -433,6 +433,7 @@ export default class coinone extends Exchange {
          * @method
          * @name coinone#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -480,6 +481,7 @@ export default class coinone extends Exchange {
          * @method
          * @name coinone#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.coinone.co.kr/v1.0/reference/tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -487,22 +489,54 @@ export default class coinone extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {
-            'currency': 'all',
-            'format': 'json',
+            'quote_currency': 'KRW',
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
-        const result = {};
-        const ids = Object.keys (response);
-        const timestamp = this.safeTimestamp (response, 'timestamp');
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.safeMarket (id);
-            const symbol = market['symbol'];
-            const ticker = response[id];
-            result[symbol] = this.parseTicker (ticker, market);
-            result[symbol]['timestamp'] = timestamp;
+        let market = undefined;
+        let response = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+            request['quote_currency'] = market['quote'];
+            request['target_currency'] = market['base'];
+            response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency (this.extend (request, params));
+        } else {
+            response = await this.v2PublicGetTickerNewQuoteCurrency (this.extend (request, params));
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701073358487,
+        //         "tickers": [
+        //             {
+        //                 "quote_currency": "krw",
+        //                 "target_currency": "btc",
+        //                 "timestamp": 1701073357818,
+        //                 "high": "50543000.0",
+        //                 "low": "49945000.0",
+        //                 "first": "50487000.0",
+        //                 "last": "50062000.0",
+        //                 "quote_volume": "11349804285.3859",
+        //                 "target_volume": "226.07268994",
+        //                 "best_asks": [
+        //                     {
+        //                         "price": "50081000.0",
+        //                         "qty": "0.18471358"
+        //                     }
+        //                 ],
+        //                 "best_bids": [
+        //                     {
+        //                         "price": "50062000.0",
+        //                         "qty": "0.04213455"
+        //                     }
+        //                 ],
+        //                 "id": "1701073357818001"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'tickers', []);
+        return this.parseTickers (data, symbols);
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -527,44 +561,58 @@ export default class coinone extends Exchange {
     parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
-        //         "currency":"xec",
-        //         "first":"0.1069",
-        //         "low":"0.09",
-        //         "high":"0.1069",
-        //         "last":"0.0911",
-        //         "volume":"4591217267.4974",
-        //         "yesterday_first":"0.1128",
-        //         "yesterday_low":"0.1035",
-        //         "yesterday_high":"0.1167",
-        //         "yesterday_last":"0.1069",
-        //         "yesterday_volume":"4014832231.5102"
+        //         "quote_currency": "krw",
+        //         "target_currency": "btc",
+        //         "timestamp": 1701073357818,
+        //         "high": "50543000.0",
+        //         "low": "49945000.0",
+        //         "first": "50487000.0",
+        //         "last": "50062000.0",
+        //         "quote_volume": "11349804285.3859",
+        //         "target_volume": "226.07268994",
+        //         "best_asks": [
+        //             {
+        //                 "price": "50081000.0",
+        //                 "qty": "0.18471358"
+        //             }
+        //         ],
+        //         "best_bids": [
+        //             {
+        //                 "price": "50062000.0",
+        //                 "qty": "0.04213455"
+        //             }
+        //         ],
+        //         "id": "1701073357818001"
         //     }
         //
-        const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const open = this.safeString (ticker, 'first');
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
-        const previousClose = this.safeString (ticker, 'yesterday_last');
-        const symbol = this.safeSymbol (undefined, market);
+        const asks = this.safeValue (ticker, 'best_asks');
+        const bids = this.safeValue (ticker, 'best_bids');
+        const baseId = this.safeString (ticker, 'target_currency');
+        const quoteId = this.safeString (ticker, 'quote_currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': this.safeString (bids, 'price'),
+            'bidVolume': this.safeString (bids, 'qty'),
+            'ask': this.safeString (asks, 'price'),
+            'askVolume': this.safeString (asks, 'qty'),
             'vwap': undefined,
-            'open': open,
+            'open': this.safeString (ticker, 'first'),
             'close': last,
             'last': last,
-            'previousClose': previousClose,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'baseVolume': this.safeString (ticker, 'target_volume'),
+            'quoteVolume': this.safeString (ticker, 'quote_volume'),
             'info': ticker,
         }, market);
     }
