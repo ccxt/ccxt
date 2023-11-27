@@ -653,7 +653,7 @@ export default class phemex extends phemexRest {
         bookside.storeArray (bidAsk);
     }
 
-    handleDeltas (bookside, deltas, market = undefined) {
+    customHandleDeltas (bookside, deltas, market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i], market);
         }
@@ -725,8 +725,8 @@ export default class phemex extends phemexRest {
                 const changes = this.safeValue2 (message, 'book', 'orderbook_p', {});
                 const asks = this.safeValue (changes, 'asks', []);
                 const bids = this.safeValue (changes, 'bids', []);
-                this.handleDeltas (orderbook['asks'], asks, market);
-                this.handleDeltas (orderbook['bids'], bids, market);
+                this.customHandleDeltas (orderbook['asks'], asks, market);
+                this.customHandleDeltas (orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
                 orderbook['timestamp'] = timestamp;
                 orderbook['datetime'] = this.iso8601 (timestamp);

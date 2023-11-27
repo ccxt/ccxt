@@ -495,6 +495,7 @@ export default class ndax extends ndaxRest {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
                 method.call (this, client, message, subscription);
+            }
         }
     }
 

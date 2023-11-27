@@ -678,7 +678,7 @@ export default class kraken extends krakenRest {
                 const side = sides[key];
                 const bookside = orderbook[side];
                 const deltas = this.safeValue (message[1], key, []);
-                timestamp = this.handleDeltas (bookside, deltas, timestamp);
+                timestamp = this.customHandleDeltas (bookside, deltas, timestamp);
             }
             orderbook['symbol'] = symbol;
             orderbook['timestamp'] = timestamp;
@@ -707,11 +707,11 @@ export default class kraken extends krakenRest {
             const storedBids = orderbook['bids'];
             let example = undefined;
             if (a !== undefined) {
-                timestamp = this.handleDeltas (storedAsks, a, timestamp);
+                timestamp = this.customHandleDeltas (storedAsks, a, timestamp);
                 example = this.safeValue (a, 0);
             }
             if (b !== undefined) {
-                timestamp = this.handleDeltas (storedBids, b, timestamp);
+                timestamp = this.customHandleDeltas (storedBids, b, timestamp);
                 example = this.safeValue (b, 0);
             }
             // don't remove this line or I will poop on your face
@@ -767,7 +767,7 @@ export default class kraken extends krakenRest {
         }
     }
 
-    handleDeltas (bookside, deltas, timestamp = undefined) {
+    customHandleDeltas (bookside, deltas, timestamp = undefined) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = this.parseNumber (delta[0]);

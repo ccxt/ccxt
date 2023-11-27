@@ -932,15 +932,15 @@ export default class cex extends cexRest {
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger2 (data, 'timestamp_ms', 'timestamp');
         const incrementalId = this.safeNumber (data, 'id');
-        const storedOrderBook = this.orderBook ({});
+        const orderbook = this.orderBook ({});
         const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
         snapshot['nonce'] = incrementalId;
-        storedOrderBook.reset (snapshot);
+        orderbook.reset (snapshot);
         this.options['orderbook'][symbol] = {
             'incrementalId': incrementalId,
         };
-        this.orderbooks[symbol] = storedOrderBook;
-        client.resolve (storedOrderBook, messageHash);
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
     }
 
     pairToSymbol (pair) {
