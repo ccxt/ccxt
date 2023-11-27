@@ -564,7 +564,7 @@ class Exchange(object):
             proxies['http'] = socksProxy
             proxies['https'] = socksProxy
         proxyAgentSet = proxies is not None
-        self.checkConflictingProxies(proxyAgentSet, proxyUrl)
+        self.check_conflicting_proxies(proxyAgentSet, proxyUrl)
         # specifically for async-python, there is ".proxies" property maintained
         if (self.proxies is not None):
             if (proxyAgentSet or proxyUrl):
