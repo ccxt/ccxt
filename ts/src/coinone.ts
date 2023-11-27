@@ -274,44 +274,53 @@ export default class coinone extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const request = {
-            'currency': 'all',
+            'quote_currency': 'KRW',
         };
-        const response = await this.publicGetTicker (request);
+        const response = await this.v2PublicGetTickerNewQuoteCurrency (request);
         //
-        //    {
-        //        "result": "success",
-        //        "errorCode": "0",
-        //        "timestamp": "1643676668",
-        //        "xec": {
-        //          "currency": "xec",
-        //          "first": "0.0914",
-        //          "low": "0.0894",
-        //          "high": "0.096",
-        //          "last": "0.0937",
-        //          "volume": "1673283662.9797",
-        //          "yesterday_first": "0.0929",
-        //          "yesterday_low": "0.0913",
-        //          "yesterday_high": "0.0978",
-        //          "yesterday_last": "0.0913",
-        //          "yesterday_volume": "1167285865.4571"
-        //        },
-        //        ...
-        //    }
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "server_time": 1701067923060,
+        //         "tickers": [
+        //             {
+        //                 "quote_currency": "krw",
+        //                 "target_currency": "stg",
+        //                 "timestamp": 1701067920001,
+        //                 "high": "667.5",
+        //                 "low": "667.5",
+        //                 "first": "667.5",
+        //                 "last": "667.5",
+        //                 "quote_volume": "0.0",
+        //                 "target_volume": "0.0",
+        //                 "best_asks": [
+        //                     {
+        //                         "price": "777.0",
+        //                         "qty": "73.9098"
+        //                     }
+        //                 ],
+        //                 "best_bids": [
+        //                     {
+        //                         "price": "690.8",
+        //                         "qty": "40.7768"
+        //                     }
+        //                 ],
+        //                 "id": "1701067920001001"
+        //             }
+        //         ]
+        //     }
         //
+        const tickers = this.safeValue (response, 'tickers', []);
         const result = [];
-        const quoteId = 'krw';
-        const quote = this.safeCurrencyCode (quoteId);
-        const baseIds = Object.keys (response);
-        for (let i = 0; i < baseIds.length; i++) {
-            const baseId = baseIds[i];
-            const ticker = this.safeValue (response, baseId, {});
-            const currency = this.safeValue (ticker, 'currency');
-            if (currency === undefined) {
-                continue;
-            }
+        for (let i = 0; i < tickers.length; i++) {
+            const entry = this.safeValue (tickers, i);
+            const id = this.safeString (entry, 'id');
+            const baseId = this.safeString (entry, 'target_currency');
+            const quoteId = this.safeString (entry, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             result.push ({
-                'id': baseId,
+                'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -358,7 +367,7 @@ export default class coinone extends Exchange {
                     },
                 },
                 'created': undefined,
-                'info': ticker,
+                'info': entry,
             });
         }
         return result;
