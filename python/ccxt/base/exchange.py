@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.64'
+__version__ = '4.1.67'
 
 # -----------------------------------------------------------------------------
 
@@ -167,6 +167,11 @@ class Exchange(object):
     socks_proxy_callback = None
     userAgent = None
     user_agent = None
+    wsProxy = None
+    ws_proxy = None
+    wssProxy = None
+    wss_proxy = None
+    #
     userAgents = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
         'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
@@ -536,15 +541,18 @@ class Exchange(object):
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
-        request_headers = self.prepare_request_headers(headers)
 
         # ##### PROXY & HEADERS #####
-        proxies = None  # set default
-        proxyUrl, httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
-        if proxyUrl:
+        request_headers = self.prepare_request_headers(headers)
+        # proxy-url
+        proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
+        if proxyUrl is not None:
             request_headers.update({'Origin': self.origin})
             url = proxyUrl + url
-        elif httpProxy:
+        # proxy agents
+        proxies = None  # set default
+        httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+        if httpProxy:
             proxies = {}
             proxies['http'] = httpProxy
         elif httpsProxy:
@@ -555,17 +563,18 @@ class Exchange(object):
             # https://stackoverflow.com/a/15661226/2377343
             proxies['http'] = socksProxy
             proxies['https'] = socksProxy
-
-        if (proxies is not None) and (self.proxies is not None):
-            # avoid old proxies mixing
-            raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
+        proxyAgentSet = proxies is not None
+        self.check_conflicting_proxies(proxyAgentSet, proxyUrl)
+        # specifically for async-python, there is ".proxies" property maintained
         if (self.proxies is not None):
+            if (proxyAgentSet or proxyUrl):
+                raise ExchangeError(self.id + ' you have conflicting proxy settings - use either .proxies or http(s)Proxy / socksProxy / proxyUrl')
             proxies = self.proxies
-        # ######## end of proxies ########
-
+        # log
         if self.verbose:
             self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
+        # end of proxies & headers
 
         request_body = body
         if body:
@@ -1664,6 +1673,9 @@ class Exchange(object):
     def get_property(self, obj, property, defaultValue=None):
         return getattr(obj, property) if hasattr(obj, property) else defaultValue
 
+    def set_property(self, obj, property, value):
+        setattr(obj, property, value)
+
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
 
@@ -1727,49 +1739,113 @@ class Exchange(object):
                 return key
         return None
 
-    def check_proxy_settings(self, url, method, headers, body):
-        proxyUrl = self.proxyUrl if (self.proxyUrl is not None) else self.proxy_url
-        proxyUrlCallback = self.proxyUrlCallback if (self.proxyUrlCallback is not None) else self.proxy_url_callback
-        if proxyUrlCallback is not None:
-            proxyUrl = proxyUrlCallback(url, method, headers, body)
+    def check_proxy_url_settings(self, url=None, method=None, headers=None, body=None):
+        usedProxies = []
+        proxyUrl = None
+        if self.proxyUrl is not None:
+            usedProxies.append('proxyUrl')
+            proxyUrl = self.proxyUrl
+        if self.proxy_url is not None:
+            usedProxies.append('proxy_url')
+            proxyUrl = self.proxy_url
+        if self.proxyUrlCallback is not None:
+            usedProxies.append('proxyUrlCallback')
+            proxyUrl = self.proxyUrlCallback(url, method, headers, body)
+        if self.proxy_url_callback is not None:
+            usedProxies.append('proxy_url_callback')
+            proxyUrl = self.proxy_url_callback(url, method, headers, body)
         # backwards-compatibility
         if self.proxy is not None:
+            usedProxies.append('proxy')
             if callable(self.proxy):
                 proxyUrl = self.proxy(url, method, headers, body)
             else:
                 proxyUrl = self.proxy
-        httpProxy = self.httpProxy if (self.httpProxy is not None) else self.http_proxy
-        httpProxyCallback = self.httpProxyCallback if (self.httpProxyCallback is not None) else self.http_proxy_callback
-        if httpProxyCallback is not None:
-            httpProxy = httpProxyCallback(url, method, headers, body)
-        httpsProxy = self.httpsProxy if (self.httpsProxy is not None) else self.https_proxy
-        httpsProxyCallback = self.httpsProxyCallback if (self.httpsProxyCallback is not None) else self.https_proxy_callback
-        if httpsProxyCallback is not None:
-            httpsProxy = httpsProxyCallback(url, method, headers, body)
-        socksProxy = self.socksProxy if (self.socksProxy is not None) else self.socks_proxy
-        socksProxyCallback = self.socksProxyCallback if (self.socksProxyCallback is not None) else self.socks_proxy_callback
-        if socksProxyCallback is not None:
-            socksProxy = socksProxyCallback(url, method, headers, body)
-        val = 0
-        if proxyUrl is not None:
-            val = val + 1
-        if proxyUrlCallback is not None:
-            val = val + 1
-        if httpProxy is not None:
-            val = val + 1
-        if httpProxyCallback is not None:
-            val = val + 1
-        if httpsProxy is not None:
-            val = val + 1
-        if httpsProxyCallback is not None:
-            val = val + 1
-        if socksProxy is not None:
-            val = val + 1
-        if socksProxyCallback is not None:
-            val = val + 1
-        if val > 1:
-            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent')
-        return [proxyUrl, httpProxy, httpsProxy, socksProxy]
+        length = len(usedProxies)
+        if length > 1:
+            joinedProxyNames = ','.join(usedProxies)
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy_url settings(' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback')
+        return proxyUrl
+
+    def check_proxy_settings(self, url=None, method=None, headers=None, body=None):
+        usedProxies = []
+        httpProxy = None
+        httpsProxy = None
+        socksProxy = None
+        # httpProxy
+        if self.httpProxy is not None:
+            usedProxies.append('httpProxy')
+            httpProxy = self.httpProxy
+        if self.http_proxy is not None:
+            usedProxies.append('http_proxy')
+            httpProxy = self.http_proxy
+        if self.httpProxyCallback is not None:
+            usedProxies.append('httpProxyCallback')
+            httpProxy = self.httpProxyCallback(url, method, headers, body)
+        if self.http_proxy_callback is not None:
+            usedProxies.append('http_proxy_callback')
+            httpProxy = self.http_proxy_callback(url, method, headers, body)
+        # httpsProxy
+        if self.httpsProxy is not None:
+            usedProxies.append('httpsProxy')
+            httpsProxy = self.httpsProxy
+        if self.https_proxy is not None:
+            usedProxies.append('https_proxy')
+            httpsProxy = self.https_proxy
+        if self.httpsProxyCallback is not None:
+            usedProxies.append('httpsProxyCallback')
+            httpsProxy = self.httpsProxyCallback(url, method, headers, body)
+        if self.https_proxy_callback is not None:
+            usedProxies.append('https_proxy_callback')
+            httpsProxy = self.https_proxy_callback(url, method, headers, body)
+        # socksProxy
+        if self.socksProxy is not None:
+            usedProxies.append('socksProxy')
+            socksProxy = self.socksProxy
+        if self.socks_proxy is not None:
+            usedProxies.append('socks_proxy')
+            socksProxy = self.socks_proxy
+        if self.socksProxyCallback is not None:
+            usedProxies.append('socksProxyCallback')
+            socksProxy = self.socksProxyCallback(url, method, headers, body)
+        if self.socks_proxy_callback is not None:
+            usedProxies.append('socks_proxy_callback')
+            socksProxy = self.socks_proxy_callback(url, method, headers, body)
+        # check
+        length = len(usedProxies)
+        if length > 1:
+            joinedProxyNames = ','.join(usedProxies)
+            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
+        return [httpProxy, httpsProxy, socksProxy]
+
+    def check_ws_proxy_settings(self):
+        usedProxies = []
+        wsProxy = None
+        wssProxy = None
+        # wsProxy
+        if self.wsProxy is not None:
+            usedProxies.append('wsProxy')
+            wsProxy = self.wsProxy
+        if self.ws_proxy is not None:
+            usedProxies.append('ws_proxy')
+            wsProxy = self.ws_proxy
+        # wsProxy
+        if self.wssProxy is not None:
+            usedProxies.append('wssProxy')
+            wssProxy = self.wssProxy
+        if self.wss_proxy is not None:
+            usedProxies.append('wss_proxy')
+            wssProxy = self.wss_proxy
+        # check
+        length = len(usedProxies)
+        if length > 1:
+            joinedProxyNames = ','.join(usedProxies)
+            raise ExchangeError(self.id + ' you have multiple conflicting settings(' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy')
+        return [wsProxy, wssProxy]
+
+    def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
+        if proxyAgentSet and proxyUrlSet:
+            raise ExchangeError(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
 
     def find_message_hashes(self, client, element: str):
         result = []
@@ -1913,7 +1989,7 @@ class Exchange(object):
     def parse_markets(self, markets):
         result = []
         for i in range(0, len(markets)):
-            result.append(self.parseMarket(markets[i]))
+            result.append(self.parse_market(markets[i]))
         return result
 
     def parse_ticker(self, ticker: object, market: Market = None):
@@ -2116,6 +2192,7 @@ class Exchange(object):
             'contract': None,
             'linear': None,
             'inverse': None,
+            'subType': None,
             'taker': None,
             'maker': None,
             'contractSize': None,
@@ -2184,6 +2261,12 @@ class Exchange(object):
                 'precision': self.precision,
                 'limits': self.limits,
             }, self.fees['trading'], value)
+            if market['linear']:
+                market['subType'] = 'linear'
+            elif market['inverse']:
+                market['subType'] = 'inverse'
+            else:
+                market['subType'] = None
             values.append(market)
         self.markets = self.index_by(values, 'symbol')
         marketsSortedBySymbol = self.keysort(self.markets)
@@ -3562,7 +3645,7 @@ class Exchange(object):
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Array: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
         return self.handle_option_and_params(params, methodName, 'marginMode', defaultValue)
@@ -3707,7 +3790,7 @@ class Exchange(object):
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
@@ -4160,7 +4243,7 @@ class Exchange(object):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
@@ -4178,7 +4261,7 @@ class Exchange(object):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
          * @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
@@ -4196,7 +4279,7 @@ class Exchange(object):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
@@ -4255,7 +4338,7 @@ class Exchange(object):
                 message += ', one of ' + '(' + messageOptions + ')'
             raise ArgumentsRequired(message)
 
-    def check_required_margin_argument(self, methodName: str, symbol: str, marginMode: str):
+    def check_required_margin_argument(self, methodName: str, symbol: Str, marginMode: str):
         """
          * @ignore
         :param str symbol: unified symbol of the market
@@ -4371,7 +4454,7 @@ class Exchange(object):
         :param str code: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         if self.has['fetchDepositsWithdrawals']:

@@ -47,6 +47,7 @@ export default class binanceus extends binance {
                 'spot': true,
                 'margin': false,
                 'swap': false,
+                'future': undefined,
                 'option': false,
                 'addMargin': false,
                 'borrowMargin': false,
