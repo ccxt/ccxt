@@ -300,6 +300,7 @@ class Transpiler {
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
             [ /\.checkConflictingProxies\s/g, '.check_conflicting_proxies'],
+            [ /\.parseMarket\s/g, '.parse_market'],
             [ /\.isRoundNumber\s/g, '.is_round_number'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
