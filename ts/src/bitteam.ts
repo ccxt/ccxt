@@ -1899,7 +1899,7 @@ export default class bitteam extends Exchange {
         return this.safeTrade ({
             'id': id,
             'order': order,
-            'timestamp': timestamp,
+            'timestamp': this.parseToInt (timestamp),
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': type, // todo: check
