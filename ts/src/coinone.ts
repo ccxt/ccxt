@@ -42,6 +42,7 @@ export default class coinone extends Exchange {
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchCurrencies': true,
                 'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -270,6 +271,7 @@ export default class coinone extends Exchange {
          * @method
          * @name coinone#fetchMarkets
          * @description retrieves data on all markets for coinone
+         * @see https://docs.coinone.co.kr/v1.0/reference/tickers
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -374,20 +376,24 @@ export default class coinone extends Exchange {
     }
 
     parseBalance (response): Balances {
+        //
+        // [
+        //     {
+        //         "available": "998999692485",
+        //         "limit": "0",
+        //         "average_price": "100000000",
+        //         "currency": "BTC"
+        //     }
+        // ]
+        //
         const result = { 'info': response };
-        const balances = this.omit (response, [
-            'errorCode',
-            'result',
-            'normalWallets',
-        ]);
-        const currencyIds = Object.keys (balances);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const balance = balances[currencyId];
+        for (let i = 0; i < response.length; i++) {
+            const entry = this.safeValue (response, i);
+            const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'avail');
-            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString (entry, 'available');
+            account['used'] = this.safeString (entry, 'limit');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -398,12 +404,28 @@ export default class coinone extends Exchange {
          * @method
          * @name coinone#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.coinone.co.kr/v1.0/reference/v21
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v2PrivatePostAccountBalance (params);
-        return this.parseBalance (response);
+        const response = await this.v2_1PrivatePostAccountBalanceAll (params);
+        //
+        //     {
+        //         "result": "success",
+        //         "error_code": "0",
+        //         "balances": [
+        //             {
+        //                 "available": "998999692485",
+        //                 "limit": "0",
+        //                 "average_price": "100000000",
+        //                 "currency": "BTC"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'balances', []);
+        return this.parseBalance (data);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
