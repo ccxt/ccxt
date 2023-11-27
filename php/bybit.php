@@ -2100,8 +2100,8 @@ class bybit extends Exchange {
         }
         $request = array(
             // 'symbol' => $market['id'],
-            // 'baseCoin' => '', Base coin. For option only
-            // 'expDate' => '', Expiry date. e.g., 25DEC22. For option only
+            // 'baseCoin' => '', // Base coin. For option only
+            // 'expDate' => '', // Expiry date. e.g., 25DEC22. For option only
         );
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
