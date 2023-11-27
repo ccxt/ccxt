@@ -39,7 +39,7 @@ export interface MarketInterface {
     quoteId: string;
     active: Bool;
     type: MarketType;
-    subType: SubType;
+    subType?: SubType;
     spot: boolean;
     margin: boolean;
     swap: boolean;
