@@ -4338,7 +4338,7 @@ class Exchange(object):
                 message += ', one of ' + '(' + messageOptions + ')'
             raise ArgumentsRequired(message)
 
-    def check_required_margin_argument(self, methodName: str, symbol: str, marginMode: str):
+    def check_required_margin_argument(self, methodName: str, symbol: Str, marginMode: str):
         """
          * @ignore
         :param str symbol: unified symbol of the market

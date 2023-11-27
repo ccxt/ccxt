@@ -848,6 +848,7 @@ class gate extends Exchange {
                     'AUTO_TRIGGER_PRICE_LESS_LAST' => '\\ccxt\\InvalidOrder',  // array("label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument => Trigger.Price must < last_price")
                     'AUTO_TRIGGER_PRICE_GREATE_LAST' => '\\ccxt\\InvalidOrder', // array("label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument => Trigger.Price must > last_price")
                     'POSITION_HOLDING' => '\\ccxt\\BadRequest',
+                    'USER_LOAN_EXCEEDED' => '\\ccxt\\BadRequest', // array("label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded")
                 ),
                 'broad' => array(),
             ),
@@ -5512,6 +5513,213 @@ class gate extends Exchange {
             $floor = $cap;
         }
         return $tiers;
+    }
+
+    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+        /**
+         * repay borrowed margin and interest
+         * @see https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
+         * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
+         * @param {string} $code unified $currency $code of the $currency to repay
+         * @param {float} $amount the $amount to repay
+         * @param {string} $symbol unified $market $symbol, required for isolated margin
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
+         * @param {string} [$params->id] '34267567' loan id, extra parameter required for isolated margin
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+         */
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_option_and_params($params, 'repayMargin', 'marginMode');
+        $this->check_required_argument('repayMargin', $marginMode, 'marginMode', array( 'cross', 'isolated' ));
+        $this->check_required_margin_argument('repayMargin', $symbol, $marginMode);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => strtoupper($currency['id']),
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $response = null;
+        if (($marginMode === 'cross') && ($symbol === null)) {
+            $response = $this->privateMarginPostCrossRepayments (array_merge($request, $params));
+        } elseif (($marginMode === 'isolated') || ($symbol !== null)) {
+            if ($symbol === null) {
+                throw new BadRequest($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
+            }
+            $market = $this->market($symbol);
+            $request['currency_pair'] = $market['id'];
+            $request['type'] = 'repay';
+            $response = $this->privateMarginPostUniLoans (array_merge($request, $params));
+        }
+        //
+        // Cross
+        //
+        //     array(
+        //         {
+        //             "id" => "17",
+        //             "create_time" => 1620381696159,
+        //             "update_time" => 1620381696159,
+        //             "currency" => "EOS",
+        //             "amount" => "110.553635",
+        //             "text" => "web",
+        //             "status" => 2,
+        //             "repaid" => "110.506649705159",
+        //             "repaid_interest" => "0.046985294841",
+        //             "unpaid_interest" => "0.0000074393366667"
+        //         }
+        //     )
+        //
+        // Isolated
+        //
+        //     {
+        //         "id" => "34267567",
+        //         "create_time" => "1656394778",
+        //         "expire_time" => "1657258778",
+        //         "status" => "finished",
+        //         "side" => "borrow",
+        //         "currency" => "USDT",
+        //         "rate" => "0.0002",
+        //         "amount" => "100",
+        //         "days" => 10,
+        //         "auto_renew" => false,
+        //         "currency_pair" => "LTC_USDT",
+        //         "left" => "0",
+        //         "repaid" => "100",
+        //         "paid_interest" => "0.003333333333",
+        //         "unpaid_interest" => "0"
+        //     }
+        //
+        if ($marginMode === 'cross') {
+            $response = $response[0];
+        }
+        return $this->parse_margin_loan($response, $currency);
+    }
+
+    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
+         * @param {string} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {string} $symbol unified $market $symbol, required for isolated margin
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->rate] '0.0002' or '0.002' extra parameter required for isolated margin
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
+         */
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_option_and_params($params, 'borrowMargin', 'marginMode');
+        $this->check_required_argument('borrowMargin', $marginMode, 'marginMode', array( 'cross', 'isolated' ));
+        $this->check_required_margin_argument('borrowMargin', $symbol, $marginMode);
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => strtoupper($currency['id']),
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $response = null;
+        if (($marginMode === 'cross') && ($symbol === null)) {
+            $response = $this->privateMarginPostCrossLoans (array_merge($request, $params));
+        } elseif (($marginMode === 'isolated') || ($symbol !== null)) {
+            if ($symbol === null) {
+                throw new BadRequest($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
+            }
+            $market = $this->market($symbol);
+            $request['currency_pair'] = $market['id'];
+            $request['type'] = 'borrow';
+            $response = $this->privateMarginPostUniLoans (array_merge($request, $params));
+        }
+        //
+        // Cross
+        //
+        //     {
+        //         "id" => "17",
+        //         "create_time" => 1620381696159,
+        //         "update_time" => 1620381696159,
+        //         "currency" => "EOS",
+        //         "amount" => "110.553635",
+        //         "text" => "web",
+        //         "status" => 2,
+        //         "repaid" => "110.506649705159",
+        //         "repaid_interest" => "0.046985294841",
+        //         "unpaid_interest" => "0.0000074393366667"
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "id" => "34267567",
+        //         "create_time" => "1656394778",
+        //         "expire_time" => "1657258778",
+        //         "status" => "loaned",
+        //         "side" => "borrow",
+        //         "currency" => "USDT",
+        //         "rate" => "0.0002",
+        //         "amount" => "100",
+        //         "days" => 10,
+        //         "auto_renew" => false,
+        //         "currency_pair" => "LTC_USDT",
+        //         "left" => "0",
+        //         "repaid" => "0",
+        //         "paid_interest" => "0",
+        //         "unpaid_interest" => "0.003333333333"
+        //     }
+        //
+        return $this->parse_margin_loan($response, $currency);
+    }
+
+    public function parse_margin_loan($info, ?array $currency = null) {
+        //
+        // Cross
+        //
+        //     {
+        //         "id" => "17",
+        //         "create_time" => 1620381696159,
+        //         "update_time" => 1620381696159,
+        //         "currency" => "EOS",
+        //         "amount" => "110.553635",
+        //         "text" => "web",
+        //         "status" => 2,
+        //         "repaid" => "110.506649705159",
+        //         "repaid_interest" => "0.046985294841",
+        //         "unpaid_interest" => "0.0000074393366667"
+        //     }
+        //
+        // Isolated
+        //
+        //     {
+        //         "id" => "34267567",
+        //         "create_time" => "1656394778",
+        //         "expire_time" => "1657258778",
+        //         "status" => "loaned",
+        //         "side" => "borrow",
+        //         "currency" => "USDT",
+        //         "rate" => "0.0002",
+        //         "amount" => "100",
+        //         "days" => 10,
+        //         "auto_renew" => false,
+        //         "currency_pair" => "LTC_USDT",
+        //         "left" => "0",
+        //         "repaid" => "0",
+        //         "paid_interest" => "0",
+        //         "unpaid_interest" => "0.003333333333"
+        //     }
+        //
+        $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
+        $timestamp = $this->safe_integer($info, 'create_time');
+        if ($marginMode === 'isolated') {
+            $timestamp = $this->safe_timestamp($info, 'create_time');
+        }
+        $currencyId = $this->safe_string($info, 'currency');
+        $marketId = $this->safe_string($info, 'currency_pair');
+        return array(
+            'id' => $this->safe_integer($info, 'id'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($info, 'amount'),
+            'symbol' => $this->safe_symbol($marketId, null, '_', 'margin'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $info,
+        );
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {

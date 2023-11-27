@@ -3186,7 +3186,7 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' watchPositions() is not supported yet');
     }
     async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.watchPositions(symbols, since, limit, params);
+        return await this.watchPositions(symbols, since, limit, params);
     }
     async fetchPositionsForSymbol(symbol, params = {}) {
         /**
