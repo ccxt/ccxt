@@ -8,12 +8,11 @@ import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange, symbol) => {
+async function testWatchOHLCV (exchange, skippedProperties, symbol) {
 
     // log (symbol.green, 'watching ohlcv...')
 
     const method = 'watchOHLCV';
-    const skippedProperties = {};
 
     const skippedExchanges = [
         'dsx',
@@ -95,4 +94,6 @@ export default async (exchange, symbol) => {
     }
 
     return response;
-};
+}
+
+export default testWatchOHLCV;

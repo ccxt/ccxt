@@ -8,12 +8,11 @@ import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange, symbol) => {
+async function testWatchOrders (exchange, skippedProperties, symbol) {
 
     // log (symbol.green, 'watching orders...')
 
     const method = 'watchOrders';
-    const skippedProperties = {};
 
     if (!exchange.has[method]) {
         console.log (exchange.id, 'does not support', method + '() method');
@@ -54,4 +53,6 @@ export default async (exchange, symbol) => {
     }
 
     return response;
-};
+}
+
+export default testWatchOrders;

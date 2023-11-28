@@ -9,12 +9,11 @@ import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js
 
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange, symbol: string) => {
+async function testWatchPositions (exchange, skippedProperties, symbol) {
 
     console.log ('testing watchPositions...');
 
     const method = 'watchPositions';
-    const skippedProperties = {};
 
     if (!exchange.has[method]) {
         console.log (exchange.id, 'does not support', method + '() method');
@@ -61,4 +60,7 @@ export default async (exchange, symbol: string) => {
     }
 
     return response;
-};
+}
+
+export default testWatchPositions;
+

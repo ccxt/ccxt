@@ -9,10 +9,9 @@ import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange) => {
+async function testWatchBalance (exchange, skippedProperties, code) {
 
     const method = 'watchBalance';
-    const skippedProperties = {};
 
     if (!exchange.has[method]) {
         console.log (exchange.id, 'does not support', method, '() method');
@@ -96,4 +95,6 @@ export default async (exchange) => {
     return balance
 
     */
-};
+}
+
+export default testWatchBalance;

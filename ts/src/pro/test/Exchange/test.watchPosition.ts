@@ -7,12 +7,11 @@ import testPosition from '../../../test/Exchange/base/test.position.js';
 
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange, symbol: string) => {
+async function testWatchPosition (exchange, skippedProperties, symbol) {
 
     console.log ('testing watchPosition...');
 
     const method = 'watchPosition';
-    const skippedProperties = {};
 
     if (!exchange.has[method]) {
         console.log (exchange.id, 'does not support', method + '() method');
@@ -45,4 +44,6 @@ export default async (exchange, symbol: string) => {
     }
 
     return response;
-};
+}
+
+export default testWatchPosition;

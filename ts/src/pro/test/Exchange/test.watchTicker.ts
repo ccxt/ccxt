@@ -7,12 +7,11 @@ import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange, symbol) => {
+async function testWatchTicker (exchange, skippedProperties, symbol) {
 
     // log (symbol.green, 'watching ticker...')
 
     const method = 'watchTicker';
-    const skippedProperties = {};
 
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [
@@ -60,4 +59,6 @@ export default async (exchange, symbol) => {
     }
 
     return response;
-};
+}
+
+export default testWatchTicker;

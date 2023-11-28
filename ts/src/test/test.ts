@@ -26,6 +26,12 @@ const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
 // non-transpiled part, but shared names among langs
+function getCliArgValue (arg) {
+    return process.argv.includes (arg) || false;
+}
+
+const isWsTests = getCliArgValue ('--ws');
+
 const proxyTestFileName = 'proxies';
 class baseMainTestClass {
     lang = 'JS';
@@ -45,7 +51,7 @@ class baseMainTestClass {
     checkedPublicTests = {};
     testFiles = {};
     publicTests = {};
-    isProTests = false;
+    isWsTests = isWsTests;
     rootDir = DIR_NAME + '/../../../';
     rootDirForSkips = DIR_NAME + '/../../../';
     envVars = process.env;
@@ -70,11 +76,6 @@ function jsonStringify (elem) {
     return JSON.stringify (elem,  (k, v) => (v === undefined ? null : v)); // preserve undefined values and convert them to null
 }
 
-function getCliArgValue (arg) {
-    return process.argv.includes (arg) || false;
-}
-
-const isProTests = getCliArgValue ('--pro');
 
 function getTestName (str) {
     return str;
@@ -125,7 +126,10 @@ function setExchangeProp (exchange, prop, value) {
     exchange[prop] = value;
 }
 
-function initExchange (exchangeId, args): Exchange {
+function initExchange (exchangeId, args, isWs = false): Exchange {
+    if (isWs) {
+        return new (ccxt.pro)[exchangeId] (args);
+    }
     return new (ccxt)[exchangeId] (args);
 }
 
@@ -135,12 +139,12 @@ async function importTestFile (filePath) {
 }
 
 async function setTestFiles (holderClass, properties) {
-    const pathRestOrPro = isProTests ? DIR_NAME + '/../pro/' : DIR_NAME;
+    const pathRestOrWs = isWsTests ? DIR_NAME + '/../pro/test/' : DIR_NAME;
     // exchange tests
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
-        const filePathWoExt = pathRestOrPro + '/Exchange/test.' + name;
+        const filePathWoExt = pathRestOrWs + '/Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
@@ -150,7 +154,7 @@ async function setTestFiles (holderClass, properties) {
     const errorHierarchyKeys = Object.keys (errorsHierarchy);
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
-        const filePathWoExt = pathRestOrPro + '/base/errors/test.' + name;
+        const filePathWoExt = pathRestOrWs + '/base/errors/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
@@ -210,7 +214,7 @@ export default class testMainClass extends baseMainTestClass {
             'enableRateLimit': true,
             'timeout': 30000,
         };
-        const exchange = initExchange (exchangeId, exchangeArgs);
+        const exchange = initExchange (exchangeId, exchangeArgs, this.isWsTests);
         await this.importFiles (exchange);
         this.expandSettings (exchange, symbol);
         await this.startTest (exchange, symbol);
@@ -393,7 +397,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async runPublicTests (exchange, symbol) {
-        const tests = {
+        let tests = {
             'fetchCurrencies': [],
             'fetchTicker': [ symbol ],
             'fetchTickers': [ symbol ],
@@ -406,17 +410,29 @@ export default class testMainClass extends baseMainTestClass {
             'fetchStatus': [],
             'fetchTime': [],
         };
+        if (this.isWsTests) {
+            tests = {
+                // @ts-ignore
+                'watchOHLCV': [ symbol ],
+                // 'watchTicker': [ symbol ],
+                // 'watchTickers': [],
+                // 'watchTrades': [ symbol ],
+                // 'watchOrderBook': [ symbol ],
+            };
+        }
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
-        if (isSpot) {
-            tests['fetchCurrencies'] = [];
-        } else {
-            tests['fetchFundingRates'] = [ symbol ];
-            tests['fetchFundingRate'] = [ symbol ];
-            tests['fetchFundingRateHistory'] = [ symbol ];
-            tests['fetchIndexOHLCV'] = [ symbol ];
-            tests['fetchMarkOHLCV'] = [ symbol ];
-            tests['fetchPremiumIndexOHLCV'] = [ symbol ];
+        if (!this.isWsTests) {
+            if (isSpot) {
+                tests['fetchCurrencies'] = [];
+            } else {
+                tests['fetchFundingRates'] = [ symbol ];
+                tests['fetchFundingRate'] = [ symbol ];
+                tests['fetchFundingRateHistory'] = [ symbol ];
+                tests['fetchIndexOHLCV'] = [ symbol ];
+                tests['fetchMarkOHLCV'] = [ symbol ];
+                tests['fetchPremiumIndexOHLCV'] = [ symbol ];
+            }
         }
         this.publicTests = tests;
         const testNames = Object.keys (tests);
@@ -705,7 +721,7 @@ export default class testMainClass extends baseMainTestClass {
         //     await test ('InvalidOrder', exchange, symbol);
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
-        const tests = {
+        let tests = {
             'signIn': [ ],
             'fetchBalance': [ ],
             'fetchAccounts': [ ],
@@ -748,20 +764,33 @@ export default class testMainClass extends baseMainTestClass {
             // 'transfer': [ ],
             // 'withdraw': [ ],
         };
+        if (this.isWsTests) {
+            tests = {
+                'signIn': [ ],
+                // @ts-ignore
+                'watchBalance': [ code ],
+                'watchMyTrades': [ symbol ],
+                'watchOrders': [ symbol ],
+                'watchPosition': [ symbol ],
+                'watchPositions': [ symbol ],
+            };
+        }
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
-        if (isSpot) {
-            tests['fetchCurrencies'] = [ ];
-        } else {
-            // derivatives only
-            tests['fetchPositions'] = [ symbol ]; // this test fetches all positions for 1 symbol
-            tests['fetchPosition'] = [ symbol ];
-            tests['fetchPositionRisk'] = [ symbol ];
-            tests['setPositionMode'] = [ symbol ];
-            tests['setMarginMode'] = [ symbol ];
-            tests['fetchOpenInterestHistory'] = [ symbol ];
-            tests['fetchFundingRateHistory'] = [ symbol ];
-            tests['fetchFundingHistory'] = [ symbol ];
+        if (!this.isWsTests) {
+            if (isSpot) {
+                tests['fetchCurrencies'] = [ ];
+            } else {
+                // derivatives only
+                tests['fetchPositions'] = [ symbol ]; // this test fetches all positions for 1 symbol
+                tests['fetchPosition'] = [ symbol ];
+                tests['fetchPositionRisk'] = [ symbol ];
+                tests['setPositionMode'] = [ symbol ];
+                tests['setMarginMode'] = [ symbol ];
+                tests['fetchOpenInterestHistory'] = [ symbol ];
+                tests['fetchFundingRateHistory'] = [ symbol ];
+                tests['fetchFundingHistory'] = [ symbol ];
+            }
         }
         const combinedPublicPrivateTests = exchange.deepExtend (this.publicTests, tests);
         const testNames = Object.keys (combinedPublicPrivateTests);
