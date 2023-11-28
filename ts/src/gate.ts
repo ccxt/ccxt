@@ -2610,20 +2610,22 @@ export default class gate extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
-        const method = this.getSupportedMapping (type, {
-            'spot': 'publicSpotGetTickers',
-            'margin': 'publicSpotGetTickers',
-            'swap': 'publicFuturesGetSettleTickers',
-            'future': 'publicDeliveryGetSettleTickers',
-            'option': 'publicOptionsGetTickers',
-        });
-        if (type === 'option') {
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            response = await this.publicSpotGetTickers (this.extend (request, requestParams));
+        } else if (type === 'swap') {
+            response = await this.publicFuturesGetSettleTickers (this.extend (request, requestParams));
+        } else if (type === 'future') {
+            response = await this.publicDeliveryGetSettleTickers (this.extend (request, requestParams));
+        } else if (type === 'option') {
             this.checkRequiredArgument ('fetchTickers', symbols, 'symbols');
             const marketId = market['id'];
             const optionParts = marketId.split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
+            response = await this.publicOptionsGetTickers (this.extend (request, requestParams));
+        } else {
+            throw new NotSupported (this.id + ' fetchTickers() not support this market type');
         }
-        const response = await this[method] (this.extend (request, requestParams));
         return this.parseTickers (response, symbols);
     }
 
