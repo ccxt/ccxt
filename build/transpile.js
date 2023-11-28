@@ -927,6 +927,7 @@ class Transpiler {
             'Balances': /-> Balances:/,
             'Currency': /(-> Currency:|: Currency)/,
             'Greeks': /-> Greeks:/,
+            'Liquidation': /-> Liquidation:/,
             'Int': /: Int =/,
             'MarginMode': /-> MarginMode:/,
             'MarketType': /: MarketType/,
