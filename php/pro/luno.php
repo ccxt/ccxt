@@ -324,7 +324,7 @@ class luno extends \ccxt\async\luno {
             return;
         }
         $subscriptions = is_array($client->subscriptions) ? array_values($client->subscriptions) : array();
-        $handlers = array( array($this, 'handle_order_book'), array($this, 'handle_trades'));
+        $handlers = [ array($this, 'handle_order_book'), $this->handle_trades];
         for ($j = 0; $j < count($handlers); $j++) {
             $handler = $handlers[$j];
             $handler($client, $message, $subscriptions[0]);

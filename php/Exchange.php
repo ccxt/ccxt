@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.67';
+$version = '4.1.68';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.67';
+    const VERSION = '4.1.68';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3512,7 +3512,7 @@ class Exchange {
             'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
             'ask' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'ask'))),
             'askVolume' => $this->safe_number($ticker, 'askVolume'),
-            'high' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'high"'))),
+            'high' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'high'))),
             'low' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'low'))),
             'open' => $this->parse_number($this->omit_zero($this->parse_number($open))),
             'close' => $this->parse_number($this->omit_zero($this->parse_number($close))),
