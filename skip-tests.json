@@ -1387,9 +1387,13 @@
         "skipWs": true,
         "skipPhpAsync": true,
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267515280#L2314"
+            },
             "fetchCurrencies": {
                 "withdraw": "undefined",
-                "deposit": "undefined"
+                "deposit": "undefined",
+                "currencyIdAndCode": "same as in loadMarkets"
             },
             "fetchTickers": {
                 "quoteVolume": "quoteVolume <= baseVolume * high is failing",
