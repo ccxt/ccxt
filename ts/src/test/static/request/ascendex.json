@@ -223,6 +223,37 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch spot closed order",
+                "method": "fetchClosedOrders",
+                "url": "https://ascendex.com/api/pro/data/v2/order/hist?symbol=BTC%2FUSDT&account=cash",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch margin closed order",
+                "method": "fetchClosedOrders",
+                "url": "https://ascendex.com/api/pro/data/v2/order/hist?symbol=BTC%2FUSDT&startTime=1&limit=1&account=margin",
+                "input": [
+                    "BTC/USDT",
+                    1,
+                    1,
+                    {
+                        "type": "margin"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap closed order",
+                "method": "fetchClosedOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order/hist/current?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

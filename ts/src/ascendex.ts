@@ -262,7 +262,7 @@ export default class ascendex extends Exchange {
                 'account-category': 'cash', // 'cash', 'margin', 'futures' // obsolete
                 'account-group': undefined,
                 'fetchClosedOrders': {
-                    'method': 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                    'method': 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountCategoryGetOrderHistCurrent'
                 },
                 'defaultType': 'spot', // 'spot', 'margin', 'swap'
                 'accountsByType': {
@@ -1997,6 +1997,7 @@ export default class ascendex extends Exchange {
          * @name ascendex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -2009,7 +2010,6 @@ export default class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const request = {
-            'account-group': accountGroup,
             // 'category': accountCategory,
             // 'symbol': market['id'],
             // 'orderType': 'market', // optional, string
@@ -2033,19 +2033,6 @@ export default class ascendex extends Exchange {
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         });
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const accountCategory = this.safeString (accountsByType, type, 'cash'); // margin, futures
-        if (method === 'v2PrivateDataGetOrderHist') {
-            request['account'] = accountCategory;
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-        } else {
-            request['account-category'] = accountCategory;
-            if (limit !== undefined) {
-                request['pageSize'] = limit;
-            }
-        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -2053,7 +2040,32 @@ export default class ascendex extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this[method] (this.extend (request, query));
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountCategory = this.safeString (accountsByType, type, 'cash'); // margin, futures
+        let response = undefined;
+        if (method === 'v1PrivateAccountCategoryGetOrderHistCurrent') {
+            request['account-group'] = accountGroup;
+            request['account-category'] = accountCategory;
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.v1PrivateAccountCategoryGetOrderHistCurrent (this.extend (request, query));
+        } else if (method === 'v2PrivateDataGetOrderHist') {
+            request['account'] = accountCategory;
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            response = await this.v2PrivateDataGetOrderHist (this.extend (request, query));
+        } else if (method === 'v2PrivateAccountGroupGetFuturesOrderHistCurrent') {
+            request['account-group'] = accountGroup;
+            request['account-category'] = accountCategory;
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
+            response = await this.v2PrivateAccountGroupGetFuturesOrderHistCurrent (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchClosedOrders() is not currently supported for ' + type + ' markets');
+        }
         //
         // accountCategoryGetOrderHistCurrent
         //
