@@ -8,14 +8,13 @@ import sys
 from traceback import format_tb, format_exception
 
 import importlib  # noqa: E402
-import glob  # noqa: E402
 import re
 
 # ------------------------------------------------------------------------------
 # logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
-current_dir = os.path.dirname(os.path.abspath(__file__))
-root = os.path.dirname(os.path.dirname(current_dir))
+DIR_NAME = os.path.dirname(os.path.abspath(__file__))
+root = os.path.dirname(os.path.dirname(DIR_NAME))
 sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: E402
@@ -96,8 +95,8 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 is_synchronous = 'async' not in os.path.basename(__file__)
 
-rootDir = current_dir + '/../../../'
-rootDirForSkips = current_dir + '/../../../'
+rootDir = DIR_NAME + '/../../../'
+rootDirForSkips = DIR_NAME + '/../../../'
 envVars = os.environ
 LOG_CHARS_LENGTH = 10000
 ext = 'py'
@@ -214,7 +213,7 @@ async def set_test_files(holderClass, properties):
     for i in range(0, len(finalPropList)):
         name = finalPropList[i]
         name_snake_case = convert_to_snake_case(name)
-        filePathWithExt =  current_dir + '/' + syncAsync + '/test_' + name_snake_case + '.py'
+        filePathWithExt =  DIR_NAME + '/' + syncAsync + '/test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
             imp = importlib.import_module('ccxt.test.' + syncAsync + '.test_' + name_snake_case)
             holderClass.test_files[name] = imp  # getattr(imp, finalName)
