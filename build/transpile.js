@@ -953,6 +953,7 @@ class Transpiler {
             'MarketType': /: MarketType/,
             'Market': /(-> Market:|: Market)/,
             'Order': /-> Order:/,
+            'TransferEntry': /-> TransferEntry:/,
             'OrderBook': /-> OrderBook:/,
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'OrderSide': /: OrderSide/,
