@@ -2254,11 +2254,14 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = this.getSupportedMapping (type, {
-            'swap': 'privateFuturesGetSettleAccountBook',
-            'future': 'privateDeliveryGetSettleAccountBook',
-        });
-        const response = await this[method] (this.extend (request, requestParams));
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.privateFuturesGetSettleAccountBook (this.extend (request, requestParams));
+        } else if (type === 'future') {
+            response = await this.privateDeliveryGetSettleAccountBook (this.extend (request, requestParams));
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingHistory() only support swap & future market type');
+        }
         //
         //    [
         //        {

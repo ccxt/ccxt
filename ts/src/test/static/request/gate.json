@@ -291,6 +291,24 @@
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"currency_pair\":\"LTC_USDT\",\"type\":\"repay\"}"
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "Fetch FundingHistory - swap",
+                "method": "fetchFundingHistory",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/account_book?contract=BTC_USDT&type=fund",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch FundingHistory - future",
+                "method": "fetchFundingHistory",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/account_book?contract=BTC_USDT_20240329&type=fund",
+                "input": [
+                  "BTC/USDT:USDT-240329"
+                ]
+            }
         ]
     }
 }
