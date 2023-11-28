@@ -32,6 +32,7 @@ class baseMainTestClass {
     checkedPublicTests = {};
     testFiles = {};
     publicTests = {};
+    isProTests = false;
 }
 const rootDir = __dirname + '/../../../';
 const rootDirForSkips = __dirname + '/../../../';
@@ -46,6 +47,8 @@ function dump (...args) {
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
+
+const isProTests = getCliArgValue ('--pro');
 
 function getTestName (str) {
     return str;
@@ -95,10 +98,11 @@ async function importTestFile (filePath) {
 }
 
 async function setTestFiles (holderClass, properties) {
+    const pathRestOrPro = isProTests ? __dirname + '/../pro/' : __dirname;
     // exchange tests
     for (let i = 0; i < properties.length; i++) {
         const name = properties[i];
-        const filePathWoExt = __dirname + '/Exchange/test.' + name;
+        const filePathWoExt = pathRestOrPro + '/Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
@@ -108,7 +112,7 @@ async function setTestFiles (holderClass, properties) {
     const errorHierarchyKeys = Object.keys (errorsHierarchy);
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
-        const filePathWoExt = __dirname + '/base/errors/test.' + name;
+        const filePathWoExt = pathRestOrPro + '/base/errors/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             holderClass.testFiles[name] = await importTestFile (filePathWoExt);
