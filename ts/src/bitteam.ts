@@ -143,7 +143,7 @@ export default class bitteam extends Exchange {
                         'trade/api/asset': 1, // not unified
                         'trade/api/currencies': 1, // fetchCurrencies
                         'trade/api/login-confirmation': 1, // not unified
-                        'trade/api/orderbooks/{symbol}': 1, // fetchOrderBook
+                        'trade/api/orderbooks/{symbol}': 1, // not unified
                         'trade/api/orders': 1, // not unified
                         'trade/api/pair/{name}': 1, // fetchTicker
                         'trade/api/pairs': 1, // fetchMarkets
@@ -153,7 +153,7 @@ export default class bitteam extends Exchange {
                         'trade/api/trade/{id}': 1, // not unified
                         'trade/api/trades': 1, // not unified
                         'trade/api/cmc/assets': 1, // not unified
-                        'trade/api/cmc/orderbook/{pair}': 1, // not unified
+                        'trade/api/cmc/orderbook/{pair}': 1, // fetchOrderBook
                         'trade/api/cmc/summary': 1, // fetchTickers
                         'trade/api/cmc/ticker': 1, // not unified
                         'trade/api/cmc/trades/{pair}': 1, // fetchTrades
@@ -285,6 +285,7 @@ export default class bitteam extends Exchange {
                     'Pair with pair name': BadSymbol, // {"ok":false,"code":404000,"data":{"pairName":"ETH_USasdf"},"msg":"Pair with pair name ETH_USasdf was not found"}
                     'pairName': BadSymbol, // {"message":"\"pairName\" length must be at least 7 characters long","path":["pairName"],"type":"string.min","context":{"limit":7,"value":"ETH_US","label":"pairName","key":"pairName"}}
                     'Service Unavailable': ExchangeNotAvailable, // {"message":"Service Unavailable","code":403000,"ok":false}
+                    'Symbol ': BadSymbol, // {"ok":false,"code":404000,"data":{},"message":"Symbol asdfasdfas was not found"}
                 },
             },
         });
@@ -725,7 +726,7 @@ export default class bitteam extends Exchange {
          * @method
          * @name bitteam#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://bit.team/trade/api/documentation#/PUBLIC/getTradeApiOrderbooksSymbol
+         * @see https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
@@ -734,29 +735,38 @@ export default class bitteam extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'pair': market['id'],
         };
-        const response = await this.publicGetTradeApiOrderbooksSymbol (this.extend (request, params));
+        const response = await this.publicGetTradeApiCmcOrderbookPair (this.extend (request, params));
         //
         //     {
-        //         "ok": true,
-        //         "result":  {
-        //             "bids": [
-        //                 ["1951.764988", "0.09656137"],
-        //                 ["1905.472973", "0.00263591"],
-        //                 ["1904.274973", "0.09425304"]
+        //         "timestamp": 1701166703285,
+        //         "bids": [
+        //             [
+        //                 2019.334988,
+        //                 0.09048525
         //             ],
-        //             "asks": [
-        //                 ["1951.765013", "0.09306902"],
-        //                 ["2010.704988", "0.00127892"],
-        //                 ["2010.9875", "0.00024893"]
+        //             [
+        //                 1999.860002,
+        //                 0.0225
         //             ],
-        //             "symbol": "ETH/USDT"
-        //         }
+        //             ...
+        //         ],
+        //         "asks": [
+        //             [
+        //                 2019.334995,
+        //                 0.00899078
+        //             ],
+        //             [
+        //                 2019.335013,
+        //                 0.09833052
+        //             ],
+        //             ...
+        //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const orderbook = this.parseOrderBook (result, symbol);
+        const timestamp = this.safeInteger (response, 'timestamp');
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         return orderbook;
     }
 
@@ -2341,10 +2351,17 @@ export default class bitteam extends Exchange {
             return undefined;
         }
         if (code !== 200) {
-            if ((code === 404) && (url.indexOf ('/ccxt/order/') >= 0) && (method === 'GET')) {
-                const parts = url.split ('/order/');
-                const orderId = this.safeString (parts, 1);
-                throw new OrderNotFound (this.id + ' order ' + orderId + ' not found');
+            if (code === 404) {
+                if ((url.indexOf ('/ccxt/order/') >= 0) && (method === 'GET')) {
+                    const parts = url.split ('/order/');
+                    const orderId = this.safeString (parts, 1);
+                    throw new OrderNotFound (this.id + ' order ' + orderId + ' not found');
+                }
+                if (url.indexOf ('/cmc/orderbook/') >= 0) {
+                    const parts = url.split ('/cmc/orderbook/');
+                    const symbolId = this.safeString (parts, 1);
+                    throw new BadSymbol (this.id + ' symbolId ' + symbolId + ' not found');
+                }
             }
             const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message');
