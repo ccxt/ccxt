@@ -216,7 +216,7 @@ async def set_test_files(holderClass, properties):
         name_snake_case = convert_to_snake_case(name)
         filePathWithExt =  current_dir + '/' + syncAsync + '/test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
-            imp = importlib.import_module('ccxt.test.' + syncAsync + '.' + name)
+            imp = importlib.import_module('ccxt.test.' + syncAsync + '.' + name_snake_case)
             holderClass.test_files[name] = imp  # getattr(imp, finalName)
 
 
