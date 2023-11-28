@@ -691,14 +691,14 @@ export default class testMainClass extends baseMainTestClass {
         if (!this.privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 if (this.info) {
-                    dump ('[INFO:SPOT TESTS]');
+                    dump ('[INFO: ### SPOT TESTS ###]');
                 }
                 exchange.options['type'] = 'spot';
                 await this.runPublicTests (exchange, spotSymbol);
             }
             if (exchange.has['swap'] && swapSymbol !== undefined) {
                 if (this.info) {
-                    dump ('[INFO:SWAP TESTS]');
+                    dump ('[INFO: ### SWAP TESTS ###]');
                 }
                 exchange.options['type'] = 'swap';
                 await this.runPublicTests (exchange, swapSymbol);
