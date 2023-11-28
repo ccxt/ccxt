@@ -145,10 +145,8 @@ def convert_to_snake_case(conent):
     return re.sub(r'(?<!^)(?=[A-Z])', '_', conent).lower()
 
 def get_test_name(methodName):
-    snake_cased = convert_to_snake_case(methodName)
-    snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
-    full_name = 'test_' + snake_cased
-    return full_name
+    # stub
+    return methodName
 
 
 def io_file_exists(path):
@@ -169,7 +167,9 @@ def io_dir_read(path):
 
 
 async def call_method(test_files, methodName, exchange, skippedProperties, args):
-    return await getattr(test_files[methodName], methodName)(exchange, skippedProperties, *args)
+    methodNameToCall = convert_to_snake_case(methodName)
+    methodNameToCall = 'test_' + methodNameToCall.replace('o_h_l_c_v', 'ohlcv')
+    return await getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
 
 
 async def call_exchange_method_dynamically(exchange, methodName, args):
