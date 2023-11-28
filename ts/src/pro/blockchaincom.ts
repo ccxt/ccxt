@@ -698,27 +698,27 @@ export default class blockchaincom extends blockchaincomRest {
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (datetime);
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.countedOrderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.countedOrderBook ({});
+            this.orderbooks[symbol] = orderbook;
         }
         if (event === 'subscribed') {
             return;
         } else if (event === 'snapshot') {
             const snapshot = this.parseCountedOrderBook (message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
-            storedOrderBook.reset (snapshot);
+            orderbook.reset (snapshot);
         } else if (event === 'updated') {
             const asks = this.safeValue (message, 'asks', []);
             const bids = this.safeValue (message, 'bids', []);
-            this.handleDeltas (storedOrderBook['asks'], asks);
-            this.handleDeltas (storedOrderBook['bids'], bids);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = datetime;
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = datetime;
         } else {
             throw new NotSupported (this.id + ' watchOrderBook() does not support ' + event + ' yet');
         }
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     parseCountedBidAsk (bidAsk, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {

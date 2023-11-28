@@ -145,7 +145,7 @@ export default class bittrex extends bittrexRest {
             };
             this.watch (url, messageHash, request, requestId, subscription);
         }
-        return await future;
+        return future;
     }
 
     async sendAuthenticatedRequestToSubscribe (authentication, messageHash, params = {}) {
@@ -223,7 +223,7 @@ export default class bittrex extends bittrexRest {
             };
             client.resolve (result, messageHash);
         }
-        return await future;
+        return future;
     }
 
     async start (negotiation, params = {}) {

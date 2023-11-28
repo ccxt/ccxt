@@ -673,27 +673,27 @@ export default class coinex extends coinexRest {
         //
         const params = this.safeValue (message, 'params', []);
         const fullOrderBook = this.safeValue (params, 0);
-        let orderBook = this.safeValue (params, 1);
+        let orderbook = this.safeValue (params, 1);
         const marketId = this.safeString (params, 2);
         const defaultType = this.safeString (this.options, 'defaultType');
         const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
-        const timestamp = this.safeInteger (orderBook, 'time');
+        const timestamp = this.safeInteger (orderbook, 'time');
         const currentOrderBook = this.safeValue (this.orderbooks, symbol);
         if (fullOrderBook) {
-            const snapshot = this.parseOrderBook (orderBook, symbol, timestamp);
+            const snapshot = this.parseOrderBook (orderbook, symbol, timestamp);
             if (currentOrderBook === undefined) {
-                orderBook = this.orderBook (snapshot);
-                this.orderbooks[symbol] = orderBook;
+                orderbook = this.orderBook (snapshot);
+                this.orderbooks[symbol] = orderbook;
             } else {
-                orderBook = this.orderbooks[symbol];
-                orderBook.reset (snapshot);
+                orderbook = this.orderbooks[symbol];
+                orderbook.reset (snapshot);
             }
         } else {
-            const asks = this.safeValue (orderBook, 'asks', []);
-            const bids = this.safeValue (orderBook, 'bids', []);
+            const asks = this.safeValue (orderbook, 'asks', []);
+            const bids = this.safeValue (orderbook, 'bids', []);
             this.handleDeltas (currentOrderBook['asks'], asks);
             this.handleDeltas (currentOrderBook['bids'], bids);
             currentOrderBook['nonce'] = timestamp;

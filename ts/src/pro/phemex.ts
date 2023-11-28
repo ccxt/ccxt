@@ -648,14 +648,14 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleDelta (bookside, delta, market = undefined) {
+    customHandleDelta (bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk (delta, 0, 1, market);
         bookside.storeArray (bidAsk);
     }
 
     customHandleDeltas (bookside, deltas, market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i], market);
+            this.customHandleDelta (bookside, deltas[i], market);
         }
     }
 
@@ -1532,6 +1532,6 @@ export default class phemex extends phemexRest {
             future = this.watch (url, messageHash, message);
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }

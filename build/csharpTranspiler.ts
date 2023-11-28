@@ -50,6 +50,8 @@ class NewTranspiler {
     constructor() {
 
         this.setupTranspiler()
+        // this.transpiler.csharpTranspiler.VAR_TOKEN = 'var'; // tmp fix
+
 
         this.pythonStandardLibraries = {
             'hashlib': 'hashlib',
@@ -62,9 +64,9 @@ class NewTranspiler {
 
     getWsRegexes() {
         return [
-            [/typeof\(stored\)/gm, 'stored'],
-            [/typeof\(client\)/gm, 'client'],
-            [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
+            // [/typeof\(stored\)/gm, 'stored'],
+            // [/typeof\(client\)/gm, 'client'],
+            // [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
             [/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions'],
             [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
@@ -81,7 +83,7 @@ class NewTranspiler {
             [/(\w+)(\.limit\(\))/gm, '($1 as ccxt.OrderBook)$2'],
             [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
             [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
-            [/this\.delay\((\w+),(.+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
+            [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
             // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
             [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
@@ -129,7 +131,8 @@ class NewTranspiler {
             "csharp": {
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
-                    "ELEMENT_ACCESS_WRAPPER_CLOSE": ")"
+                    "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
+                    "VAR_TOKEN": "var",
                 }
             },
         }
@@ -547,7 +550,7 @@ class NewTranspiler {
     async transpileWS(force = false) {
         const tsFolder = './ts/src/pro/';
         const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:exchanges.ws }
-        // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['binance'] }
+        // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.ws), true )
     }
 
