@@ -254,6 +254,41 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order",
+                "input": [
+                    "1234",
+                    "BTC/USDT"
+                ],
+                "output":"{\"symbol\":\"BTC/USDT\",\"time\":1701161145825,\"id\":\"foobar\",\"orderId\":\"1234\"}"
+            },
+            {
+                "description": "Cancel margin order",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order",
+                "input": [
+                    "1234",
+                    "BTC/USDT",
+                    {
+                        "type": "margin"
+                    }
+                ],
+                "output":"{\"symbol\":\"BTC/USDT\",\"time\":1701161145825,\"id\":\"foobar\",\"orderId\":\"1234\"}"
+            },
+            {
+                "description": "Cancel swap order",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order",
+                "input": [
+                    "1234",
+                    "BTC/USDT:USDT"
+                ],
+                "output":"{\"symbol\":\"BTC-PERP\",\"time\":1701161145825,\"id\":\"foobar\",\"orderId\":\"1234\"}"
+            }
         ]
     }
 }

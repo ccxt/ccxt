@@ -2170,6 +2170,8 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#cancelOrder
          * @description cancels an open order
+         * @see https://ascendex.github.io/ascendex-pro-api/#cancel-order
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2182,7 +2184,6 @@ export default class ascendex extends Exchange {
         await this.loadAccounts ();
         const market = this.market (symbol);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const options = this.safeValue (this.options, 'cancelOrder', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
@@ -2194,19 +2195,6 @@ export default class ascendex extends Exchange {
             'time': this.milliseconds (),
             'id': 'foobar',
         };
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryDeleteOrder');
-        const method = this.getSupportedMapping (type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupDeleteFuturesOrder',
-        });
-        if (method === 'v1PrivateAccountCategoryDeleteOrder') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
-            }
-        } else {
-            request['account-category'] = accountCategory;
-        }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
         if (clientOrderId === undefined) {
             request['orderId'] = id;
@@ -2214,7 +2202,15 @@ export default class ascendex extends Exchange {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            response = await this.v1PrivateAccountCategoryDeleteOrder (this.extend (request, query));
+        } else if (type === 'swap') {
+            request['account-category'] = accountCategory;
+            response = await this.v2PrivateAccountGroupDeleteFuturesOrder (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' cancelOrder() is not currently supported for ' + type + ' markets');
+        }
         //
         // AccountCategoryDeleteOrder
         //
