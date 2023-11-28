@@ -6,7 +6,7 @@ import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade } from './base/types.js';
+import { Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -444,7 +444,7 @@ export default class paymium extends Exchange {
         return await this.privateDeleteUserOrdersUuidCancel (this.extend (request, params));
     }
 
-    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name paymium#transfer
