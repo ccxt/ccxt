@@ -210,8 +210,8 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = initExchange (exchangeId, exchangeArgs);
         await this.importFiles (exchange);
         this.expandSettings (exchange);
-        symbolArgv = this.checkIfSpecificTestIsChosen (symbolArgv);
-        await this.startTest (exchange, symbolArgv);
+        const symbolOrUndefined = this.checkIfSpecificTestIsChosen (symbolArgv);
+        await this.startTest (exchange, symbolOrUndefined);
     }
 
     checkIfSpecificTestIsChosen (symbolArgv) {
@@ -231,7 +231,7 @@ export default class testMainClass extends baseMainTestClass {
             }
             // if method names were found, then remove them from symbolArgv
             if (this.onlySpecificTests.length > 0) {
-                symbolArgv = undefined;
+                return undefined;
             }
         }
         return symbolArgv;
