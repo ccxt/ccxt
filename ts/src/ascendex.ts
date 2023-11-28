@@ -821,8 +821,7 @@ export default class ascendex extends Exchange {
         [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const isMargin = this.safeValue (params, 'margin', false);
         marketType = isMargin ? 'margin' : marketType;
-        params = this.omit (params, 'margin');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
+        query = this.omit (query, 'margin');
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, marketType, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
@@ -830,16 +829,17 @@ export default class ascendex extends Exchange {
         const request = {
             'account-group': accountGroup,
         };
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetBalance');
-        const method = this.getSupportedMapping (marketType, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesPosition',
-        });
         if ((accountCategory === 'cash') || (accountCategory === 'margin')) {
             request['account-category'] = accountCategory;
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if ((marketType === 'spot') || (marketType === 'margin')) {
+            response = await this.v1PrivateAccountCategoryGetBalance (this.extend (request, query));
+        } else if (marketType === 'swap') {
+            response = await this.v2PrivateAccountGroupGetFuturesPosition (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets');
+        }
         //
         // cash
         //

@@ -128,6 +128,38 @@
                 "url": "https://ascendex.com/api/pro/v1/wallet/transactions?txType=deposit",
                 "input": []
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot balance",
+                "method": "fetchBalance",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/balance",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch margin balance",
+                "method": "fetchBalance",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/balance",
+                "input": [
+                    {
+                        "margin": true
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap balance",
+                "method": "fetchBalance",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/position",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
         ]
     }
 }
