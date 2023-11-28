@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.67';
+$version = '4.1.68';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.67';
+    const VERSION = '4.1.68';
 
     public $browser;
     public $marketsLoading = null;
@@ -1693,7 +1693,7 @@ class Exchange extends \ccxt\Exchange {
             'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
             'ask' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'ask'))),
             'askVolume' => $this->safe_number($ticker, 'askVolume'),
-            'high' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'high"'))),
+            'high' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'high'))),
             'low' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'low'))),
             'open' => $this->parse_number($this->omit_zero($this->parse_number($open))),
             'close' => $this->parse_number($this->omit_zero($this->parse_number($close))),

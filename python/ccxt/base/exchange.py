@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.67'
+__version__ = '4.1.68'
 
 # -----------------------------------------------------------------------------
 
@@ -2832,7 +2832,7 @@ class Exchange(object):
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
             'ask': self.parse_number(self.omit_zero(self.safe_number(ticker, 'ask'))),
             'askVolume': self.safe_number(ticker, 'askVolume'),
-            'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high"'))),
+            'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high'))),
             'low': self.parse_number(self.omit_zero(self.safe_number(ticker, 'low'))),
             'open': self.parse_number(self.omit_zero(self.parse_number(open))),
             'close': self.parse_number(self.omit_zero(self.parse_number(close))),
