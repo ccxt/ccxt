@@ -468,19 +468,19 @@ export default class probit extends probitRest {
         const symbol = this.safeSymbol (marketId);
         const dataBySide = this.groupBy (orderBook, 'side');
         const messageHash = 'orderbook:' + symbol;
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            orderbook = this.orderBook ({});
+            this.orderbooks[symbol] = orderbook;
         }
         const reset = this.safeValue (message, 'reset', false);
         if (reset) {
             const snapshot = this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
-            storedOrderBook.reset (snapshot);
+            orderbook.reset (snapshot);
         } else {
-            this.handleDelta (storedOrderBook, dataBySide);
+            this.handleDelta (orderbook, dataBySide);
         }
-        client.resolve (storedOrderBook, messageHash);
+        client.resolve (orderbook, messageHash);
     }
 
     handleBidAsks (bookSide, bidAsks) {
@@ -606,6 +606,6 @@ export default class probit extends probitRest {
             future = this.watch (url, messageHash, this.extend (request, params));
             client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 }

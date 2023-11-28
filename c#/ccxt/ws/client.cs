@@ -12,6 +12,10 @@ using System.Data;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 
+class x
+{
+
+}
 
 public partial class Exchange
 {
@@ -33,10 +37,80 @@ public partial class Exchange
         return new ccxt.CountedOrderBook(snapshot, depth);
     }
 
+    public virtual void onClose(WebSocketClient client, object error = null)
+    {
+        // var client = (WebSocketClient)client2;
+        if (client.error)
+        {
+            // what do we do here?
+        }
+        else
+        {
+            var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
+            if (urlClient != null)
+            {
+                this.clients.Remove(client.url);
+            }
+        }
+    }
+
+    public virtual void onError(WebSocketClient client, object error = null)
+    {
+        // var client = (WebSocketClient)client2;
+        var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
+        if (urlClient != null && urlClient.error)
+        {
+            this.clients.Remove(client.url);
+        }
+    }
+
+    public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue((inOp(this.orderbooks, symbol))))
+        {
+            (client).reject(new ExchangeError(add(this.id, " loadOrderBook() orderbook is not initiated")), messageHash);
+            return;
+        }
+        object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
+        object tries = 0;
+        try
+        {
+            var stored = getValue(this.orderbooks, symbol) as ccxt.OrderBook;
+            while (isLessThan(tries, maxRetries))
+            {
+                var cache = stored.cache;
+                object orderBook = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
+                object index = this.getCacheIndex(orderBook, cache);
+                if (isTrue(isGreaterThanOrEqual(index, 0)))
+                {
+                    stored.reset(orderBook);
+                    this.handleDeltas(stored, slice(cache, index, null));
+                    // getArrayLength((stored as ccxt.OrderBook).cache) = 0;
+                    stored.cache.Clear();
+                    client.resolve(stored, messageHash);
+                    return;
+                }
+                postFixIncrement(ref tries);
+            }
+            ((WebSocketClient)client).reject(new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries.")), messageHash);
+
+        }
+        catch (Exception e)
+        {
+            ((WebSocketClient)client).reject(e, messageHash);
+            await this.loadOrderBook(client as WebSocketClient, messageHash, symbol, limit, parameters);
+        }
+    }
+
     async public Task runWs()
     {
         try
         {
+
+
+            var instance = new x();
+            object b = instance;
 
             var binance = new binanceWs();
             await binance.loadMarkets();
@@ -163,11 +237,21 @@ public partial class Exchange
 
         public delegate void handleMessageDelegate(WebSocketClient client, object messageContent);
 
+        public delegate void onCloseDelegate(WebSocketClient client, object error = null);
+
+        public delegate void onErrorDelegate(WebSocketClient client, object error = null);
+
         public handleMessageDelegate handleMessage = null;
+
+        public onCloseDelegate onClose = null;
+
+        public onErrorDelegate onError = null;
 
         public object lastPong = null;
 
         public object keepAlive = null;
+
+        public bool error = false;
 
         public WebSocketClient(string url, handleMessageDelegate handleMessage)
         {
@@ -355,13 +439,18 @@ public partial class Exchange
                     }
                     else if (result.MessageType == WebSocketMessageType.Close)
                     {
+                        this.onClose(this, null);
                         await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Receiving error: {ex.Message}");
+                if (this.verbose)
+                {
+                    Console.WriteLine($"Receiving error: {ex.Message}");
+                }
+                this.onError(this, ex);
             }
         }
     }

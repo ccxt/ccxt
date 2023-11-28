@@ -1327,7 +1327,7 @@ export default class bitmex extends bitmexRest {
                 const broadKey = this.findBroadlyMatchedKey (broad, error);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError (error);
+                    exception = new ExchangeError (error.toString ());
                 } else {
                     exception = new broad[broadKey] (error);
                 }

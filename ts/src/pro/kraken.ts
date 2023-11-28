@@ -1329,7 +1329,7 @@ export default class kraken extends krakenRest {
                 const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
                 let exception = undefined;
                 if (broadKey === undefined) {
-                    exception = new ExchangeError (errorMessage);
+                    exception = new ExchangeError (errorMessage.toString ());
                 } else {
                     exception = new broad[broadKey] (errorMessage);
                 }

@@ -178,7 +178,7 @@ public class IndexedOrderBookSide : OrderBookSide
         var size = Convert.ToDecimal(delta[1]);
         var order_id = delta[2];
         decimal? index_price = -1;
-        if (price != null && price != 0)
+        if (price != 0)
         {
             var decimalPrice = Convert.ToDecimal(price);
             index_price = (this.side) ? -decimalPrice : decimalPrice;
@@ -187,7 +187,7 @@ public class IndexedOrderBookSide : OrderBookSide
         {
             index_price = null;
         }
-        if (size != null && size != 0)
+        if (size != 0)
         {
             var stringId = order_id.ToString();
             if (this.hasmap.ContainsKey(stringId))
