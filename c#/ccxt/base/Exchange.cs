@@ -619,10 +619,14 @@ public partial class Exchange
         return false;
     }
 
-    public void spawn(object action, object[] args = null)
+    public object spawn(object action, object[] args = null)
     {
         // stub to implement later
-        Task.Run(() => DynamicInvoker.InvokeMethod(action, args));
+        // var task = Task.Run(() => DynamicInvoker.InvokeMethod(action, args));
+        // task.Wait();
+        // return task.Result;
+        var res = DynamicInvoker.InvokeMethod(action, args);
+        return res;
     }
 
     public void delay(object timeout2, object methodName, object[] args = null)
@@ -643,7 +647,7 @@ public static class BoolExtensions
 
 public class DynamicInvoker
 {
-    public static void InvokeMethod(object action, object[] parameters)
+    public static object InvokeMethod(object action, object[] parameters)
     {
         // var methodName = (string)methodName2;
         // // Assuming the method is in the current class for simplicity
@@ -670,6 +674,7 @@ public class DynamicInvoker
         // args[1] = "Hello"; // Assuming the second parameter is a string
 
         // Dynamically invoke the action
-        myDelegate.DynamicInvoke(parameters);
+        var result = myDelegate.DynamicInvoke(parameters);
+        return result;
     }
 }

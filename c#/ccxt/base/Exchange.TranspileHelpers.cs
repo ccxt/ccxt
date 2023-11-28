@@ -786,7 +786,12 @@ public partial class Exchange
     }
 
     // This function is the salient bit here
-    public Exception NewException(Type exception, String message)
+    public object newException(object exception, object message)
+    {
+        return Activator.CreateInstance(exception as Type, message as String) as Exception;
+    }
+
+    public static Exception NewException(Type exception, String message)
     {
         return Activator.CreateInstance(exception, message) as Exception;
     }

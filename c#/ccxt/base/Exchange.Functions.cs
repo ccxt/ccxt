@@ -227,7 +227,7 @@ public partial class Exchange
 
     }
 
-    public object json(object obj)
+    public string json(object obj)
     {
         return Json(obj);
     }

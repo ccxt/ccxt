@@ -67,6 +67,7 @@ class NewTranspiler {
             // [/typeof\(stored\)/gm, 'stored'],
             // [/typeof\(client\)/gm, 'client'],
             // [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
+            [/new\sgetValue\((\w+),\s(\w+)\)\((\w+)\)/gm, 'this.newException(getValue($1, $2), $3)'],
             [/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions'],
             [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
@@ -90,6 +91,7 @@ class NewTranspiler {
             [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
             [/\(client,/g, '(client as WebSocketClient,'],
             [/\(object client,/gm, '(WebSocketClient client,'],
+            [/\(object client\)/gm, '(WebSocketClient client)'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
         ]
