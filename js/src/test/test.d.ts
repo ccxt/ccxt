@@ -22,6 +22,7 @@ declare class baseMainTestClass {
     rootDir: string;
     rootDirForSkips: string;
     envVars: NodeJS.ProcessEnv;
+    proxyTestFileName: string;
     ext: string;
 }
 export default class testMainClass extends baseMainTestClass {
@@ -40,6 +41,7 @@ export default class testMainClass extends baseMainTestClass {
     getValidSymbol(exchange: any, spot?: boolean): any;
     testExchange(exchange: any, providedSymbol?: any): Promise<void>;
     runPrivateTests(exchange: any, symbol: any): Promise<void>;
+    testProxies(exchange: any): Promise<void>;
     startTest(exchange: any, symbol: any): Promise<void>;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any): void;
     loadMarketsFromFile(id: string): any;
