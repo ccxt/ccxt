@@ -3,16 +3,27 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicGetOhlcPair(params?: {}): Promise<implicitReturnType>;
     publicGetOrderBookPair(params?: {}): Promise<implicitReturnType>;
+    publicGetTicker(params?: {}): Promise<implicitReturnType>;
     publicGetTickerHourPair(params?: {}): Promise<implicitReturnType>;
     publicGetTickerPair(params?: {}): Promise<implicitReturnType>;
     publicGetTransactionsPair(params?: {}): Promise<implicitReturnType>;
     publicGetTradingPairsInfo(params?: {}): Promise<implicitReturnType>;
+    publicGetCurrencies(params?: {}): Promise<implicitReturnType>;
+    publicGetEurUsd(params?: {}): Promise<implicitReturnType>;
+    publicGetTravelRuleVasps(params?: {}): Promise<implicitReturnType>;
+    privateGetTravelRuleContacts(params?: {}): Promise<implicitReturnType>;
+    privateGetContactsContactUuid(params?: {}): Promise<implicitReturnType>;
+    privateGetEarnSubscriptions(params?: {}): Promise<implicitReturnType>;
+    privateGetEarnTransactions(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountBalances(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountBalancesCurrency(params?: {}): Promise<implicitReturnType>;
     privatePostBalance(params?: {}): Promise<implicitReturnType>;
     privatePostBalancePair(params?: {}): Promise<implicitReturnType>;
     privatePostBchWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostBchAddress(params?: {}): Promise<implicitReturnType>;
     privatePostUserTransactions(params?: {}): Promise<implicitReturnType>;
     privatePostUserTransactionsPair(params?: {}): Promise<implicitReturnType>;
+    privatePostCryptoTransactions(params?: {}): Promise<implicitReturnType>;
     privatePostOpenOrdersAll(params?: {}): Promise<implicitReturnType>;
     privatePostOpenOrdersPair(params?: {}): Promise<implicitReturnType>;
     privatePostOrderStatus(params?: {}): Promise<implicitReturnType>;
@@ -27,6 +38,11 @@ interface Exchange {
     privatePostSellInstantPair(params?: {}): Promise<implicitReturnType>;
     privatePostTransferToMain(params?: {}): Promise<implicitReturnType>;
     privatePostTransferFromMain(params?: {}): Promise<implicitReturnType>;
+    privatePostMyTradingPairs(params?: {}): Promise<implicitReturnType>;
+    privatePostFeesTrading(params?: {}): Promise<implicitReturnType>;
+    privatePostFeesTradingPair(params?: {}): Promise<implicitReturnType>;
+    privatePostFeesWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostFeesWithdrawalCurrency(params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalRequests(params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalOpen(params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalStatus(params?: {}): Promise<implicitReturnType>;
@@ -193,6 +209,14 @@ interface Exchange {
     privatePostDogeAddress(params?: {}): Promise<implicitReturnType>;
     privatePostFlrWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostFlrAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostDgldWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostDgldAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostLdoWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostLdoAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostTravelRuleContacts(params?: {}): Promise<implicitReturnType>;
+    privatePostEarnSubscribe(params?: {}): Promise<implicitReturnType>;
+    privatePostEarnSubscriptionsSetting(params?: {}): Promise<implicitReturnType>;
+    privatePostEarnUnsubscribe(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

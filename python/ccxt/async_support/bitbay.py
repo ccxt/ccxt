@@ -12,5 +12,6 @@ class bitbay(zonda, ImplicitAPI):
     def describe(self):
         return self.deep_extend(super(bitbay, self).describe(), {
             'id': 'bitbay',
+            'name': 'BitBay',
             'alias': True,
         })

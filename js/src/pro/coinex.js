@@ -24,7 +24,8 @@ export default class coinex extends coinexRest {
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': false, // only for swap markets
+                'watchOHLCV': true,
+                'fetchOHLCVWs': true,
             },
             'urls': {
                 'api': {
@@ -82,19 +83,19 @@ export default class coinex extends coinexRest {
         //  spot
         //
         //     {
-        //         method: 'state.update',
-        //         params: [{
-        //             BTCUSDT: {
-        //                 last: '31577.89',
-        //                 open: '29318.36',
-        //                 close: '31577.89',
-        //                 high: '32222.19',
-        //                 low: '29317.21',
-        //                 volume: '630.43024965',
-        //                 sell_total: '13.66143951',
-        //                 buy_total: '2.76410939',
-        //                 period: 86400,
-        //                 deal: '19457487.84611409070000000000'
+        //         "method": "state.update",
+        //         "params": [{
+        //             "BTCUSDT": {
+        //                 "last": "31577.89",
+        //                 "open": "29318.36",
+        //                 "close": "31577.89",
+        //                 "high": "32222.19",
+        //                 "low": "29317.21",
+        //                 "volume": "630.43024965",
+        //                 "sell_total": "13.66143951",
+        //                 "buy_total": "2.76410939",
+        //                 "period": 86400,
+        //                 "deal": "19457487.84611409070000000000"
         //             }
         //         }]
         //     }
@@ -102,27 +103,27 @@ export default class coinex extends coinexRest {
         //  swap
         //
         //     {
-        //         method: 'state.update',
-        //         params: [{
-        //             BTCUSDT: {
-        //                 period: 86400,
-        //                 funding_time: 422,
-        //                 position_amount: '285.6246',
-        //                 funding_rate_last: '-0.00097933',
-        //                 funding_rate_next: '0.00022519',
-        //                 funding_rate_predict: '0.00075190',
-        //                 insurance: '17474289.49925859030905338270',
-        //                 last: '31570.08',
-        //                 sign_price: '31568.09',
-        //                 index_price: '31561.85000000',
-        //                 open: '29296.11',
-        //                 close: '31570.08',
-        //                 high: '32463.40',
-        //                 low: '29296.11',
-        //                 volume: '8774.7318',
-        //                 deal: '270675177.827928219109030017258398',
-        //                 sell_total: '19.2230',
-        //                 buy_total: '25.7814'
+        //         "method": "state.update",
+        //         "params": [{
+        //             "BTCUSDT": {
+        //                 "period": 86400,
+        //                 "funding_time": 422,
+        //                 "position_amount": "285.6246",
+        //                 "funding_rate_last": "-0.00097933",
+        //                 "funding_rate_next": "0.00022519",
+        //                 "funding_rate_predict": "0.00075190",
+        //                 "insurance": "17474289.49925859030905338270",
+        //                 "last": "31570.08",
+        //                 "sign_price": "31568.09",
+        //                 "index_price": "31561.85000000",
+        //                 "open": "29296.11",
+        //                 "close": "31570.08",
+        //                 "high": "32463.40",
+        //                 "low": "29296.11",
+        //                 "volume": "8774.7318",
+        //                 "deal": "270675177.827928219109030017258398",
+        //                 "sell_total": "19.2230",
+        //                 "buy_total": "25.7814"
         //             }
         //         }]
         //     }
@@ -138,10 +139,21 @@ export default class coinex extends coinexRest {
             const symbol = this.safeSymbol(marketId, undefined, undefined, defaultType);
             const market = this.safeMarket(marketId, undefined, undefined, defaultType);
             const parsedTicker = this.parseWSTicker(rawTicker, market);
-            const messageHash = 'ticker:' + symbol;
             this.tickers[symbol] = parsedTicker;
             newTickers.push(parsedTicker);
-            client.resolve(parsedTicker, messageHash);
+        }
+        const messageHashes = this.findMessageHashes(client, 'tickers::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const tickers = this.filterByArray(newTickers, 'symbol', symbols);
+            const tickersSymbols = Object.keys(tickers);
+            const numTickers = tickersSymbols.length;
+            if (numTickers > 0) {
+                client.resolve(tickers, messageHash);
+            }
         }
         client.resolve(newTickers, 'tickers');
     }
@@ -150,39 +162,39 @@ export default class coinex extends coinexRest {
         //  spot
         //
         //     {
-        //         last: '31577.89',
-        //         open: '29318.36',
-        //         close: '31577.89',
-        //         high: '32222.19',
-        //         low: '29317.21',
-        //         volume: '630.43024965',
-        //         sell_total: '13.66143951',
-        //         buy_total: '2.76410939',
-        //         period: 86400,
-        //         deal: '19457487.84611409070000000000'
+        //         "last": "31577.89",
+        //         "open": "29318.36",
+        //         "close": "31577.89",
+        //         "high": "32222.19",
+        //         "low": "29317.21",
+        //         "volume": "630.43024965",
+        //         "sell_total": "13.66143951",
+        //         "buy_total": "2.76410939",
+        //         "period": 86400,
+        //         "deal": "19457487.84611409070000000000"
         //     }
         //
         //  swap
         //
         //     {
-        //         period: 86400,
-        //         funding_time: 422,
-        //         position_amount: '285.6246',
-        //         funding_rate_last: '-0.00097933',
-        //         funding_rate_next: '0.00022519',
-        //         funding_rate_predict: '0.00075190',
-        //         insurance: '17474289.49925859030905338270',
-        //         last: '31570.08',
-        //         sign_price: '31568.09',
-        //         index_price: '31561.85000000',
-        //         open: '29296.11',
-        //         close: '31570.08',
-        //         high: '32463.40',
-        //         low: '29296.11',
-        //         volume: '8774.7318',
-        //         deal: '270675177.827928219109030017258398',
-        //         sell_total: '19.2230',
-        //         buy_total: '25.7814'
+        //         "period": 86400,
+        //         "funding_time": 422,
+        //         "position_amount": "285.6246",
+        //         "funding_rate_last": "-0.00097933",
+        //         "funding_rate_next": "0.00022519",
+        //         "funding_rate_predict": "0.00075190",
+        //         "insurance": "17474289.49925859030905338270",
+        //         "last": "31570.08",
+        //         "sign_price": "31568.09",
+        //         "index_price": "31561.85000000",
+        //         "open": "29296.11",
+        //         "close": "31570.08",
+        //         "high": "32463.40",
+        //         "low": "29296.11",
+        //         "volume": "8774.7318",
+        //         "deal": "270675177.827928219109030017258398",
+        //         "sell_total": "19.2230",
+        //         "buy_total": "25.7814"
         //     }
         //
         const defaultType = this.safeString(this.options, 'defaultType');
@@ -213,9 +225,9 @@ export default class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         await this.authenticate(params);
@@ -256,11 +268,9 @@ export default class coinex extends coinexRest {
             const code = this.safeCurrencyCode(currencyId);
             const available = this.safeString(first[currencyId], 'available');
             const frozen = this.safeString(first[currencyId], 'frozen');
-            const total = Precise.stringAdd(available, frozen);
             const account = this.account();
-            account['free'] = this.parseNumber(available);
-            account['used'] = this.parseNumber(frozen);
-            account['total'] = this.parseNumber(total);
+            account['free'] = available;
+            account['used'] = frozen;
             this.balance[code] = account;
             this.balance = this.safeBalance(this.balance);
         }
@@ -299,13 +309,13 @@ export default class coinex extends coinexRest {
         }
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
-            const parsed = this.parseWSTrade(trade, market);
+            const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
         this.trades[symbol] = stored;
         client.resolve(this.trades[symbol], messageHash);
     }
-    parseWSTrade(trade, market = undefined) {
+    parseWsTrade(trade, market = undefined) {
         //
         //     {
         //         "type": "sell",
@@ -335,26 +345,50 @@ export default class coinex extends coinexRest {
     }
     handleOHLCV(client, message) {
         //
+        //  spot
         //     {
-        //         method: 'kline.update',
-        //         params: [
+        //         "error": null,
+        //         "result": [
+        //           [
+        //             1673846940,
+        //             "21148.74",
+        //             "21148.38",
+        //             "21148.75",
+        //             "21138.66",
+        //             "1.57060173",
+        //             "33214.9138778914"
+        //           ],
+        //         ]
+        //         "id": 1,
+        //     }
+        //  swap
+        //     {
+        //         "method": "kline.update",
+        //         "params": [
         //             [
         //                 1654019640,   // timestamp
-        //                 '32061.99',   // open
-        //                 '32061.28',   // close
-        //                 '32061.99',   // high
-        //                 '32061.28',   // low
-        //                 '0.1285',     // amount base
-        //                 '4119.943736' // amount quote
+        //                 "32061.99",   // open
+        //                 "32061.28",   // close
+        //                 "32061.99",   // high
+        //                 "32061.28",   // low
+        //                 "0.1285",     // amount base
+        //                 "4119.943736" // amount quote
         //             ]
         //         ],
-        //         id: null
+        //         "id": null
         //     }
         //
-        const candles = this.safeValue(message, 'params', []);
+        const candles = this.safeValue2(message, 'params', 'result', []);
         const messageHash = 'ohlcv';
+        const id = this.safeString(message, 'id');
         const ohlcvs = this.parseOHLCVs(candles);
-        const keysLength = Object.keys(this.ohlcvs).length;
+        if (id !== undefined) {
+            // spot subscription response
+            client.resolve(ohlcvs, messageHash);
+            return;
+        }
+        const keys = Object.keys(this.ohlcvs);
+        const keysLength = keys.length;
         if (keysLength === 0) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs = new ArrayCacheByTimestamp(limit);
@@ -372,7 +406,7 @@ export default class coinex extends coinexRest {
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchTickers([symbol], params);
@@ -383,8 +417,8 @@ export default class coinex extends coinexRest {
          * @name coinex#watchTickers
          * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -392,24 +426,21 @@ export default class coinex extends coinexRest {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchTickers', undefined, params);
         const url = this.urls['api']['ws'][type];
-        const messageHash = 'tickers';
+        let messageHash = 'tickers';
+        if (symbols !== undefined) {
+            messageHash = 'tickers::' + symbols.join(',');
+        }
         const subscribe = {
             'method': 'state.subscribe',
             'id': this.requestId(),
             'params': [],
         };
         const request = this.deepExtend(subscribe, params);
-        const tickers = await this.watch(url, messageHash, request, messageHash);
-        const result = this.filterByArray(tickers, 'symbol', symbols);
-        const keys = Object.keys(result);
-        const resultLength = keys.length;
-        if (resultLength > 0) {
-            if (this.newUpdates) {
-                return result;
-            }
-            return this.filterByArray(this.tickers, 'symbol', symbols);
+        const newTickers = await this.watch(url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            return newTickers;
         }
-        return await this.watchTickers(symbols, params);
+        return this.filterByArray(this.tickers, 'symbol', symbols);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -419,10 +450,10 @@ export default class coinex extends coinexRest {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -441,7 +472,7 @@ export default class coinex extends coinexRest {
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend(message, params);
         const trades = await this.watch(url, messageHash, request, subscriptionHash);
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -451,8 +482,8 @@ export default class coinex extends coinexRest {
          * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -495,13 +526,14 @@ export default class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchOHLCV
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -509,15 +541,18 @@ export default class coinex extends coinexRest {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchOHLCV', market, params);
         if (type !== 'swap') {
-            throw new NotSupported(this.id + ' watchOHLCV() is only supported for swap markets');
+            throw new NotSupported(this.id + ' watchOHLCV() is only supported for swap markets. Try using fetchOHLCV () instead');
         }
         const url = this.urls['api']['ws'][type];
         const messageHash = 'ohlcv';
         const watchOHLCVWarning = this.safeValue(this.options, 'watchOHLCVWarning', true);
         const client = this.safeValue(this.clients, url, {});
-        const existingSubscription = this.safeValue(client.subscriptions, messageHash);
+        const clientSub = this.safeValue(client, 'subscriptions', {});
+        const existingSubscription = this.safeValue(clientSub, messageHash);
+        const subSymbol = this.safeString(existingSubscription, 'symbol');
+        const subTimeframe = this.safeString(existingSubscription, 'timeframe');
         // due to nature of coinex response can only watch one symbol at a time
-        if (watchOHLCVWarning && existingSubscription !== undefined && (existingSubscription['symbol'] !== symbol || existingSubscription['timeframe'] !== timeframe)) {
+        if (watchOHLCVWarning && existingSubscription !== undefined && (subSymbol !== symbol || subTimeframe !== timeframe)) {
             throw new ExchangeError(this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
         }
         const timeframes = this.safeValue(this.options, 'timeframes', {});
@@ -526,7 +561,7 @@ export default class coinex extends coinexRest {
             'id': this.requestId(),
             'params': [
                 market['id'],
-                this.safeString(timeframes, timeframe, timeframe),
+                this.safeInteger(timeframes, timeframe),
             ],
         };
         const subscription = {
@@ -538,6 +573,51 @@ export default class coinex extends coinexRest {
         if (this.newUpdates) {
             limit = ohlcvs.getLimit(symbol, limit);
         }
+        return this.filterBySinceLimit(ohlcvs, since, limit, 0);
+    }
+    async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchOHLCV
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
+         * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to query OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @param {int|undefined} params.end the end time for spot markets, this.seconds () is set as default
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const [type, query] = this.handleMarketTypeAndParams('fetchOHLCV', market, params);
+        const url = this.urls['api']['ws'][type];
+        symbol = market['symbol'];
+        const messageHash = 'ohlcv';
+        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        timeframe = this.safeString(timeframes, timeframe, timeframe);
+        if (since === undefined) {
+            since = 1640995200; // January 1, 2022
+        }
+        const id = this.requestId();
+        const subscribe = {
+            'method': 'kline.query',
+            'params': [
+                market['id'],
+                this.parseToInt(since / 1000),
+                this.safeInteger(params, 'end', this.seconds()),
+                this.parseToInt(timeframe),
+            ],
+            'id': id,
+        };
+        const subscription = {
+            'id': id,
+            'future': messageHash,
+        };
+        const subscriptionHash = id;
+        const request = this.deepExtend(subscribe, query);
+        const ohlcvs = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         return this.filterBySinceLimit(ohlcvs, since, limit, 0);
     }
     handleDelta(bookside, delta) {
@@ -582,7 +662,7 @@ export default class coinex extends coinexRest {
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
-        const timestamp = this.safeNumber(orderBook, 'time');
+        const timestamp = this.safeInteger(orderBook, 'time');
         const currentOrderBook = this.safeValue(this.orderbooks, symbol);
         if (fullOrderBook) {
             const snapshot = this.parseOrderBook(orderBook, symbol, timestamp);
@@ -625,7 +705,7 @@ export default class coinex extends coinexRest {
             messageHash += ':' + symbol;
         }
         else {
-            message['params'] = this.ids;
+            message['params'] = [];
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend(message, query);
@@ -633,204 +713,205 @@ export default class coinex extends coinexRest {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         //
         //  spot
         //
         //      {
-        //          method: 'order.update',
-        //          params: [
+        //          "method": "order.update",
+        //          "params": [
         //              1,
         //              {
-        //                  id: 77782469357,
-        //                  type: 1,
-        //                  side: 2,
-        //                  user: 1849116,
-        //                  account: 0,
-        //                  option: 2,
-        //                  ctime: 1653961043.048967,
-        //                  mtime: 1653961043.048967,
-        //                  market: 'BTCUSDT',
-        //                  source: 'web',
-        //                  client_id: '',
-        //                  price: '1.00',
-        //                  amount: '1.00000000',
-        //                  taker_fee: '0.0020',
-        //                  maker_fee: '0.0020',
-        //                  left: '1.00000000',
-        //                  deal_stock: '0',
-        //                  deal_money: '0',
-        //                  money_fee: '0',
-        //                  stock_fee: '0',
-        //                  asset_fee: '0',
-        //                  fee_discount: '1',
-        //                  last_deal_amount: '0',
-        //                  last_deal_price: '0',
-        //                  last_deal_time: 0,
-        //                  last_deal_id: 0,
-        //                  last_role: 0,
-        //                  fee_asset: null,
-        //                  stop_id: 0
+        //                  "id": 77782469357,
+        //                  "type": 1,
+        //                  "side": 2,
+        //                  "user": 1849116,
+        //                  "account": 0,
+        //                  "option": 2,
+        //                  "ctime": 1653961043.048967,
+        //                  "mtime": 1653961043.048967,
+        //                  "market": "BTCUSDT",
+        //                  "source": "web",
+        //                  "client_id": '',
+        //                  "price": "1.00",
+        //                  "amount": "1.00000000",
+        //                  "taker_fee": "0.0020",
+        //                  "maker_fee": "0.0020",
+        //                  "left": "1.00000000",
+        //                  "deal_stock": "0",
+        //                  "deal_money": "0",
+        //                  "money_fee": "0",
+        //                  "stock_fee": "0",
+        //                  "asset_fee": "0",
+        //                  "fee_discount": "1",
+        //                  "last_deal_amount": "0",
+        //                  "last_deal_price": "0",
+        //                  "last_deal_time": 0,
+        //                  "last_deal_id": 0,
+        //                  "last_role": 0,
+        //                  "fee_asset": null,
+        //                  "stop_id": 0
         //              }
         //          ],
-        //          id: null
+        //          "id": null
         //      }
         //
         //  swap
         //
         //      {
-        //          method: 'order.update',
-        //          params: [
+        //          "method": "order.update",
+        //          "params": [
         //              1,
         //              {
-        //                  order_id: 23423462821,
-        //                  position_id: 0,
-        //                  stop_id: 0,
-        //                  market: 'BTCUSDT',
-        //                  type: 1,
-        //                  side: 2,
-        //                  target: 0,
-        //                  effect_type: 1,
-        //                  user_id: 1849116,
-        //                  create_time: 1653961509.25049,
-        //                  update_time: 1653961509.25049,
-        //                  source: 'web',
-        //                  price: '1.00',
-        //                  amount: '1.0000',
-        //                  taker_fee: '0.00050',
-        //                  maker_fee: '0.00030',
-        //                  left: '1.0000',
-        //                  deal_stock: '0.00000000000000000000',
-        //                  deal_fee: '0.00000000000000000000',
-        //                  deal_profit: '0.00000000000000000000',
-        //                  last_deal_amount: '0.00000000000000000000',
-        //                  last_deal_price: '0.00000000000000000000',
-        //                  last_deal_time: 0,
-        //                  last_deal_id: 0,
-        //                  last_deal_type: 0,
-        //                  last_deal_role: 0,
-        //                  client_id: '',
-        //                  fee_asset: '',
-        //                  fee_discount: '0.00000000000000000000',
-        //                  deal_asset_fee: '0.00000000000000000000',
-        //                  leverage: '3',
-        //                  position_type: 2
+        //                  "order_id": 23423462821,
+        //                  "position_id": 0,
+        //                  "stop_id": 0,
+        //                  "market": "BTCUSDT",
+        //                  "type": 1,
+        //                  "side": 2,
+        //                  "target": 0,
+        //                  "effect_type": 1,
+        //                  "user_id": 1849116,
+        //                  "create_time": 1653961509.25049,
+        //                  "update_time": 1653961509.25049,
+        //                  "source": "web",
+        //                  "price": "1.00",
+        //                  "amount": "1.0000",
+        //                  "taker_fee": "0.00050",
+        //                  "maker_fee": "0.00030",
+        //                  "left": "1.0000",
+        //                  "deal_stock": "0.00000000000000000000",
+        //                  "deal_fee": "0.00000000000000000000",
+        //                  "deal_profit": "0.00000000000000000000",
+        //                  "last_deal_amount": "0.00000000000000000000",
+        //                  "last_deal_price": "0.00000000000000000000",
+        //                  "last_deal_time": 0,
+        //                  "last_deal_id": 0,
+        //                  "last_deal_type": 0,
+        //                  "last_deal_role": 0,
+        //                  "client_id": '',
+        //                  "fee_asset": '',
+        //                  "fee_discount": "0.00000000000000000000",
+        //                  "deal_asset_fee": "0.00000000000000000000",
+        //                  "leverage": "3",
+        //                  "position_type": 2
         //              }
         //          ],
-        //          id: null
+        //          "id": null
         //      }
         //
         const params = this.safeValue(message, 'params', []);
         const order = this.safeValue(params, 1, {});
-        const parsedOrder = this.parseWSOrder(order);
+        const parsedOrder = this.parseWsOrder(order);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        this.orders.append(parsedOrder);
+        const orders = this.orders;
+        orders.append(parsedOrder);
         let messageHash = 'orders';
         client.resolve(this.orders, messageHash);
         messageHash += ':' + parsedOrder['symbol'];
         client.resolve(this.orders, messageHash);
     }
-    parseWSOrder(order) {
+    parseWsOrder(order, market = undefined) {
         //
         //  spot
         //
         //       {
-        //           id: 77782469357,
-        //           type: 1,
-        //           side: 2,
-        //           user: 1849116,
-        //           account: 0,
-        //           option: 2,
-        //           ctime: 1653961043.048967,
-        //           mtime: 1653961043.048967,
-        //           market: 'BTCUSDT',
-        //           source: 'web',
-        //           client_id: '',
-        //           price: '1.00',
-        //           amount: '1.00000000',
-        //           taker_fee: '0.0020',
-        //           maker_fee: '0.0020',
-        //           left: '1.00000000',
-        //           deal_stock: '0',
-        //           deal_money: '0',
-        //           money_fee: '0',
-        //           stock_fee: '0',
-        //           asset_fee: '0',
-        //           fee_discount: '1',
-        //           last_deal_amount: '0',
-        //           last_deal_price: '0',
-        //           last_deal_time: 0,
-        //           last_deal_id: 0,
-        //           last_role: 0,
-        //           fee_asset: null,
-        //           stop_id: 0
+        //           "id": 77782469357,
+        //           "type": 1,
+        //           "side": 2,
+        //           "user": 1849116,
+        //           "account": 0,
+        //           "option": 2,
+        //           "ctime": 1653961043.048967,
+        //           "mtime": 1653961043.048967,
+        //           "market": "BTCUSDT",
+        //           "source": "web",
+        //           "client_id": '',
+        //           "price": "1.00",
+        //           "amount": "1.00000000",
+        //           "taker_fee": "0.0020",
+        //           "maker_fee": "0.0020",
+        //           "left": "1.00000000",
+        //           "deal_stock": "0",
+        //           "deal_money": "0",
+        //           "money_fee": "0",
+        //           "stock_fee": "0",
+        //           "asset_fee": "0",
+        //           "fee_discount": "1",
+        //           "last_deal_amount": "0",
+        //           "last_deal_price": "0",
+        //           "last_deal_time": 0,
+        //           "last_deal_id": 0,
+        //           "last_role": 0,
+        //           "fee_asset": null,
+        //           "stop_id": 0
         //       }
         //
         //  swap
         //
         //      {
-        //          order_id: 23423462821,
-        //          position_id: 0,
-        //          stop_id: 0,
-        //          market: 'BTCUSDT',
-        //          type: 1,
-        //          side: 2,
-        //          target: 0,
-        //          effect_type: 1,
-        //          user_id: 1849116,
-        //          create_time: 1653961509.25049,
-        //          update_time: 1653961509.25049,
-        //          source: 'web',
-        //          price: '1.00',
-        //          amount: '1.0000',
-        //          taker_fee: '0.00050',
-        //          maker_fee: '0.00030',
-        //          left: '1.0000',
-        //          deal_stock: '0.00000000000000000000',
-        //          deal_fee: '0.00000000000000000000',
-        //          deal_profit: '0.00000000000000000000',
-        //          last_deal_amount: '0.00000000000000000000',
-        //          last_deal_price: '0.00000000000000000000',
-        //          last_deal_time: 0,
-        //          last_deal_id: 0,
-        //          last_deal_type: 0,
-        //          last_deal_role: 0,
-        //          client_id: '',
-        //          fee_asset: '',
-        //          fee_discount: '0.00000000000000000000',
-        //          deal_asset_fee: '0.00000000000000000000',
-        //          leverage: '3',
-        //          position_type: 2
+        //          "order_id": 23423462821,
+        //          "position_id": 0,
+        //          "stop_id": 0,
+        //          "market": "BTCUSDT",
+        //          "type": 1,
+        //          "side": 2,
+        //          "target": 0,
+        //          "effect_type": 1,
+        //          "user_id": 1849116,
+        //          "create_time": 1653961509.25049,
+        //          "update_time": 1653961509.25049,
+        //          "source": "web",
+        //          "price": "1.00",
+        //          "amount": "1.0000",
+        //          "taker_fee": "0.00050",
+        //          "maker_fee": "0.00030",
+        //          "left": "1.0000",
+        //          "deal_stock": "0.00000000000000000000",
+        //          "deal_fee": "0.00000000000000000000",
+        //          "deal_profit": "0.00000000000000000000",
+        //          "last_deal_amount": "0.00000000000000000000",
+        //          "last_deal_price": "0.00000000000000000000",
+        //          "last_deal_time": 0,
+        //          "last_deal_id": 0,
+        //          "last_deal_type": 0,
+        //          "last_deal_role": 0,
+        //          "client_id": '',
+        //          "fee_asset": '',
+        //          "fee_discount": "0.00000000000000000000",
+        //          "deal_asset_fee": "0.00000000000000000000",
+        //          "leverage": "3",
+        //          "position_type": 2
         //      }
         //
         //  order.update_stop
         //
         //       {
-        //           id: 78006745870,
-        //           type: 1,
-        //           side: 2,
-        //           user: 1849116,
-        //           account: 1,
-        //           option: 70,
-        //           direction: 1,
-        //           ctime: 1654171725.131976,
-        //           mtime: 1654171725.131976,
-        //           market: 'BTCUSDT',
-        //           source: 'web',
-        //           client_id: '',
-        //           stop_price: '1.00',
-        //           price: '1.00',
-        //           amount: '1.00000000',
-        //           taker_fee: '0.0020',
-        //           maker_fee: '0.0020',
-        //           fee_discount: '1',
-        //           fee_asset: null,
-        //           status: 0
+        //           "id": 78006745870,
+        //           "type": 1,
+        //           "side": 2,
+        //           "user": 1849116,
+        //           "account": 1,
+        //           "option": 70,
+        //           "direction": 1,
+        //           "ctime": 1654171725.131976,
+        //           "mtime": 1654171725.131976,
+        //           "market": "BTCUSDT",
+        //           "source": "web",
+        //           "client_id": '',
+        //           "stop_price": "1.00",
+        //           "price": "1.00",
+        //           "amount": "1.00000000",
+        //           "taker_fee": "0.0020",
+        //           "maker_fee": "0.0020",
+        //           "fee_discount": "1",
+        //           "fee_asset": null,
+        //           "status": 0
         //       }
         //
         const timestamp = this.safeTimestamp2(order, 'update_time', 'mtime');
@@ -849,7 +930,7 @@ export default class coinex extends coinexRest {
         const amount = this.safeString(order, 'amount');
         const status = this.safeString(order, 'status');
         const defaultType = this.safeString(this.options, 'defaultType');
-        const market = this.safeMarket(marketId, undefined, undefined, defaultType);
+        market = this.safeMarket(marketId, market, undefined, defaultType);
         let cost = this.safeString(order, 'deal_money');
         let filled = this.safeString(order, 'deal_stock');
         let average = undefined;
@@ -888,12 +969,12 @@ export default class coinex extends coinexRest {
             'remaining': remaining,
             'cost': cost,
             'average': average,
-            'status': this.parseWSOrderStatus(status),
+            'status': this.parseWsOrderStatus(status),
             'fee': fee,
             'trades': undefined,
         }, market);
     }
-    parseWSOrderStatus(status) {
+    parseWsOrderStatus(status) {
         const statuses = {
             '0': 'pending',
             '1': 'ok',
@@ -924,24 +1005,27 @@ export default class coinex extends coinexRest {
     handleAuthenticationMessage(client, message) {
         //
         //     {
-        //         error: null,
-        //         result: {
-        //             status: 'success'
+        //         "error": null,
+        //         "result": {
+        //             "status": "success"
         //         },
-        //         id: 1
+        //         "id": 1
         //     }
         //
-        const future = this.safeValue(client.futures, 'authenticated');
-        if (future !== undefined) {
-            future.resolve(true);
-        }
+        const messageHashSpot = 'authenticated:spot';
+        const messageHashSwap = 'authenticated:swap';
+        client.resolve(message, messageHashSpot);
+        client.resolve(message, messageHashSwap);
         return message;
     }
     handleSubscriptionStatus(client, message) {
-        const id = this.safeString(message, 'id');
+        const id = this.safeInteger(message, 'id');
         const subscription = this.safeValue(client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString(subscription, 'future');
+            if (futureIndex === 'ohlcv') {
+                return this.handleOHLCV(client, message);
+            }
             const future = this.safeValue(client.futures, futureIndex);
             if (future !== undefined) {
                 future.resolve(true);
@@ -957,11 +1041,10 @@ export default class coinex extends coinexRest {
         const time = this.milliseconds();
         if (type === 'spot') {
             const messageHash = 'authenticated:spot';
-            const authenticated = this.safeValue(client.futures, messageHash);
-            if (authenticated !== undefined) {
-                return;
+            let future = this.safeValue(client.subscriptions, messageHash);
+            if (future !== undefined) {
+                return future;
             }
-            const future = client.future(messageHash);
             const requestId = this.requestId();
             const subscribe = {
                 'id': requestId,
@@ -978,16 +1061,16 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            this.spawn(this.watch, url, messageHash, request, requestId, subscribe);
+            future = this.watch(url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = future;
             return future;
         }
         else {
             const messageHash = 'authenticated:swap';
-            const authenticated = this.safeValue(client.futures, messageHash);
-            if (authenticated !== undefined) {
-                return;
+            let future = this.safeValue(client.subscriptions, messageHash);
+            if (future !== undefined) {
+                return future;
             }
-            const future = client.future('authenticated:swap');
             const requestId = this.requestId();
             const subscribe = {
                 'id': requestId,
@@ -1004,7 +1087,8 @@ export default class coinex extends coinexRest {
                 ],
                 'id': requestId,
             };
-            this.spawn(this.watch, url, messageHash, request, requestId, subscribe);
+            future = this.watch(url, messageHash, request, requestId, subscribe);
+            client.subscriptions[messageHash] = future;
             return future;
         }
     }

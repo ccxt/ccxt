@@ -13,6 +13,15 @@ class bittrex extends bittrex$1 {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'cancelAllOrdersWs': false,
+                'cancelOrdersWs': false,
+                'cancelOrderWs': false,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchBalanceWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'fetchTradesWs': false,
                 'watchBalance': true,
                 'watchHeartbeat': true,
                 'watchMyTrades': true,
@@ -39,8 +48,18 @@ class bittrex extends bittrex$1 {
             },
             'options': {
                 'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
                 'hub': 'c3',
                 'I': this.milliseconds(),
+                'watchOrderBook': {
+                    'maxRetries': 3,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'INVALID_APIKEY': errors.AuthenticationError,
+                    'UNAUTHORIZED_USER': errors.AuthenticationError,
+                },
             },
         });
     }
@@ -92,6 +111,7 @@ class bittrex extends bittrex$1 {
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
     async authenticate(params = {}) {
+        this.checkRequiredCredentials();
         await this.loadMarkets();
         const request = await this.negotiate();
         return await this.sendRequestToAuthenticate(request, false, params);
@@ -112,7 +132,7 @@ class bittrex extends bittrex$1 {
                 'negotiation': negotiation,
                 'method': this.handleAuthenticate,
             };
-            this.spawn(this.watch, url, messageHash, request, requestId, subscription);
+            this.watch(url, messageHash, request, requestId, subscription);
         }
         return await future;
     }
@@ -135,8 +155,8 @@ class bittrex extends bittrex$1 {
     handleAuthenticationExpiring(client, message) {
         //
         //     {
-        //         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
-        //         M: [ { H: 'C3', M: 'authenticationExpiring', A: [] } ]
+        //         "C": "d-B1733F58-B,0|vT7,1|vT8,2|vBR,3",
+        //         "M": [ { H: "C3", M: "authenticationExpiring", A: [] } ]
         //     }
         //
         // resend the authentication request and refresh the subscription
@@ -168,16 +188,16 @@ class bittrex extends bittrex$1 {
             const response = await this.signalrGetNegotiate(this.extend(request, params));
             //
             //     {
-            //         Url: '/signalr/v1.1/signalr',
-            //         ConnectionToken: 'lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O',
-            //         ConnectionId: 'a2afb0f7-346f-4f32-b7c7-01e04584b86a',
-            //         KeepAliveTimeout: 20,
-            //         DisconnectTimeout: 30,
-            //         ConnectionTimeout: 110,
-            //         TryWebSockets: true,
-            //         ProtocolVersion: '1.5',
-            //         TransportConnectTimeout: 5,
-            //         LongPollDelay: 0
+            //         "Url": "/signalr/v1.1/signalr",
+            //         "ConnectionToken": "lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O",
+            //         "ConnectionId": "a2afb0f7-346f-4f32-b7c7-01e04584b86a",
+            //         "KeepAliveTimeout": 20,
+            //         "DisconnectTimeout": 30,
+            //         "ConnectionTimeout": 110,
+            //         "TryWebSockets": true,
+            //         "ProtocolVersion": "1.5",
+            //         "TransportConnectTimeout": 5,
+            //         "LongPollDelay": 0
             //     }
             //
             const result = {
@@ -200,11 +220,11 @@ class bittrex extends bittrex$1 {
          * @method
          * @name bittrex#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         if (symbol !== undefined) {
@@ -215,7 +235,7 @@ class bittrex extends bittrex$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     async subscribeToOrders(authentication, params = {}) {
         const messageHash = 'order';
@@ -224,22 +244,22 @@ class bittrex extends bittrex$1 {
     handleOrder(client, message) {
         //
         //     {
-        //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //         sequence: 41,
-        //         delta: {
-        //             id: 'b91eff76-10eb-4382-834a-b753b770283e',
-        //             marketSymbol: 'BTC-USDT',
-        //             direction: 'BUY',
-        //             type: 'LIMIT',
-        //             quantity: '0.01000000',
-        //             limit: '3000.00000000',
-        //             timeInForce: 'GOOD_TIL_CANCELLED',
-        //             fillQuantity: '0.00000000',
-        //             commission: '0.00000000',
-        //             proceeds: '0.00000000',
-        //             status: 'OPEN',
-        //             createdAt: '2020-10-07T12:51:43.16Z',
-        //             updatedAt: '2020-10-07T12:51:43.16Z'
+        //         "accountId": "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        //         "sequence": 41,
+        //         "delta": {
+        //             "id": "b91eff76-10eb-4382-834a-b753b770283e",
+        //             "marketSymbol": "BTC-USDT",
+        //             "direction": "BUY",
+        //             "type": "LIMIT",
+        //             "quantity": "0.01000000",
+        //             "limit": "3000.00000000",
+        //             "timeInForce": "GOOD_TIL_CANCELLED",
+        //             "fillQuantity": "0.00000000",
+        //             "commission": "0.00000000",
+        //             "proceeds": "0.00000000",
+        //             "status": "OPEN",
+        //             "createdAt": "2020-10-07T12:51:43.16Z",
+        //             "updatedAt": "2020-10-07T12:51:43.16Z"
         //         }
         //     }
         //
@@ -258,9 +278,9 @@ class bittrex extends bittrex$1 {
         /**
          * @method
          * @name bittrex#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const authentication = await this.authenticate();
@@ -273,13 +293,13 @@ class bittrex extends bittrex$1 {
     handleBalance(client, message) {
         //
         //     {
-        //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //         sequence: 9,
-        //         delta: {
-        //             currencySymbol: 'USDT',
-        //             total: '32.88918476',
-        //             available: '2.82918476',
-        //             updatedAt: '2020-10-06T13:49:20.29Z'
+        //         "accountId": "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        //         "sequence": 9,
+        //         "delta": {
+        //             "currencySymbol": "USDT",
+        //             "total": "32.88918476",
+        //             "available": "2.82918476",
+        //             "updatedAt": "2020-10-06T13:49:20.29Z"
         //         }
         //     }
         //
@@ -328,7 +348,7 @@ class bittrex extends bittrex$1 {
          * @name bittrex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -357,10 +377,10 @@ class bittrex extends bittrex$1 {
         // ticker subscription update
         //
         //     {
-        //         symbol: 'BTC-USDT',
-        //         lastTradeRate: '10701.02140008',
-        //         bidRate: '10701.02140007',
-        //         askRate: '10705.71049998'
+        //         "symbol": "BTC-USDT",
+        //         "lastTradeRate": "10701.02140008",
+        //         "bidRate": "10701.02140007",
+        //         "askRate": "10705.71049998"
         //     }
         //
         const ticker = this.parseTicker(message);
@@ -378,10 +398,10 @@ class bittrex extends bittrex$1 {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -390,7 +410,7 @@ class bittrex extends bittrex$1 {
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     async subscribeToOHLCV(negotiation, symbol, timeframe = '1m', params = {}) {
         await this.loadMarkets();
@@ -409,17 +429,17 @@ class bittrex extends bittrex$1 {
     handleOHLCV(client, message) {
         //
         //     {
-        //         sequence: 28286,
-        //         marketSymbol: 'BTC-USD',
-        //         interval: 'MINUTE_1',
-        //         delta: {
-        //             startsAt: '2020-10-05T18:52:00Z',
-        //             open: '10706.62600000',
-        //             high: '10706.62600000',
-        //             low: '10703.25900000',
-        //             close: '10703.26000000',
-        //             volume: '0.86822264',
-        //             quoteVolume: '9292.84594774'
+        //         "sequence": 28286,
+        //         "marketSymbol": "BTC-USD",
+        //         "interval": "MINUTE_1",
+        //         "delta": {
+        //             "startsAt": "2020-10-05T18:52:00Z",
+        //             "open": "10706.62600000",
+        //             "high": "10706.62600000",
+        //             "low": "10703.25900000",
+        //             "close": "10703.26000000",
+        //             "volume": "0.86822264",
+        //             "quoteVolume": "9292.84594774"
         //         }
         //     }
         //
@@ -447,10 +467,10 @@ class bittrex extends bittrex$1 {
          * @name bittrex#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -459,7 +479,7 @@ class bittrex extends bittrex$1 {
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
     async subscribeToTrades(negotiation, symbol, params = {}) {
         await this.loadMarkets();
@@ -476,17 +496,17 @@ class bittrex extends bittrex$1 {
     handleTrades(client, message) {
         //
         //     {
-        //         deltas: [
+        //         "deltas": [
         //             {
-        //                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
-        //                 executedAt: '2020-10-05T23:02:17.49Z',
-        //                 quantity: '0.00166790',
-        //                 rate: '10763.97000000',
-        //                 takerSide: 'BUY'
+        //                 "id": "5bf67885-a0a8-4c62-b73d-534e480e3332",
+        //                 "executedAt": "2020-10-05T23:02:17.49Z",
+        //                 "quantity": "0.00166790",
+        //                 "rate": "10763.97000000",
+        //                 "takerSide": "BUY"
         //             }
         //         ],
-        //         sequence: 24391,
-        //         marketSymbol: 'BTC-USD'
+        //         "sequence": 24391,
+        //         "marketSymbol": "BTC-USD"
         //     }
         //
         const deltas = this.safeValue(message, 'deltas', []);
@@ -512,20 +532,22 @@ class bittrex extends bittrex$1 {
          * @method
          * @name bittrex#watchMyTrades
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bittrex api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
          */
         await this.loadMarkets();
-        symbol = this.symbol(symbol);
+        if (symbol !== undefined) {
+            symbol = this.symbol(symbol);
+        }
         const authentication = await this.authenticate();
         const trades = await this.subscribeToMyTrades(authentication, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
     async subscribeToMyTrades(authentication, params = {}) {
         const messageHash = 'execution';
@@ -534,18 +556,18 @@ class bittrex extends bittrex$1 {
     handleMyTrades(client, message) {
         //
         //     {
-        //         accountId: '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //         sequence: 42,
-        //         deltas: [
+        //         "accountId": "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        //         "sequence": 42,
+        //         "deltas": [
         //             {
-        //                 id: '5bf67885-a0a8-4c62-b73d-534e480e3332',
-        //                 marketSymbol: 'BTC-USDT',
-        //                 executedAt: '2020-10-05T23:02:17.49Z',
-        //                 quantity: '0.00166790',
-        //                 rate: '10763.97000000',
-        //                 orderId: "string (uuid)",
-        //                 commission: '0.00000000',
-        //                 isTaker: False
+        //                 "id": "5bf67885-a0a8-4c62-b73d-534e480e3332",
+        //                 "marketSymbol": "BTC-USDT",
+        //                 "executedAt": "2020-10-05T23:02:17.49Z",
+        //                 "quantity": "0.00166790",
+        //                 "rate": "10763.97000000",
+        //                 "orderId": "string (uuid)",
+        //                 "commission": "0.00000000",
+        //                 "isTaker": False
         //             }
         //         ]
         //     }
@@ -570,8 +592,8 @@ class bittrex extends bittrex$1 {
          * @name bittrex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         limit = (limit === undefined) ? 25 : limit; // 25 by default
@@ -591,22 +613,18 @@ class bittrex extends bittrex$1 {
         //     7. Continue to apply messages as they are received from the socket as long as sequence number on the stream is always increasing by 1 each message (Note: for private streams, the sequence number is scoped to a single account or subaccount).
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
-        const orderbook = await this.subscribeToOrderBook(negotiation, symbol, limit, params);
-        return orderbook.limit();
-    }
-    async subscribeToOrderBook(negotiation, symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
         const market = this.market(symbol);
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'] + '_' + limit.toString();
         const subscription = {
             'symbol': symbol,
             'messageHash': messageHash,
-            'method': this.handleSubscribeToOrderBook,
+            'method': this.handleOrderBookSubscription,
             'limit': limit,
             'params': params,
         };
-        return await this.sendRequestToSubscribe(negotiation, messageHash, subscription);
+        const orderbook = await this.sendRequestToSubscribe(negotiation, messageHash, subscription);
+        return orderbook.limit();
     }
     async fetchOrderBookSnapshot(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
@@ -615,7 +633,7 @@ class bittrex extends bittrex$1 {
         try {
             // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
             // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBook(symbol, limit);
+            const snapshot = await this.fetchRestOrderBookSafe(symbol, limit);
             const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
             // make sure we have at least one delta before fetching the snapshot
@@ -629,8 +647,7 @@ class bittrex extends bittrex$1 {
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
             if ((sequence !== undefined) && (nonce < sequence)) {
-                const options = this.safeValue(this.options, 'fetchOrderBookSnapshot', {});
-                const maxAttempts = this.safeInteger(options, 'maxAttempts', 3);
+                const maxAttempts = this.handleOption('watchOrderBook', 'maxRetries', 3);
                 let numAttempts = this.safeInteger(subscription, 'numAttempts', 0);
                 // retry to syncrhonize if we haven't reached maxAttempts yet
                 if (numAttempts < maxAttempts) {
@@ -652,8 +669,8 @@ class bittrex extends bittrex$1 {
                 // unroll the accumulated deltas
                 // 3. Playback the cached Level 2 data flow.
                 for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage(client, message, orderbook);
+                    const messageItem = messages[i];
+                    this.handleOrderBookMessage(client, messageItem, orderbook);
                 }
                 this.orderbooks[symbol] = orderbook;
                 client.resolve(orderbook, messageHash);
@@ -663,7 +680,7 @@ class bittrex extends bittrex$1 {
             client.reject(e, messageHash);
         }
     }
-    handleSubscribeToOrderBook(client, message, subscription) {
+    handleOrderBookSubscription(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
         const limit = this.safeInteger(subscription, 'limit');
         if (symbol in this.orderbooks) {
@@ -675,8 +692,8 @@ class bittrex extends bittrex$1 {
     handleDelta(bookside, delta) {
         //
         //     {
-        //         quantity: '0.05100000',
-        //         rate: '10694.86410031'
+        //         "quantity": "0.05100000",
+        //         "rate": "10694.86410031"
         //     }
         //
         const price = this.safeFloat(delta, 'rate');
@@ -686,8 +703,8 @@ class bittrex extends bittrex$1 {
     handleDeltas(bookside, deltas) {
         //
         //     [
-        //         { quantity: '0.05100000', rate: '10694.86410031' },
-        //         { quantity: '0', rate: '10665.72578226' }
+        //         { quantity: '0.05100000', rate: "10694.86410031" },
+        //         { quantity: "0", rate: "10665.72578226" }
         //     ]
         //
         for (let i = 0; i < deltas.length; i++) {
@@ -697,14 +714,14 @@ class bittrex extends bittrex$1 {
     handleOrderBook(client, message) {
         //
         //     {
-        //         marketSymbol: 'BTC-USDT',
-        //         depth: 25,
-        //         sequence: 3009387,
-        //         bidDeltas: [
-        //             { quantity: '0.05100000', rate: '10694.86410031' },
-        //             { quantity: '0', rate: '10665.72578226' }
+        //         "marketSymbol": "BTC-USDT",
+        //         "depth": 25,
+        //         "sequence": 3009387,
+        //         "bidDeltas": [
+        //             { quantity: '0.05100000', rate: "10694.86410031" },
+        //             { quantity: "0", rate: "10665.72578226" }
         //         ],
-        //         askDeltas: []
+        //         "askDeltas": []
         //     }
         //
         const marketId = this.safeString(message, 'marketSymbol');
@@ -724,14 +741,14 @@ class bittrex extends bittrex$1 {
     handleOrderBookMessage(client, message, orderbook) {
         //
         //     {
-        //         marketSymbol: 'BTC-USDT',
-        //         depth: 25,
-        //         sequence: 3009387,
-        //         bidDeltas: [
-        //             { quantity: '0.05100000', rate: '10694.86410031' },
-        //             { quantity: '0', rate: '10665.72578226' }
+        //         "marketSymbol": "BTC-USDT",
+        //         "depth": 25,
+        //         "sequence": 3009387,
+        //         "bidDeltas": [
+        //             { quantity: '0.05100000', rate: "10694.86410031" },
+        //             { quantity: "0", rate: "10665.72578226" }
         //         ],
-        //         askDeltas: []
+        //         "askDeltas": []
         //     }
         //
         const marketId = this.safeString(message, 'marketSymbol');
@@ -760,14 +777,14 @@ class bittrex extends bittrex$1 {
         //
         // success
         //
-        //     { R: [ { Success: true, ErrorCode: null } ], I: '1601891513224' }
+        //     { R: [ { Success: true, ErrorCode: null } ], I: "1601891513224" }
         //
         // failure
         // todo add error handling and future rejections
         //
         //     {
-        //         I: '1601942374563',
-        //         E: "There was an error invoking Hub method 'c3.Authenticate'."
+        //         "I": "1601942374563",
+        //         "E": "There was an error invoking Hub method "c3.Authenticate"."
         //     }
         //
         const I = this.safeString(message, 'I'); // noqa: E741
@@ -789,23 +806,77 @@ class bittrex extends bittrex$1 {
         }
         return message;
     }
+    handleErrorMessage(client, message) {
+        //
+        //    {
+        //        "R": [{ Success: false, ErrorCode: "UNAUTHORIZED_USER" }, ... ],
+        //        "I": "1698601759267"
+        //    }
+        //    {
+        //        "R": { Success: false, ErrorCode: "INVALID_APIKEY" },
+        //        "I": "1698601759266"
+        //    }
+        //
+        const R = this.safeValue(message, 'R');
+        if (R === undefined) {
+            // Return there is no error
+            return false;
+        }
+        const I = this.safeString(message, 'I');
+        let errorCode = undefined;
+        if (Array.isArray(R)) {
+            for (let i = 0; i < R.length; i++) {
+                const response = this.safeValue(R, i);
+                const success = this.safeValue(response, 'Success', true);
+                if (!success) {
+                    errorCode = this.safeString(response, 'ErrorCode');
+                    break;
+                }
+            }
+        }
+        else {
+            const success = this.safeValue(R, 'Success', true);
+            if (!success) {
+                errorCode = this.safeString(R, 'ErrorCode');
+            }
+        }
+        if (errorCode === undefined) {
+            // Return there is no error
+            return false;
+        }
+        const feedback = this.id + ' ' + errorCode;
+        try {
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            if (message !== undefined) {
+                this.throwBroadlyMatchedException(this.exceptions['broad'], errorCode, feedback);
+            }
+            throw new errors.ExchangeError(feedback);
+        }
+        catch (e) {
+            if (e instanceof errors.AuthenticationError) {
+                client.reject(e, 'authenticate');
+            }
+            client.reject(e, I);
+        }
+        return true;
+    }
     handleMessage(client, message) {
         //
         // subscription confirmation
         //
         //     {
-        //         R: [
+        //         "R": [
         //             { Success: true, ErrorCode: null }
         //         ],
-        //         I: '1601899375696'
+        //         "I": "1601899375696"
         //     }
         //
         // heartbeat subscription update
         //
         //     {
-        //         C: 'd-6010FB90-B,0|o_b,0|o_c,2|8,1F4E',
-        //         M: [
-        //             { H: 'C3', M: 'heartbeat', A: [] }
+        //         "C": "d-6010FB90-B,0|o_b,0|o_c,2|8,1F4E",
+        //         "M": [
+        //             { H: "C3", M: "heartbeat", A: [] }
         //         ]
         //     }
         //
@@ -816,13 +887,13 @@ class bittrex extends bittrex$1 {
         // subscription update
         //
         //     {
-        //         C: 'd-ED78B69D-E,0|rq4,0|rq5,2|puI,60C',
-        //         M: [
+        //         "C": "d-ED78B69D-E,0|rq4,0|rq5,2|puI,60C",
+        //         "M": [
         //             {
-        //                 H: 'C3',
-        //                 M: 'ticker', // orderBook, trade, candle, balance, order
-        //                 A: [
-        //                     'q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=='
+        //                 "H": "C3",
+        //                 "M": "ticker", // orderBook, trade, candle, balance, order
+        //                 "A": [
+        //                     "q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=="
         //                 ]
         //             }
         //         ]
@@ -831,10 +902,13 @@ class bittrex extends bittrex$1 {
         // authentication expiry notification
         //
         //     {
-        //         C: 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
-        //         M: [ { H: 'C3', M: 'authenticationExpiring', A: [] } ]
+        //         "C": "d-B1733F58-B,0|vT7,1|vT8,2|vBR,3",
+        //         "M": [ { H: "C3", M: "authenticationExpiring", A: [] } ]
         //     }
         //
+        if (this.handleErrorMessage(client, message)) {
+            return;
+        }
         const methods = {
             'authenticationExpiring': this.handleAuthenticationExpiring,
             'order': this.handleOrder,

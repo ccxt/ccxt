@@ -13,6 +13,18 @@ abstract class bitmex extends \ccxt\Exchange {
     public function public_get_announcement_urgent($params = array()) {
         return $this->request('announcement/urgent', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_chat($params = array()) {
+        return $this->request('chat', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_chat_channels($params = array()) {
+        return $this->request('chat/channels', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_chat_connected($params = array()) {
+        return $this->request('chat/connected', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_chat_pinned($params = array()) {
+        return $this->request('chat/pinned', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function public_get_funding($params = array()) {
         return $this->request('funding', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -34,6 +46,9 @@ abstract class bitmex extends \ccxt\Exchange {
     public function public_get_instrument_indices($params = array()) {
         return $this->request('instrument/indices', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_instrument_usdvolume($params = array()) {
+        return $this->request('instrument/usdVolume', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function public_get_insurance($params = array()) {
         return $this->request('insurance', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -43,11 +58,11 @@ abstract class bitmex extends \ccxt\Exchange {
     public function public_get_liquidation($params = array()) {
         return $this->request('liquidation', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function public_get_orderbook($params = array()) {
-        return $this->request('orderBook', 'public', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function public_get_orderbook_l2($params = array()) {
         return $this->request('orderBook/L2', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_porl_nonce($params = array()) {
+        return $this->request('porl/nonce', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_quote($params = array()) {
         return $this->request('quote', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -70,6 +85,9 @@ abstract class bitmex extends \ccxt\Exchange {
     public function public_get_stats_history($params = array()) {
         return $this->request('stats/history', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_stats_historyusd($params = array()) {
+        return $this->request('stats/historyUSD', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function public_get_trade($params = array()) {
         return $this->request('trade', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -85,26 +103,23 @@ abstract class bitmex extends \ccxt\Exchange {
     public function private_get_apikey($params = array()) {
         return $this->request('apiKey', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function private_get_chat($params = array()) {
-        return $this->request('chat', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function private_get_chat_channels($params = array()) {
-        return $this->request('chat/channels', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function private_get_chat_connected($params = array()) {
-        return $this->request('chat/connected', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function private_get_execution($params = array()) {
         return $this->request('execution', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_execution_tradehistory($params = array()) {
         return $this->request('execution/tradeHistory', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function private_get_notification($params = array()) {
-        return $this->request('notification', 'private', 'GET', $params, null, null, array("cost" => 5));
+    public function private_get_globalnotification($params = array()) {
+        return $this->request('globalNotification', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_leaderboard_name($params = array()) {
+        return $this->request('leaderboard/name', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_order($params = array()) {
         return $this->request('order', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_porl_snapshots($params = array()) {
+        return $this->request('porl/snapshots', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_position($params = array()) {
         return $this->request('position', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -130,8 +145,14 @@ abstract class bitmex extends \ccxt\Exchange {
     public function private_get_user_margin($params = array()) {
         return $this->request('user/margin', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function private_get_user_minwithdrawalfee($params = array()) {
-        return $this->request('user/minWithdrawalFee', 'private', 'GET', $params, null, null, array("cost" => 5));
+    public function private_get_user_quotefillratio($params = array()) {
+        return $this->request('user/quoteFillRatio', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_user_quotevalueratio($params = array()) {
+        return $this->request('user/quoteValueRatio', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_user_tradingvolume($params = array()) {
+        return $this->request('user/tradingVolume', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_user_wallet($params = array()) {
         return $this->request('user/wallet', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -142,32 +163,20 @@ abstract class bitmex extends \ccxt\Exchange {
     public function private_get_user_walletsummary($params = array()) {
         return $this->request('user/walletSummary', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function private_get_wallet_assets($params = array()) {
-        return $this->request('wallet/assets', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function private_get_wallet_networks($params = array()) {
-        return $this->request('wallet/networks', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function private_get_userevent($params = array()) {
         return $this->request('userEvent', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function private_post_apikey($params = array()) {
-        return $this->request('apiKey', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
-    public function private_post_apikey_disable($params = array()) {
-        return $this->request('apiKey/disable', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
-    public function private_post_apikey_enable($params = array()) {
-        return $this->request('apiKey/enable', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_chat($params = array()) {
         return $this->request('chat', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_guild_join($params = array()) {
+        return $this->request('guild/join', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_guild_leave($params = array()) {
+        return $this->request('guild/leave', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_order($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function private_post_order_bulk($params = array()) {
-        return $this->request('order/bulk', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_order_cancelallafter($params = array()) {
         return $this->request('order/cancelAllAfter', 'private', 'POST', $params, null, null, array("cost" => 5));
@@ -190,44 +199,26 @@ abstract class bitmex extends \ccxt\Exchange {
     public function private_post_user_cancelwithdrawal($params = array()) {
         return $this->request('user/cancelWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_user_communicationtoken($params = array()) {
+        return $this->request('user/communicationToken', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_user_confirmemail($params = array()) {
         return $this->request('user/confirmEmail', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
-    public function private_post_user_confirmenabletfa($params = array()) {
-        return $this->request('user/confirmEnableTFA', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_user_confirmwithdrawal($params = array()) {
         return $this->request('user/confirmWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function private_post_user_disabletfa($params = array()) {
-        return $this->request('user/disableTFA', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
     public function private_post_user_logout($params = array()) {
         return $this->request('user/logout', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function private_post_user_logoutall($params = array()) {
-        return $this->request('user/logoutAll', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
     public function private_post_user_preferences($params = array()) {
         return $this->request('user/preferences', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
-    public function private_post_user_requestenabletfa($params = array()) {
-        return $this->request('user/requestEnableTFA', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_user_requestwithdrawal($params = array()) {
         return $this->request('user/requestWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_put_order($params = array()) {
         return $this->request('order', 'private', 'PUT', $params, null, null, array("cost" => 1));
-    }
-    public function private_put_order_bulk($params = array()) {
-        return $this->request('order/bulk', 'private', 'PUT', $params, null, null, array("cost" => 5));
-    }
-    public function private_put_user($params = array()) {
-        return $this->request('user', 'private', 'PUT', $params, null, null, array("cost" => 5));
-    }
-    public function private_delete_apikey($params = array()) {
-        return $this->request('apiKey', 'private', 'DELETE', $params, null, null, array("cost" => 5));
     }
     public function private_delete_order($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
@@ -240,6 +231,18 @@ abstract class bitmex extends \ccxt\Exchange {
     }
     public function publicGetAnnouncementUrgent($params = array()) {
         return $this->request('announcement/urgent', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetChat($params = array()) {
+        return $this->request('chat', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetChatChannels($params = array()) {
+        return $this->request('chat/channels', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetChatConnected($params = array()) {
+        return $this->request('chat/connected', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetChatPinned($params = array()) {
+        return $this->request('chat/pinned', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetFunding($params = array()) {
         return $this->request('funding', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -262,6 +265,9 @@ abstract class bitmex extends \ccxt\Exchange {
     public function publicGetInstrumentIndices($params = array()) {
         return $this->request('instrument/indices', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function publicGetInstrumentUsdVolume($params = array()) {
+        return $this->request('instrument/usdVolume', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function publicGetInsurance($params = array()) {
         return $this->request('insurance', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -271,11 +277,11 @@ abstract class bitmex extends \ccxt\Exchange {
     public function publicGetLiquidation($params = array()) {
         return $this->request('liquidation', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function publicGetOrderBook($params = array()) {
-        return $this->request('orderBook', 'public', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function publicGetOrderBookL2($params = array()) {
         return $this->request('orderBook/L2', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetPorlNonce($params = array()) {
+        return $this->request('porl/nonce', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetQuote($params = array()) {
         return $this->request('quote', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -298,6 +304,9 @@ abstract class bitmex extends \ccxt\Exchange {
     public function publicGetStatsHistory($params = array()) {
         return $this->request('stats/history', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function publicGetStatsHistoryUSD($params = array()) {
+        return $this->request('stats/historyUSD', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function publicGetTrade($params = array()) {
         return $this->request('trade', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -313,26 +322,23 @@ abstract class bitmex extends \ccxt\Exchange {
     public function privateGetApiKey($params = array()) {
         return $this->request('apiKey', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function privateGetChat($params = array()) {
-        return $this->request('chat', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function privateGetChatChannels($params = array()) {
-        return $this->request('chat/channels', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function privateGetChatConnected($params = array()) {
-        return $this->request('chat/connected', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function privateGetExecution($params = array()) {
         return $this->request('execution', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetExecutionTradeHistory($params = array()) {
         return $this->request('execution/tradeHistory', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function privateGetNotification($params = array()) {
-        return $this->request('notification', 'private', 'GET', $params, null, null, array("cost" => 5));
+    public function privateGetGlobalNotification($params = array()) {
+        return $this->request('globalNotification', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetLeaderboardName($params = array()) {
+        return $this->request('leaderboard/name', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetOrder($params = array()) {
         return $this->request('order', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetPorlSnapshots($params = array()) {
+        return $this->request('porl/snapshots', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetPosition($params = array()) {
         return $this->request('position', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -358,8 +364,14 @@ abstract class bitmex extends \ccxt\Exchange {
     public function privateGetUserMargin($params = array()) {
         return $this->request('user/margin', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function privateGetUserMinWithdrawalFee($params = array()) {
-        return $this->request('user/minWithdrawalFee', 'private', 'GET', $params, null, null, array("cost" => 5));
+    public function privateGetUserQuoteFillRatio($params = array()) {
+        return $this->request('user/quoteFillRatio', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetUserQuoteValueRatio($params = array()) {
+        return $this->request('user/quoteValueRatio', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetUserTradingVolume($params = array()) {
+        return $this->request('user/tradingVolume', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetUserWallet($params = array()) {
         return $this->request('user/wallet', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -370,32 +382,20 @@ abstract class bitmex extends \ccxt\Exchange {
     public function privateGetUserWalletSummary($params = array()) {
         return $this->request('user/walletSummary', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function privateGetWalletAssets($params = array()) {
-        return $this->request('wallet/assets', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function privateGetWalletNetworks($params = array()) {
-        return $this->request('wallet/networks', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function privateGetUserEvent($params = array()) {
         return $this->request('userEvent', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function privatePostApiKey($params = array()) {
-        return $this->request('apiKey', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
-    public function privatePostApiKeyDisable($params = array()) {
-        return $this->request('apiKey/disable', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
-    public function privatePostApiKeyEnable($params = array()) {
-        return $this->request('apiKey/enable', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostChat($params = array()) {
         return $this->request('chat', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function privatePostGuildJoin($params = array()) {
+        return $this->request('guild/join', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostGuildLeave($params = array()) {
+        return $this->request('guild/leave', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function privatePostOrder($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function privatePostOrderBulk($params = array()) {
-        return $this->request('order/bulk', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostOrderCancelAllAfter($params = array()) {
         return $this->request('order/cancelAllAfter', 'private', 'POST', $params, null, null, array("cost" => 5));
@@ -418,44 +418,26 @@ abstract class bitmex extends \ccxt\Exchange {
     public function privatePostUserCancelWithdrawal($params = array()) {
         return $this->request('user/cancelWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function privatePostUserCommunicationToken($params = array()) {
+        return $this->request('user/communicationToken', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function privatePostUserConfirmEmail($params = array()) {
         return $this->request('user/confirmEmail', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
-    public function privatePostUserConfirmEnableTFA($params = array()) {
-        return $this->request('user/confirmEnableTFA', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostUserConfirmWithdrawal($params = array()) {
         return $this->request('user/confirmWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function privatePostUserDisableTFA($params = array()) {
-        return $this->request('user/disableTFA', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
     public function privatePostUserLogout($params = array()) {
         return $this->request('user/logout', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
-    public function privatePostUserLogoutAll($params = array()) {
-        return $this->request('user/logoutAll', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
     public function privatePostUserPreferences($params = array()) {
         return $this->request('user/preferences', 'private', 'POST', $params, null, null, array("cost" => 5));
-    }
-    public function privatePostUserRequestEnableTFA($params = array()) {
-        return $this->request('user/requestEnableTFA', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostUserRequestWithdrawal($params = array()) {
         return $this->request('user/requestWithdrawal', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePutOrder($params = array()) {
         return $this->request('order', 'private', 'PUT', $params, null, null, array("cost" => 1));
-    }
-    public function privatePutOrderBulk($params = array()) {
-        return $this->request('order/bulk', 'private', 'PUT', $params, null, null, array("cost" => 5));
-    }
-    public function privatePutUser($params = array()) {
-        return $this->request('user', 'private', 'PUT', $params, null, null, array("cost" => 5));
-    }
-    public function privateDeleteApiKey($params = array()) {
-        return $this->request('apiKey', 'private', 'DELETE', $params, null, null, array("cost" => 5));
     }
     public function privateDeleteOrder($params = array()) {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 1));

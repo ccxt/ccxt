@@ -37,6 +37,9 @@ $main = function() use ($argv) {
         $future = count(array_filter($args, function ($option) { return strstr($option, '--future') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--future') === false; }));
 
+        $option = count(array_filter($args, function ($option) { return strstr($option, '--option') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--option') === false; }));
+
         $new_updates = count(array_filter($args, function ($option) { return strstr($option, '--newUpdates') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--newUpdates') === false; }));
 
@@ -72,6 +75,8 @@ $main = function() use ($argv) {
                 $exchange->options['defaultType'] = 'swap';
             } else if ($future) {
                 $exchange->options['defaultType'] = 'future';
+            } else if ($option) {
+                $exchange->options['defaultType'] = 'option';
             }
 
             if ($new_updates) {

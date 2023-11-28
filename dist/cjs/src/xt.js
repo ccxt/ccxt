@@ -110,7 +110,7 @@ class xt extends xt$1 {
                 'transfer': true,
                 'withdraw': true,
             },
-            'precisionMode': number.DECIMAL_PLACES,
+            'precisionMode': number.TICK_SIZE,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
                 'api': {
@@ -699,7 +699,35 @@ class xt extends xt$1 {
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicSpotGetWalletSupportCurrency(params);
+        const promisesRaw = [this.publicSpotGetWalletSupportCurrency(params), this.publicSpotGetCurrencies(params)];
+        const [chainsResponse, currenciesResponse] = await Promise.all(promisesRaw);
+        //
+        // currencies
+        //
+        //    {
+        //        "time": "1686626116145",
+        //        "version": "5dbbb2f2527c22b2b2e3b47187ef13d1",
+        //        "currencies": [
+        //            {
+        //                "id": "2",
+        //                "currency": "btc",
+        //                "fullName": "Bitcoin",
+        //                "logo": "https://a.static-global.com/1/currency/btc.png",
+        //                "cmcLink": "https://coinmarketcap.com/currencies/bitcoin/",
+        //                "weight": "99999",
+        //                "maxPrecision": "10",
+        //                "depositStatus": "1",
+        //                "withdrawStatus": "1",
+        //                "convertEnabled": "1",
+        //                "transferEnabled": "1",
+        //                "isChainExist": "1",
+        //                "plates": [152]
+        //            },
+        //        ],
+        //    }
+        //
+        //
+        // chains
         //
         //     {
         //         "rc": 0,
@@ -722,13 +750,20 @@ class xt extends xt$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'result', []);
+        // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
+        //
+        const chainsData = this.safeValue(chainsResponse, 'result', []);
+        const currenciesResult = this.safeValue(currenciesResponse, 'result', []);
+        const currenciesData = this.safeValue(currenciesResult, 'currencies', []);
+        const chainsDataIndexed = this.indexBy(chainsData, 'currency');
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+        for (let i = 0; i < currenciesData.length; i++) {
+            const entry = currenciesData[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            const rawNetworks = this.safeValue(entry, 'supportChains', []);
+            const minPrecision = this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision')));
+            const networkEntry = this.safeValue(chainsDataIndexed, currencyId, {});
+            const rawNetworks = this.safeValue(networkEntry, 'supportChains', []);
             const networks = {};
             let minWithdrawString = undefined;
             let minWithdrawFeeString = undefined;
@@ -760,7 +795,7 @@ class xt extends xt$1 {
                     'name': undefined,
                     'active': networkActive,
                     'fee': this.parseNumber(withdrawFeeString),
-                    'precision': undefined,
+                    'precision': minPrecision,
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'limits': {
@@ -783,7 +818,7 @@ class xt extends xt$1 {
                 'info': entry,
                 'id': currencyId,
                 'code': code,
-                'name': undefined,
+                'name': this.safeString(entry, 'fullName'),
                 'active': active,
                 'fee': this.parseNumber(minWithdrawFeeString),
                 'precision': undefined,
@@ -1189,8 +1224,10 @@ class xt extends xt$1 {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': this.safeInteger(market, 'pricePrecision'),
-                'amount': this.safeInteger(market, 'quantityPrecision'),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'pricePrecision'))),
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityPrecision'))),
+                'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseCoinPrecision'))),
+                'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quoteCoinPrecision'))),
             },
             'limits': {
                 'leverage': {
@@ -2220,10 +2257,9 @@ class xt extends xt$1 {
     async createContractOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const convertContractsToAmount = Precise["default"].stringDiv(this.numberToString(amount), this.numberToString(market['contractSize']));
         const request = {
             'symbol': market['id'],
-            'origQty': this.amountToPrecision(symbol, this.parseNumber(convertContractsToAmount)),
+            'origQty': this.amountToPrecision(symbol, amount),
         };
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (timeInForce !== undefined) {
@@ -3325,13 +3361,15 @@ class xt extends xt$1 {
         const amount = (marketType === 'spot') ? quantity : Precise["default"].stringMul(this.numberToString(quantity), this.numberToString(market['contractSize']));
         const filledQuantity = this.safeNumber(order, 'executedQty');
         const filled = (marketType === 'spot') ? filledQuantity : Precise["default"].stringMul(this.numberToString(filledQuantity), this.numberToString(market['contractSize']));
+        const lastUpdatedTimestamp = this.safeInteger(order, 'updatedTime');
         return this.safeOrder({
             'info': order,
             'id': this.safeStringN(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
             'clientOrderId': this.safeString(order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': this.safeInteger(order, 'updatedTime'),
+            'lastTradeTimestamp': lastUpdatedTimestamp,
+            'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
             'type': this.safeStringLower2(order, 'type', 'orderType'),
             'timeInForce': this.safeString(order, 'timeInForce'),
@@ -4581,7 +4619,7 @@ class xt extends xt$1 {
         //     }
         //
         const status = this.safeStringUpper2(response, 'msgInfo', 'mc');
-        if (status !== 'SUCCESS') {
+        if (status !== undefined && status !== 'SUCCESS') {
             const feedback = this.id + ' ' + body;
             const error = this.safeValue(response, 'error', {});
             const spotErrorCode = this.safeString(response, 'mc');
@@ -4619,11 +4657,17 @@ class xt extends xt$1 {
         if (signed) {
             this.checkRequiredCredentials();
             const defaultRecvWindow = this.safeString(this.options, 'recvWindow');
-            const recvWindow = this.safeString(params, 'recvWindow', defaultRecvWindow);
+            const recvWindow = this.safeString(query, 'recvWindow', defaultRecvWindow);
             const timestamp = this.numberToString(this.nonce());
-            body = params;
+            body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
-                body['clientMedia'] = 'CCXT';
+                const id = 'CCXT';
+                if (payload.indexOf('future') > -1) {
+                    body['clientMedia'] = id;
+                }
+                else {
+                    body['media'] = id;
+                }
             }
             const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
             body = isUndefinedBody ? undefined : this.json(body);

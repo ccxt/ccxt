@@ -169,7 +169,7 @@ class CCXTProTranspiler extends Transpiler {
         const phpFile = './php/pro/test/Cache.php'
         const pyImports = [
             '',
-            'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
+            'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
@@ -259,7 +259,7 @@ class CCXTProTranspiler extends Transpiler {
             , phpAsyncFolder = './php/pro/'
             , jsFolder = './js/src/pro/'
             , tsFolder = './ts/src/pro/'
-            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
+            , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, jsFolder, exchanges }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)

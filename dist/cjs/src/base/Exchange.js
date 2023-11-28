@@ -8,7 +8,10 @@ var Precise = require('./Precise.js');
 var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
+var crypto = require('./functions/crypto.js');
 var totp = require('./functions/totp.js');
+var generic = require('./functions/generic.js');
+var misc = require('./functions/misc.js');
 
 function _interopNamespace(e) {
     if (e && e.__esModule) return e;
@@ -29,17 +32,29 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, keys, values, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, buildOHLCVC, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, vwap, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, isArray, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
+const { isNode, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, parseDate, ymd, base64ToString, crc32, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS } = functions;
 // ----------------------------------------------------------------------------
+/**
+ * @class Exchange
+ */
 class Exchange {
     constructor(userConfig = {}) {
+        this.api = undefined;
+        this.userAgent = undefined;
+        this.user_agent = undefined;
+        //
+        this.userAgents = {
+            'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+            'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+            'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
+        };
+        this.headers = {};
+        this.origin = '*'; // CORS origin
+        //
+        this.agent = undefined; // maintained for backwards compatibility
+        this.nodeHttpModuleLoaded = false;
         this.httpAgent = undefined;
         this.httpsAgent = undefined;
-        this.agent = undefined;
-        this.api = undefined;
-        // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        this.proxy = '';
-        this.origin = '*'; // CORS origin
         this.minFundingAddressLength = 1; // used in checkAddress
         this.substituteCommonCurrencyCodes = true; // reserved
         this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
@@ -51,15 +66,13 @@ class Exchange {
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.debug = false;
-        this.userAgent = undefined;
         this.twofa = undefined; // two-factor authentication (2FA)
         this.balance = {};
         this.orderbooks = {};
         this.tickers = {};
         this.orders = undefined;
+        this.triggerOrders = undefined;
         this.transactions = {};
-        this.positions = {};
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.enableLastJsonResponse = true;
@@ -68,6 +81,10 @@ class Exchange {
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+        this.last_request_body = undefined;
+        this.last_request_url = undefined;
+        this.last_request_path = undefined;
         this.id = undefined;
         this.markets = undefined;
         this.status = undefined;
@@ -105,8 +122,8 @@ class Exchange {
         this.streaming = {};
         this.deepExtend = deepExtend;
         this.isNode = isNode;
-        this.keys = keys;
-        this.values = values;
+        this.keys = generic.keys;
+        this.values = generic.values;
         this.extend = extend;
         this.clone = clone;
         this.flatten = flatten;
@@ -121,7 +138,6 @@ class Exchange {
         this.precisionFromString = precisionFromString;
         this.capitalize = capitalize;
         this.now = now;
-        this.buildOHLCVC = buildOHLCVC;
         this.decimalToPrecision = decimalToPrecision;
         this.safeValue = safeValue;
         this.safeValue2 = safeValue2;
@@ -143,7 +159,7 @@ class Exchange {
         this.implodeParams = implodeParams;
         this.extractParams = extractParams;
         this.json = json;
-        this.vwap = vwap;
+        this.vwap = misc.vwap;
         this.merge = merge;
         this.binaryConcat = binaryConcat;
         this.hash = hash;
@@ -169,6 +185,7 @@ class Exchange {
         this.uuid22 = uuid22;
         this.safeIntegerProduct2 = safeIntegerProduct2;
         this.safeIntegerProduct = safeIntegerProduct;
+        this.binaryToBase58 = binaryToBase58;
         this.base58ToBinary = base58ToBinary;
         this.base64ToBinary = base64ToBinary;
         this.safeTimestamp2 = safeTimestamp2;
@@ -197,9 +214,14 @@ class Exchange {
         this.urlencodeNested = urlencodeNested;
         this.parseDate = parseDate;
         this.ymd = ymd;
-        this.isArray = isArray;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
+        this.httpProxyAgentModule = undefined;
+        this.httpsProxyAgentModule = undefined;
+        this.socksProxyAgentModule = undefined;
+        this.socksProxyAgentModuleChecked = false;
+        this.proxyDictionaries = {};
+        this.proxyModulesLoaded = false;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -214,14 +236,7 @@ class Exchange {
         this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
         // http properties
-        this.userAgents = {
-            'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
-            'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
-        };
         this.headers = {};
-        // prepended to URL, like https://proxy.com/https://exchange.com/api...
-        this.proxy = '';
         this.origin = '*'; // CORS origin
         // underlying properties
         this.minFundingAddressLength = 1; // used in checkAddress
@@ -238,8 +253,6 @@ class Exchange {
         // default property values
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.debug = false;
-        this.userAgent = undefined;
         this.twofa = undefined; // two-factor authentication (2FA)
         // default credentials
         this.apiKey = undefined;
@@ -259,7 +272,7 @@ class Exchange {
         this.transactions = {};
         this.ohlcvs = {};
         this.myTrades = undefined;
-        this.positions = {};
+        this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
@@ -271,6 +284,10 @@ class Exchange {
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+        this.last_request_body = undefined;
+        this.last_request_url = undefined;
+        this.last_request_path = undefined;
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -313,6 +330,7 @@ class Exchange {
             this.setMarkets(this.markets);
         }
         this.newUpdates = (this.options.newUpdates !== undefined) ? this.options.newUpdates : true;
+        this.afterConstruct();
     }
     describe() {
         return {
@@ -341,29 +359,39 @@ class Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': undefined,
                 'createPostOnlyOrder': undefined,
                 'createReduceOnlyOrder': undefined,
                 'createStopOrder': undefined,
                 'createStopLimitOrder': undefined,
                 'createStopMarketOrder': undefined,
+                'createOrderWs': undefined,
+                'editOrderWs': undefined,
+                'fetchOpenOrdersWs': undefined,
+                'fetchOrderWs': undefined,
+                'cancelOrderWs': undefined,
+                'cancelOrdersWs': undefined,
+                'cancelAllOrdersWs': undefined,
+                'fetchTradesWs': undefined,
+                'fetchBalanceWs': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowInterest': undefined,
-                'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
-                'fetchBorrowRates': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
+                'fetchCrossBorrowRate': undefined,
+                'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
+                'fetchDepositsWithdrawals': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
                 'fetchFundingHistory': undefined,
@@ -371,6 +399,8 @@ class Exchange {
                 'fetchFundingRateHistory': undefined,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
+                'fetchIsolatedBorrowRate': undefined,
+                'fetchIsolatedBorrowRates': undefined,
                 'fetchL2OrderBook': true,
                 'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
@@ -380,7 +410,7 @@ class Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': undefined,
                 'fetchOpenInterest': undefined,
                 'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
@@ -393,6 +423,7 @@ class Exchange {
                 'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
+                'fetchPositionsForSymbol': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': 'emulated',
@@ -416,6 +447,17 @@ class Exchange {
                 'signIn': undefined,
                 'transfer': undefined,
                 'withdraw': undefined,
+                'watchOrderBook': undefined,
+                'watchOrders': undefined,
+                'watchMyTrades': undefined,
+                'watchTickers': undefined,
+                'watchTicker': undefined,
+                'watchTrades': undefined,
+                'watchTradesForSymbols': undefined,
+                'watchOrderBookForSymbols': undefined,
+                'watchOHLCVForSymbols': undefined,
+                'watchBalance': undefined,
+                'watchOHLCV': undefined,
             },
             'urls': {
                 'logo': undefined,
@@ -490,7 +532,6 @@ class Exchange {
             'commonCurrencies': {
                 'XBT': 'BTC',
                 'BCC': 'BCH',
-                'BCHABC': 'BCH',
                 'BCHSV': 'BSV',
             },
             'precisionMode': DECIMAL_PLACES,
@@ -557,31 +598,6 @@ class Exchange {
     throttle(cost = undefined) {
         return this.throttler.throttle(cost);
     }
-    setSandboxMode(enabled) {
-        if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
-            if ('test' in this.urls) {
-                if (typeof this.urls['api'] === 'string') {
-                    this.urls['apiBackup'] = this.urls['api'];
-                    this.urls['api'] = this.urls['test'];
-                }
-                else {
-                    this.urls['apiBackup'] = clone(this.urls['api']);
-                    this.urls['api'] = clone(this.urls['test']);
-                }
-            }
-            else {
-                throw new errors.NotSupported(this.id + ' does not have a sandbox URL');
-            }
-        }
-        else if ('apiBackup' in this.urls) {
-            if (typeof this.urls['api'] === 'string') {
-                this.urls['api'] = this.urls['apiBackup'];
-            }
-            else {
-                this.urls['api'] = clone(this.urls['apiBackup']);
-            }
-        }
-    }
     defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
         const splitPath = path.split(/[^a-zA-Z0-9]/);
         const camelcaseSuffix = splitPath.map(this.capitalize).join('');
@@ -638,38 +654,110 @@ class Exchange {
     log(...args) {
         console.log(...args);
     }
-    async fetch(url, method = 'GET', headers = undefined, body = undefined) {
-        if (isNode && this.userAgent) {
-            if (typeof this.userAgent === 'string') {
-                headers = this.extend({ 'User-Agent': this.userAgent }, headers);
+    async loadProxyModules() {
+        this.proxyModulesLoaded = true;
+        // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+        this.httpProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js'); });
+        this.httpsProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js'); });
+        if (this.socksProxyAgentModuleChecked === false) {
+            this.socksProxyAgentModuleChecked = true;
+            try {
+                // @ts-ignore
+                this.socksProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'socks-proxy-agent')); });
             }
-            else if ((typeof this.userAgent === 'object') && ('User-Agent' in this.userAgent)) {
-                headers = this.extend(this.userAgent, headers);
+            catch (e) { }
+        }
+    }
+    setProxyAgents(httpProxy, httpsProxy, socksProxy) {
+        let chosenAgent = undefined;
+        if (httpProxy) {
+            if (this.httpProxyAgentModule === undefined) {
+                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+            }
+            if (!(httpProxy in this.proxyDictionaries)) {
+                this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
+            }
+            chosenAgent = this.proxyDictionaries[httpProxy];
+        }
+        else if (httpsProxy) {
+            if (this.httpsProxyAgentModule === undefined) {
+                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+            }
+            if (!(httpsProxy in this.proxyDictionaries)) {
+                this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
+            }
+            chosenAgent = this.proxyDictionaries[httpsProxy];
+            chosenAgent.keepAlive = true;
+        }
+        else if (socksProxy) {
+            if (this.socksProxyAgentModule === undefined) {
+                throw new errors.NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.loadProxyModules()` method');
+            }
+            if (!(socksProxy in this.proxyDictionaries)) {
+                this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
+            }
+            chosenAgent = this.proxyDictionaries[socksProxy];
+        }
+        return chosenAgent;
+    }
+    async fetch(url, method = 'GET', headers = undefined, body = undefined) {
+        // load node-http(s) modules only on first call
+        if (isNode) {
+            if (!this.nodeHttpModuleLoaded) {
+                this.nodeHttpModuleLoaded = true;
+                const httpsModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:https')); });
+                this.httpsAgent = new httpsModule.Agent({ keepAlive: true });
             }
         }
-        if (typeof this.proxy === 'function') {
-            url = this.proxy(url);
+        // ##### PROXY & HEADERS #####
+        headers = this.extend(this.headers, headers);
+        // proxy-url
+        const proxyUrl = this.checkProxyUrlSettings(url, method, headers, body);
+        let isHttpAgentNeeded = false;
+        if (proxyUrl !== undefined) {
+            // in node we need to set header to *
             if (isNode) {
                 headers = this.extend({ 'Origin': this.origin }, headers);
+                if (proxyUrl.substring(0, 5) !== 'https') {
+                    // for `http://` protocol proxy-urls, we need to load `http` module only on first call
+                    if (!this.httpAgent) {
+                        const httpModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:http')); });
+                        this.httpAgent = new httpModule.Agent();
+                    }
+                    isHttpAgentNeeded = true;
+                }
+            }
+            url = proxyUrl + url;
+        }
+        // proxy agents
+        const [httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
+        this.checkConflictingProxies(httpProxy || httpsProxy || socksProxy, proxyUrl);
+        if (!this.proxyModulesLoaded) {
+            await this.loadProxyModules(); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
+        }
+        const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
+        // user-agent
+        const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
+        if (userAgent && isNode) {
+            if (typeof userAgent === 'string') {
+                headers = this.extend({ 'User-Agent': userAgent }, headers);
+            }
+            else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+                headers = this.extend(userAgent, headers);
             }
         }
-        else if (typeof this.proxy === 'string') {
-            if (this.proxy.length && isNode) {
-                headers = this.extend({ 'Origin': this.origin }, headers);
-            }
-            url = this.proxy + url;
-        }
-        headers = this.extend(this.headers, headers);
+        // set final headers
         headers = this.setHeaders(headers);
+        // log
         if (this.verbose) {
             this.log("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n");
         }
+        // end of proxies & headers
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js'); });
                 if (this.agent === undefined) {
-                    const { Agent } = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:https')); });
-                    this.agent = new Agent({ keepAlive: true });
+                    this.agent = this.httpsAgent;
                 }
                 this.AbortError = module.AbortError;
                 this.fetchImplementation = module.default;
@@ -687,6 +775,15 @@ class Exchange {
         const params = { method, headers, body, timeout: this.timeout };
         if (this.agent) {
             params['agent'] = this.agent;
+        }
+        // override agent, if needed
+        if (isHttpAgentNeeded) {
+            // if proxyUrl is being used, so we don't overwrite `this.agent` itself
+            params['agent'] = this.httpAgent;
+        }
+        else if (chosenAgent) {
+            // if http(s)Proxy is being used
+            params['agent'] = chosenAgent;
         }
         const controller = new AbortController();
         params['signal'] = controller.signal;
@@ -855,18 +952,6 @@ class Exchange {
             return hexData;
         }
     }
-    // method to override
-    findTimeframe(timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
-        const keys = Object.keys(timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
-    }
     spawn(method, ...args) {
         const future = Future.createFuture();
         method.apply(this, args).then(future.resolve).catch(future.reject);
@@ -900,6 +985,11 @@ class Exchange {
             const onConnected = this.onConnected.bind(this);
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue(this.options, 'ws', {});
+            // proxy agents
+            const [httpProxy, httpsProxy, socksProxy] = this.checkWsProxySettings();
+            const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
+            const finalAgent = chosenAgent ? chosenAgent : this.agent;
+            //
             const options = this.deepExtend(this.streaming, {
                 'log': this.log ? this.log.bind(this) : this.log,
                 'ping': this.ping ? this.ping.bind(this) : this.ping,
@@ -907,7 +997,7 @@ class Exchange {
                 'throttler': new Throttler(this.tokenBucket),
                 // add support for proxies
                 'options': {
-                    'agent': this.agent,
+                    'agent': finalAgent,
                 }
             }, wsOptions);
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
@@ -975,16 +1065,22 @@ class Exchange {
                         //               V
                         client.throttle(cost).then(() => {
                             client.send(message);
-                        }).catch((e) => { throw e; });
+                        }).catch((e) => {
+                            delete client.subscriptions[subscribeHash];
+                            future.reject(e);
+                        });
                     }
                     else {
                         client.send(message)
-                            .catch((e) => { throw e; });
+                            .catch((e) => {
+                            delete client.subscriptions[subscribeHash];
+                            future.reject(e);
+                        });
                     }
                 }
             }).catch((e) => {
-                delete (client.subscriptions[subscribeHash]);
-                throw e;
+                delete client.subscriptions[subscribeHash];
+                future.reject(e);
             });
         }
         return future;
@@ -1009,27 +1105,26 @@ class Exchange {
     }
     async close() {
         const clients = Object.values(this.clients || {});
+        const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
             delete this.clients[client.url];
-            await client.close();
+            closedClients.push(client.close());
         }
-    }
-    handleDelta(bookside, delta, nonce = undefined) {
-        //stub
+        return Promise.all(closedClients);
     }
     async loadOrderBook(client, messageHash, symbol, limit = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject(new errors.ExchangeError(this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
-        const maxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
+        const maxRetries = this.handleOption('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
         try {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
                 const cache = stored.cache;
-                const orderBook = await this.fetchOrderBook(symbol, limit, params);
+                const orderBook = await this.fetchRestOrderBookSafe(symbol, limit, params);
                 const index = this.getCacheIndex(orderBook, cache);
                 if (index >= 0) {
                     stored.reset(orderBook);
@@ -1048,18 +1143,11 @@ class Exchange {
             await this.loadOrderBook(client, messageHash, symbol, limit, params);
         }
     }
-    handleDeltas(orderbook, deltas, nonce = undefined) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta(orderbook, deltas[i]);
-        }
-    }
-    // eslint-disable-next-line no-unused-vars
-    getCacheIndex(orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        return -1;
-    }
     convertToBigInt(value) {
         return BigInt(value); // used on XT
+    }
+    stringToCharsArray(value) {
+        return value.split('');
     }
     valueIsDefined(value) {
         return value !== undefined && value !== null;
@@ -1069,6 +1157,15 @@ class Exchange {
             return array.slice(first);
         }
         return array.slice(first, second);
+    }
+    getProperty(obj, property, defaultValue = undefined) {
+        return (property in obj ? obj[property] : defaultValue);
+    }
+    setProperty(obj, property, defaultValue = undefined) {
+        obj[property] = defaultValue;
+    }
+    axolotl(payload, hexKey, ed25519) {
+        return crypto.axolotl(payload, hexKey, ed25519);
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -1110,6 +1207,177 @@ class Exchange {
     // ########################################################################
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    handleDeltas(orderbook, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta(orderbook, deltas[i]);
+        }
+    }
+    handleDelta(bookside, delta) {
+        throw new errors.NotSupported(this.id + ' handleDelta not supported yet');
+    }
+    getCacheIndex(orderbook, deltas) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
+    }
+    findTimeframe(timeframe, timeframes = undefined) {
+        if (timeframes === undefined) {
+            timeframes = this.timeframes;
+        }
+        const keys = Object.keys(timeframes);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (timeframes[key] === timeframe) {
+                return key;
+            }
+        }
+        return undefined;
+    }
+    checkProxyUrlSettings(url = undefined, method = undefined, headers = undefined, body = undefined) {
+        const usedProxies = [];
+        let proxyUrl = undefined;
+        if (this.proxyUrl !== undefined) {
+            usedProxies.push('proxyUrl');
+            proxyUrl = this.proxyUrl;
+        }
+        if (this.proxy_url !== undefined) {
+            usedProxies.push('proxy_url');
+            proxyUrl = this.proxy_url;
+        }
+        if (this.proxyUrlCallback !== undefined) {
+            usedProxies.push('proxyUrlCallback');
+            proxyUrl = this.proxyUrlCallback(url, method, headers, body);
+        }
+        if (this.proxy_url_callback !== undefined) {
+            usedProxies.push('proxy_url_callback');
+            proxyUrl = this.proxy_url_callback(url, method, headers, body);
+        }
+        // backwards-compatibility
+        if (this.proxy !== undefined) {
+            usedProxies.push('proxy');
+            if (typeof this.proxy === 'function') {
+                proxyUrl = this.proxy(url, method, headers, body);
+            }
+            else {
+                proxyUrl = this.proxy;
+            }
+        }
+        const length = usedProxies.length;
+        if (length > 1) {
+            const joinedProxyNames = usedProxies.join(',');
+            throw new errors.ExchangeError(this.id + ' you have multiple conflicting proxy_url settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
+        }
+        return proxyUrl;
+    }
+    checkProxySettings(url = undefined, method = undefined, headers = undefined, body = undefined) {
+        const usedProxies = [];
+        let httpProxy = undefined;
+        let httpsProxy = undefined;
+        let socksProxy = undefined;
+        // httpProxy
+        if (this.httpProxy !== undefined) {
+            usedProxies.push('httpProxy');
+            httpProxy = this.httpProxy;
+        }
+        if (this.http_proxy !== undefined) {
+            usedProxies.push('http_proxy');
+            httpProxy = this.http_proxy;
+        }
+        if (this.httpProxyCallback !== undefined) {
+            usedProxies.push('httpProxyCallback');
+            httpProxy = this.httpProxyCallback(url, method, headers, body);
+        }
+        if (this.http_proxy_callback !== undefined) {
+            usedProxies.push('http_proxy_callback');
+            httpProxy = this.http_proxy_callback(url, method, headers, body);
+        }
+        // httpsProxy
+        if (this.httpsProxy !== undefined) {
+            usedProxies.push('httpsProxy');
+            httpsProxy = this.httpsProxy;
+        }
+        if (this.https_proxy !== undefined) {
+            usedProxies.push('https_proxy');
+            httpsProxy = this.https_proxy;
+        }
+        if (this.httpsProxyCallback !== undefined) {
+            usedProxies.push('httpsProxyCallback');
+            httpsProxy = this.httpsProxyCallback(url, method, headers, body);
+        }
+        if (this.https_proxy_callback !== undefined) {
+            usedProxies.push('https_proxy_callback');
+            httpsProxy = this.https_proxy_callback(url, method, headers, body);
+        }
+        // socksProxy
+        if (this.socksProxy !== undefined) {
+            usedProxies.push('socksProxy');
+            socksProxy = this.socksProxy;
+        }
+        if (this.socks_proxy !== undefined) {
+            usedProxies.push('socks_proxy');
+            socksProxy = this.socks_proxy;
+        }
+        if (this.socksProxyCallback !== undefined) {
+            usedProxies.push('socksProxyCallback');
+            socksProxy = this.socksProxyCallback(url, method, headers, body);
+        }
+        if (this.socks_proxy_callback !== undefined) {
+            usedProxies.push('socks_proxy_callback');
+            socksProxy = this.socks_proxy_callback(url, method, headers, body);
+        }
+        // check
+        const length = usedProxies.length;
+        if (length > 1) {
+            const joinedProxyNames = usedProxies.join(',');
+            throw new errors.ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
+        }
+        return [httpProxy, httpsProxy, socksProxy];
+    }
+    checkWsProxySettings() {
+        const usedProxies = [];
+        let wsProxy = undefined;
+        let wssProxy = undefined;
+        // wsProxy
+        if (this.wsProxy !== undefined) {
+            usedProxies.push('wsProxy');
+            wsProxy = this.wsProxy;
+        }
+        if (this.ws_proxy !== undefined) {
+            usedProxies.push('ws_proxy');
+            wsProxy = this.ws_proxy;
+        }
+        // wsProxy
+        if (this.wssProxy !== undefined) {
+            usedProxies.push('wssProxy');
+            wssProxy = this.wssProxy;
+        }
+        if (this.wss_proxy !== undefined) {
+            usedProxies.push('wss_proxy');
+            wssProxy = this.wss_proxy;
+        }
+        // check
+        const length = usedProxies.length;
+        if (length > 1) {
+            const joinedProxyNames = usedProxies.join(',');
+            throw new errors.ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy');
+        }
+        return [wsProxy, wssProxy];
+    }
+    checkConflictingProxies(proxyAgentSet, proxyUrlSet) {
+        if (proxyAgentSet && proxyUrlSet) {
+            throw new errors.ExchangeError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
+    }
+    findMessageHashes(client, element) {
+        const result = [];
+        const messageHashes = Object.keys(client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (messageHash.indexOf(element) >= 0) {
+                result.push(messageHash);
+            }
+        }
+        return result;
+    }
     filterByLimit(array, limit = undefined, key = 'timestamp') {
         if (this.valueIsDefined(limit)) {
             const arrayLength = array.length;
@@ -1127,41 +1395,76 @@ class Exchange {
         }
         return array;
     }
-    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp') {
+    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = this.valueIsDefined(since);
         const parsedArray = this.toArray(array);
+        let result = parsedArray;
         if (sinceIsDefined) {
-            const result = [];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                if (entry[key] >= since) {
+                const value = this.safeValue(entry, key);
+                if (value && (value >= since)) {
                     result.push(entry);
                 }
             }
-            return this.filterByLimit(result, limit, key);
         }
-        return this.filterByLimit(parsedArray, limit, key);
+        if (tail && limit !== undefined) {
+            return this.arraySlice(result, -limit);
+        }
+        return this.filterByLimit(result, limit, key);
     }
-    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp') {
+    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const valueIsDefined = this.valueIsDefined(value);
         const sinceIsDefined = this.valueIsDefined(since);
         const parsedArray = this.toArray(array);
+        let result = parsedArray;
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            const result = [];
+            result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
                 const entryFiledEqualValue = entry[field] === value;
                 const firstCondition = valueIsDefined ? entryFiledEqualValue : true;
-                const entryKeyGESince = entry[key] && since && (entry[key] >= since);
+                const entryKeyValue = this.safeValue(entry, key);
+                const entryKeyGESince = (entryKeyValue) && since && (entryKeyValue >= since);
                 const secondCondition = sinceIsDefined ? entryKeyGESince : true;
                 if (firstCondition && secondCondition) {
                     result.push(entry);
                 }
             }
-            return this.filterByLimit(result, limit, key);
         }
-        return this.filterByLimit(parsedArray, limit, key);
+        if (tail && limit !== undefined) {
+            return this.arraySlice(result, -limit);
+        }
+        return this.filterByLimit(result, limit, key);
+    }
+    setSandboxMode(enabled) {
+        if (enabled) {
+            if ('test' in this.urls) {
+                if (typeof this.urls['api'] === 'string') {
+                    this.urls['apiBackup'] = this.urls['api'];
+                    this.urls['api'] = this.urls['test'];
+                }
+                else {
+                    this.urls['apiBackup'] = this.clone(this.urls['api']);
+                    this.urls['api'] = this.clone(this.urls['test']);
+                }
+            }
+            else {
+                throw new errors.NotSupported(this.id + ' does not have a sandbox URL');
+            }
+        }
+        else if ('apiBackup' in this.urls) {
+            if (typeof this.urls['api'] === 'string') {
+                this.urls['api'] = this.urls['apiBackup'];
+            }
+            else {
+                this.urls['api'] = this.clone(this.urls['apiBackup']);
+            }
+            const newUrls = this.omit(this.urls, 'apiBackup');
+            this.urls = newUrls;
+        }
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return {};
@@ -1172,14 +1475,50 @@ class Exchange {
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTrades() is not supported yet');
     }
+    async fetchTradesWs(symbol, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchTradesWs() is not supported yet');
+    }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTrades() is not supported yet');
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+    async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchMyTradesForSymbols() is not supported yet');
+    }
+    async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchOrdersForSymbols() is not supported yet');
+    }
+    async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchOHLCVForSymbols() is not supported yet');
+    }
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchOrderBookForSymbols() is not supported yet');
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderBook() is not supported yet');
+    }
+    async fetchMarginMode(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMarginMode() is not supported yet');
+    }
+    async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
+        const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
+        for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
+            try {
+                const orderBook = await this.fetchOrderBook(symbol, limit, params);
+                return orderBook;
+            }
+            catch (e) {
+                if ((i + 1) === fetchSnapshotMaxRetries) {
+                    throw e;
+                }
+            }
+        }
+        return undefined;
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOrderBook() is not supported yet');
@@ -1189,6 +1528,16 @@ class Exchange {
     }
     async fetchTradingLimits(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTradingLimits() is not supported yet');
+    }
+    parseMarket(market) {
+        throw new errors.NotSupported(this.id + ' parseMarket() is not supported yet');
+    }
+    parseMarkets(markets) {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            result.push(this.parseMarket(markets[i]));
+        }
+        return result;
     }
     parseTicker(ticker, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseTicker() is not supported yet');
@@ -1214,8 +1563,11 @@ class Exchange {
     parseOrder(order, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseOrder() is not supported yet');
     }
-    async fetchBorrowRates(params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchBorrowRates() is not supported yet');
+    async fetchCrossBorrowRates(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchCrossBorrowRates() is not supported yet');
+    }
+    async fetchIsolatedBorrowRates(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchIsolatedBorrowRates() is not supported yet');
     }
     parseMarketLeverageTiers(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseMarketLeverageTiers() is not supported yet');
@@ -1231,6 +1583,18 @@ class Exchange {
     }
     parseBorrowInterest(info, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseBorrowInterest() is not supported yet');
+    }
+    parseWsTrade(trade, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsTrade() is not supported yet');
+    }
+    parseWsOrder(order, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsOrder() is not supported yet');
+    }
+    parseWsOrderTrade(trade, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseWsOrderTrade() is not supported yet');
+    }
+    parseWsOHLCV(ohlcv, market = undefined) {
+        return this.parseOHLCV(ohlcv, market);
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRates() is not supported yet');
@@ -1253,6 +1617,31 @@ class Exchange {
         const stringifiedNumber = number.toString();
         const convertedNumber = parseFloat(stringifiedNumber);
         return parseInt(convertedNumber);
+    }
+    parseToNumeric(number) {
+        const stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
+        // in Python: 1 == 1.0 is true
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
+        if (stringVersion.indexOf('.') >= 0) {
+            return parseFloat(stringVersion);
+        }
+        return parseInt(stringVersion);
+    }
+    isRoundNumber(value) {
+        // this method is similar to isInteger, but this is more loyal and does not check for types.
+        // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
+        const res = this.parseToNumeric((value % 1));
+        return res === 0;
+    }
+    afterConstruct() {
+        this.createNetworksByIdObject();
+    }
+    createNetworksByIdObject() {
+        // automatically generate network-id-to-code mappings
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {})); // invert defined networks dictionary
+        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {})); // support manually overriden "networksById" dictionary too
     }
     getDefaultOptions() {
         return {
@@ -1337,12 +1726,94 @@ class Exchange {
             },
         }, currency);
     }
+    safeMarketStructure(market = undefined) {
+        const cleanStructure = {
+            'id': undefined,
+            'lowercaseId': undefined,
+            'symbol': undefined,
+            'base': undefined,
+            'quote': undefined,
+            'settle': undefined,
+            'baseId': undefined,
+            'quoteId': undefined,
+            'settleId': undefined,
+            'type': undefined,
+            'spot': undefined,
+            'margin': undefined,
+            'swap': undefined,
+            'future': undefined,
+            'option': undefined,
+            'index': undefined,
+            'active': undefined,
+            'contract': undefined,
+            'linear': undefined,
+            'inverse': undefined,
+            'subType': undefined,
+            'taker': undefined,
+            'maker': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+                'cost': undefined,
+                'base': undefined,
+                'quote': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': undefined,
+        };
+        if (market !== undefined) {
+            const result = this.extend(cleanStructure, market);
+            // set undefined swap/future/etc
+            if (result['spot']) {
+                if (result['contract'] === undefined) {
+                    result['contract'] = false;
+                }
+                if (result['swap'] === undefined) {
+                    result['swap'] = false;
+                }
+                if (result['future'] === undefined) {
+                    result['future'] = false;
+                }
+                if (result['option'] === undefined) {
+                    result['option'] = false;
+                }
+                if (result['index'] === undefined) {
+                    result['index'] = false;
+                }
+            }
+            return result;
+        }
+        return cleanStructure;
+    }
     setMarkets(markets, currencies = undefined) {
         const values = [];
         this.markets_by_id = {};
         // handle marketId conflicts
         // we insert spot markets first
-        const marketValues = this.sortBy(this.toArray(markets), 'spot', true);
+        const marketValues = this.sortBy(this.toArray(markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
@@ -1351,10 +1822,19 @@ class Exchange {
             else {
                 this.markets_by_id[value['id']] = [value];
             }
-            const market = this.deepExtend(this.safeMarket(), {
+            const market = this.deepExtend(this.safeMarketStructure(), {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
+            if (market['linear']) {
+                market['subType'] = 'linear';
+            }
+            else if (market['inverse']) {
+                market['subType'] = 'inverse';
+            }
+            else {
+                market['subType'] = undefined;
+            }
             values.push(market);
         }
         this.markets = this.indexBy(values, 'symbol');
@@ -1392,8 +1872,8 @@ class Exchange {
                     quoteCurrencies.push(currency);
                 }
             }
-            baseCurrencies = this.sortBy(baseCurrencies, 'code');
-            quoteCurrencies = this.sortBy(quoteCurrencies, 'code');
+            baseCurrencies = this.sortBy(baseCurrencies, 'code', false, '');
+            quoteCurrencies = this.sortBy(quoteCurrencies, 'code', false, '');
             this.baseCurrencies = this.indexBy(baseCurrencies, 'code');
             this.quoteCurrencies = this.indexBy(quoteCurrencies, 'code');
             const allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
@@ -1475,6 +1955,7 @@ class Exchange {
         let lastTradeTimeTimestamp = this.safeInteger(order, 'lastTradeTimestamp');
         let symbol = this.safeString(order, 'symbol');
         let side = this.safeString(order, 'side');
+        const status = this.safeString(order, 'status');
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
         const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
@@ -1491,7 +1972,15 @@ class Exchange {
             const oldNumber = this.number;
             // we parse trades as strings here!
             this.number = String;
-            trades = this.parseTrades(rawTrades, market);
+            const firstTrade = this.safeValue(rawTrades, 0);
+            // parse trades if they haven't already been parsed
+            const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
+            if (!tradesAreParsed) {
+                trades = this.parseTrades(rawTrades, market);
+            }
+            else {
+                trades = rawTrades;
+            }
             this.number = oldNumber;
             let tradesLength = 0;
             const isArray = Array.isArray(trades);
@@ -1571,11 +2060,13 @@ class Exchange {
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.safeNumber(fee, 'cost');
-                if ('rate' in fee) {
-                    fee['rate'] = this.safeNumber(fee, 'rate');
+                // copy fee to avoid modification by reference
+                const feeCopy = this.deepExtend(fee);
+                feeCopy['cost'] = this.safeNumber(feeCopy, 'cost');
+                if ('rate' in feeCopy) {
+                    feeCopy['rate'] = this.safeNumber(feeCopy, 'rate');
                 }
-                reducedFees.push(fee);
+                reducedFees.push(feeCopy);
             }
             order['fees'] = reducedFees;
             if (parseFee && (reducedLength === 1)) {
@@ -1587,7 +2078,7 @@ class Exchange {
             if (filled !== undefined && remaining !== undefined) {
                 amount = Precise["default"].stringAdd(filled, remaining);
             }
-            else if (this.safeString(order, 'status') === 'closed') {
+            else if (status === 'closed') {
                 amount = filled;
             }
         }
@@ -1595,10 +2086,16 @@ class Exchange {
             if (amount !== undefined && remaining !== undefined) {
                 filled = Precise["default"].stringSub(amount, remaining);
             }
+            else if (status === 'closed' && amount !== undefined) {
+                filled = amount;
+            }
         }
         if (remaining === undefined) {
             if (amount !== undefined && filled !== undefined) {
                 remaining = Precise["default"].stringSub(amount, filled);
+            }
+            else if (status === 'closed') {
+                remaining = '0';
             }
         }
         // ensure that the average field is calculated correctly
@@ -1656,12 +2153,12 @@ class Exchange {
             entry['amount'] = this.safeNumber(entry, 'amount');
             entry['price'] = this.safeNumber(entry, 'price');
             entry['cost'] = this.safeNumber(entry, 'cost');
-            const fee = this.safeValue(entry, 'fee', {});
-            fee['cost'] = this.safeNumber(fee, 'cost');
-            if ('rate' in fee) {
-                fee['rate'] = this.safeNumber(fee, 'rate');
+            const tradeFee = this.safeValue(entry, 'fee', {});
+            tradeFee['cost'] = this.safeNumber(tradeFee, 'cost');
+            if ('rate' in tradeFee) {
+                tradeFee['rate'] = this.safeNumber(tradeFee, 'rate');
             }
-            entry['fee'] = fee;
+            entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString(order, 'timeInForce');
         let postOnly = this.safeValue(order, 'postOnly');
@@ -1680,11 +2177,14 @@ class Exchange {
             postOnly = timeInForce === 'PO';
         }
         const timestamp = this.safeInteger(order, 'timestamp');
+        const lastUpdateTimestamp = this.safeInteger(order, 'lastUpdateTimestamp');
         let datetime = this.safeString(order, 'datetime');
         if (datetime === undefined) {
             datetime = this.iso8601(timestamp);
         }
         const triggerPrice = this.parseNumber(this.safeString2(order, 'triggerPrice', 'stopPrice'));
+        const takeProfitPrice = this.parseNumber(this.safeString(order, 'takeProfitPrice'));
+        const stopLossPrice = this.parseNumber(this.safeString(order, 'stopLossPrice'));
         return this.extend(order, {
             'id': this.safeString(order, 'id'),
             'clientOrderId': this.safeString(order, 'clientOrderId'),
@@ -1694,6 +2194,7 @@ class Exchange {
             'type': this.safeString(order, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'price': this.parseNumber(price),
             'amount': this.parseNumber(amount),
             'cost': this.parseNumber(cost),
@@ -1706,7 +2207,9 @@ class Exchange {
             'reduceOnly': this.safeValue(order, 'reduceOnly'),
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'status': this.safeString(order, 'status'),
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
+            'status': status,
             'fee': this.safeValue(order, 'fee'),
         });
     }
@@ -1797,6 +2300,25 @@ class Exchange {
             'cost': this.parseNumber(cost),
         };
     }
+    safeLiquidation(liquidation, market = undefined) {
+        const contracts = this.safeString(liquidation, 'contracts');
+        const contractSize = this.safeString(market, 'contractSize');
+        const price = this.safeString(liquidation, 'price');
+        let baseValue = this.safeString(liquidation, 'baseValue');
+        let quoteValue = this.safeString(liquidation, 'quoteValue');
+        if ((baseValue === undefined) && (contracts !== undefined) && (contractSize !== undefined) && (price !== undefined)) {
+            baseValue = Precise["default"].stringMul(contracts, contractSize);
+        }
+        if ((quoteValue === undefined) && (baseValue !== undefined) && (price !== undefined)) {
+            quoteValue = Precise["default"].stringMul(baseValue, price);
+        }
+        liquidation['contracts'] = this.parseNumber(contracts);
+        liquidation['contractSize'] = this.parseNumber(contractSize);
+        liquidation['price'] = this.parseNumber(price);
+        liquidation['baseValue'] = this.parseNumber(baseValue);
+        liquidation['quoteValue'] = this.parseNumber(quoteValue);
+        return liquidation;
+    }
     safeTrade(trade, market = undefined) {
         const amount = this.safeString(trade, 'amount');
         const price = this.safeString(trade, 'price');
@@ -1829,11 +2351,13 @@ class Exchange {
                 }
             }
             if (!parseFee && (reducedLength === 0)) {
-                fee['cost'] = this.safeNumber(fee, 'cost');
-                if ('rate' in fee) {
-                    fee['rate'] = this.safeNumber(fee, 'rate');
+                // copy fee to avoid modification by reference
+                const feeCopy = this.deepExtend(fee);
+                feeCopy['cost'] = this.safeNumber(feeCopy, 'cost');
+                if ('rate' in feeCopy) {
+                    feeCopy['rate'] = this.safeNumber(feeCopy, 'rate');
                 }
-                reducedFees.push(fee);
+                reducedFees.push(feeCopy);
             }
             if (parseFees) {
                 trade['fees'] = reducedFees;
@@ -1854,6 +2378,18 @@ class Exchange {
         trade['price'] = this.parseNumber(price);
         trade['cost'] = this.parseNumber(cost);
         return trade;
+    }
+    invertFlatStringDictionary(dict) {
+        const reversed = {};
+        const keys = Object.keys(dict);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = dict[key];
+            if (typeof value === 'string') {
+                reversed[value] = key;
+            }
+        }
+        return reversed;
     }
     reduceFeesByCurrency(fees) {
         //
@@ -1886,7 +2422,7 @@ class Exchange {
         //     string = true
         //
         //     [
-        //         { 'currency': 'BTC', 'cost': '0.3'  },
+        //         { 'currency': 'BTC', 'cost': '0.4'  },
         //         { 'currency': 'BTC', 'cost': '0.6', 'rate': '0.00123' },
         //         { 'currency': 'BTC', 'cost': '0.5', 'rate': '0.00456' },
         //         { 'currency': 'USDT', 'cost': '12.3456' },
@@ -1939,17 +2475,17 @@ class Exchange {
         return result;
     }
     safeTicker(ticker, market = undefined) {
-        let open = this.safeValue(ticker, 'open');
-        let close = this.safeValue(ticker, 'close');
-        let last = this.safeValue(ticker, 'last');
-        let change = this.safeValue(ticker, 'change');
-        let percentage = this.safeValue(ticker, 'percentage');
-        let average = this.safeValue(ticker, 'average');
-        let vwap = this.safeValue(ticker, 'vwap');
-        const baseVolume = this.safeValue(ticker, 'baseVolume');
-        const quoteVolume = this.safeValue(ticker, 'quoteVolume');
+        let open = this.omitZero(this.safeString(ticker, 'open'));
+        let close = this.omitZero(this.safeString(ticker, 'close'));
+        let last = this.omitZero(this.safeString(ticker, 'last'));
+        let change = this.omitZero(this.safeString(ticker, 'change'));
+        let percentage = this.omitZero(this.safeString(ticker, 'percentage'));
+        let average = this.omitZero(this.safeString(ticker, 'average'));
+        let vwap = this.omitZero(this.safeString(ticker, 'vwap'));
+        const baseVolume = this.safeString(ticker, 'baseVolume');
+        const quoteVolume = this.safeString(ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = Precise["default"].stringDiv(quoteVolume, baseVolume);
+            vwap = Precise["default"].stringDiv(this.omitZero(quoteVolume), baseVolume);
         }
         if ((last !== undefined) && (close === undefined)) {
             close = last;
@@ -1977,42 +2513,51 @@ class Exchange {
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         return this.extend(ticker, {
-            'bid': this.omitZero(this.safeNumber(ticker, 'bid')),
+            'bid': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'bid'))),
             'bidVolume': this.safeNumber(ticker, 'bidVolume'),
-            'ask': this.omitZero(this.safeNumber(ticker, 'ask')),
+            'ask': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'ask'))),
             'askVolume': this.safeNumber(ticker, 'askVolume'),
-            'high': this.omitZero(this.safeNumber(ticker, 'high')),
-            'low': this.omitZero(this.safeNumber(ticker, 'low')),
-            'open': this.omitZero(this.parseNumber(open)),
-            'close': this.omitZero(this.parseNumber(close)),
-            'last': this.omitZero(this.parseNumber(last)),
+            'high': this.parseNumber(this.omitZero(this.safeString(ticker, 'high"'))),
+            'low': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'low'))),
+            'open': this.parseNumber(this.omitZero(this.parseNumber(open))),
+            'close': this.parseNumber(this.omitZero(this.parseNumber(close))),
+            'last': this.parseNumber(this.omitZero(this.parseNumber(last))),
             'change': this.parseNumber(change),
             'percentage': this.parseNumber(percentage),
-            'average': this.omitZero(this.parseNumber(average)),
-            'vwap': this.omitZero(this.parseNumber(vwap)),
+            'average': this.parseNumber(average),
+            'vwap': this.parseNumber(vwap),
             'baseVolume': this.parseNumber(baseVolume),
             'quoteVolume': this.parseNumber(quoteVolume),
             'previousClose': this.safeNumber(ticker, 'previousClose'),
         });
     }
+    async fetchBorrowRate(code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead');
+    }
+    async repayCrossMargin(code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' repayCrossMargin is not support yet');
+    }
+    async repayIsolatedMargin(symbol, code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' repayIsolatedMargin is not support yet');
+    }
+    async borrowCrossMargin(code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' borrowCrossMargin is not support yet');
+    }
+    async borrowIsolatedMargin(symbol, code, amount, params = {}) {
+        throw new errors.NotSupported(this.id + ' borrowIsolatedMargin is not support yet');
+    }
+    async borrowMargin(code, amount, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead');
+    }
+    async repayMargin(code, amount, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
+    }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (!this.has['fetchTrades']) {
-            throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported yet');
+        let message = '';
+        if (this.has['fetchTrades']) {
+            message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
-        const trades = await this.fetchTrades(symbol, since, limit, params);
-        const ohlcvc = this.buildOHLCVC(trades, timeframe, since, limit);
-        const result = [];
-        for (let i = 0; i < ohlcvc.length; i++) {
-            result.push([
-                this.safeInteger(ohlcvc[i], 0),
-                this.safeNumber(ohlcvc[i], 1),
-                this.safeNumber(ohlcvc[i], 2),
-                this.safeNumber(ohlcvc[i], 3),
-                this.safeNumber(ohlcvc[i], 4),
-                this.safeNumber(ohlcvc[i], 5),
-            ]);
-        }
-        return result;
+        throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported yet' + message);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOHLCV() is not supported yet');
@@ -2056,6 +2601,62 @@ class Exchange {
         }
         return result;
     }
+    async fetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex = undefined, endRegex = undefined) {
+        let errorMessage = '';
+        const options = this.safeValue(this.options, method, {});
+        const muteOnFailure = this.safeValue(options, 'webApiMuteFailure', true);
+        try {
+            // if it was not explicitly disabled, then don't fetch
+            if (this.safeValue(options, 'webApiEnable', true) !== true) {
+                return undefined;
+            }
+            const maxRetries = this.safeValue(options, 'webApiRetries', 10);
+            let response = undefined;
+            let retry = 0;
+            while (retry < maxRetries) {
+                try {
+                    response = await this[endpointMethod]({});
+                    break;
+                }
+                catch (e) {
+                    retry = retry + 1;
+                    if (retry === maxRetries) {
+                        throw e;
+                    }
+                }
+            }
+            let content = response;
+            if (startRegex !== undefined) {
+                const splitted_by_start = content.split(startRegex);
+                content = splitted_by_start[1]; // we need second part after start
+            }
+            if (endRegex !== undefined) {
+                const splitted_by_end = content.split(endRegex);
+                content = splitted_by_end[0]; // we need first part after start
+            }
+            if (returnAsJson && (typeof content === 'string')) {
+                const jsoned = this.parseJson(content.trim()); // content should be trimmed before json parsing
+                if (jsoned) {
+                    return jsoned; // if parsing was not successfull, exception should be thrown
+                }
+                else {
+                    throw new errors.BadResponse('could not parse the response into json');
+                }
+            }
+            else {
+                return content;
+            }
+        }
+        catch (e) {
+            errorMessage = this.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.';
+        }
+        if (muteOnFailure) {
+            return undefined;
+        }
+        else {
+            throw new errors.BadResponse(errorMessage);
+        }
+    }
     marketIds(symbols) {
         if (symbols === undefined) {
             return symbols;
@@ -2066,13 +2667,44 @@ class Exchange {
         }
         return result;
     }
-    marketSymbols(symbols) {
+    marketSymbols(symbols, type = undefined, allowEmpty = true, sameTypeOnly = false, sameSubTypeOnly = false) {
         if (symbols === undefined) {
+            if (!allowEmpty) {
+                throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
+            }
+            return symbols;
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            if (!allowEmpty) {
+                throw new errors.ArgumentsRequired(this.id + ' empty list of symbols is not supported');
+            }
             return symbols;
         }
         const result = [];
+        let marketType = undefined;
+        let isLinearSubType = undefined;
         for (let i = 0; i < symbols.length; i++) {
-            result.push(this.symbol(symbols[i]));
+            const market = this.market(symbols[i]);
+            if (sameTypeOnly && (marketType !== undefined)) {
+                if (market['type'] !== marketType) {
+                    throw new errors.BadRequest(this.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.');
+                }
+            }
+            if (sameSubTypeOnly && (isLinearSubType !== undefined)) {
+                if (market['linear'] !== isLinearSubType) {
+                    throw new errors.BadRequest(this.id + ' symbols must be of the same subType, either linear or inverse.');
+                }
+            }
+            if (type !== undefined && market['type'] !== type) {
+                throw new errors.BadRequest(this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
+            }
+            marketType = market['type'];
+            if (!market['spot']) {
+                isLinearSubType = market['linear'];
+            }
+            const symbol = this.safeString(market, 'symbol', symbols[i]);
+            result.push(symbol);
         }
         return result;
     }
@@ -2127,46 +2759,6 @@ class Exchange {
         }
         return ohlcv;
     }
-    getNetwork(network, code) {
-        network = network.toUpperCase();
-        const aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
-        };
-        if (network === code) {
-            return network;
-        }
-        else if (network in aliases) {
-            return aliases[network];
-        }
-        else {
-            throw new errors.NotSupported(this.id + ' network ' + network + ' is not yet supported');
-        }
-    }
     networkCodeToId(networkCode, currencyCode = undefined) {
         /**
          * @ignore
@@ -2174,8 +2766,8 @@ class Exchange {
          * @name exchange#networkCodeToId
          * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
-         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
-         * @returns {[string|undefined]} exchange-specific network id
+         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @returns {string|undefined} exchange-specific network id
          */
         const networkIdsByCodes = this.safeValue(this.options, 'networks', {});
         let networkId = this.safeString(networkIdsByCodes, networkCode);
@@ -2215,10 +2807,10 @@ class Exchange {
          * @ignore
          * @method
          * @name exchange#networkIdToCode
-         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
-         * @param {string} networkId unified network code
+         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have "options['networksById']" defined.
+         * @param {string} networkId exchange specific network id/title, like: TRON, Trc-20, usdt-erc20, etc
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
-         * @returns {[string|undefined]} unified network code
+         * @returns {string|undefined} unified network code
          */
         const networkCodesByIds = this.safeValue(this.options, 'networksById', {});
         let networkCode = this.safeString(networkCodesByIds, networkId, networkId);
@@ -2231,25 +2823,6 @@ class Exchange {
             }
         }
         return networkCode;
-    }
-    networkCodesToIds(networkCodes = undefined) {
-        /**
-         * @ignore
-         * @method
-         * @name exchange#networkCodesToIds
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|undefined} networkCodes unified network codes
-         * @returns {[string|undefined]} exchange-specific network ids
-         */
-        if (networkCodes === undefined) {
-            return undefined;
-        }
-        const ids = [];
-        for (let i = 0; i < networkCodes.length; i++) {
-            const networkCode = networkCodes[i];
-            ids.push(this.networkCodeToId(networkCode));
-        }
-        return ids;
     }
     handleNetworkCodeAndParams(params) {
         const networkCodeInParams = this.safeString2(params, 'networkCode', 'network');
@@ -2380,6 +2953,17 @@ class Exchange {
             const percentageString = Precise["default"].stringMul(Precise["default"].stringDiv(unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber(percentageString);
         }
+        // if contractSize is undefined get from market
+        let contractSize = this.safeNumber(position, 'contractSize');
+        const symbol = this.safeString(position, 'symbol');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.safeValue(this.markets, symbol);
+        }
+        if (contractSize === undefined && market !== undefined) {
+            contractSize = this.safeNumber(market, 'contractSize');
+            position['contractSize'] = contractSize;
+        }
         return position;
     }
     parsePositions(positions, symbols = undefined, params = {}) {
@@ -2390,7 +2974,7 @@ class Exchange {
             const position = this.extend(this.parsePosition(positions[i], undefined), params);
             result.push(position);
         }
-        return this.filterByArray(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parseAccounts(accounts, params = {}) {
         accounts = this.toArray(accounts);
@@ -2496,6 +3080,9 @@ class Exchange {
         }
         this.lastRestRequestTimestamp = this.milliseconds();
         const request = this.sign(path, api, method, params, headers, body);
+        this.last_request_headers = request['headers'];
+        this.last_request_body = request['body'];
+        this.last_request_url = request['url'];
         return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
     }
     async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
@@ -2516,13 +3103,54 @@ class Exchange {
         this.accountsById = this.indexBy(this.accounts, 'id');
         return this.accounts;
     }
-    async fetchOHLCVC(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (!this.has['fetchTrades']) {
-            throw new errors.NotSupported(this.id + ' fetchOHLCV() is not supported yet');
+    buildOHLCVC(trades, timeframe = '1m', since = 0, limit = 2147483647) {
+        // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
+        // note, default limit value (2147483647) is max int32 value
+        const ms = this.parseTimeframe(timeframe) * 1000;
+        const ohlcvs = [];
+        const i_timestamp = 0;
+        // const open = 1;
+        const i_high = 2;
+        const i_low = 3;
+        const i_close = 4;
+        const i_volume = 5;
+        const i_count = 6;
+        const tradesLength = trades.length;
+        const oldest = Math.min(tradesLength, limit);
+        for (let i = 0; i < oldest; i++) {
+            const trade = trades[i];
+            const ts = trade['timestamp'];
+            if (ts < since) {
+                continue;
+            }
+            const openingTime = Math.floor(ts / ms) * ms; // shift to the edge of m/h/d (but not M)
+            if (openingTime < since) { // we don't need bars, that have opening time earlier than requested
+                continue;
+            }
+            const ohlcv_length = ohlcvs.length;
+            const candle = ohlcv_length - 1;
+            if ((candle === -1) || (openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms))) {
+                // moved to a new timeframe -> create a new candle from opening trade
+                ohlcvs.push([
+                    openingTime,
+                    trade['price'],
+                    trade['price'],
+                    trade['price'],
+                    trade['price'],
+                    trade['amount'],
+                    1, // count
+                ]);
+            }
+            else {
+                // still processing the same timeframe -> update opening trade
+                ohlcvs[candle][i_high] = Math.max(ohlcvs[candle][i_high], trade['price']);
+                ohlcvs[candle][i_low] = Math.min(ohlcvs[candle][i_low], trade['price']);
+                ohlcvs[candle][i_close] = trade['price'];
+                ohlcvs[candle][i_volume] = this.sum(ohlcvs[candle][i_volume], trade['amount']);
+                ohlcvs[candle][i_count] = this.sum(ohlcvs[candle][i_count], 1);
+            }
         }
-        await this.loadMarkets();
-        const trades = await this.fetchTrades(symbol, since, limit, params);
-        return this.buildOHLCVC(trades, timeframe, since, limit);
+        return ohlcvs;
     }
     parseTradingViewOHLCV(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         const result = this.convertTradingViewToOHLCV(ohlcvs);
@@ -2537,15 +3165,39 @@ class Exchange {
     async editLimitOrder(id, symbol, side, amount, price = undefined, params = {}) {
         return await this.editOrder(id, symbol, 'limit', side, amount, price, params);
     }
-    async editOrder(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, params);
+    }
+    async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.cancelOrderWs(id, symbol);
+        return await this.createOrderWs(symbol, type, side, amount, price, params);
     }
     async fetchPermissions(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPermissions() is not supported yet');
     }
     async fetchPosition(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPosition() is not supported yet');
+    }
+    async watchPosition(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchPosition() is not supported yet');
+    }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchPositions() is not supported yet');
+    }
+    async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.watchPositions(symbols, since, limit, params);
+    }
+    async fetchPositionsForSymbol(symbol, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new errors.NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
     async fetchPositions(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPositions() is not supported yet');
@@ -2575,53 +3227,14 @@ class Exchange {
         return {
             'id': currencyId,
             'code': code,
+            'precision': undefined,
         };
     }
-    safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const result = {
-            'id': marketId,
+    safeMarket(marketId, market = undefined, delimiter = undefined, marketType = undefined) {
+        const result = this.safeMarketStructure({
             'symbol': marketId,
-            'base': undefined,
-            'quote': undefined,
-            'baseId': undefined,
-            'quoteId': undefined,
-            'active': undefined,
-            'type': undefined,
-            'linear': undefined,
-            'inverse': undefined,
-            'spot': false,
-            'swap': false,
-            'future': false,
-            'option': false,
-            'margin': false,
-            'contract': false,
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'optionType': undefined,
-            'strike': undefined,
-            'settle': undefined,
-            'settleId': undefined,
-            'precision': {
-                'amount': undefined,
-                'price': undefined,
-            },
-            'limits': {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'info': undefined,
-        };
+            'marketId': marketId,
+        });
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
@@ -2630,14 +3243,18 @@ class Exchange {
                     return markets[0];
                 }
                 else {
-                    if ((marketType === undefined) && (market === undefined)) {
-                        throw new errors.ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                    if (marketType === undefined) {
+                        if (market === undefined) {
+                            throw new errors.ArgumentsRequired(this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                        }
+                        else {
+                            marketType = market['type'];
+                        }
                     }
-                    const inferredMarketType = (marketType === undefined) ? market['type'] : marketType;
                     for (let i = 0; i < markets.length; i++) {
-                        const market = markets[i];
-                        if (market[inferredMarketType]) {
-                            return market;
+                        const currentMarket = markets[i];
+                        if (currentMarket[marketType]) {
+                            return currentMarket;
                         }
                     }
                 }
@@ -2689,6 +3306,12 @@ class Exchange {
     async fetchBalance(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchBalance() is not supported yet');
     }
+    async fetchBalanceWs(params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchBalanceWs() is not supported yet');
+    }
+    parseBalance(response) {
+        throw new errors.NotSupported(this.id + ' parseBalance() is not supported yet');
+    }
     async watchBalance(params = {}) {
         throw new errors.NotSupported(this.id + ' watchBalance() is not supported yet');
     }
@@ -2706,17 +3329,7 @@ class Exchange {
         return await this.fetchPartialBalance('total', params);
     }
     async fetchStatus(params = {}) {
-        if (this.has['fetchTime']) {
-            const time = await this.fetchTime(params);
-            this.status = this.extend(this.status, {
-                'updated': time,
-                'info': time,
-            });
-        }
-        if (!('info' in this.status)) {
-            this.status['info'] = undefined;
-        }
-        return this.status;
+        throw new errors.NotSupported(this.id + ' fetchStatus() is not supported yet');
     }
     async fetchFundingFee(code, params = {}) {
         const warnOnFetchFundingFee = this.safeValue(this.options, 'warnOnFetchFundingFee', true);
@@ -2759,15 +3372,27 @@ class Exchange {
             throw new errors.NotSupported(this.id + ' ' + key + ' does not have a value in mapping');
         }
     }
-    async fetchBorrowRate(code, params = {}) {
+    async fetchCrossBorrowRate(code, params = {}) {
         await this.loadMarkets();
         if (!this.has['fetchBorrowRates']) {
-            throw new errors.NotSupported(this.id + ' fetchBorrowRate() is not supported yet');
+            throw new errors.NotSupported(this.id + ' fetchCrossBorrowRate() is not supported yet');
         }
-        const borrowRates = await this.fetchBorrowRates(params);
+        const borrowRates = await this.fetchCrossBorrowRates(params);
         const rate = this.safeValue(borrowRates, code);
         if (rate === undefined) {
-            throw new errors.ExchangeError(this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
+            throw new errors.ExchangeError(this.id + ' fetchCrossBorrowRate() could not find the borrow rate for currency code ' + code);
+        }
+        return rate;
+    }
+    async fetchIsolatedBorrowRate(symbol, params = {}) {
+        await this.loadMarkets();
+        if (!this.has['fetchBorrowRates']) {
+            throw new errors.NotSupported(this.id + ' fetchIsolatedBorrowRate() is not supported yet');
+        }
+        const borrowRates = await this.fetchIsolatedBorrowRates(params);
+        const rate = this.safeValue(borrowRates, symbol);
+        if (rate === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ' + symbol);
         }
         return rate;
     }
@@ -2783,7 +3408,7 @@ class Exchange {
             // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue(this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
-                // check if the option is defined in this method's props
+                // check if the option is defined inside this method's props
                 value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
             }
             if (value === undefined) {
@@ -2848,8 +3473,8 @@ class Exchange {
         /**
          * @ignore
          * @method
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         return this.handleOptionAndParams(params, methodName, 'marginMode', defaultValue);
     }
@@ -2909,11 +3534,17 @@ class Exchange {
     async fetchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
+    async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
+    }
     async watchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTickers() is not supported yet');
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrder() is not supported yet');
+    }
+    async fetchOrderWs(id, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOrderWs() is not supported yet');
     }
     async fetchOrderStatus(id, symbol = undefined, params = {}) {
         // TODO: TypeScript: change method signature by replacing
@@ -2927,11 +3558,26 @@ class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createOrders(orders, params = {}) {
+        throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
+    }
+    async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' createOrderWs() is not supported yet');
+    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelOrder() is not supported yet');
     }
+    async cancelOrderWs(id, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrderWs() is not supported yet');
+    }
+    async cancelOrdersWs(ids, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrdersWs() is not supported yet');
+    }
     async cancelAllOrders(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    }
+    async cancelAllOrdersWs(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelAllOrdersWs() is not supported yet');
     }
     async cancelUnifiedOrder(order, params = {}) {
         return this.cancelOrder(this.safeValue(order, 'id'), this.safeValue(order, 'symbol'), params);
@@ -2948,23 +3594,60 @@ class Exchange {
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOpenOrders() is not supported yet');
     }
+    async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOpenOrdersWs() is not supported yet');
+    }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchMyTrades() is not supported yet');
     }
+    async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMyLiquidations() is not supported yet');
+    }
+    async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLiquidations() is not supported yet');
+    }
+    async fetchMyTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMyTradesWs() is not supported yet');
+    }
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchMyTrades() is not supported yet');
     }
-    async fetchTransactions(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchTransactions() is not supported yet');
+    async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOHLCVWs() is not supported yet');
+    }
+    async fetchGreeks(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchGreeks() is not supported yet');
+    }
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        throw new errors.NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
     async fetchDeposits(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDeposits() is not supported yet');
     }
     async fetchWithdrawals(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchWithdrawals() is not supported yet');
+    }
+    async fetchOpenInterest(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+    }
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchFundingRateHistory() is not supported yet');
+    }
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchFundingHistory() is not supported yet');
     }
     parseLastPrice(price, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');
@@ -3015,21 +3698,19 @@ class Exchange {
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
         }
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                return this.markets[symbol];
-            }
-            else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                const defaultType = this.safeString2(this.options, 'defaultType', 'defaultSubType', 'spot');
-                for (let i = 0; i < markets.length; i++) {
-                    const market = markets[i];
-                    if (market[defaultType]) {
-                        return market;
-                    }
+        if (symbol in this.markets) {
+            return this.markets[symbol];
+        }
+        else if (symbol in this.markets_by_id) {
+            const markets = this.markets_by_id[symbol];
+            const defaultType = this.safeString2(this.options, 'defaultType', 'defaultSubType', 'spot');
+            for (let i = 0; i < markets.length; i++) {
+                const market = markets[i];
+                if (market[defaultType]) {
+                    return market;
                 }
-                return markets[0];
             }
+            return markets[0];
         }
         throw new errors.BadSymbol(this.id + ' does not have market symbol ' + symbol);
     }
@@ -3072,7 +3753,7 @@ class Exchange {
         const market = this.market(symbol);
         const result = this.decimalToPrecision(price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new errors.ArgumentsRequired(this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString(market['precision']['price']));
+            throw new errors.InvalidOrder(this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString(market['precision']['price']));
         }
         return result;
     }
@@ -3080,7 +3761,7 @@ class Exchange {
         const market = this.market(symbol);
         const result = this.decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new errors.ArgumentsRequired(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString(market['precision']['amount']));
+            throw new errors.InvalidOrder(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString(market['precision']['amount']));
         }
         return result;
     }
@@ -3097,11 +3778,17 @@ class Exchange {
             precision = this.safeValue(networkItem, 'precision', precision);
         }
         if (precision === undefined) {
-            return fee;
+            return this.forceString(fee);
         }
         else {
             return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
         }
+    }
+    forceString(value) {
+        if (typeof value !== 'string') {
+            return this.numberToString(value);
+        }
+        return value;
     }
     isTickPrecision() {
         return this.precisionMode === TICK_SIZE;
@@ -3151,7 +3838,7 @@ class Exchange {
     }
     async fetchMarketLeverageTiers(symbol, params = {}) {
         if (this.has['fetchLeverageTiers']) {
-            const market = await this.market(symbol);
+            const market = this.market(symbol);
             if (!market['contract']) {
                 throw new errors.BadSymbol(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
             }
@@ -3204,11 +3891,15 @@ class Exchange {
         currency = this.safeCurrency(currencyId, currency);
         return currency['code'];
     }
-    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp');
+    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit(array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
-    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined) {
-        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp');
+    filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined, tail = false) {
+        return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp', tail);
+    }
+    filterBySymbolsSinceLimit(array, symbols = undefined, since = undefined, limit = undefined, tail = false) {
+        const result = this.filterByArray(array, 'symbol', symbols, false);
+        return this.filterBySinceLimit(result, since, limit, 'timestamp', tail);
     }
     parseLastPrices(pricesData, symbols = undefined, params = {}) {
         //
@@ -3350,7 +4041,7 @@ class Exchange {
          * @method
          * @param {string} type Order type
          * @param {boolean} exchangeSpecificParam exchange specific postOnly
-         * @param {object} params exchange specific params
+         * @param {object} [params] exchange specific params
          * @returns {boolean} true if a post only order, false otherwise
          */
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
@@ -3381,8 +4072,8 @@ class Exchange {
          * @method
          * @param {string} type Order type
          * @param {boolean} exchangeSpecificBoolean exchange specific postOnly
-         * @param {object} params exchange specific params
-         * @returns {[boolean, params]}
+         * @param {object} [params] exchange specific params
+         * @returns {Array}
          */
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         let postOnly = this.safeValue(params, 'postOnly', false);
@@ -3437,6 +4128,7 @@ class Exchange {
         if (this.has['fetchFundingRates']) {
             await this.loadMarkets();
             const market = this.market(symbol);
+            symbol = market['symbol'];
             if (!market['contract']) {
                 throw new errors.BadSymbol(this.id + ' fetchFundingRate() supports contract markets only');
             }
@@ -3460,10 +4152,10 @@ class Exchange {
          * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
             const request = {
@@ -3482,10 +4174,10 @@ class Exchange {
          * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
             const request = {
@@ -3504,10 +4196,10 @@ class Exchange {
          * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, undefined
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
             const request = {
@@ -3561,10 +4253,10 @@ class Exchange {
         /**
          * @ignore
          * @method
-         * @param {string} argument the argument to check
-         * @param {string} argumentName the name of the argument to check
          * @param {string} methodName the name of the method that the argument is being checked for
-         * @param {[string]} options a list of options that the argument can be
+         * @param {string} argument the argument's actual value provided
+         * @param {string} argumentName the name of the argument being checked (for logging purposes)
+         * @param {string[]} options a list of options that the argument can be
          * @returns {undefined}
          */
         const optionsLength = options.length;
@@ -3592,22 +4284,13 @@ class Exchange {
             throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() cannot have a symbol argument for cross margin');
         }
     }
-    checkRequiredSymbol(methodName, symbol) {
-        /**
-         * @ignore
-         * @method
-         * @param {string} symbol unified symbol of the market
-         * @param {string} methodName name of the method that requires a symbol
-         */
-        this.checkRequiredArgument(methodName, symbol, 'symbol');
-    }
     parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
         /**
          * @ignore
          * @method
-         * @param {[object]|object} response unparsed response from the exchange
-         * @param {[string]|undefined} codes the unified currency codes to fetch transactions fees for, returns all currencies when undefined
-         * @param {str|undefined} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
+         * @param {object[]|object} response unparsed response from the exchange
+         * @param {string[]|undefined} codes the unified currency codes to fetch transactions fees for, returns all currencies when undefined
+         * @param {str} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         const depositWithdrawFees = {};
@@ -3680,11 +4363,11 @@ class Exchange {
          * @ignore
          * @method
          * @description parses funding fee info from exchange response
-         * @param {[object]} incomes each item describes once instance of currency being received or paid
-         * @param {object|undefined} market ccxt market
-         * @param {int|undefined} since when defined, the response items are filtered to only include items after this timestamp
-         * @param {int|undefined} limit limits the number of items in the response
-         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @param {object[]} incomes each item describes once instance of currency being received or paid
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -3702,6 +4385,393 @@ class Exchange {
         const firstMarket = this.safeString(symbols, 0);
         const market = this.market(firstMarket);
         return market;
+    }
+    parseWsOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        const results = [];
+        for (let i = 0; i < ohlcvs.length; i++) {
+            results.push(this.parseWsOHLCV(ohlcvs[i], market));
+        }
+        return results;
+    }
+    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchTransactions
+         * @deprecated
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
+         * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        if (this.has['fetchDepositsWithdrawals']) {
+            return await this.fetchDepositsWithdrawals(code, since, limit, params);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchTransactions () is not supported yet');
+        }
+    }
+    filterByArrayPositions(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of positions
+         */
+        return this.filterByArray(objects, key, values, indexed);
+    }
+    filterByArrayTickers(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray(objects, key, values, indexed);
+    }
+    resolvePromiseIfMessagehashMatches(client, prefix, symbol, data) {
+        const messageHashes = this.findMessageHashes(client, prefix);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            if (this.inArray(symbol, symbols)) {
+                client.resolve(data, messageHash);
+            }
+        }
+    }
+    resolveMultipleOHLCV(client, prefix, symbol, timeframe, data) {
+        const messageHashes = this.findMessageHashes(client, 'multipleOHLCV::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsAndTimeframes = parts[1];
+            const splitted = symbolsAndTimeframes.split(',');
+            const id = symbol + '#' + timeframe;
+            if (this.inArray(id, splitted)) {
+                client.resolve([symbol, timeframe, data], messageHash);
+            }
+        }
+    }
+    createOHLCVObject(symbol, timeframe, data) {
+        const res = {};
+        res[symbol] = {};
+        res[symbol][timeframe] = data;
+        return res;
+    }
+    handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest = undefined, params = {}) {
+        let newMaxEntriesPerRequest = undefined;
+        [newMaxEntriesPerRequest, params] = this.handleOptionAndParams(params, method, 'maxEntriesPerRequest');
+        if ((newMaxEntriesPerRequest !== undefined) && (newMaxEntriesPerRequest !== maxEntriesPerRequest)) {
+            maxEntriesPerRequest = newMaxEntriesPerRequest;
+        }
+        if (maxEntriesPerRequest === undefined) {
+            maxEntriesPerRequest = 1000; // default to 1000
+        }
+        return [maxEntriesPerRequest, params];
+    }
+    async fetchPaginatedCallDynamic(method, symbol = undefined, since = undefined, limit = undefined, params = {}, maxEntriesPerRequest = undefined) {
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        let paginationDirection = undefined;
+        [paginationDirection, params] = this.handleOptionAndParams(params, method, 'paginationDirection', 'backward');
+        let paginationTimestamp = undefined;
+        let calls = 0;
+        let result = [];
+        let errors$1 = 0;
+        const until = this.safeInteger2(params, 'untill', 'till'); // do not omit it from params here
+        [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        if ((paginationDirection === 'forward')) {
+            if (since === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' pagination requires a since argument when paginationDirection set to forward');
+            }
+            paginationTimestamp = since;
+        }
+        while ((calls < maxCalls)) {
+            calls += 1;
+            try {
+                if (paginationDirection === 'backward') {
+                    // do it backwards, starting from the last
+                    // UNTIL filtering is required in order to work
+                    if (paginationTimestamp !== undefined) {
+                        params['until'] = paginationTimestamp - 1;
+                    }
+                    const response = await this[method](symbol, undefined, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (this.verbose) {
+                        this.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                    }
+                    if (responseLength === 0) {
+                        break;
+                    }
+                    errors$1 = 0;
+                    result = this.arrayConcat(result, response);
+                    const firstElement = this.safeValue(response, 0);
+                    paginationTimestamp = this.safeInteger2(firstElement, 'timestamp', 0);
+                    if ((since !== undefined) && (paginationTimestamp <= since)) {
+                        break;
+                    }
+                }
+                else {
+                    // do it forwards, starting from the since
+                    const response = await this[method](symbol, paginationTimestamp, maxEntriesPerRequest, params);
+                    const responseLength = response.length;
+                    if (this.verbose) {
+                        this.log('Dynamic pagination call', calls, 'method', method, 'response length', responseLength, 'timestamp', paginationTimestamp);
+                    }
+                    if (responseLength === 0) {
+                        break;
+                    }
+                    errors$1 = 0;
+                    result = this.arrayConcat(result, response);
+                    const last = this.safeValue(response, responseLength - 1);
+                    paginationTimestamp = this.safeInteger(last, 'timestamp') - 1;
+                    if ((until !== undefined) && (paginationTimestamp >= until)) {
+                        break;
+                    }
+                }
+            }
+            catch (e) {
+                errors$1 += 1;
+                if (errors$1 > maxRetries) {
+                    throw e;
+                }
+            }
+        }
+        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(uniqueResults, since, limit, key);
+    }
+    async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        let errors$1 = 0;
+        try {
+            if (timeframe && method !== 'fetchFundingRateHistory') {
+                return await this[method](symbol, timeframe, since, limit, params);
+            }
+            else {
+                return await this[method](symbol, since, limit, params);
+            }
+        }
+        catch (e) {
+            if (e instanceof errors.RateLimitExceeded) {
+                throw e; // if we are rate limited, we should not retry and fail fast
+            }
+            errors$1 += 1;
+            if (errors$1 > maxRetries) {
+                throw e;
+            }
+        }
+    }
+    async fetchPaginatedCallDeterministic(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}, maxEntriesPerRequest = undefined) {
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
+        [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        const current = this.milliseconds();
+        const tasks = [];
+        const time = this.parseTimeframe(timeframe) * 1000;
+        const step = time * maxEntriesPerRequest;
+        let currentSince = current - (maxCalls * step) - 1;
+        if (since !== undefined) {
+            currentSince = Math.max(currentSince, since);
+        }
+        const until = this.safeInteger2(params, 'until', 'till'); // do not omit it here
+        if (until !== undefined) {
+            const requiredCalls = Math.ceil((until - since) / step);
+            if (requiredCalls > maxCalls) {
+                throw new errors.BadRequest(this.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + maxCalls.toString() + ' required calls is ' + requiredCalls.toString());
+            }
+        }
+        for (let i = 0; i < maxCalls; i++) {
+            if ((until !== undefined) && (currentSince >= until)) {
+                break;
+            }
+            tasks.push(this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params));
+            currentSince = this.sum(currentSince, step) - 1;
+        }
+        const results = await Promise.all(tasks);
+        let result = [];
+        for (let i = 0; i < results.length; i++) {
+            result = this.arrayConcat(result, results[i]);
+        }
+        const uniqueResults = this.removeRepeatedElementsFromArray(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(uniqueResults, since, limit, key);
+    }
+    async fetchPaginatedCallCursor(method, symbol = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined) {
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        let cursorValue = undefined;
+        let i = 0;
+        let errors = 0;
+        let result = [];
+        while (i < maxCalls) {
+            try {
+                if (cursorValue !== undefined) {
+                    if (cursorIncrement !== undefined) {
+                        cursorValue = this.parseToInt(cursorValue) + cursorIncrement;
+                    }
+                    params[cursorSent] = cursorValue;
+                }
+                let response = undefined;
+                if (method === 'fetchAccounts') {
+                    response = await this[method](params);
+                }
+                else {
+                    response = await this[method](symbol, since, maxEntriesPerRequest, params);
+                }
+                errors = 0;
+                const responseLength = response.length;
+                if (this.verbose) {
+                    this.log('Cursor pagination call', i + 1, 'method', method, 'response length', responseLength, 'cursor', cursorValue);
+                }
+                if (responseLength === 0) {
+                    break;
+                }
+                result = this.arrayConcat(result, response);
+                const last = this.safeValue(response, responseLength - 1);
+                cursorValue = this.safeValue(last['info'], cursorReceived);
+                if (cursorValue === undefined) {
+                    break;
+                }
+            }
+            catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+            i += 1;
+        }
+        const sorted = this.sortCursorPaginatedResult(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(sorted, since, limit, key);
+    }
+    async fetchPaginatedCallIncremental(method, symbol = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined) {
+        let maxCalls = undefined;
+        [maxCalls, params] = this.handleOptionAndParams(params, method, 'paginationCalls', 10);
+        let maxRetries = undefined;
+        [maxRetries, params] = this.handleOptionAndParams(params, method, 'maxRetries', 3);
+        [maxEntriesPerRequest, params] = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
+        let i = 0;
+        let errors = 0;
+        let result = [];
+        while (i < maxCalls) {
+            try {
+                params[pageKey] = i + 1;
+                const response = await this[method](symbol, since, maxEntriesPerRequest, params);
+                errors = 0;
+                const responseLength = response.length;
+                if (this.verbose) {
+                    this.log('Incremental pagination call', i + 1, 'method', method, 'response length', responseLength);
+                }
+                if (responseLength === 0) {
+                    break;
+                }
+                result = this.arrayConcat(result, response);
+            }
+            catch (e) {
+                errors += 1;
+                if (errors > maxRetries) {
+                    throw e;
+                }
+            }
+            i += 1;
+        }
+        const sorted = this.sortCursorPaginatedResult(result);
+        const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
+        return this.filterBySinceLimit(sorted, since, limit, key);
+    }
+    sortCursorPaginatedResult(result) {
+        const first = this.safeValue(result, 0);
+        if (first !== undefined) {
+            if ('timestamp' in first) {
+                return this.sortBy(result, 'timestamp');
+            }
+            if ('id' in first) {
+                return this.sortBy(result, 'id');
+            }
+        }
+        return result;
+    }
+    removeRepeatedElementsFromArray(input) {
+        const uniqueResult = {};
+        for (let i = 0; i < input.length; i++) {
+            const entry = input[i];
+            const id = this.safeString(entry, 'id');
+            if (id !== undefined) {
+                if (this.safeString(uniqueResult, id) === undefined) {
+                    uniqueResult[id] = entry;
+                }
+            }
+            else {
+                const timestamp = this.safeInteger2(entry, 'timestamp', 0);
+                if (timestamp !== undefined) {
+                    if (this.safeString(uniqueResult, timestamp) === undefined) {
+                        uniqueResult[timestamp] = entry;
+                    }
+                }
+            }
+        }
+        const values = Object.values(uniqueResult);
+        const valuesLength = values.length;
+        if (valuesLength > 0) {
+            return values;
+        }
+        return input;
+    }
+    handleUntilOption(key, request, params, multiplier = 1) {
+        const until = this.safeValue2(params, 'until', 'till');
+        if (until !== undefined) {
+            request[key] = this.parseToInt(until * multiplier);
+            params = this.omit(params, ['until', 'till']);
+        }
+        return [request, params];
+    }
+    safeOpenInterest(interest, market = undefined) {
+        return this.extend(interest, {
+            'symbol': this.safeString(market, 'symbol'),
+            'baseVolume': this.safeNumber(interest, 'baseVolume'),
+            'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
+            'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),
+            'openInterestValue': this.safeNumber(interest, 'openInterestValue'),
+            'timestamp': this.safeInteger(interest, 'timestamp'),
+            'datetime': this.safeString(interest, 'datetime'),
+            'info': this.safeValue(interest, 'info'),
+        });
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseLiquidation () is not supported yet');
+    }
+    parseLiquidations(liquidations, market = undefined, since = undefined, limit = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description parses liquidation info from the exchange response
+         * @param {object[]} liquidations each item describes an instance of a liquidation event
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         */
+        const result = [];
+        for (let i = 0; i < liquidations.length; i++) {
+            const entry = liquidations[i];
+            const parsed = this.parseLiquidation(entry, market);
+            result.push(parsed);
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        const symbol = this.safeString(market, 'symbol');
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseGreeks(greeks, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseGreeks () is not supported yet');
     }
 }
 

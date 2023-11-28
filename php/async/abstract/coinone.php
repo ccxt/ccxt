@@ -52,8 +52,8 @@ abstract class coinone extends \ccxt\async\Exchange {
     public function private_post_order_limit_orders($params = array()) {
         return $this->request('order/limit_orders/', 'private', 'POST', $params, null, null, array());
     }
-    public function private_post_order_order_info($params = array()) {
-        return $this->request('order/order_info/', 'private', 'POST', $params, null, null, array());
+    public function private_post_order_query_order($params = array()) {
+        return $this->request('order/query_order/', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_transaction_auth_number($params = array()) {
         return $this->request('transaction/auth_number/', 'private', 'POST', $params, null, null, array());
@@ -115,8 +115,8 @@ abstract class coinone extends \ccxt\async\Exchange {
     public function privatePostOrderLimitOrders($params = array()) {
         return $this->request('order/limit_orders/', 'private', 'POST', $params, null, null, array());
     }
-    public function privatePostOrderOrderInfo($params = array()) {
-        return $this->request('order/order_info/', 'private', 'POST', $params, null, null, array());
+    public function privatePostOrderQueryOrder($params = array()) {
+        return $this->request('order/query_order/', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostTransactionAuthNumber($params = array()) {
         return $this->request('transaction/auth_number/', 'private', 'POST', $params, null, null, array());

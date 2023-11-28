@@ -1,5 +1,5 @@
 import bitmartRest from '../bitmart.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmart extends bitmartRest {
     describe(): any;
@@ -7,9 +7,9 @@ export default class bitmart extends bitmartRest {
     subscribePrivate(channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): any;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleTrade(client: Client, message: any): any;
     handleTicker(client: Client, message: any): any;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -19,7 +19,7 @@ export default class bitmart extends bitmartRest {
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
     handleOrderBook(client: Client, message: any): any;
-    authenticate(params?: {}): any;
+    authenticate(params?: {}): Promise<any>;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;

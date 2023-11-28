@@ -23,3 +23,4 @@ class ImplicitAPI:
     private_post_orders_cancel = privatePostOrdersCancel = Entry('orders/cancel', 'private', 'POST', {})
     private_post_withdrawals = privatePostWithdrawals = Entry('withdrawals', 'private', 'POST', {})
     private_post_transfer = privatePostTransfer = Entry('transfer', 'private', 'POST', {})
+    webexchange_get_uc_v2_assets = webExchangeGetUcV2Assets = Entry('uc/v2/assets', 'webExchange', 'GET', {})
