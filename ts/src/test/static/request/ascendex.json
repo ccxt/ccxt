@@ -160,6 +160,38 @@
                     }
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch spot order",
+                "method": "fetchOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order/status?orderId=1234",
+                "input": [
+                    "1234",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch margin order",
+                "method": "fetchOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order/status?orderId=1234",
+                "input": [
+                    "1234",
+                    null,
+                    {
+                        "type": "margin"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap order",
+                "method": "fetchOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order/status?orderId=1234",
+                "input": [
+                    "1234",
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

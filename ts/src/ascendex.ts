@@ -1771,6 +1771,8 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://ascendex.github.io/ascendex-pro-api/#query-order
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1782,7 +1784,6 @@ export default class ascendex extends Exchange {
             market = this.market (symbol);
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const options = this.safeValue (this.options, 'fetchOrder', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
@@ -1792,20 +1793,15 @@ export default class ascendex extends Exchange {
             'account-category': accountCategory,
             'orderId': id,
         };
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetOrderStatus');
-        const method = this.getSupportedMapping (type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesOrderStatus',
-        });
-        if (method === 'v1PrivateAccountCategoryGetOrderStatus') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
-            }
-        } else {
+        let response = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            response = await this.v1PrivateAccountCategoryGetOrderStatus (this.extend (request, query));
+        } else if (type === 'swap') {
             request['account-category'] = accountCategory;
+            response = await this.v2PrivateAccountGroupGetFuturesOrderStatus (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchOrder() is not currently supported for ' + type + ' markets');
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryGetOrderStatus
         //
