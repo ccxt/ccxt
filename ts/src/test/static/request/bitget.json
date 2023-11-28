@@ -260,6 +260,73 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"orderList\":[{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"25000\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"side\":\"buy\",\"tradeSide\":\"Open\"},{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"27000\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"side\":\"buy\",\"tradeSide\":\"Open\"}],\"marginMode\":\"crossed\",\"marginCoin\":\"USDT\",\"productType\":\"USDT-FUTURES\"}"
             }
         ],
+        "editOrder": [
+          {
+            "description": "Spot edit a trigger order",
+            "method": "editOrder",
+            "url": "https://api.bitget.com/api/v2/spot/trade/modify-plan-order",
+            "input": [
+              "1113281809859813380",
+              "BTC/USDT",
+              "limit",
+              "buy",
+              0.0002,
+              "27000",
+              {
+                "triggerPrice": 28000
+              }
+            ],
+            "output": "{\"orderId\":\"1113281809859813380\",\"size\":\"0.0002\",\"orderType\":\"limit\",\"triggerPrice\":28000,\"executePrice\":\"27000\"}"
+          },
+          {
+            "description": "Swap edit order",
+            "method": "editOrder",
+            "url": "https://api.bitget.com/api/v2/mix/order/modify-order",
+            "input": [
+              "1113283350484385804",
+              "BTC/USDT:USDT",
+              "limit",
+              "buy",
+              0.002,
+              "27000"
+            ],
+            "output": "{\"orderId\":\"1113283350484385804\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"newSize\":\"0.002\",\"newPrice\":\"27000\",\"newClientOid\":\"f0c222d0-65c0-4502-b859-39d78e41450e\"}"
+          },
+          {
+            "description": "Swap edit a trigger order",
+            "method": "editOrder",
+            "url": "https://api.bitget.com/api/v2/mix/order/modify-plan-order",
+            "input": [
+              "1113283776619290625",
+              "BTC/USDT:USDT",
+              "limit",
+              "buy",
+              0.001,
+              "25000",
+              {
+                "triggerPrice": 27000
+              }
+            ],
+            "output": "{\"orderId\":\"1113283776619290625\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"newSize\":\"0.001\",\"newPrice\":\"25000\",\"newTriggerPrice\":\"27000\",\"triggerPrice\":27000}"
+          },
+          {
+            "description": "Swap edit a stopLossPrice order",
+            "method": "editOrder",
+            "url": "https://api.bitget.com/api/v2/mix/order/modify-tpsl-order",
+            "input": [
+              "1113286462953558017",
+              "BTC/USDT:USDT",
+              "market",
+              "buy",
+              0.001,
+              "25000",
+              {
+                "stopLossPrice": 27000
+              }
+            ],
+            "output": "{\"orderId\":\"1113286462953558017\",\"symbol\":\"BTCUSDT\",\"productType\":\"USDT-FUTURES\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"executePrice\":\"25000\",\"triggerPrice\":\"27000\"}"
+          }
+      ],
         "fetchMyTrades": [
             {
                 "description": "Spot fetch private trades",

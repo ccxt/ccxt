@@ -4380,7 +4380,7 @@ export default class bitget extends Exchange {
                 }
                 response = await this.privateMixPostV2MixOrderModifyTpslOrder (this.extend (request, params));
             } else if (isTriggerOrder) {
-                request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+                request['newTriggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 if (isStopLoss) {
                     const slTriggerPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'stopPrice');
                     request['newStopLossTriggerPrice'] = this.priceToPrecision (symbol, slTriggerPrice);
