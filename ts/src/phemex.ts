@@ -1006,7 +1006,7 @@ export default class phemex extends Exchange {
         if (market['linear'] && market['settle'] === 'USDT') {
             response = await this.v2GetMdV2Orderbook (this.extend (request, params));
         } else {
-            if (limit <= 30) {
+            if ((limit !== undefined) && (limit <= 30)) {
                 response = await this.v1GetMdOrderbook (this.extend (request, params));
             } else {
                 response = await this.v1GetMdFullbook (this.extend (request, params));
