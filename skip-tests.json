@@ -1095,7 +1095,8 @@
             "fetchCurrencies": {
                 "deposit":"is undefined",
                 "withdraw":"is undefined",
-                "active":"is undefined"
+                "active":"is undefined",
+                "precision":"somewhat strange atm https://app.travis-ci.com/github/ccxt/ccxt/builds/267515280#L2337"
             }
         }
     },
