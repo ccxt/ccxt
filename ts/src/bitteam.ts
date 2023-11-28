@@ -267,8 +267,8 @@ export default class bitteam extends Exchange {
                 },
             },
             'exceptions': {
-                // todo
                 'exact': {
+                    '400002': BadSymbol, // todo: check {"ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair"}
                     '401000': AuthenticationError, // {"ok":false,"code":401000,"data": {},"message": "Missing authentication"}
                     '403002': BadRequest, // {"ok":false,"code":403002,"data":{},"message":"Order cannot be deleted, status does not match"}
                     '404200': BadSymbol, // {"ok":false,"code":404200,"data":{},"message":"Pair was not found"}
@@ -403,11 +403,11 @@ export default class bitteam extends Exchange {
         const active = this.safeValue (market, 'active');
         const amountPrecision = this.safeInteger (market, 'baseStep');
         const pricePrecision = this.safeInteger (market, 'quoteStep');
-        // const limits = this.safeValue (market, 'settings', {});
-        // const maxPrice = this.parseNumber (this.safeString (limits, 'price_max'));
-        // const minPrice = this.parseNumber (this.safeString (limits, 'price_min'));
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
+        const settings = this.safeValue (market, 'settings', {});
+        const minCost = this.safeNumber (settings, 'limit_usd');
+        // todo: find out how to calculate minCost, when quote is not USDT or BUSD
         return {
             'id': id,
             'numericId': numericId,
@@ -437,7 +437,6 @@ export default class bitteam extends Exchange {
                 'amount': amountPrecision,
                 'price': pricePrecision,
             },
-            // todo: check limits
             'limits': {
                 'leverage': {
                     'min': undefined,
@@ -452,7 +451,7 @@ export default class bitteam extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': minCost,
                     'max': undefined,
                 },
             },
@@ -1023,7 +1022,7 @@ export default class bitteam extends Exchange {
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets (true);
         const market = this.market (symbol);
         const request = {
             'pairId': market['numericId'].toString (),
@@ -1031,13 +1030,17 @@ export default class bitteam extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit') {
-            if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
-            }
+        // the exchange requires price for market orders
+        if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
+        } else if (type === 'limit') {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+        } else {
+            // using market.info.lastPrice as the price of the market order
+            const info = market['info'];
+            request['price'] = this.safeString (info, 'lastPrice');
         }
-        // todo: check price for the market orders - the exchange requires price
+        // todo: should we check the total cost of the order?
         const response = await this.privatePostTradeApiCcxtOrdercreate (this.extend (request, params));
         //
         //     {
@@ -1258,7 +1261,7 @@ export default class bitteam extends Exchange {
             'status': status,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': 'GTC', // todo: check
+            'timeInForce': 'GTC',
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
