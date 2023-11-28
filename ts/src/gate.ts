@@ -2337,18 +2337,22 @@ export default class gate extends Exchange {
         //     };
         //
         const [ request, query ] = this.prepareRequest (market, market['type'], params);
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'publicSpotGetOrderBook',
-            'margin': 'publicSpotGetOrderBook',
-            'swap': 'publicFuturesGetSettleOrderBook',
-            'future': 'publicDeliveryGetSettleOrderBook',
-            'option': 'publicOptionsGetOrderBook',
-        });
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
         request['with_id'] = true;
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (market['spot'] || market['margin']) {
+            response = await this.publicSpotGetOrderBook (this.extend (request, query));
+        } else if (market['swap']) {
+            response = await this.publicFuturesGetSettleOrderBook (this.extend (request, query));
+        } else if (market['future']) {
+            response = await this.publicDeliveryGetSettleOrderBook (this.extend (request, query));
+        } else if (market['option']) {
+            response = await this.publicOptionsGetOrderBook (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchOrderBook() not support this market type');
+        }
         //
         // spot
         //

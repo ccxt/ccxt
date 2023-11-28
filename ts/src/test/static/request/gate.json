@@ -309,6 +309,40 @@
                   "BTC/USDT:USDT-240329"
                 ]
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch OrderBook - spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.gateio.ws/api/v4/spot/order_book?currency_pair=BTC_USDT&with_id=true",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch OrderBook - swap",
+                "method": "fetchOrderBook",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/order_book?contract=BTC_USDT&with_id=true",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch OrderBook - future",
+                "method": "fetchOrderBook",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/order_book?contract=BTC_USDT_20240329&with_id=true",
+                "input": [
+                  "BTC/USDT:USDT-240329"
+                ]
+            },
+            {
+                "description": "Fetch OrderBook - option",
+                "method": "fetchOrderBook",
+                "url": "https://api.gateio.ws/api/v4/options/order_book?contract=BTC_USDT-20240126-20000-C&with_id=true",
+                "input": [
+                  "BTC/USDT:USDT-240126-20000-C"
+                ]
+            }
         ]
     }
 }
