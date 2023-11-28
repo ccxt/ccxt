@@ -277,7 +277,9 @@ class NewTranspiler {
             'loadOrderBook',
             'fetchCurrencies',
             'loadMarketsHelper',
-            'createNetworksByIdObject'
+            'createNetworksByIdObject',
+            'setProperty',
+            'setProxyAgents'
         ] // improve this later
         const isBlackListed = blacklistMethods.includes(methodName);
         const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
