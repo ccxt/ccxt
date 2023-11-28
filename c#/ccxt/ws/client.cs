@@ -12,10 +12,6 @@ using System.Data;
 using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 
-class x
-{
-
-}
 
 public partial class Exchange
 {
@@ -107,10 +103,6 @@ public partial class Exchange
     {
         try
         {
-
-
-            var instance = new x();
-            object b = instance;
 
             var binance = new binanceWs();
             await binance.loadMarkets();
