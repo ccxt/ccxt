@@ -482,6 +482,32 @@
                     ]
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV - spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1m&limit=1000",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/candlesticks?contract=BTC_USDT&interval=1m&limit=1000",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV - future",
+                "method": "fetchOHLCV",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/candlesticks?contract=BTC_USDT_20240329&interval=1m&limit=1000",
+                "input": [
+                    "BTC/USDT:USDT-240329"
+                ]
+            }
         ]
     }
 }

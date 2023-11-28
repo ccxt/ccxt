@@ -2899,22 +2899,7 @@ export default class gate extends Exchange {
         let request = {};
         [ request, params ] = this.prepareRequest (market, undefined, params);
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        let method = 'publicSpotGetCandlesticks';
         let maxLimit = 1000;
-        if (market['contract']) {
-            maxLimit = 1999;
-            if (market['future']) {
-                method = 'publicDeliveryGetSettleCandlesticks';
-            } else if (market['swap']) {
-                method = 'publicFuturesGetSettleCandlesticks';
-            }
-            const isMark = (price === 'mark');
-            const isIndex = (price === 'index');
-            if (isMark || isIndex) {
-                request['contract'] = price + '_' + market['id'];
-                params = this.omit (params, 'price');
-            }
-        }
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         let until = this.safeInteger (params, 'until');
         if (until !== undefined) {
@@ -2939,7 +2924,23 @@ export default class gate extends Exchange {
             }
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (market['contract']) {
+            maxLimit = 1999;
+            const isMark = (price === 'mark');
+            const isIndex = (price === 'index');
+            if (isMark || isIndex) {
+                request['contract'] = price + '_' + market['id'];
+                params = this.omit (params, 'price');
+            }
+            if (market['future']) {
+                response = await this.publicDeliveryGetSettleCandlesticks (this.extend (request, params));
+            } else if (market['swap']) {
+                response = await this.publicFuturesGetSettleCandlesticks (this.extend (request, params));
+            }
+        } else {
+            response = await this.publicSpotGetCandlesticks (this.extend (request, params));
+        }
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
