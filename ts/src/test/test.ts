@@ -214,12 +214,12 @@ export default class testMainClass extends baseMainTestClass {
     checkIfSpecificTestIsChosen (symbolArgv) {
         if (symbolArgv !== undefined) {
             const testFileNames = Object.keys (this.testFiles);
-            const methodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
-            if (methodNames.length > 1) {
+            const possibleMethodNames = symbolArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
                     const testFileName = testFileNames[i];
-                    for (let j = 0; j < methodNames.length; j++) {
-                        const methodName = methodNames[j];
+                    for (let j = 0; j < possibleMethodNames.length; j++) {
+                        const methodName = possibleMethodNames[j];
                         if (testFileName === methodName) {
                             this.onlySpecificTests.push (testFileName);
                         }
@@ -318,12 +318,12 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         let skipMessage = undefined;
-        if (!isLoadMarkets && (!(methodName in exchange.has) || !exchange.has[methodName])) {
+        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodNameInTest, this.onlySpecificTests))) {
+            skipMessage = '[INFO:IGNORED_TEST]';
+        } else if (!isLoadMarkets && (!(methodName in exchange.has) || !exchange.has[methodName])) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
-        } else if (this.onlySpecificTests.length > 0 && !exchange.inArray (methodNameInTest, this.onlySpecificTests)) {
-            skipMessage = '[INFO:IGNORED_TEST]';
         } else if (!(methodNameInTest in this.testFiles)) {
             skipMessage = '[INFO:UNIMPLEMENTED_TEST]';
         }
