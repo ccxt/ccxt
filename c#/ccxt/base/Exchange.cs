@@ -135,7 +135,7 @@ public partial class Exchange
         }
     }
 
-    public async virtual Task<object> fetch(object url2, object method2, object headers2, object body2)
+    public async virtual Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
     {
 
         if (fetchResponse != null)
@@ -603,6 +603,16 @@ public partial class Exchange
     public Task sleep(object ms)
     {
         return Task.Delay(Convert.ToInt32(ms));
+    }
+
+    public void setProperty(object obj, object property, object defaultValue = null)
+    {
+        var type = obj.GetType();
+        var prop = type.GetProperty(property.ToString());
+        if (prop != null)
+        {
+            prop.SetValue(obj, defaultValue);
+        }
     }
 }
 

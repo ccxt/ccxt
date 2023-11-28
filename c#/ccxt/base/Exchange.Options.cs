@@ -148,6 +148,12 @@ public partial class Exchange
     public Func<object, object, object, object> socksProxyCallback { get; set; } = null;
     public Func<object, object, object, object> socks_proxy_callback { get; set; } = null;
 
+    public object wssProxy { get; set; } = null;
+    public object wss_proxy { get; set; } = null;
+
+    public object wsProxy { get; set; } = null;
+    public object ws_proxy { get; set; } = null;
+
     private string httpProxyValue = "";
     public object httpProxy
     {

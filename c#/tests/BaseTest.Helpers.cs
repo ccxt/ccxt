@@ -38,6 +38,9 @@ public partial class testMainClass : BaseTest
     public bool staticTests = false;
     public bool idTests = false;
 
+    public object onlySpecificTests = null;
+    public object proxyTestFileName = null;
+
     public string lang = "C#";
 
     public static int TICK_SIZE = Exchange.TICK_SIZE;
