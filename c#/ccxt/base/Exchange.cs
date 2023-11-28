@@ -136,7 +136,7 @@ public partial class Exchange
         }
     }
 
-    public async virtual Task<object> fetch(object url2, object method2, object headers2, object body2)
+    public async virtual Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
     {
 
         if (fetchResponse != null)
@@ -633,48 +633,56 @@ public partial class Exchange
     {
         Task.Delay(Convert.ToInt32(timeout2)).ContinueWith((t) => spawn(methodName, args));
     }
-}
+    public void setProperty(object obj, object property, object defaultValue = null)
+    {
+        var type = obj.GetType();
+        var prop = type.GetProperty(property.ToString());
+        if (prop != null)
+        {
+            prop.SetValue(obj, defaultValue);
+        }
+    }
 
+    public class DynamicInvoker
+    {
+        public static object InvokeMethod(object action, object[] parameters)
+        {
+            // var methodName = (string)methodName2;
+            // // Assuming the method is in the current class for simplicity
+            // MethodInfo methodInfo = typeof(DynamicInvoker).GetMethod(methodName);
+
+            // if (methodInfo != null)
+            // {
+            //     Delegate methodDelegate = Delegate.CreateDelegate(typeof(Action), methodInfo);
+            //     methodDelegate.DynamicInvoke(parameters);
+            // }
+            // else
+            // {
+            //     throw new Exception("Method not found.");
+            // }
+            Delegate myDelegate = action as Delegate;
+
+            // Get parameter types
+            // MethodInfo methodInfo = myDelegate.Method;
+            // ParameterInfo[] parametersAux = methodInfo.GetParameters();
+
+            // Prepare arguments (in a real scenario, these would be dynamically determined)
+            // object[] args = new object[parametersAux.Length];
+            // args[0] = 123; // Assuming the first parameter is an int
+            // args[1] = "Hello"; // Assuming the second parameter is a string
+
+            // Dynamically invoke the action
+            var result = myDelegate.DynamicInvoke(parameters);
+            return result;
+        }
+    }
+
+}
 
 public static class BoolExtensions
 {
     public static string ToString(this bool _bool)
     {
         return _bool.ToString().ToLowerInvariant();
-    }
-}
-
-
-public class DynamicInvoker
-{
-    public static object InvokeMethod(object action, object[] parameters)
-    {
-        // var methodName = (string)methodName2;
-        // // Assuming the method is in the current class for simplicity
-        // MethodInfo methodInfo = typeof(DynamicInvoker).GetMethod(methodName);
-
-        // if (methodInfo != null)
-        // {
-        //     Delegate methodDelegate = Delegate.CreateDelegate(typeof(Action), methodInfo);
-        //     methodDelegate.DynamicInvoke(parameters);
-        // }
-        // else
-        // {
-        //     throw new Exception("Method not found.");
-        // }
-        Delegate myDelegate = action as Delegate;
-
-        // Get parameter types
-        // MethodInfo methodInfo = myDelegate.Method;
-        // ParameterInfo[] parametersAux = methodInfo.GetParameters();
-
-        // Prepare arguments (in a real scenario, these would be dynamically determined)
-        // object[] args = new object[parametersAux.Length];
-        // args[0] = 123; // Assuming the first parameter is an int
-        // args[1] = "Hello"; // Assuming the second parameter is a string
-
-        // Dynamically invoke the action
-        var result = myDelegate.DynamicInvoke(parameters);
-        return result;
     }
 }

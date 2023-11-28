@@ -52,6 +52,9 @@ class Exchange {
         this.origin = '*'; // CORS origin
         //
         this.agent = undefined; // maintained for backwards compatibility
+        this.nodeHttpModuleLoaded = false;
+        this.httpAgent = undefined;
+        this.httpsAgent = undefined;
         this.minFundingAddressLength = 1; // used in checkAddress
         this.substituteCommonCurrencyCodes = true; // reserved
         this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
@@ -213,6 +216,12 @@ class Exchange {
         this.ymd = ymd;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
+        this.httpProxyAgentModule = undefined;
+        this.httpsProxyAgentModule = undefined;
+        this.socksProxyAgentModule = undefined;
+        this.socksProxyAgentModuleChecked = false;
+        this.proxyDictionaries = {};
+        this.proxyModulesLoaded = false;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -645,39 +654,89 @@ class Exchange {
     log(...args) {
         console.log(...args);
     }
+    async loadProxyModules() {
+        this.proxyModulesLoaded = true;
+        // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
+        this.httpProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js'); });
+        this.httpsProxyAgentModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js'); });
+        if (this.socksProxyAgentModuleChecked === false) {
+            this.socksProxyAgentModuleChecked = true;
+            try {
+                // @ts-ignore
+                this.socksProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'socks-proxy-agent')); });
+            }
+            catch (e) { }
+        }
+    }
+    setProxyAgents(httpProxy, httpsProxy, socksProxy) {
+        let chosenAgent = undefined;
+        if (httpProxy) {
+            if (this.httpProxyAgentModule === undefined) {
+                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+            }
+            if (!(httpProxy in this.proxyDictionaries)) {
+                this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent(httpProxy);
+            }
+            chosenAgent = this.proxyDictionaries[httpProxy];
+        }
+        else if (httpsProxy) {
+            if (this.httpsProxyAgentModule === undefined) {
+                throw new errors.NotSupported(this.id + ' you need to load JS proxy modules with `.loadProxyModules()` method at first to use proxies');
+            }
+            if (!(httpsProxy in this.proxyDictionaries)) {
+                this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent(httpsProxy);
+            }
+            chosenAgent = this.proxyDictionaries[httpsProxy];
+            chosenAgent.keepAlive = true;
+        }
+        else if (socksProxy) {
+            if (this.socksProxyAgentModule === undefined) {
+                throw new errors.NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `.loadProxyModules()` method');
+            }
+            if (!(socksProxy in this.proxyDictionaries)) {
+                this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent(socksProxy);
+            }
+            chosenAgent = this.proxyDictionaries[socksProxy];
+        }
+        return chosenAgent;
+    }
     async fetch(url, method = 'GET', headers = undefined, body = undefined) {
+        // load node-http(s) modules only on first call
+        if (isNode) {
+            if (!this.nodeHttpModuleLoaded) {
+                this.nodeHttpModuleLoaded = true;
+                const httpsModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:https')); });
+                this.httpsAgent = new httpsModule.Agent({ keepAlive: true });
+            }
+        }
         // ##### PROXY & HEADERS #####
         headers = this.extend(this.headers, headers);
-        const [proxyUrl, httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
+        // proxy-url
+        const proxyUrl = this.checkProxyUrlSettings(url, method, headers, body);
+        let isHttpAgentNeeded = false;
         if (proxyUrl !== undefined) {
             // in node we need to set header to *
             if (isNode) {
                 headers = this.extend({ 'Origin': this.origin }, headers);
+                if (proxyUrl.substring(0, 5) !== 'https') {
+                    // for `http://` protocol proxy-urls, we need to load `http` module only on first call
+                    if (!this.httpAgent) {
+                        const httpModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:http')); });
+                        this.httpAgent = new httpModule.Agent();
+                    }
+                    isHttpAgentNeeded = true;
+                }
             }
             url = proxyUrl + url;
         }
-        else if (httpProxy !== undefined) {
-            const module = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js'); });
-            const proxyAgent = new module.HttpProxyAgent(httpProxy);
-            this.agent = proxyAgent;
+        // proxy agents
+        const [httpProxy, httpsProxy, socksProxy] = this.checkProxySettings(url, method, headers, body);
+        this.checkConflictingProxies(httpProxy || httpsProxy || socksProxy, proxyUrl);
+        if (!this.proxyModulesLoaded) {
+            await this.loadProxyModules(); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
         }
-        else if (httpsProxy !== undefined) {
-            const module = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js'); });
-            const proxyAgent = new module.HttpsProxyAgent(httpsProxy);
-            proxyAgent.keepAlive = true;
-            this.agent = proxyAgent;
-        }
-        else if (socksProxy !== undefined) {
-            let module = undefined;
-            try {
-                // @ts-ignore
-                module = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'socks-proxy-agent')); });
-            }
-            catch (e) {
-                throw new errors.NotSupported(this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" ');
-            }
-            this.agent = new module.SocksProxyAgent(socksProxy);
-        }
+        const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
+        // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
         if (userAgent && isNode) {
             if (typeof userAgent === 'string') {
@@ -687,17 +746,18 @@ class Exchange {
                 headers = this.extend(userAgent, headers);
             }
         }
+        // set final headers
         headers = this.setHeaders(headers);
-        // ######## end of proxies ########
+        // log
         if (this.verbose) {
             this.log("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n");
         }
+        // end of proxies & headers
         if (this.fetchImplementation === undefined) {
             if (isNode) {
                 const module = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js'); });
                 if (this.agent === undefined) {
-                    const { Agent } = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:https')); });
-                    this.agent = new Agent({ keepAlive: true });
+                    this.agent = this.httpsAgent;
                 }
                 this.AbortError = module.AbortError;
                 this.fetchImplementation = module.default;
@@ -715,6 +775,15 @@ class Exchange {
         const params = { method, headers, body, timeout: this.timeout };
         if (this.agent) {
             params['agent'] = this.agent;
+        }
+        // override agent, if needed
+        if (isHttpAgentNeeded) {
+            // if proxyUrl is being used, so we don't overwrite `this.agent` itself
+            params['agent'] = this.httpAgent;
+        }
+        else if (chosenAgent) {
+            // if http(s)Proxy is being used
+            params['agent'] = chosenAgent;
         }
         const controller = new AbortController();
         params['signal'] = controller.signal;
@@ -916,6 +985,11 @@ class Exchange {
             const onConnected = this.onConnected.bind(this);
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue(this.options, 'ws', {});
+            // proxy agents
+            const [httpProxy, httpsProxy, socksProxy] = this.checkWsProxySettings();
+            const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
+            const finalAgent = chosenAgent ? chosenAgent : this.agent;
+            //
             const options = this.deepExtend(this.streaming, {
                 'log': this.log ? this.log.bind(this) : this.log,
                 'ping': this.ping ? this.ping.bind(this) : this.ping,
@@ -923,7 +997,7 @@ class Exchange {
                 'throttler': new Throttler(this.tokenBucket),
                 // add support for proxies
                 'options': {
-                    'agent': this.agent,
+                    'agent': finalAgent,
                 }
             }, wsOptions);
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
@@ -1087,6 +1161,9 @@ class Exchange {
     getProperty(obj, property, defaultValue = undefined) {
         return (property in obj ? obj[property] : defaultValue);
     }
+    setProperty(obj, property, defaultValue = undefined) {
+        obj[property] = defaultValue;
+    }
     axolotl(payload, hexKey, ed25519) {
         return crypto.axolotl(payload, hexKey, ed25519);
     }
@@ -1155,14 +1232,28 @@ class Exchange {
         }
         return undefined;
     }
-    checkProxySettings(url, method, headers, body) {
-        let proxyUrl = (this.proxyUrl !== undefined) ? this.proxyUrl : this.proxy_url;
-        const proxyUrlCallback = (this.proxyUrlCallback !== undefined) ? this.proxyUrlCallback : this.proxy_url_callback;
-        if (proxyUrlCallback !== undefined) {
-            proxyUrl = proxyUrlCallback(url, method, headers, body);
+    checkProxyUrlSettings(url = undefined, method = undefined, headers = undefined, body = undefined) {
+        const usedProxies = [];
+        let proxyUrl = undefined;
+        if (this.proxyUrl !== undefined) {
+            usedProxies.push('proxyUrl');
+            proxyUrl = this.proxyUrl;
+        }
+        if (this.proxy_url !== undefined) {
+            usedProxies.push('proxy_url');
+            proxyUrl = this.proxy_url;
+        }
+        if (this.proxyUrlCallback !== undefined) {
+            usedProxies.push('proxyUrlCallback');
+            proxyUrl = this.proxyUrlCallback(url, method, headers, body);
+        }
+        if (this.proxy_url_callback !== undefined) {
+            usedProxies.push('proxy_url_callback');
+            proxyUrl = this.proxy_url_callback(url, method, headers, body);
         }
         // backwards-compatibility
         if (this.proxy !== undefined) {
+            usedProxies.push('proxy');
             if (typeof this.proxy === 'function') {
                 proxyUrl = this.proxy(url, method, headers, body);
             }
@@ -1170,50 +1261,111 @@ class Exchange {
                 proxyUrl = this.proxy;
             }
         }
-        let httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
-        const httpProxyCallback = (this.httpProxyCallback !== undefined) ? this.httpProxyCallback : this.http_proxy_callback;
-        if (httpProxyCallback !== undefined) {
-            httpProxy = httpProxyCallback(url, method, headers, body);
+        const length = usedProxies.length;
+        if (length > 1) {
+            const joinedProxyNames = usedProxies.join(',');
+            throw new errors.ExchangeError(this.id + ' you have multiple conflicting proxy_url settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
-        let httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
-        const httpsProxyCallback = (this.httpsProxyCallback !== undefined) ? this.httpsProxyCallback : this.https_proxy_callback;
-        if (httpsProxyCallback !== undefined) {
-            httpsProxy = httpsProxyCallback(url, method, headers, body);
+        return proxyUrl;
+    }
+    checkProxySettings(url = undefined, method = undefined, headers = undefined, body = undefined) {
+        const usedProxies = [];
+        let httpProxy = undefined;
+        let httpsProxy = undefined;
+        let socksProxy = undefined;
+        // httpProxy
+        if (this.httpProxy !== undefined) {
+            usedProxies.push('httpProxy');
+            httpProxy = this.httpProxy;
         }
-        let socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
-        const socksProxyCallback = (this.socksProxyCallback !== undefined) ? this.socksProxyCallback : this.socks_proxy_callback;
-        if (socksProxyCallback !== undefined) {
-            socksProxy = socksProxyCallback(url, method, headers, body);
+        if (this.http_proxy !== undefined) {
+            usedProxies.push('http_proxy');
+            httpProxy = this.http_proxy;
         }
-        let val = 0;
-        if (proxyUrl !== undefined) {
-            val = val + 1;
+        if (this.httpProxyCallback !== undefined) {
+            usedProxies.push('httpProxyCallback');
+            httpProxy = this.httpProxyCallback(url, method, headers, body);
         }
-        if (proxyUrlCallback !== undefined) {
-            val = val + 1;
+        if (this.http_proxy_callback !== undefined) {
+            usedProxies.push('http_proxy_callback');
+            httpProxy = this.http_proxy_callback(url, method, headers, body);
         }
-        if (httpProxy !== undefined) {
-            val = val + 1;
+        // httpsProxy
+        if (this.httpsProxy !== undefined) {
+            usedProxies.push('httpsProxy');
+            httpsProxy = this.httpsProxy;
         }
-        if (httpProxyCallback !== undefined) {
-            val = val + 1;
+        if (this.https_proxy !== undefined) {
+            usedProxies.push('https_proxy');
+            httpsProxy = this.https_proxy;
         }
-        if (httpsProxy !== undefined) {
-            val = val + 1;
+        if (this.httpsProxyCallback !== undefined) {
+            usedProxies.push('httpsProxyCallback');
+            httpsProxy = this.httpsProxyCallback(url, method, headers, body);
         }
-        if (httpsProxyCallback !== undefined) {
-            val = val + 1;
+        if (this.https_proxy_callback !== undefined) {
+            usedProxies.push('https_proxy_callback');
+            httpsProxy = this.https_proxy_callback(url, method, headers, body);
         }
-        if (socksProxy !== undefined) {
-            val = val + 1;
+        // socksProxy
+        if (this.socksProxy !== undefined) {
+            usedProxies.push('socksProxy');
+            socksProxy = this.socksProxy;
         }
-        if (socksProxyCallback !== undefined) {
-            val = val + 1;
+        if (this.socks_proxy !== undefined) {
+            usedProxies.push('socks_proxy');
+            socksProxy = this.socks_proxy;
         }
-        if (val > 1) {
-            throw new errors.ExchangeError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy, userAgent');
+        if (this.socksProxyCallback !== undefined) {
+            usedProxies.push('socksProxyCallback');
+            socksProxy = this.socksProxyCallback(url, method, headers, body);
         }
-        return [proxyUrl, httpProxy, httpsProxy, socksProxy];
+        if (this.socks_proxy_callback !== undefined) {
+            usedProxies.push('socks_proxy_callback');
+            socksProxy = this.socks_proxy_callback(url, method, headers, body);
+        }
+        // check
+        const length = usedProxies.length;
+        if (length > 1) {
+            const joinedProxyNames = usedProxies.join(',');
+            throw new errors.ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
+        }
+        return [httpProxy, httpsProxy, socksProxy];
+    }
+    checkWsProxySettings() {
+        const usedProxies = [];
+        let wsProxy = undefined;
+        let wssProxy = undefined;
+        // wsProxy
+        if (this.wsProxy !== undefined) {
+            usedProxies.push('wsProxy');
+            wsProxy = this.wsProxy;
+        }
+        if (this.ws_proxy !== undefined) {
+            usedProxies.push('ws_proxy');
+            wsProxy = this.ws_proxy;
+        }
+        // wsProxy
+        if (this.wssProxy !== undefined) {
+            usedProxies.push('wssProxy');
+            wssProxy = this.wssProxy;
+        }
+        if (this.wss_proxy !== undefined) {
+            usedProxies.push('wss_proxy');
+            wssProxy = this.wss_proxy;
+        }
+        // check
+        const length = usedProxies.length;
+        if (length > 1) {
+            const joinedProxyNames = usedProxies.join(',');
+            throw new errors.ExchangeError(this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy');
+        }
+        return [wsProxy, wssProxy];
+    }
+    checkConflictingProxies(proxyAgentSet, proxyUrlSet) {
+        if (proxyAgentSet && proxyUrlSet) {
+            throw new errors.ExchangeError(this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
     }
     findMessageHashes(client, element) {
         const result = [];
@@ -1596,6 +1748,7 @@ class Exchange {
             'contract': undefined,
             'linear': undefined,
             'inverse': undefined,
+            'subType': undefined,
             'taker': undefined,
             'maker': undefined,
             'contractSize': undefined,
@@ -1673,6 +1826,15 @@ class Exchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
+            if (market['linear']) {
+                market['subType'] = 'linear';
+            }
+            else if (market['inverse']) {
+                market['subType'] = 'inverse';
+            }
+            else {
+                market['subType'] = undefined;
+            }
             values.push(market);
         }
         this.markets = this.indexBy(values, 'symbol');
@@ -2355,7 +2517,7 @@ class Exchange {
             'bidVolume': this.safeNumber(ticker, 'bidVolume'),
             'ask': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'ask'))),
             'askVolume': this.safeNumber(ticker, 'askVolume'),
-            'high': this.parseNumber(this.omitZero(this.safeString(ticker, 'high"'))),
+            'high': this.parseNumber(this.omitZero(this.safeString(ticker, 'high'))),
             'low': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'low'))),
             'open': this.parseNumber(this.omitZero(this.parseNumber(open))),
             'close': this.parseNumber(this.omitZero(this.parseNumber(close))),
@@ -3024,7 +3186,7 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' watchPositions() is not supported yet');
     }
     async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.watchPositions(symbols, since, limit, params);
+        return await this.watchPositions(symbols, since, limit, params);
     }
     async fetchPositionsForSymbol(symbol, params = {}) {
         /**
@@ -3311,7 +3473,7 @@ class Exchange {
         /**
          * @ignore
          * @method
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
         return this.handleOptionAndParams(params, methodName, 'marginMode', defaultValue);
@@ -3467,7 +3629,7 @@ class Exchange {
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         throw new errors.NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
@@ -3992,7 +4154,7 @@ class Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchMarkOHLCV']) {
@@ -4014,7 +4176,7 @@ class Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchIndexOHLCV']) {
@@ -4036,7 +4198,7 @@ class Exchange {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {float[][]} A list of candles ordered as timestamp, open, high, low, close, undefined
          */
         if (this.has['fetchPremiumIndexOHLCV']) {
@@ -4240,7 +4402,7 @@ class Exchange {
          * @param {string} code unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {

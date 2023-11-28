@@ -6,6 +6,15 @@ import log from 'ololog'
 const skipMethods = [
     'fetchMarkets',
     'createDepositAddress', // will be updated later
+    // skip because of c# already typed methods
+    "fetchLeverageTiers",
+    "fetchDepositWithdrawFees",
+    "fetchFundingRate",
+    "fetchLedger",
+    "fetchBorrowInterest",
+    "withdraw",
+    "fetchDepositWithdrawFee",
+    "fetchLedgerEntry"
 ]
 
 const skipExchanges = [

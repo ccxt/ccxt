@@ -38,10 +38,17 @@ export default class Exchange {
     user_agent: {
         'User-Agent': string;
     } | false;
+    wsProxy: string;
+    ws_proxy: string;
+    wssProxy: string;
+    wss_proxy: string;
     userAgents: any;
     headers: any;
     origin: string;
     agent: any;
+    nodeHttpModuleLoaded: boolean;
+    httpAgent: any;
+    httpsAgent: any;
     minFundingAddressLength: number;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
@@ -494,6 +501,14 @@ export default class Exchange {
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
     log(...args: any[]): void;
+    httpProxyAgentModule: any;
+    httpsProxyAgentModule: any;
+    socksProxyAgentModule: any;
+    socksProxyAgentModuleChecked: boolean;
+    proxyDictionaries: any;
+    proxyModulesLoaded: boolean;
+    loadProxyModules(): Promise<void>;
+    setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
@@ -527,13 +542,22 @@ export default class Exchange {
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
+    setProperty(obj: any, property: any, defaultValue?: any): void;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
     handleDeltas(orderbook: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     findTimeframe(timeframe: any, timeframes?: any): string;
+<<<<<<< HEAD
     checkProxySettings(url: any, method: any, headers: any, body: any): string[];
     findMessageHashes(futures: any, element: string): string[];
+=======
+    checkProxyUrlSettings(url?: any, method?: any, headers?: any, body?: any): any;
+    checkProxySettings(url?: any, method?: any, headers?: any, body?: any): any[];
+    checkWsProxySettings(): any[];
+    checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
+    findMessageHashes(client: any, element: string): string[];
+>>>>>>> 0bff216672d877c75121b22d80f832d835197263
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
     filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any;
@@ -863,7 +887,7 @@ export default class Exchange {
     handleTimeInForce(params?: {}): string;
     convertTypeToAccount(account: any): any;
     checkRequiredArgument(methodName: any, argument: any, argumentName: any, options?: any[]): void;
-    checkRequiredMarginArgument(methodName: string, symbol: string, marginMode: string): void;
+    checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
     parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): any;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     depositWithdrawFee(info: any): any;

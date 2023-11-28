@@ -52,7 +52,7 @@ class cex(ccxt.async_support.cex):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://cex.io/websocket-api#get-balance
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.authenticate(params)
@@ -111,7 +111,7 @@ class cex(ccxt.async_support.cex):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -216,7 +216,7 @@ class cex(ccxt.async_support.cex):
         :see: https://cex.io/websocket-api#ticker-subscription
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: public or private
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -249,9 +249,9 @@ class cex(ccxt.async_support.cex):
     async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         :see: https://cex.io/websocket-api#ticker-subscription
-        watches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -363,7 +363,7 @@ class cex(ccxt.async_support.cex):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         if symbol is None:
@@ -397,7 +397,7 @@ class cex(ccxt.async_support.cex):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         if symbol is None:
@@ -806,7 +806,7 @@ class cex(ccxt.async_support.cex):
         :see: https://cex.io/websocket-api#orderbook-subscribe
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -930,7 +930,7 @@ class cex(ccxt.async_support.cex):
         :param str timeframe: the length of time each candle represents.
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()

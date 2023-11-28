@@ -164,6 +164,11 @@ public partial class Exchange
     public object orderbooks = new dict();
 
     public object ohlcvs = new dict();
+    public object wssProxy { get; set; } = null;
+    public object wss_proxy { get; set; } = null;
+
+    public object wsProxy { get; set; } = null;
+    public object ws_proxy { get; set; } = null;
 
     private string httpProxyValue = "";
     public object httpProxy

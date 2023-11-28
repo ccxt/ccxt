@@ -35,6 +35,7 @@ define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('LOG_CHARS_LENGTH', 10000);
 define('ext', 'php');
+define('proxyTestFileName', 'proxies');
 
 class baseMainTestClass {
     public $lang = 'PHP';
@@ -57,6 +58,8 @@ class baseMainTestClass {
     public $root_dir = root_dir;
     public $env_vars = envVars;
     public $root_dir_for_skips = rootDirForSkips;
+    public $only_specific_tests = [];
+    public $proxy_test_file_name = proxyTestFileName;
     public $ext = ext;
     public $LOG_CHARS_LENGTH = LOG_CHARS_LENGTH;
 }
@@ -363,6 +366,7 @@ class testMainClass extends baseMainTestClass {
         if ($timeout !== null) {
             $exchange->timeout = $timeout;
         }
+        $exchange->http_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpProxy');
         $exchange->https_proxy = $exchange->safe_string($skipped_settings_for_exchange, 'httpsProxy');
         $this->skipped_methods = $exchange->safe_value($skipped_settings_for_exchange, 'skipMethods', array());
         $this->checked_public_tests = array();
@@ -390,7 +394,9 @@ class testMainClass extends baseMainTestClass {
                 return;
             }
             $skip_message = null;
-            if (!$is_load_markets && (!(is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) || !$exchange->has[$method_name])) {
+            $is_proxy_test = $method_name === $this->proxy_test_file_name;
+            $supported_by_exchange = (is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) && $exchange->has[$method_name];
+            if (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test) {
                 $skip_message = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
             } elseif ((is_array($this->skipped_methods) && array_key_exists($method_name, $this->skipped_methods)) && (is_string($this->skipped_methods[$method_name]))) {
                 $skip_message = '[INFO:SKIPPED_TEST]';
@@ -796,6 +802,31 @@ class testMainClass extends baseMainTestClass {
         }) ();
     }
 
+    public function test_proxies($exchange) {
+        // these tests should be synchronously executed, because of conflicting nature of proxy settings
+        return Async\async(function () use ($exchange) {
+            $proxy_test_name = $this->proxy_test_file_name;
+            if ($this->info) {
+                dump($this->add_padding('[INFO:TESTING]', 25), $exchange->id, $proxy_test_name);
+            }
+            // try proxy several times
+            $max_retries = 3;
+            $exception = null;
+            for ($j = 0; $j < $max_retries; $j++) {
+                try {
+                    Async\await($this->test_method($proxy_test_name, $exchange, [], true));
+                    break; // if successfull, then break
+                } catch(Exception $e) {
+                    $exception = $e;
+                }
+            }
+            // if exception was set, then throw it
+            if ($exception) {
+                throw new Error('[TEST_FAILURE] Failed ' . $proxy_test_name . ' : ' . exception_message($exception));
+            }
+        }) ();
+    }
+
     public function start_test($exchange, $symbol) {
         // we do not need to test aliases
         return Async\async(function () use ($exchange, $symbol) {
@@ -810,6 +841,10 @@ class testMainClass extends baseMainTestClass {
                 if (!$result) {
                     Async\await(close($exchange));
                     return;
+                }
+                if ($exchange->id === 'binance') {
+                    // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+                    Async\await($this->test_proxies($exchange));
                 }
                 Async\await($this->test_exchange($exchange, $symbol));
                 Async\await(close($exchange));

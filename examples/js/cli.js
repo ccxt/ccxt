@@ -266,7 +266,7 @@ async function run () {
         let args = params
             .map (s => s.match (/^[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T\s]?[0-9]{2}[:][0-9]{2}[:][0-9]{2}/g) ? exchange.parse8601 (s) : s)
             .map (s => (() => { 
-                if (s.match ( /^\d+$/g)) return s
+                if (s.match ( /^\d+$/g)) return s < Number.MAX_SAFE_INTEGER ? Number (s) : s
                 try {return eval ('(() => (' + s + ')) ()') } catch (e) { return s }
             }) ())
 

@@ -85,6 +85,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function spot_private_get_capital_transfer_tranid($params = array()) {
         return $this->request('capital/transfer/tranId', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spot_private_get_capital_transfer_internal($params = array()) {
+        return $this->request('capital/transfer/internal', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_private_get_capital_sub_account_universaltransfer($params = array()) {
         return $this->request('capital/sub-account/universalTransfer', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -189,6 +192,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spot_private_post_capital_transfer($params = array()) {
         return $this->request('capital/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function spot_private_post_capital_transfer_internal($params = array()) {
+        return $this->request('capital/transfer/internal', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spot_private_post_capital_deposit_address($params = array()) {
         return $this->request('capital/deposit/address', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -592,6 +598,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function spotPrivateGetCapitalTransferTranId($params = array()) {
         return $this->request('capital/transfer/tranId', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spotPrivateGetCapitalTransferInternal($params = array()) {
+        return $this->request('capital/transfer/internal', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spotPrivateGetCapitalSubAccountUniversalTransfer($params = array()) {
         return $this->request('capital/sub-account/universalTransfer', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -696,6 +705,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spotPrivatePostCapitalTransfer($params = array()) {
         return $this->request('capital/transfer', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function spotPrivatePostCapitalTransferInternal($params = array()) {
+        return $this->request('capital/transfer/internal', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function spotPrivatePostCapitalDepositAddress($params = array()) {
         return $this->request('capital/deposit/address', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));

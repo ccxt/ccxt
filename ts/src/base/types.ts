@@ -9,7 +9,7 @@ export type IndexType = number | string;
 export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
-
+export type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
 }
@@ -40,6 +40,7 @@ export interface MarketInterface {
     quoteId: string;
     active: Bool;
     type: MarketType;
+    subType?: SubType;
     spot: boolean;
     margin: boolean;
     swap: boolean;
