@@ -811,6 +811,9 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
+         * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
