@@ -267,6 +267,7 @@ class MarketInterface(TypedDict):
     quoteId: Str
     active: Bool
     type: Str
+    subType: Str
     spot: bool
     margin: bool
     swap: bool

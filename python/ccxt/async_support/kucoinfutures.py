@@ -336,7 +336,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
         :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-status
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
         response = await self.futuresPublicGetStatus(params)
@@ -521,7 +521,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-server-time
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = await self.futuresPublicGetTimestamp(params)
@@ -541,7 +541,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -611,7 +611,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :see: https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
@@ -649,7 +649,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-part-order-book-level-2
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -700,7 +700,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -782,7 +782,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         if symbol is None:
@@ -846,7 +846,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://docs.kucoin.com/futures/#get-position-details
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
@@ -907,7 +907,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         fetch all open positions
         :see: https://docs.kucoin.com/futures/#get-position-list
         :param str[]|None symbols: list of unified market symbols
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
@@ -1064,7 +1064,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
         :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-        :param dict [params]:  Extra parameters specific to the exchange API endpoint
+        :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
         :param float [params.takeProfitPrice]: price to trigger take-profit orders
@@ -1189,7 +1189,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1215,7 +1215,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-limit-orders
         :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.stop]: When True, all the trigger orders will be cancelled
         :returns: Response from the exchange
         """
@@ -1248,7 +1248,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :see: https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
         """
         await self.load_markets()
@@ -1486,7 +1486,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.till]: end time in ms
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, or market
@@ -1505,7 +1505,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         fetches information on an order made by the user
         :see: https://docs.kucoin.com/futures/#get-details-of-a-single-order
         :param str symbol: unified symbol of the market the order was made in
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1682,7 +1682,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         fetch the current funding rate
         :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-funding-rate
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
         """
         await self.load_markets()
@@ -1745,7 +1745,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -1783,7 +1783,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
@@ -1846,7 +1846,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: End time in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
@@ -1916,7 +1916,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -2079,7 +2079,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
@@ -2129,7 +2129,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
@@ -2178,7 +2178,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
         :see: https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
         :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
         """
         await self.load_markets()
@@ -2246,7 +2246,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by kucuoinfutures
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
-        :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """

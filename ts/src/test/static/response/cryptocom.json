@@ -1739,6 +1739,76 @@
           }
         }
       }
+    ],
+    "fetchPositions": [
+      {
+        "description": "Fetch positions",
+        "method": "fetchPositions",
+        "input": [
+          [
+            "LTC/USD:USD"
+          ]
+        ],
+        "httpResponse": {
+          "id": 1700841372136,
+          "method": "private/get-positions",
+          "code": 0,
+          "result": {
+            "data": [
+              {
+                "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+                "quantity": "4.7",
+                "cost": "330.598",
+                "open_pos_cost": "310.16670833333336076",
+                "open_position_pnl": "14.721750955418",
+                "session_pnl": "0",
+                "update_timestamp_ms": 1700838000031,
+                "instrument_name": "LTCUSD-PERP",
+                "type": "PERPETUAL_SWAP"
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+              "quantity": "4.7",
+              "cost": "330.598",
+              "open_pos_cost": "310.16670833333336076",
+              "open_position_pnl": "14.721750955418",
+              "session_pnl": "0",
+              "update_timestamp_ms": 1700838000031,
+              "instrument_name": "LTCUSD-PERP",
+              "type": "PERPETUAL_SWAP"
+            },
+            "id": null,
+            "symbol": "LTC/USD:USD",
+            "timestamp": 1700838000031,
+            "datetime": "2023-11-24T15:00:00.031Z",
+            "hedged": null,
+            "side": "buy",
+            "contracts": "4.7",
+            "contractSize": 1,
+            "entryPrice": null,
+            "markPrice": null,
+            "notional": null,
+            "leverage": null,
+            "collateral": 310.16670833333336,
+            "initialMargin": 330.598,
+            "maintenanceMargin": null,
+            "initialMarginPercentage": null,
+            "maintenanceMarginPercentage": null,
+            "unrealizedPnl": 14.721750955418,
+            "liquidationPrice": null,
+            "marginMode": null,
+            "percentage": null,
+            "marginRatio": null,
+            "stopLossPrice": null,
+            "takeProfitPrice": null
+          }
+        ]
+      }
     ]
   }
 }
