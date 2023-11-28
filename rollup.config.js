@@ -14,7 +14,11 @@ export default [
       }
     ],
     plugins: [
-      nodeResolve({ preferBuiltins: true }),
+      nodeResolve({
+        preferBuiltins: true,
+        // node resolve generate dist/cjs/js directory 
+        jail: '/js/src'
+      }),
       json(),
       commonjs({
         transformMixedEsModules: true,
@@ -27,7 +31,7 @@ export default [
       next( warning );
     },
     external: [
-      'socks-proxy-agent'
+      'socks-proxy-agent',
     ]
   },
   {
