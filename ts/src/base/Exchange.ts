@@ -2838,7 +2838,7 @@ export default class Exchange {
             'bidVolume': this.safeNumber (ticker, 'bidVolume'),
             'ask': this.parseNumber (this.omitZero (this.safeNumber (ticker, 'ask'))),
             'askVolume': this.safeNumber (ticker, 'askVolume'),
-            'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high"'))),
+            'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high'))),
             'low': this.parseNumber (this.omitZero (this.safeNumber (ticker, 'low'))),
             'open': this.parseNumber (this.omitZero (this.parseNumber (open))),
             'close': this.parseNumber (this.omitZero (this.parseNumber (close))),
