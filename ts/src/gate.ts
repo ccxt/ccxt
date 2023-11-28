@@ -2658,18 +2658,28 @@ export default class gate extends Exchange {
             const market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
-        const method = this.getSupportedMapping (type, {
-            'spot': this.getSupportedMapping (marginMode, {
-                'spot': 'privateSpotGetAccounts',
-                'margin': 'privateMarginGetAccounts',
-                'cross_margin': 'privateMarginGetCrossAccounts',
-            }),
-            'funding': 'privateMarginGetFundingAccounts',
-            'swap': 'privateFuturesGetSettleAccounts',
-            'future': 'privateDeliveryGetSettleAccounts',
-            'option': 'privateOptionsGetAccounts',
-        });
-        let response = await this[method] (this.extend (request, requestQuery));
+        let response = undefined;
+        if (type === 'spot') {
+            if (marginMode === 'spot') {
+                response = await this.privateSpotGetAccounts (this.extend (request, requestQuery));
+            } else if (marginMode === 'margin') {
+                response = await this.privateMarginGetAccounts (this.extend (request, requestQuery));
+            } else if (marginMode === 'cross_margin') {
+                response = await this.privateMarginGetCrossAccounts (this.extend (request, requestQuery));
+            } else {
+                throw new NotSupported (this.id + ' fetchBalance() not support this marginMode');
+            }
+        } else if (type === 'funding') {
+            response = await this.privateMarginGetFundingAccounts (this.extend (request, requestQuery));
+        } else if (type === 'swap') {
+            response = await this.privateFuturesGetSettleAccounts (this.extend (request, requestQuery));
+        } else if (type === 'future') {
+            response = await this.privateDeliveryGetSettleAccounts (this.extend (request, requestQuery));
+        } else if (type === 'option') {
+            response = await this.privateOptionsGetAccounts (this.extend (request, requestQuery));
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() not support this market type');
+        }
         const contract = ((type === 'swap') || (type === 'future') || (type === 'option'));
         if (contract) {
             response = [ response ];

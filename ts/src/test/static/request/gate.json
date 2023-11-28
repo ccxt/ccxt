@@ -179,12 +179,64 @@
                 ]
             },
             {
+                "description": "Fetch spot Balance - margin",
+                "method": "fetchBalance",
+                "url": "https://api.gateio.ws/api/v4/margin/accounts",
+                "input": [
+                    {
+                        "type": "spot",
+                        "marginMode": "margin"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.gateio.ws/api/v4/margin/cross/accounts",
+                "input": [
+                    {
+                        "type": "spot",
+                        "marginMode": "cross_margin"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch funding Balance",
+                "method": "fetchBalance",
+                "url": "https://api.gateio.ws/api/v4/margin/funding_accounts",
+                "input": [
+                    {
+                        "type": "funding"
+                    }
+                ]
+            },
+            {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/accounts",
                 "input": [
                     {
                         "type": "swap"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch future Balance",
+                "method": "fetchBalance",
+                "url": "https://api.gateio.ws/api/v4/delivery/btc/accounts",
+                "input": [
+                    {
+                        "type": "future"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch option Balance",
+                "method": "fetchBalance",
+                "url": "https://api.gateio.ws/api/v4/options/accounts",
+                "input": [
+                    {
+                        "type": "option"
                     }
                 ]
             }
@@ -400,7 +452,7 @@
             },
             {
                 "description": "Fetch Tickers - swap",
-                "method": "fetchTicker",
+                "method": "fetchTickers",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/tickers",
                 "input": [
                     null,
@@ -411,7 +463,7 @@
             },
             {
                 "description": "Fetch Tickers - future",
-                "method": "fetchTicker",
+                "method": "fetchTickers",
                 "url": "https://api.gateio.ws/api/v4/delivery/btc/tickers",
                 "input": [
                     null,
@@ -422,7 +474,7 @@
             },
             {
                 "description": "Fetch Tickers - option",
-                "method": "fetchTicker",
+                "method": "fetchTickers",
                 "url": "https://api.gateio.ws/api/v4/options/tickers?underlying=BTC_USDT",
                 "input": [
                     [
