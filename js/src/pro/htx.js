@@ -340,9 +340,11 @@ export default class htx extends htxRest {
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
-        limit = (limit === undefined) ? 20 : limit;
+        if (limit === undefined) {
+            limit = market['spot'] ? 150 : 20;
+        }
         if (!this.inArray(limit, allowedLimits)) {
-            throw new ExchangeError(this.id + ' watchOrderBook swap market accepts limits of 20 and 150 only');
+            throw new ExchangeError(this.id + ' watchOrderBook market accepts limits of 20 and 150 only');
         }
         let messageHash = undefined;
         if (market['spot']) {
