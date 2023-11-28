@@ -257,7 +257,7 @@ class ascendex extends Exchange {
                 'account-category' => 'cash', // 'cash', 'margin', 'futures' // obsolete
                 'account-group' => null,
                 'fetchClosedOrders' => array(
-                    'method' => 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                    'method' => 'v2PrivateDataGetOrderHist', // 'v1PrivateAccountCategoryGetOrderHistCurrent'
                 ),
                 'defaultType' => 'spot', // 'spot', 'margin', 'swap'
                 'accountsByType' => array(
@@ -796,6 +796,9 @@ class ascendex extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#cash-$account-balance
+         * @see https://ascendex.github.io/ascendex-pro-api/#margin-$account-balance
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -806,8 +809,7 @@ class ascendex extends Exchange {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $isMargin = $this->safe_value($params, 'margin', false);
         $marketType = $isMargin ? 'margin' : $marketType;
-        $params = $this->omit($params, 'margin');
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
+        $query = $this->omit($query, 'margin');
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $accountCategory = $this->safe_string($accountsByType, $marketType, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
@@ -815,16 +817,17 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
         );
-        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryGetBalance');
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => $defaultMethod,
-            'margin' => $defaultMethod,
-            'swap' => 'v2PrivateAccountGroupGetFuturesPosition',
-        ));
         if (($accountCategory === 'cash') || ($accountCategory === 'margin')) {
             $request['account-category'] = $accountCategory;
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if (($marketType === 'spot') || ($marketType === 'margin')) {
+            $response = $this->v1PrivateAccountCategoryGetBalance (array_merge($request, $query));
+        } elseif ($marketType === 'swap') {
+            $response = $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchBalance() is not currently supported for ' . $marketType . ' markets');
+        }
         //
         // cash
         //
@@ -1733,6 +1736,8 @@ class ascendex extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         * @see https://ascendex.github.io/ascendex-pro-api/#$query-order
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#$query-order-by-$id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1744,7 +1749,6 @@ class ascendex extends Exchange {
             $market = $this->market($symbol);
         }
         list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        $options = $this->safe_value($this->options, 'fetchOrder', array());
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
@@ -1754,20 +1758,15 @@ class ascendex extends Exchange {
             'account-category' => $accountCategory,
             'orderId' => $id,
         );
-        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryGetOrderStatus');
-        $method = $this->get_supported_mapping($type, array(
-            'spot' => $defaultMethod,
-            'margin' => $defaultMethod,
-            'swap' => 'v2PrivateAccountGroupGetFuturesOrderStatus',
-        ));
-        if ($method === 'v1PrivateAccountCategoryGetOrderStatus') {
-            if ($accountCategory !== null) {
-                $request['category'] = $accountCategory;
-            }
-        } else {
+        $response = null;
+        if (($type === 'spot') || ($type === 'margin')) {
+            $response = $this->v1PrivateAccountCategoryGetOrderStatus (array_merge($request, $query));
+        } elseif ($type === 'swap') {
             $request['account-category'] = $accountCategory;
+            $response = $this->v2PrivateAccountGroupGetFuturesOrderStatus (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchOrder() is not currently supported for ' . $type . ' markets');
         }
-        $response = $this->$method (array_merge($request, $query));
         //
         // AccountCategoryGetOrderStatus
         //
@@ -1842,6 +1841,8 @@ class ascendex extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-open-$orders
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-$orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
@@ -1864,21 +1865,15 @@ class ascendex extends Exchange {
             'account-group' => $accountGroup,
             'account-category' => $accountCategory,
         );
-        $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
-        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryGetOrderOpen');
-        $method = $this->get_supported_mapping($type, array(
-            'spot' => $defaultMethod,
-            'margin' => $defaultMethod,
-            'swap' => 'v2PrivateAccountGroupGetFuturesOrderOpen',
-        ));
-        if ($method === 'v1PrivateAccountCategoryGetOrderOpen') {
-            if ($accountCategory !== null) {
-                $request['category'] = $accountCategory;
-            }
-        } else {
+        $response = null;
+        if (($type === 'spot') || ($type === 'margin')) {
+            $response = $this->v1PrivateAccountCategoryGetOrderOpen (array_merge($request, $query));
+        } elseif ($type === 'swap') {
             $request['account-category'] = $accountCategory;
+            $response = $this->v2PrivateAccountGroupGetFuturesOrderOpen (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchOpenOrders() is not currently supported for ' . $type . ' markets');
         }
-        $response = $this->$method (array_merge($request, $query));
         //
         // AccountCategoryGetOrderOpen
         //
@@ -1963,6 +1958,7 @@ class ascendex extends Exchange {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
@@ -1975,7 +1971,6 @@ class ascendex extends Exchange {
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $request = array(
-            'account-group' => $accountGroup,
             // 'category' => $accountCategory,
             // 'symbol' => $market['id'],
             // 'orderType' => 'market', // optional, string
@@ -1999,19 +1994,6 @@ class ascendex extends Exchange {
             'margin' => $defaultMethod,
             'swap' => 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         ));
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $accountCategory = $this->safe_string($accountsByType, $type, 'cash'); // margin, futures
-        if ($method === 'v2PrivateDataGetOrderHist') {
-            $request['account'] = $accountCategory;
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-        } else {
-            $request['account-category'] = $accountCategory;
-            if ($limit !== null) {
-                $request['pageSize'] = $limit;
-            }
-        }
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -2019,7 +2001,32 @@ class ascendex extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->$method (array_merge($request, $query));
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountCategory = $this->safe_string($accountsByType, $type, 'cash'); // margin, futures
+        $response = null;
+        if ($method === 'v1PrivateAccountCategoryGetOrderHistCurrent') {
+            $request['account-group'] = $accountGroup;
+            $request['account-category'] = $accountCategory;
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = $this->v1PrivateAccountCategoryGetOrderHistCurrent (array_merge($request, $query));
+        } elseif ($method === 'v2PrivateDataGetOrderHist') {
+            $request['account'] = $accountCategory;
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = $this->v2PrivateDataGetOrderHist (array_merge($request, $query));
+        } elseif ($method === 'v2PrivateAccountGroupGetFuturesOrderHistCurrent') {
+            $request['account-group'] = $accountGroup;
+            $request['account-category'] = $accountCategory;
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
+            }
+            $response = $this->v2PrivateAccountGroupGetFuturesOrderHistCurrent (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchClosedOrders() is not currently supported for ' . $type . ' markets');
+        }
         //
         // accountCategoryGetOrderHistCurrent
         //
@@ -2122,6 +2129,8 @@ class ascendex extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
+         * @see https://ascendex.github.io/ascendex-pro-api/#cancel-$order
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-$order
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2134,7 +2143,6 @@ class ascendex extends Exchange {
         $this->load_accounts();
         $market = $this->market($symbol);
         list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-        $options = $this->safe_value($this->options, 'cancelOrder', array());
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
@@ -2146,19 +2154,6 @@ class ascendex extends Exchange {
             'time' => $this->milliseconds(),
             'id' => 'foobar',
         );
-        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryDeleteOrder');
-        $method = $this->get_supported_mapping($type, array(
-            'spot' => $defaultMethod,
-            'margin' => $defaultMethod,
-            'swap' => 'v2PrivateAccountGroupDeleteFuturesOrder',
-        ));
-        if ($method === 'v1PrivateAccountCategoryDeleteOrder') {
-            if ($accountCategory !== null) {
-                $request['category'] = $accountCategory;
-            }
-        } else {
-            $request['account-category'] = $accountCategory;
-        }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
         if ($clientOrderId === null) {
             $request['orderId'] = $id;
@@ -2166,7 +2161,15 @@ class ascendex extends Exchange {
             $request['id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'id' ));
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if (($type === 'spot') || ($type === 'margin')) {
+            $response = $this->v1PrivateAccountCategoryDeleteOrder (array_merge($request, $query));
+        } elseif ($type === 'swap') {
+            $request['account-category'] = $accountCategory;
+            $response = $this->v2PrivateAccountGroupDeleteFuturesOrder (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' cancelOrder() is not currently supported for ' . $type . ' markets');
+        }
         //
         // AccountCategoryDeleteOrder
         //
@@ -2238,6 +2241,8 @@ class ascendex extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -2249,7 +2254,6 @@ class ascendex extends Exchange {
             $market = $this->market($symbol);
         }
         list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-        $options = $this->safe_value($this->options, 'cancelAllOrders', array());
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
@@ -2262,20 +2266,15 @@ class ascendex extends Exchange {
         if ($symbol !== null) {
             $request['symbol'] = $market['id'];
         }
-        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryDeleteOrderAll');
-        $method = $this->get_supported_mapping($type, array(
-            'spot' => $defaultMethod,
-            'margin' => $defaultMethod,
-            'swap' => 'v2PrivateAccountGroupDeleteFuturesOrderAll',
-        ));
-        if ($method === 'v1PrivateAccountCategoryDeleteOrderAll') {
-            if ($accountCategory !== null) {
-                $request['category'] = $accountCategory;
-            }
-        } else {
+        $response = null;
+        if (($type === 'spot') || ($type === 'margin')) {
+            $response = $this->v1PrivateAccountCategoryDeleteOrderAll (array_merge($request, $query));
+        } elseif ($type === 'swap') {
             $request['account-category'] = $accountCategory;
+            $response = $this->v2PrivateAccountGroupDeleteFuturesOrderAll (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' cancelAllOrders() is not currently supported for ' . $type . ' markets');
         }
-        $response = $this->$method (array_merge($request, $query));
         //
         // AccountCategoryDeleteOrderAll
         //
