@@ -146,8 +146,8 @@ export default class phemex extends Exchange {
                 },
                 'v1': {
                     'get': {
-                        'md/fullbook': 5,
-                        'md/orderbook': 5, // ?symbol=<symbol>&id=<id>
+                        'md/fullbook': 5, // ?symbol=<symbol>
+                        'md/orderbook': 5, // ?symbol=<symbol>
                         'md/trade': 5, // ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr/all': 5, // ?id=<id>
