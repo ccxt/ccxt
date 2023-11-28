@@ -2284,6 +2284,8 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#cancelAllOrders
          * @description cancel all open orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2295,7 +2297,6 @@ export default class ascendex extends Exchange {
             market = this.market (symbol);
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const options = this.safeValue (this.options, 'cancelAllOrders', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, type, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
@@ -2308,20 +2309,15 @@ export default class ascendex extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
         }
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryDeleteOrderAll');
-        const method = this.getSupportedMapping (type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupDeleteFuturesOrderAll',
-        });
-        if (method === 'v1PrivateAccountCategoryDeleteOrderAll') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
-            }
-        } else {
+        let response = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            response = await this.v1PrivateAccountCategoryDeleteOrderAll (this.extend (request, query));
+        } else if (type === 'swap') {
             request['account-category'] = accountCategory;
+            response = await this.v2PrivateAccountGroupDeleteFuturesOrderAll (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' cancelAllOrders() is not currently supported for ' + type + ' markets');
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryDeleteOrderAll
         //

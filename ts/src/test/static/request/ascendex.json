@@ -289,6 +289,38 @@
                 ],
                 "output":"{\"symbol\":\"BTC-PERP\",\"time\":1701161145825,\"id\":\"foobar\",\"orderId\":\"1234\"}"
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all spot orders",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order/all",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output":"{\"symbol\":\"BTC/USDT\",\"time\":1701161145825}"
+            },
+            {
+                "description": "Cancel all margin orders",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order/all",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "type": "margin"
+                    }
+                ],
+                "output":"{\"symbol\":\"BTC/USDT\",\"time\":1701161145825}"
+            },
+            {
+                "description": "Cancel all swap orders",
+                "method": "cancelOrder",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order/all",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output":"{\"symbol\":\"BTC-PERP\",\"time\":1701161145825}"
+            }
         ]
     }
 }
