@@ -50,7 +50,7 @@ let exchanges = []
 let symbol = 'all'
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
-const isPro = "--pro" in args;
+const isWs = args.includes("--ws") ? '--ws' : false;
 for (const arg of args) {
     if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
     else if (arg.startsWith ('--'))          {
@@ -86,7 +86,7 @@ if (!exchanges.length) {
     }
     let exchangesFile =  fs.readFileSync('./exchanges.json');
     exchangesFile = JSON.parse(exchangesFile)
-    exchanges = isPro ? exchangesFile.ws : exchangesFile.ids
+    exchanges = isWs ? exchangesFile.ws : exchangesFile.ids
 }
 
 /*  --------------------------------------------------------------------------- */
@@ -244,20 +244,20 @@ const testExchange = async (exchange) => {
         args.push(symbol);
     }
     args = args.concat(exchangeOptions)
-    if (isPro) {
-        args.push('--pro');
+    if (isWs) {
+        args.push(isWs);
     }
-    const pathRestOrPro = isPro ? 'pro/' : '';
+    const pathRestOrWs = isWs ? 'pro/' : '';
     const allTestsWithoutTs = [
-            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/' + pathRestOrPro + 'test/test.js',           ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/' + pathRestOrPro + 'test/test_sync.py',  ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/' + pathRestOrPro + 'test/test_async.py', ...args] },
-            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/' + pathRestOrPro + 'test/test_sync.php',         ...args] },
-            { language: 'PHP Async', key: '--php-async',    exec: ['php', '-f', 'php/' + pathRestOrPro + 'test/test_async.php',   ...args] }
+            { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/' + pathRestOrWs + 'test/test.js',           ...args] },
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/' + pathRestOrWs + 'test/test_sync.py',  ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/' + pathRestOrWs + 'test/test_async.py', ...args] },
+            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/' + pathRestOrWs + 'test/test_sync.php',         ...args] },
+            { language: 'PHP Async', key: '--php-async',    exec: ['php', '-f', 'php/' + pathRestOrWs + 'test/test_async.php',   ...args] }
         ]
 
         const allTests = allTestsWithoutTs.concat([
-            { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/' + pathRestOrPro + 'test/test.ts',           ...args] },
+            { language: 'TypeScript',     key: '--ts',           exec: ['node',  '--loader', 'ts-node/esm',  'ts/src/' + pathRestOrWs + 'test/test.ts',           ...args] },
         ]);
 
         const selectedTests  = allTests.filter (t => langKeys[t.key]);
