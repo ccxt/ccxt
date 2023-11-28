@@ -2445,19 +2445,21 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ request, query ] = this.prepareRequest (market, undefined, params);
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'publicSpotGetTickers',
-            'margin': 'publicSpotGetTickers',
-            'swap': 'publicFuturesGetSettleTickers',
-            'future': 'publicDeliveryGetSettleTickers',
-            'option': 'publicOptionsGetTickers',
-        });
-        if (market['option']) {
+        let response = undefined;
+        if (market['spot'] || market['margin']) {
+            response = await this.publicSpotGetTickers (this.extend (request, query));
+        } else if (market['swap']) {
+            response = await this.publicFuturesGetSettleTickers (this.extend (request, query));
+        } else if (market['future']) {
+            response = await this.publicDeliveryGetSettleTickers (this.extend (request, query));
+        } else if (market['option']) {
             const marketId = market['id'];
             const optionParts = marketId.split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
+            response = await this.publicOptionsGetTickers (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchTicker() not support this market type');
         }
-        const response = await this[method] (this.extend (request, query));
         let ticker = undefined;
         if (market['option']) {
             for (let i = 0; i < response.length; i++) {
