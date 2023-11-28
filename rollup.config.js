@@ -16,8 +16,6 @@ export default [
     plugins: [
       nodeResolve({
         preferBuiltins: true,
-        // node resolve generate dist/cjs/js directory 
-        jail: '/js/src'
       }),
       json(),
       commonjs({
@@ -32,6 +30,8 @@ export default [
     },
     external: [
       'socks-proxy-agent',
+      // node resolve generate dist/cjs/js directory, treat ws, debug as external
+      'ws', 'debug'
     ]
   },
   {
