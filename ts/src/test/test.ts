@@ -26,6 +26,7 @@ const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
 // non-transpiled part, but shared names among langs
+const proxyTestFileName = 'proxies';
 class baseMainTestClass {
     lang = 'JS';
     idTests = false;
@@ -48,6 +49,7 @@ class baseMainTestClass {
     rootDirForSkips = DIR_NAME + '/../../../';
     onlySpecificTests = [];
     envVars = process.env;
+    proxyTestFileName = proxyTestFileName;
     ext = import.meta.url.split ('.')[1];
 }
 // const rootDir = DIR_NAME + '/../../../';
@@ -132,8 +134,9 @@ async function importTestFile (filePath) {
 
 async function setTestFiles (holderClass, properties) {
     // exchange tests
-    for (let i = 0; i < properties.length; i++) {
-        const name = properties[i];
+    const finalPropList = properties.concat ([ proxyTestFileName ]);
+    for (let i = 0; i < finalPropList.length; i++) {
+        const name = finalPropList[i];
         const filePathWoExt = DIR_NAME + '/Exchange/test.' + name;
         if (ioFileExists (filePathWoExt + '.' + ext)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
@@ -292,6 +295,7 @@ export default class testMainClass extends baseMainTestClass {
         if (timeout !== undefined) {
             exchange.timeout = timeout;
         }
+        exchange.httpProxy = exchange.safeString (skippedSettingsForExchange, 'httpProxy');
         exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
@@ -318,9 +322,11 @@ export default class testMainClass extends baseMainTestClass {
             return;
         }
         let skipMessage = undefined;
+        const isProxyTest = methodName === this.proxyTestFileName;
+        const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodNameInTest, this.onlySpecificTests))) {
             skipMessage = '[INFO:IGNORED_TEST]';
-        } else if (!isLoadMarkets && (!(methodName in exchange.has) || !exchange.has[methodName])) {
+        } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         } else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
             skipMessage = '[INFO:SKIPPED_TEST]';
@@ -808,6 +814,29 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
+    async testProxies (exchange) {
+        // these tests should be synchronously executed, because of conflicting nature of proxy settings
+        const proxyTestName = this.proxyTestFileName;
+        if (this.info) {
+            dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, proxyTestName);
+        }
+        // try proxy several times
+        const maxRetries = 3;
+        let exception = undefined;
+        for (let j = 0; j < maxRetries; j++) {
+            try {
+                await this.testMethod (proxyTestName, exchange, [], true);
+                break; // if successfull, then break
+            } catch (e) {
+                exception = e;
+            }
+        }
+        // if exception was set, then throw it
+        if (exception) {
+            throw new Error ('[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception));
+        }
+    }
+
     async startTest (exchange, symbol) {
         // we do not need to test aliases
         if (exchange.alias) {
@@ -822,6 +851,10 @@ export default class testMainClass extends baseMainTestClass {
             if (!result) {
                 await close (exchange);
                 return;
+            }
+            if (exchange.id === 'binance') {
+                // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+                await this.testProxies (exchange);
             }
             await this.testExchange (exchange, symbol);
             await close (exchange);
