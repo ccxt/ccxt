@@ -1878,6 +1878,8 @@ export default class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-open-orders
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1900,21 +1902,15 @@ export default class ascendex extends Exchange {
             'account-group': accountGroup,
             'account-category': accountCategory,
         };
-        const options = this.safeValue (this.options, 'fetchOpenOrders', {});
-        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetOrderOpen');
-        const method = this.getSupportedMapping (type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesOrderOpen',
-        });
-        if (method === 'v1PrivateAccountCategoryGetOrderOpen') {
-            if (accountCategory !== undefined) {
-                request['category'] = accountCategory;
-            }
-        } else {
+        let response = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            response = await this.v1PrivateAccountCategoryGetOrderOpen (this.extend (request, query));
+        } else if (type === 'swap') {
             request['account-category'] = accountCategory;
+            response = await this.v2PrivateAccountGroupGetFuturesOrderOpen (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenOrders() is not currently supported for ' + type + ' markets');
         }
-        const response = await this[method] (this.extend (request, query));
         //
         // AccountCategoryGetOrderOpen
         //

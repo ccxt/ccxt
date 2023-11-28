@@ -192,6 +192,37 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch spot open order",
+                "method": "fetchOpenOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/cash/order/open",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch margin open order",
+                "method": "fetchOpenOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order/open",
+                "input": [
+                    null,
+                    1,
+                    1,
+                    {
+                        "type": "margin"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap open order",
+                "method": "fetchOpenOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v2/futures/order/open",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
