@@ -1971,15 +1971,17 @@ export default class bingx extends Exchange {
         //       "symbol": "XRP-USDT",
         //       "orderId": 1514073325788200960,
         //       "price": "0.5",
+        //       "StopPrice": "0",
         //       "origQty": "20",
-        //       "executedQty": "0",
-        //       "cummulativeQuoteQty": "0",
+        //       "executedQty": "10",
+        //       "cummulativeQuoteQty": "5",
         //       "status": "PENDING",
         //       "type": "LIMIT",
         //       "side": "BUY",
         //       "time": 1649818185647,
         //       "updateTime": 1649818185647,
         //       "origQuoteOrderQty": "0"
+        //       "fee": "-0.01"
         //   }
         //
         //
@@ -2039,9 +2041,18 @@ export default class bingx extends Exchange {
         const amount = this.safeString2 (order, 'origQty', 'q');
         const filled = this.safeString2 (order, 'executedQty', 'z');
         const statusId = this.safeString2 (order, 'status', 'X');
+        let feeCurrencyCode = this.safeString2 (order, 'feeAsset', 'N');
+        const feeCost = this.safeStringN (order, [ 'fee', 'commission', 'n' ]);
+        if (feeCurrencyCode === undefined) {
+            if (side === 'buy') {
+                feeCurrencyCode = market['base'];
+            } else {
+                feeCurrencyCode = market['quote'];
+            }
+        }
         const fee = {
-            'currency': this.safeString2 (order, 'feeAsset', 'N'),
-            'rate': this.safeStringN (order, [ 'fee', 'commission', 'n' ]),
+            'currency': feeCurrencyCode,
+            'cost': Precise.stringAbs (feeCost),
         };
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'c');
         return this.safeOrder ({
