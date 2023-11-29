@@ -49,12 +49,13 @@ public partial class Exchange
 
         public bool error = false;
 
-        public WebSocketClient(string url, handleMessageDelegate handleMessage)
+        public WebSocketClient(string url, handleMessageDelegate handleMessage, bool isVerbose = false)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
             this.connected = tcs;
             this.handleMessage = handleMessage;
+            this.verbose = isVerbose;
         }
 
         public Future future(object messageHash2)
@@ -119,42 +120,6 @@ public partial class Exchange
             return this.connected.Task;
         }
 
-        public static async Task Main()
-        {
-            // var task = Connect();
-            // await task;
-            // Console.WriteLine("Connected inside main");
-            // var message = "{\"method\": \"SUBSCRIBE\", \"params\": [ \"btcusdt @ticker\" ], \"id\": 1 }";
-            // var bytes = Encoding.UTF8.GetBytes(message);
-            // var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-            // await WebSocketClient.webSocket.SendAsync(arraySegment,
-            //                     WebSocketMessageType.Text,
-            //                     true,
-            //                     CancellationToken.None);
-            // Console.WriteLine("Sent message");
-
-            // waitHandle.WaitOne();
-            // await task.ContinueWith(t =>
-            // {
-            //     if (t.IsFaulted)
-            //     {
-            //         Console.WriteLine("Error: " + t.Exception.GetBaseException());
-            //     }
-            //     else
-            //     {
-            //         Console.WriteLine("Connected inside main");
-            //         var message = "{\"method\": \"SUBSCRIBE\", \"params\": [ \"btcusdt @ticker\" ], \"id\": 1 }";
-            //         var bytes = Encoding.UTF8.GetBytes(message);
-            //         var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-            //         WebSocketClient.websocket.SendAsync(arraySegment,
-            //                             WebSocketMessageType.Text,
-            //                             true,
-            //                             CancellationToken.None);
-            //         // Task.WaitAll(Receiving(webSocket), Sending(webSocket));
-            //     }
-            // });
-        }
-
         public void Connect()
         {
             var tcs = this.connected;
@@ -164,7 +129,10 @@ public partial class Exchange
                 try
                 {
                     await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
-                    Console.WriteLine("WebSocket connected!");
+                    if (this.verbose)
+                    {
+                        Console.WriteLine("WebSocket connected!");
+                    }
                     Task.Run(async () =>
                     {
                         Receiving(webSocket);
@@ -183,7 +151,12 @@ public partial class Exchange
 
         public async Task send(object message)
         {
-            var bytes = Encoding.UTF8.GetBytes(Exchange.Json(message).ToString());
+            var jsonMessage = Exchange.Json(message).ToString();
+            if (this.verbose)
+            {
+                Console.WriteLine($"Sending message: {jsonMessage}");
+            }
+            var bytes = Encoding.UTF8.GetBytes(jsonMessage);
             var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
             await this.webSocket.SendAsync(arraySegment,
                                 WebSocketMessageType.Text,

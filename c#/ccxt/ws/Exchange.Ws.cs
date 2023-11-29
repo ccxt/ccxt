@@ -80,13 +80,13 @@ public partial class Exchange
                 }
                 postFixIncrement(ref tries);
             }
-            ((WebSocketClient)client).reject(new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries.")), messageHash);
+            (client).reject(new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries.")), messageHash);
 
         }
         catch (Exception e)
         {
-            ((WebSocketClient)client).reject(e, messageHash);
-            await this.loadOrderBook(client as WebSocketClient, messageHash, symbol, limit, parameters);
+            (client).reject(e, messageHash);
+            await this.loadOrderBook(client, messageHash, symbol, limit, parameters);
         }
     }
 
@@ -100,7 +100,7 @@ public partial class Exchange
             binance.verbose = true;
             while (true)
             {
-                var message = await binance.watchOrderBook("BTC/USDT", 1);
+                var message = await binance.watchTrades("BTC/USDT");
                 Console.WriteLine(JsonConvert.SerializeObject(message, Formatting.Indented));
             }
 
@@ -128,7 +128,7 @@ public partial class Exchange
         var url = url2.ToString();
         if (!this.clients.ContainsKey(url))
         {
-            this.clients[url] = new WebSocketClient(url, handleMessage);
+            this.clients[url] = new WebSocketClient(url, handleMessage, this.verbose);
         }
         return this.clients[url];
     }

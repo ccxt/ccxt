@@ -13,15 +13,15 @@ public partial class Exchange
 
 
         // tmp check this, can't find constructor
-        if (args != null)
-        {
-            args ??= new Dictionary<string, object>();
-            // Type type2 = Type.GetType(className);
-            ConstructorInfo constructor = type.GetConstructor(new Type[] { typeof(object) });
-            object classInstance = constructor.Invoke(new object[] { args });
-            return classInstance as Exchange;
-        }
-        return Activator.CreateInstance(type) as Exchange;
+        // if (args != null)
+        // {
+        args ??= new Dictionary<string, object>();
+        // Type type2 = Type.GetType(className);
+        ConstructorInfo constructor = type.GetConstructor(new Type[] { typeof(object) });
+        object classInstance = constructor.Invoke(new object[] { args });
+        return classInstance as Exchange;
+        // }
+        // return Activator.CreateInstance(type) as Exchange;
     }
 
     public static object DynamicallyCallMethod(Exchange instance, string methodName, object[] parameters)

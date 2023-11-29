@@ -155,7 +155,7 @@ public partial class Exchange
     public object myTrades = new dict();
     public object orders = new dict();
     public object triggerOrders = new dict();
-    public object balance;
+    public object balance = new dict();
 
     public bool newUpdates;
 
