@@ -1367,8 +1367,7 @@ export default class bitget extends Exchange {
     }
 
     convertSymbolForSandbox (symbol) {
-        const firstSymbolLetter = symbol.slice (0, 1);
-        if (firstSymbolLetter === 'S') {
+        if (symbol.startsWith ('S')) {
             // handle using the exchange specified sandbox symbols
             return symbol;
         }
@@ -1392,7 +1391,9 @@ export default class bitget extends Exchange {
             }
         } else {
             // handle using a market id instead of a unified symbol
-            convertedSymbol = 'S' + symbol;
+            const base = symbol.slice (0, 3);
+            const remaining = symbol.slice (3);
+            convertedSymbol = 'S' + base + 'S' + remaining;
         }
         return convertedSymbol;
     }
