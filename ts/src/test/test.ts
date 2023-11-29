@@ -307,6 +307,7 @@ export default class testMainClass extends baseMainTestClass {
         exchange.httpsProxy = exchange.safeString (skippedSettingsForExchange, 'httpsProxy');
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
         this.checkedPublicTests = {};
+        setExchangeProp (exchange, 'wsMethodsTestTimeoutMS', 15000);
     }
 
     addPadding (message: string, size) {

@@ -1,78 +1,29 @@
-'use strict';
-
-// ----------------------------------------------------------------------------
 
 import assert from 'assert';
 import testTrade from '../../../test/Exchange/base/test.trade.js';
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import errors from '../../../base/errors.js';
 
-/*  ------------------------------------------------------------------------ */
-
 async function testWatchTrades (exchange, skippedProperties, symbol) {
-
-    // log (symbol.green, 'watching trades...')
-
     const method = 'watchTrades';
-
-    // we have to skip some exchanges here due to the frequency of trading
-    const skippedExchanges = [
-        'binanceje',
-        'bitvavo',
-        'currencycom',
-        'dsx',
-        'idex2', // rinkeby testnet, trades too rare
-        'luno', // requires authentication for public trades
-        'ripio',
-        'zipmex',
-        'coinflex', // to illiquid
-        'woo',
-        'independentreserve',
-        'bingx', // side is undefined and we don't have the skip logic for ws yet
-    ];
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, method + '() test skipped');
-        return;
-    }
-
-    if (!exchange.has[method]) {
-        console.log (exchange.id, 'does not support', method + '() method');
-        return;
-    }
-
-    let response = undefined;
-
-    let now = Date.now ();
-    const ends = now + 10000;
-
+    let now = exchange.milliseconds ();
+    const ends = now + exchange.wsMethodsTestTimeoutMS;
     while (now < ends) {
-
         try {
-
-            response = await exchange[method] (symbol);
-
-            now = Date.now ();
-
-            assert (response instanceof Array);
-
-            console.log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'trades');
-
-            // log.noLocate (asTable (response))
-
-            for (let i = 0; i < response.length; i++) {
-                testTrade (exchange, skippedProperties, method, response[i], symbol, now);
+            const trades = await exchange[method] (symbol);
+            assert (Array.isArray (trades), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (trades));
+            now = exchange.milliseconds ();
+            for (let i = 0; i < trades.length; i++) {
+                testTrade (exchange, skippedProperties, method, trades[i], symbol, now);
             }
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
         } catch (e) {
-
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof errors.OperationFailed)) {
                 throw e;
             }
-
-            now = Date.now ();
+            now = exchange.milliseconds ();
         }
     }
-
-    return response;
 }
 
 export default testWatchTrades;
