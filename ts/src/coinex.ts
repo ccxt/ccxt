@@ -2200,7 +2200,7 @@ export default class coinex extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async createOrders (orders: OrderRequest[], params = {}) {
+    async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinex#createOrders
