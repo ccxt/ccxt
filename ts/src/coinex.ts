@@ -1912,7 +1912,7 @@ export default class coinex extends Exchange {
         const timeInForceRaw = this.safeString (params, 'timeInForce'); // Spot: IOC, FOK, PO, GTC, ... NORMAL (default), MAKER_ONLY
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly) {
-            if (market['type'] !== 'swap') {
+            if (!market['swap']) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only');
             }
             if (positionId === undefined) {
