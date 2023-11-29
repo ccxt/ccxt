@@ -149,6 +149,22 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Future open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/orders?contract=BTC_USDT_20240329&status=open",
+                "input": [
+                    "BTC/USDT:USDT-240329"
+                ]
+            },
+            {
+                "description": "Option open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.gateio.ws/api/v4/options/orders?contract=BTC_USDT-20240126-20000-C&status=open",
+                "input": [
+                    "BTC/USDT:USDT-240126-20000-C"
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -166,6 +182,22 @@
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/orders?contract=LTC_USDT&status=finished",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Future closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/orders?contract=BTC_USDT_20240329&status=finished",
+                "input": [
+                    "BTC/USDT:USDT-240329"
+                ]
+            },
+            {
+                "description": "Option closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/options/orders?contract=BTC_USDT-20240126-20000-C&status=finished",
+                "input": [
+                    "BTC/USDT:USDT-240126-20000-C"
                 ]
             }
         ],

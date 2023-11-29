@@ -4610,19 +4610,33 @@ export default class gate extends Exchange {
         if (since !== undefined && spot) {
             request['from'] = this.parseToInt (since / 1000);
         }
-        let methodTail = stop ? 'PriceOrders' : 'Orders';
         const openSpotOrders = spot && (status === 'open') && !stop;
-        if (openSpotOrders) {
-            methodTail = 'OpenOrders';
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            if (openSpotOrders) {
+                response = await this.privateSpotGetOpenOrders (this.extend (request, requestParams));
+            } else if (stop) {
+                response = await this.privateSpotGetPriceOrders (this.extend (request, requestParams));
+            } else {
+                response = await this.privateSpotGetOrders (this.extend (request, requestParams));
+            }
+        } else if (type === 'swap') {
+            if (stop) {
+                response = await this.privateFuturesGetSettlePriceOrders (this.extend (request, requestParams));
+            } else {
+                response = await this.privateFuturesGetSettleOrders (this.extend (request, requestParams));
+            }
+        } else if (type === 'future') {
+            if (stop) {
+                response = await this.privateDeliveryGetSettlePriceOrders (this.extend (request, requestParams));
+            } else {
+                response = await this.privateDeliveryGetSettleOrders (this.extend (request, requestParams));
+            }
+        } else if (type === 'option') {
+            response = await this.privateOptionsGetOrders (this.extend (request, requestParams));
+        } else {
+            throw new NotSupported (this.id + ' fetchOrder() not support this market type');
         }
-        const method = this.getSupportedMapping (type, {
-            'spot': 'privateSpotGet' + methodTail,
-            'margin': 'privateSpotGet' + methodTail,
-            'swap': 'privateFuturesGetSettle' + methodTail,
-            'future': 'privateDeliveryGetSettle' + methodTail,
-            'option': 'privateOptionsGetOrders',
-        });
-        const response = await this[method] (this.extend (request, requestParams));
         //
         // spot open orders
         //
