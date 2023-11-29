@@ -2220,11 +2220,11 @@ class Transpiler {
         for (const testName of wsTestsName) {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const test = {
-                base: true,
+                base: false,
                 name: testName,
-                tsFile: baseFolders.tsBase + testName + '.ts',
-                pyFile: baseFolders.pyBase + unCamelCasedFileName + '.py',
-                phpFile: baseFolders.phpBase + unCamelCasedFileName + '.php',
+                tsFile: baseWsFolders.tsBase + testName + '.ts',
+                pyFile: baseWsFolders.pyBase + unCamelCasedFileName + '.py',
+                phpFile: baseWsFolders.phpBase + unCamelCasedFileName + '.php',
             };
             wsCollectedTests.push(test);
         }
