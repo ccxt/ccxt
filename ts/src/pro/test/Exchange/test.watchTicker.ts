@@ -1,64 +1,25 @@
-'use strict';
 
-// ----------------------------------------------------------------------------
-
+import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import errors from '../../../base/errors.js';
 
-/*  ------------------------------------------------------------------------ */
-
 async function testWatchTicker (exchange, skippedProperties, symbol) {
-
-    // log (symbol.green, 'watching ticker...')
-
     const method = 'watchTicker';
-
-    // we have to skip some exchanges here due to the frequency of trading
-    const skippedExchanges = [
-        'cex',
-        'ripio',
-        'mexc',
-        'woo',
-        'alpaca', // requires auth
-    ];
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, method + '() test skipped');
-        return;
-    }
-
-    if (!exchange.has[method]) {
-        console.log (exchange.id, method + '() is not supported');
-        return;
-    }
-
-    let response = undefined;
-
-    let now = Date.now ();
-    const ends = now + 10000;
-
+    let now = exchange.milliseconds ();
+    const ends = now + exchange.wsMethodsTestTimeoutMS;
     while (now < ends) {
-
         try {
-
-            response = await exchange[method] (symbol);
-
+            const response = await exchange[method] (symbol);
+            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+            now = exchange.milliseconds ();
             testTicker (exchange, skippedProperties, method, response, symbol);
-
-            now = Date.now ();
-
         } catch (e) {
-
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof errors.OperationFailed)) {
                 throw e;
             }
-
-            now = Date.now ();
+            now = exchange.milliseconds ();
         }
-
     }
-
-    return response;
 }
 
 export default testWatchTicker;
