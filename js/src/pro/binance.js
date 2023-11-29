@@ -1309,20 +1309,23 @@ export default class binance extends binanceRest {
             return;
         }
         let method = 'publicPutUserDataStream';
+        const request = {};
+        const symbol = this.safeString(params, 'symbol');
+        const sendParams = this.omit(params, ['type', 'symbol']);
         if (type === 'future') {
             method = 'fapiPrivatePutListenKey';
         }
         else if (type === 'delivery') {
             method = 'dapiPrivatePutListenKey';
         }
-        else if (type === 'margin') {
-            method = 'sapiPutUserDataStream';
+        else {
+            request['listenKey'] = listenKey;
+            if (type === 'margin') {
+                request['symbol'] = symbol;
+                method = 'sapiPutUserDataStream';
+            }
         }
-        const request = {
-            'listenKey': listenKey,
-        };
         const time = this.milliseconds();
-        const sendParams = this.omit(params, 'type');
         try {
             await this[method](this.extend(request, sendParams));
         }
@@ -2076,9 +2079,7 @@ export default class binance extends binanceRest {
             market = this.market(symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params = this.extend(params, { 'type': market['type'], 'symbol': symbol }); // needed inside authenticate for isolated margin
         }
-        await this.authenticate(params);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
         let subType = undefined;
@@ -2089,6 +2090,8 @@ export default class binance extends binanceRest {
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
         }
+        params = this.extend(params, { 'type': type, 'symbol': symbol }); // needed inside authenticate for isolated margin
+        await this.authenticate(params);
         let urlType = type;
         if (type === 'margin') {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot
