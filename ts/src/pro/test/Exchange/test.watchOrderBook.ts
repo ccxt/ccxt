@@ -1,67 +1,25 @@
-'use strict';
 
-// ----------------------------------------------------------------------------
-
-
+import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import errors from '../../../base/errors.js';
 
-/*  ------------------------------------------------------------------------ */
-
 async function testWatchOrderBook (exchange, skippedProperties, symbol) {
-
-    // log (symbol.green, 'watching order book...')
-
     const method = 'watchOrderBook';
-
-    // we have to skip some exchanges here due to the frequency of trading or to other factors
-    const skippedExchanges = [
-        'cex', // requires authentication
-        'kucoin', // requires authentication for public orderbooks
-        'luno', // requires authentication for public orderbooks
-        'ripio',
-        'gopax', // requires authentication for public orderbooks
-        'woo',
-        'alpaca', // requires auth
-        'coinbasepro', // requires auth
-        'coinbaseprime', // requires auth
-    ];
-
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, method, '() test skipped');
-        return;
-    }
-
-    if (!exchange.has[method]) {
-        console.log (exchange.id, 'does not support', method, '() method');
-        return;
-    }
-
-    let response = undefined;
-
-    let now = Date.now ();
-    const ends = now + 10000;
-
+    let now = exchange.milliseconds ();
+    const ends = now + exchange.wsMethodsTestTimeoutMS;
     while (now < ends) {
-
         try {
-
-            response = await exchange[method] (symbol);
-
+            const response = await exchange[method] (symbol);
+            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+            now = exchange.milliseconds ();
             testOrderBook (exchange, skippedProperties, method, response, symbol);
-
         } catch (e) {
-
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof errors.OperationFailed)) {
                 throw e;
             }
+            now = exchange.milliseconds ();
         }
-
-        now = Date.now ();
     }
-
-    return response;
 }
 
 export default testWatchOrderBook;
-
