@@ -111,6 +111,26 @@
                     1699457638000,
                     5
                 ]
+            },
+            {
+                "description": "Future private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/my_trades?contract=BTC_USDT_20240329&limit=5&from=1699457638",
+                "input": [
+                    "BTC/USDT:USDT-240329",
+                    1699457638000,
+                    5
+                ]
+            },
+            {
+                "description": "Option private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.gateio.ws/api/v4/options/my_trades?contract=BTC_USDT-20240126-20000-C&limit=5&from=1699457638",
+                "input": [
+                    "BTC/USDT:USDT-240126-20000-C",
+                    1699457638000,
+                    5
+                ]
             }
         ],
         "fetchOpenOrders": [

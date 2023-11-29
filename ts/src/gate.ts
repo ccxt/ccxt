@@ -3264,14 +3264,18 @@ export default class gate extends Exchange {
         if (until !== undefined) {
             request['to'] = this.parseToInt (until / 1000);
         }
-        const method = this.getSupportedMapping (type, {
-            'spot': 'privateSpotGetMyTrades',
-            'margin': 'privateSpotGetMyTrades',
-            'swap': 'privateFuturesGetSettleMyTradesTimerange',
-            'future': 'privateDeliveryGetSettleMyTrades',
-            'option': 'privateOptionsGetMyTrades',
-        });
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            response = await this.privateSpotGetMyTrades (this.extend (request, params));
+        } else if (type === 'swap') {
+            response = await this.privateFuturesGetSettleMyTradesTimerange (this.extend (request, params));
+        } else if (type === 'future') {
+            response = await this.privateDeliveryGetSettleMyTrades (this.extend (request, params));
+        } else if (type === 'option') {
+            response = await this.privateOptionsGetMyTrades (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchMyTrades() not support this market type.');
+        }
         //
         // spot
         //
