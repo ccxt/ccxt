@@ -103,6 +103,17 @@ ext = 'py'
 proxyTestFileName = 'proxies'
 
 
+def get_cli_arg_value(arg):
+    arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
+    with_hyphen = '--' + arg
+    arg_exists_with_hyphen = getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
+    without_hyphen = arg.replace('--', '')
+    arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
+    return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
+
+isWsTests = get_cli_arg_value('--ws')
+
+
 class baseMainTestClass():
     lang = 'PY'
     request_tests_failed = False
@@ -112,6 +123,7 @@ class baseMainTestClass():
     check_public_tests = {}
     test_files = {}
     public_tests = {}
+    is_ws_tests = isWsTests
     root_dir = rootDir
     env_vars = envVars
     ext = ext
@@ -133,16 +145,9 @@ def json_stringify(elem):
     return json.dumps(elem)
 
 
-def get_cli_arg_value(arg):
-    arg_exists = getattr(argv, arg) if hasattr(argv, arg) else False
-    with_hyphen = '--' + arg
-    arg_exists_with_hyphen = getattr(argv, with_hyphen) if hasattr(argv, with_hyphen) else False
-    without_hyphen = arg.replace('--', '')
-    arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
-    return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
-
 def convert_to_snake_case(conent):
     return re.sub(r'(?<!^)(?=[A-Z])', '_', conent).lower()
+
 
 def get_test_name(methodName):
     # stub

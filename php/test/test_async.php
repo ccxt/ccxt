@@ -30,12 +30,17 @@ $exchangeSymbol = null; // todo: this should be different than JS
 
 // non-transpiled part, but shared names among langs
 
+function get_cli_arg_value ($arg) {
+    return in_array($arg, $GLOBALS['argv']);
+}
+
 define ('is_synchronous', stripos(__FILE__, '_async') === false);
 define('rootDirForSkips', __DIR__ . '/../../');
 define('envVars', $_ENV);
 define('LOG_CHARS_LENGTH', 10000);
 define('ext', 'php');
 define('proxyTestFileName', 'proxies');
+define('isWsTests', get_cli_arg_value('--ws'));
 
 class baseMainTestClass {
     public $lang = 'PHP';
@@ -43,6 +48,7 @@ class baseMainTestClass {
     public $skipped_methods = [];
     public $checked_public_tests = [];
     public $public_tests = [];
+    public $is_ws_tests = isWsTests;
     public $info = false;
     public $verbose = false;
     public $debug = false;
@@ -81,10 +87,6 @@ function json_parse($s) {
 
 function json_stringify($s) {
     return json_encode($s);
-}
-
-function get_cli_arg_value ($arg) {
-    return in_array($arg, $GLOBALS['argv']);
 }
 
 function get_test_name($methodName) {
