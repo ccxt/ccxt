@@ -4519,15 +4519,30 @@ export default class gate extends Exchange {
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, stop, query);
         request['order_id'] = orderId;
-        const methodMiddle = stop ? 'PriceOrders' : 'Orders';
-        const method = this.getSupportedMapping (type, {
-            'spot': 'privateSpotGet' + methodMiddle + 'OrderId',
-            'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
-            'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
-            'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
-            'option': 'privateOptionsGetOrdersOrderId',
-        });
-        const response = await this[method] (this.extend (request, requestParams));
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            if (stop) {
+                response = await this.privateSpotGetPriceOrdersOrderId (this.extend (request, requestParams));
+            } else {
+                response = await this.privateSpotGetOrdersOrderId (this.extend (request, requestParams));
+            }
+        } else if (type === 'swap') {
+            if (stop) {
+                response = await this.privateFuturesGetSettlePriceOrdersOrderId (this.extend (request, requestParams));
+            } else {
+                response = await this.privateFuturesGetSettleOrdersOrderId (this.extend (request, requestParams));
+            }
+        } else if (type === 'future') {
+            if (stop) {
+                response = await this.privateDeliveryGetSettlePriceOrdersOrderId (this.extend (request, requestParams));
+            } else {
+                response = await this.privateDeliveryGetSettleOrdersOrderId (this.extend (request, requestParams));
+            }
+        } else if (type === 'option') {
+            response = await this.privateOptionsGetOrdersOrderId (this.extend (request, requestParams));
+        } else {
+            throw new NotSupported (this.id + ' fetchOrder() not support this market type');
+        }
         return this.parseOrder (response, market);
     }
 
