@@ -2222,9 +2222,9 @@ class Transpiler {
             const test = {
                 base: false,
                 name: testName,
-                tsFile: baseWsFolders.tsBase + testName + '.ts',
-                pyFile: baseWsFolders.pyBase + unCamelCasedFileName + '.py',
-                phpFile: baseWsFolders.phpBase + unCamelCasedFileName + '.php',
+                tsFile: baseWsFolders.ts + testName + '.ts',
+                pyFileAsync: baseWsFolders.py + unCamelCasedFileName + '.py',
+                phpFileAsync: baseWsFolders.php + unCamelCasedFileName + '.php',
             };
             wsCollectedTests.push(test);
         }
@@ -2525,13 +2525,17 @@ class Transpiler {
                 overwriteFile (test.phpFileAsync, finalPhpContentAsync)
             }
 
-            const finalPhpContentSync = phpPreambleSync + phpSync;
-            const finalPyContentSync = pythonPreambleSync + pythonSync;
-
-            log.magenta ('→', test.phpFile.yellow)
-            overwriteFile (test.phpFile, finalPhpContentSync)
-            log.magenta ('→', test.pyFile.yellow)
-            overwriteFile (test.pyFile, finalPyContentSync)
+            // if sync tests included
+            if (test.phpFile) {
+                const finalPhpContentSync = phpPreambleSync + phpSync;
+                log.magenta ('→', test.phpFile.yellow)
+                overwriteFile (test.phpFile, finalPhpContentSync)
+            }
+            if (test.pyFile) {
+                const finalPyContentSync = pythonPreambleSync + pythonSync;
+                log.magenta ('→', test.pyFile.yellow)
+                overwriteFile (test.pyFile, finalPyContentSync)
+            }
         }
     }
 
