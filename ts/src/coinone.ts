@@ -775,7 +775,6 @@ export default class coinone extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.postOnly] true if postOnly, default false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (type !== 'limit') {
@@ -784,25 +783,17 @@ export default class coinone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'quote_currency': market['quote'],
-            'target_currency': market['base'],
-            'side': side.toUpperCase (),
             'price': price,
+            'currency': market['id'],
             'qty': amount,
         };
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        params = this.omit (params, 'postOnly');
-        if (postOnly) {
-            request['limit_order_type'] = 'POST_ONLY';
-        } else {
-            request['limit_order_type'] = 'LIMIT';
-        }
-        const response = await this.v2_1PrivatePostOrderLimit (this.extend (request, params));
+        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "result": "success",
-        //         "error_code": "0",
-        //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "errorCode": "0",
+        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         return this.parseOrder (response, market);
@@ -868,8 +859,8 @@ export default class coinone extends Exchange {
         //
         //     {
         //         "result": "success",
-        //         "error_code": "0",
-        //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "errorCode": "0",
+        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         // fetchOrder
@@ -906,10 +897,22 @@ export default class coinone extends Exchange {
         //         "feeRate": "-0.0015"
         //     }
         //
-        const id = this.safeString2 (order, 'orderId', 'order_id');
-        const base = market['base'];
-        const quote = market['quote'];
-        const symbol = base + '/' + quote;
+        const id = this.safeString (order, 'orderId');
+        const baseId = this.safeString (order, 'baseCurrency');
+        const quoteId = this.safeString (order, 'targetCurrency');
+        let base = undefined;
+        let quote = undefined;
+        if (baseId !== undefined) {
+            base = this.safeCurrencyCode (baseId);
+        }
+        if (quoteId !== undefined) {
+            quote = this.safeCurrencyCode (quoteId);
+        }
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            market = this.safeMarket (symbol, market, '/');
+        }
         const timestamp = this.safeTimestamp2 (order, 'timestamp', 'updatedAt');
         let side = this.safeString2 (order, 'type', 'side');
         if (side === 'ask') {
