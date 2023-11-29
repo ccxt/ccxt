@@ -5098,10 +5098,6 @@ export default class gate extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = this.getSupportedMapping (market['type'], {
-            'swap': 'privateFuturesPostSettlePositionsContractLeverage',
-            'future': 'privateDeliveryPostSettlePositionsContractLeverage',
-        });
         const [ request, query ] = this.prepareRequest (market, undefined, params);
         const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
         const crossLeverageLimit = this.safeString (query, 'cross_leverage_limit');
@@ -5116,7 +5112,14 @@ export default class gate extends Exchange {
         } else {
             request['leverage'] = leverage.toString ();
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (market['type'] === 'swap') {
+            response = await this.privateFuturesPostSettlePositionsContractLeverage (this.extend (request, query));
+        } else if (market['type'] === 'future') {
+            response = await this.privateDeliveryPostSettlePositionsContractLeverage (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' setLeverage() not support this market type');
+        }
         //
         //     {
         //         "value": "0",

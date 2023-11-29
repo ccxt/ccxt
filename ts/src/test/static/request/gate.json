@@ -362,6 +362,15 @@
                     5,
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Set linear leverage",
+                "method": "setLeverage",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/positions/BTC_USDT_20240329/leverage?leverage=5",
+                "input": [
+                    5,
+                    "BTC/USDT:USDT-240329"
+                ]
             }
         ],
         "fetchDeposits": [
