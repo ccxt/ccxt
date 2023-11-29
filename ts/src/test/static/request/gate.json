@@ -217,6 +217,66 @@
                 "input": [
                     "LTC/USDT"
                 ]
+            },
+            {
+                "description": "Cancel Orders - future",
+                "method": "cancelAllOrders",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/orders?contract=BTC_USDT_20240329",
+                "input": [
+                    "BTC/USDT:USDT-240329"
+                ]
+            },
+            {
+                "description": "Cancel Orders - option",
+                "method": "cancelAllOrders",
+                "url": "https://api.gateio.ws/api/v4/options/orders?contract=BTC_USDT-20240126-20000-C",
+                "input": [
+                    "BTC/USDT:USDT-240126-20000-C"
+                ]
+            },
+            {
+                "description": "Cancel Orders - spot & stop order",
+                "method": "cancelAllOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/price_orders?account=normal&market=BTC_USDT",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel Orders - swap & stop order",
+                "method": "cancelAllOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel Orders - future & stop order",
+                "method": "cancelAllOrders",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/price_orders?contract=BTC_USDT_20240329",
+                "input": [
+                    "BTC/USDT:USDT-240329",
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel Orders - option & stop order",
+                "method": "cancelAllOrders",
+                "url": "https://api.gateio.ws/api/v4/options/orders?contract=BTC_USDT-20240126-20000-C",
+                "input": [
+                    "BTC/USDT:USDT-240126-20000-C",
+                    {
+                        "stop": true
+                    }
+                ]
             }
         ],
         "fetchBalance": [

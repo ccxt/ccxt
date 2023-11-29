@@ -4944,15 +4944,30 @@ export default class gate extends Exchange {
         params = this.omit (params, 'stop');
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
-        const methodTail = stop ? 'PriceOrders' : 'Orders';
-        const method = this.getSupportedMapping (type, {
-            'spot': 'privateSpotDelete' + methodTail,
-            'margin': 'privateSpotDelete' + methodTail,
-            'swap': 'privateFuturesDeleteSettle' + methodTail,
-            'future': 'privateDeliveryDeleteSettle' + methodTail,
-            'option': 'privateOptionsDeleteOrders',
-        });
-        const response = await this[method] (this.extend (request, requestParams));
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            if (stop) {
+                response = await this.privateSpotDeletePriceOrders (this.extend (request, requestParams));
+            } else {
+                response = await this.privateSpotDeleteOrders (this.extend (request, requestParams));
+            }
+        } else if (type === 'swap') {
+            if (stop) {
+                response = await this.privateFuturesDeleteSettlePriceOrders (this.extend (request, requestParams));
+            } else {
+                response = await this.privateFuturesDeleteSettleOrders (this.extend (request, requestParams));
+            }
+        } else if (type === 'future') {
+            if (stop) {
+                response = await this.privateDeliveryDeleteSettlePriceOrders (this.extend (request, requestParams));
+            } else {
+                response = await this.privateDeliveryDeleteSettleOrders (this.extend (request, requestParams));
+            }
+        } else if (type === 'option') {
+            response = await this.privateOptionsDeleteOrders (this.extend (request, requestParams));
+        } else {
+            throw new NotSupported (this.id + ' cancelAllOrders() not support this market type');
+        }
         //
         //    [
         //        {
