@@ -929,7 +929,9 @@
                 "contractSize": "broken for some markets",
                 "strike": "incorrect number type"
             },
-            "fetchTrades": "timestamp is in decimal seconds like 1234567890.123",
+            "fetchTrades":  {
+                "timestamp": "timestamp is in decimals"
+            },
             "fetchTickers": {
                 "bid":"messed bid-ask",
                 "ask":"messed bid-ask",
