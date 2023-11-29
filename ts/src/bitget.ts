@@ -4063,7 +4063,7 @@ export default class bitget extends Exchange {
                 request['holdSide'] = (side === 'buy') ? 'long' : 'short';
             } else {
                 if (marginMode === undefined) {
-                    throw new ArgumentsRequired (this.id + ' createOrder() requires a marginMode parameter for ' + marketType + ' markets');
+                    marginMode = 'cross';
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
@@ -4230,7 +4230,7 @@ export default class bitget extends Exchange {
         let response = undefined;
         if ((market['swap']) || (market['future'])) {
             if (marginMode === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a marginMode parameter for ' + market['type'] + ' markets');
+                marginMode = 'cross';
             }
             const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
             request['marginMode'] = marginModeRequest;
