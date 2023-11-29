@@ -464,6 +464,31 @@
                 ],
                 "output": "{\"setMarginMode\":\"REGULAR_MARGIN\"}"
             }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Conflicting id with type in params",
+                "method": "fetchTickers",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=spot",
+                "input": [
+                  [
+                    "BTCUSDT"
+                  ],
+                  {
+                    "type": "spot"
+                  }
+                ]
+            },
+            {
+                "description": "Default conflicting id to swap",
+                "method": "fetchTickers",
+                "url": "https://api-testnet.bybit.com/v5/market/tickers?category=linear",
+                "input": [
+                  [
+                    "BTCUSDT"
+                  ]
+                ]
+            }
         ]
     },
     "disabled": []

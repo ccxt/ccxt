@@ -20,14 +20,17 @@ declare class baseMainTestClass {
     publicTests: {};
     rootDir: string;
     rootDirForSkips: string;
+    onlySpecificTests: any[];
     envVars: NodeJS.ProcessEnv;
+    proxyTestFileName: string;
     ext: string;
 }
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs(): void;
-    init(exchangeId: any, symbol: any): Promise<void>;
+    init(exchangeId: any, symbolArgv: any): Promise<void>;
+    checkIfSpecificTestIsChosen(symbolArgv: any): any;
     importFiles(exchange: any): Promise<void>;
-    expandSettings(exchange: any, symbol: any): void;
+    expandSettings(exchange: any): void;
     addPadding(message: string, size: any): string;
     testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<void>;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;
@@ -39,6 +42,7 @@ export default class testMainClass extends baseMainTestClass {
     getValidSymbol(exchange: any, spot?: boolean): any;
     testExchange(exchange: any, providedSymbol?: any): Promise<void>;
     runPrivateTests(exchange: any, symbol: any): Promise<void>;
+    testProxies(exchange: any): Promise<void>;
     startTest(exchange: any, symbol: any): Promise<void>;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any): void;
     loadMarketsFromFile(id: string): any;

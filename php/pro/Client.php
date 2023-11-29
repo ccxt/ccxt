@@ -62,6 +62,8 @@ class Client {
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
+    public $default_connector = null;
+
 
     // ------------------------------------------------------------------------
 
@@ -133,8 +135,12 @@ class Client {
                     $value;
         }
 
+        $this->default_connector = new React\Socket\Connector();
         $this->connected = new Future();
-        $connector = new React\Socket\Connector();
+        $this->set_ws_connector($this->default_connector);
+    }
+
+    public function set_ws_connector($connector = null) {
         if ($this->noOriginHeader) {
             $this->connector = new NoOriginHeaderConnector(Loop::get(), $connector);
         } else {

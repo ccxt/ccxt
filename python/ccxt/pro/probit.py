@@ -59,7 +59,7 @@ class probit(ccxt.async_support.probit):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs-en.probit.com/reference/balance-1
-        :param dict [params]: extra parameters specific to the probit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.authenticate(params)
@@ -122,7 +122,7 @@ class probit(ccxt.async_support.probit):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs-en.probit.com/reference/marketdata
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the probit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.interval]: Unit time to synchronize market information(ms). Available units: 100, 500
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -165,7 +165,7 @@ class probit(ccxt.async_support.probit):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the probit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.interval]: Unit time to synchronize market information(ms). Available units: 100, 500
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -221,7 +221,7 @@ class probit(ccxt.async_support.probit):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the probit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -294,7 +294,7 @@ class probit(ccxt.async_support.probit):
         :param str symbol: unified symbol of the market the order was made in
         :param int [since]: timestamp in ms of the earliest order to watch
         :param int [limit]: the maximum amount of orders to watch
-        :param dict [params]: extra parameters specific to the aax api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: choose what channel to use. Can open_order or order_history.
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -372,7 +372,7 @@ class probit(ccxt.async_support.probit):
         :see: https://docs-en.probit.com/reference/marketdata
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict [params]: extra parameters specific to the probit api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         filter = None
