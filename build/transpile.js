@@ -2170,12 +2170,21 @@ class Transpiler {
             php: './php/test/',
             phpBase: './php/test/base/',
         };
+        const baseWsFolders = {
+            ts: './ts/src/pro/test/Exchange/',
+            tsBase: './ts/src/pro/test/Exchange/base/',
+            py: './python/ccxt/pro/test/',
+            pyBase: './python/ccxt/pro/test/base/',
+            php: './php/pro/test/',
+            phpBase: './php/pro/test/base/',
+        };
 
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
         const exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
         // ignore throttle test for now
         baseTests = baseTests.filter (filename => filename !== 'test.throttle');
+        this.createBaseInitFile(baseFolders.pyBase, baseTests);
 
         const tests = [];
         for (const testName of baseTests) {
@@ -2203,7 +2212,23 @@ class Transpiler {
             tests.push(test);
         }
         this.transpileAndSaveExchangeTests (tests);
-        this.createBaseInitFile(baseFolders.pyBase, baseTests)
+
+        // pro tests:
+        const wsTestsName = fs.readdirSync (baseWsFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        
+        const wsCollectedTests = [];
+        for (const testName of wsTestsName) {
+            const unCamelCasedFileName = this.uncamelcaseName(testName);
+            const test = {
+                base: true,
+                name: testName,
+                tsFile: baseFolders.tsBase + testName + '.ts',
+                pyFile: baseFolders.pyBase + unCamelCasedFileName + '.py',
+                phpFile: baseFolders.phpBase + unCamelCasedFileName + '.php',
+            };
+            wsCollectedTests.push(test);
+        }
+        this.transpileAndSaveExchangeTests (wsCollectedTests);
     }
 
     createBaseInitFile (pyPath, tests) {
