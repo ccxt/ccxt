@@ -376,24 +376,20 @@ export default class coinone extends Exchange {
     }
 
     parseBalance (response): Balances {
-        //
-        // [
-        //     {
-        //         "available": "998999692485",
-        //         "limit": "0",
-        //         "average_price": "100000000",
-        //         "currency": "BTC"
-        //     }
-        // ]
-        //
         const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const entry = this.safeValue (response, i);
-            const currencyId = this.safeString (entry, 'currency');
+        const balances = this.omit (response, [
+            'errorCode',
+            'result',
+            'normalWallets',
+        ]);
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = balances[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (entry, 'available');
-            account['used'] = this.safeString (entry, 'limit');
+            account['free'] = this.safeString (balance, 'avail');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -409,23 +405,8 @@ export default class coinone extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v2_1PrivatePostAccountBalanceAll (params);
-        //
-        //     {
-        //         "result": "success",
-        //         "error_code": "0",
-        //         "balances": [
-        //             {
-        //                 "available": "998999692485",
-        //                 "limit": "0",
-        //                 "average_price": "100000000",
-        //                 "currency": "BTC"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'balances', []);
-        return this.parseBalance (data);
+        const response = await this.v2PrivatePostAccountBalance (params);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
