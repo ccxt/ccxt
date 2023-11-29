@@ -44,6 +44,7 @@ export default class coinex extends Exchange {
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createOrders': true,
@@ -1588,7 +1589,7 @@ export default class coinex extends Exchange {
         //         "client_id": "",
         //     }
         //
-        // Spot and Margin createOrder, createOrders, cancelOrder, fetchOrder
+        // Spot and Margin createOrder, createOrders, cancelOrder, cancelOrders, fetchOrder
         //
         //      {
         //          "amount":"1.5",
@@ -1787,6 +1788,48 @@ export default class coinex extends Exchange {
         //         "user_id": 3620173
         //     }
         //
+        // swap: cancelOrders
+        //
+        //     {
+        //         "amount": "0.0005",
+        //         "client_id": "x-167673045-b0cee0c584718b65",
+        //         "create_time": 1701233683.294231,
+        //         "deal_asset_fee": "0.00000000000000000000",
+        //         "deal_fee": "0.00000000000000000000",
+        //         "deal_profit": "0.00000000000000000000",
+        //         "deal_stock": "0.00000000000000000000",
+        //         "effect_type": 1,
+        //         "fee_asset": "",
+        //         "fee_discount": "0.00000000000000000000",
+        //         "last_deal_amount": "0.00000000000000000000",
+        //         "last_deal_id": 0,
+        //         "last_deal_price": "0.00000000000000000000",
+        //         "last_deal_role": 0,
+        //         "last_deal_time": 0,
+        //         "last_deal_type": 0,
+        //         "left": "0.0005",
+        //         "leverage": "3",
+        //         "maker_fee": "0.00030",
+        //         "market": "BTCUSDT",
+        //         "option": 0,
+        //         "order_id": 115940476323,
+        //         "position_id": 0,
+        //         "position_type": 2,
+        //         "price": "25000.00",
+        //         "side": 2,
+        //         "source": "api.v1",
+        //         "stop_id": 0,
+        //         "stop_loss_price": "0.00000000000000000000",
+        //         "stop_loss_type": 0,
+        //         "take_profit_price": "0.00000000000000000000",
+        //         "take_profit_type": 0,
+        //         "taker_fee": "0.00050",
+        //         "target": 0,
+        //         "type": 1,
+        //         "update_time": 1701233721.718884,
+        //         "user_id": 3620173
+        //     }
+        //
         const rawStatus = this.safeString (order, 'status');
         const timestamp = this.safeTimestamp (order, 'create_time');
         const marketId = this.safeString (order, 'market');
@@ -1839,6 +1882,8 @@ export default class coinex extends Exchange {
             'price': this.safeString (order, 'price'),
             'stopPrice': this.safeString (order, 'stop_price'),
             'triggerPrice': this.safeString (order, 'stop_price'),
+            'takeProfitPrice': this.safeNumber (order, 'take_profit_price'),
+            'stopLossPrice': this.safeNumber (order, 'stop_loss_price'),
             'cost': this.safeString (order, 'deal_money'),
             'average': this.safeString (order, 'avg_price'),
             'amount': this.safeString (order, 'amount'),
@@ -2250,6 +2295,137 @@ export default class coinex extends Exchange {
             }
             const item = this.safeValue (entry, 'data', {});
             item['status'] = status;
+            const order = this.parseOrder (item, market);
+            results.push (order);
+        }
+        return results;
+    }
+
+    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#cancelOrders
+         * @description cancel multiple orders
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade016_batch_cancel_order
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021-0_cancel_order_batch
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        let response = undefined;
+        if (market['spot']) {
+            request['batch_ids'] = ids.toString ();
+            response = await this.privateDeleteOrderPendingBatch (this.extend (request, params));
+        } else {
+            request['order_ids'] = ids.toString ();
+            response = await this.perpetualPrivatePostOrderCancelBatch (this.extend (request, params));
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "code": 0,
+        //                 "data": {
+        //                     "account_id": 0,
+        //                     "amount": "0.0005",
+        //                     "asset_fee": "0",
+        //                     "avg_price": "0.00",
+        //                     "client_id": "x-167673045-d4e03c38f4d19b4e",
+        //                     "create_time": 1701229157,
+        //                     "deal_amount": "0",
+        //                     "deal_fee": "0",
+        //                     "deal_money": "0",
+        //                     "fee_asset": null,
+        //                     "fee_discount": "1",
+        //                     "finished_time": 0,
+        //                     "id": 107745856682,
+        //                     "left": "0",
+        //                     "maker_fee_rate": "0.002",
+        //                     "market": "BTCUSDT",
+        //                     "money_fee": "0",
+        //                     "order_type": "limit",
+        //                     "price": "22000",
+        //                     "status": "not_deal",
+        //                     "stock_fee": "0",
+        //                     "taker_fee_rate": "0.002",
+        //                     "type": "buy"
+        //                 },
+        //                 "message": ""
+        //             },
+        //         ],
+        //         "message": "Success"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "code": 0,
+        //                 "message": "",
+        //                 "order": {
+        //                     "amount": "0.0005",
+        //                     "client_id": "x-167673045-b0cee0c584718b65",
+        //                     "create_time": 1701233683.294231,
+        //                     "deal_asset_fee": "0.00000000000000000000",
+        //                     "deal_fee": "0.00000000000000000000",
+        //                     "deal_profit": "0.00000000000000000000",
+        //                     "deal_stock": "0.00000000000000000000",
+        //                     "effect_type": 1,
+        //                     "fee_asset": "",
+        //                     "fee_discount": "0.00000000000000000000",
+        //                     "last_deal_amount": "0.00000000000000000000",
+        //                     "last_deal_id": 0,
+        //                     "last_deal_price": "0.00000000000000000000",
+        //                     "last_deal_role": 0,
+        //                     "last_deal_time": 0,
+        //                     "last_deal_type": 0,
+        //                     "left": "0.0005",
+        //                     "leverage": "3",
+        //                     "maker_fee": "0.00030",
+        //                     "market": "BTCUSDT",
+        //                     "option": 0,
+        //                     "order_id": 115940476323,
+        //                     "position_id": 0,
+        //                     "position_type": 2,
+        //                     "price": "25000.00",
+        //                     "side": 2,
+        //                     "source": "api.v1",
+        //                     "stop_id": 0,
+        //                     "stop_loss_price": "0.00000000000000000000",
+        //                     "stop_loss_type": 0,
+        //                     "take_profit_price": "0.00000000000000000000",
+        //                     "take_profit_type": 0,
+        //                     "taker_fee": "0.00050",
+        //                     "target": 0,
+        //                     "type": 1,
+        //                     "update_time": 1701233721.718884,
+        //                     "user_id": 3620173
+        //                 }
+        //             },
+        //         ],
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const results = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const dataRequest = market['spot'] ? 'data' : 'order';
+            const item = this.safeValue (entry, dataRequest, {});
             const order = this.parseOrder (item, market);
             results.push (order);
         }
