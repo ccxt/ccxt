@@ -1169,7 +1169,7 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription = undefined) {
+    handleOrder (client: Client, message) {
         //
         //     spot
         //     {
