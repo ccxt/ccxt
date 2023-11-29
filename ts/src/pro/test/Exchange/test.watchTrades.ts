@@ -10,13 +10,13 @@ async function testWatchTrades (exchange, skippedProperties, symbol) {
     const ends = now + exchange.wsMethodsTestTimeoutMS;
     while (now < ends) {
         try {
-            const trades = await exchange[method] (symbol);
-            assert (Array.isArray (trades), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (trades));
+            const response = await exchange[method] (symbol);
+            assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
             now = exchange.milliseconds ();
-            for (let i = 0; i < trades.length; i++) {
-                testTrade (exchange, skippedProperties, method, trades[i], symbol, now);
+            for (let i = 0; i < response.length; i++) {
+                testTrade (exchange, skippedProperties, method, response[i], symbol, now);
             }
-            testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
         } catch (e) {
             if (!(e instanceof errors.OperationFailed)) {
                 throw e;
