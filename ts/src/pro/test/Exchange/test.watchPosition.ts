@@ -1,49 +1,25 @@
-'use strict';
 
-// ----------------------------------------------------------------------------
-
-import errors from '../../../base/errors.js';
+import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
-
-/*  ------------------------------------------------------------------------ */
+import errors from '../../../base/errors.js';
 
 async function testWatchPosition (exchange, skippedProperties, symbol) {
-
-    console.log ('testing watchPosition...');
-
     const method = 'watchPosition';
-
-    if (!exchange.has[method]) {
-        console.log (exchange.id, 'does not support', method + '() method');
-        return;
-    }
-
-    let response = undefined;
-
-    let now = Date.now ();
-    const ends = now + 10000;
-
+    let now = exchange.milliseconds ();
+    const ends = now + exchange.wsMethodsTestTimeoutMS;
     while (now < ends) {
-
         try {
-
-            // Test without symbol
-            const position = await exchange[method] (symbol);
-            testPosition (exchange, skippedProperties, method, position, symbol, now);
-
-            response = position;
-
+            const response = await exchange[method] (symbol);
+            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+            now = exchange.milliseconds ();
+            testPosition (exchange, skippedProperties, method, response, undefined, now);
         } catch (e) {
-
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof errors.OperationFailed)) {
                 throw e;
             }
-
-            now = Date.now ();
+            now = exchange.milliseconds ();
         }
     }
-
-    return response;
 }
 
 export default testWatchPosition;
