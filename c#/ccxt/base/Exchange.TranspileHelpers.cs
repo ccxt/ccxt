@@ -382,32 +382,32 @@ public partial class Exchange
         return add(a, b.ToString());
     }
 
-    public static string add(object a, string b)
-    {
-        if (a == null || b == null)
-        {
-            return null;
-        }
-        if (a.GetType() != b.GetType())
-            return null;
+    // public static string add(object a, string b)
+    // {
+    //     if (a == null || b == null)
+    //     {
+    //         return null;
+    //     }
+    //     if (a.GetType() != b.GetType())
+    //         return null;
 
-        if (a.GetType() == typeof(string) || a.GetType() == typeof(Int64) || a.GetType() == typeof(int))
-            return a + b;
+    //     if (a.GetType() == typeof(string) || a.GetType() == typeof(Int64) || a.GetType() == typeof(int))
+    //         return a + b;
 
-        return null;
+    //     return null;
 
-        // return add(a, b);
-    }
+    //     // return add(a, b);
+    // }
 
-    public static int add(int a, int b)
-    {
-        return a + b;
-    }
+    // public static int add(int a, int b)
+    // {
+    //     return a + b;
+    // }
 
-    public float add(float a, float b)
-    {
-        return a + b;
-    }
+    // public float add(float a, float b)
+    // {
+    //     return a + b;
+    // }
 
     public static object subtract(object a, object b)
     {

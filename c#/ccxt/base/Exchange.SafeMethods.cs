@@ -1,6 +1,10 @@
 using System.Text;
 using System.Security.Cryptography;
 using System.Globalization;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
 
 namespace ccxt;
 
@@ -8,6 +12,31 @@ using dict = Dictionary<string, object>;
 
 public partial class Exchange
 {
+
+    // aux method
+    public static Dictionary<string, object> ConvertToDictionaryOfStringObject(object potentialDictionary)
+    {
+        // First, check if the object is a dictionary
+        if (potentialDictionary is IDictionary && potentialDictionary.GetType().IsGenericType)
+        {
+            var dictionaryType = potentialDictionary.GetType().GetGenericTypeDefinition();
+            if (dictionaryType == typeof(Dictionary<,>))
+            {
+                var result = new Dictionary<string, object>();
+                var dict = (IDictionary)potentialDictionary;
+
+                foreach (DictionaryEntry entry in dict)
+                {
+                    // Convert the key to a string and add the entry to the new dictionary
+                    result[entry.Key.ToString()] = entry.Value;
+                }
+
+                return result;
+            }
+        }
+
+        throw new InvalidOperationException("The provided object is not a dictionary.");
+    }
     // falsy and truthy methods wrappers
 
     // tmp safe number
@@ -309,6 +338,26 @@ public partial class Exchange
                     //     return returnValue;
                     // if ((returnValue.GetType() == typeof(Int64)))
                     //     return Convert.ToInt64(returnValue);
+                    if (returnValue == null || returnValue.ToString().Length == 0)
+                        continue;
+
+                    return returnValue;
+                }
+            }
+        }
+
+        if (obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))
+        {
+            // check if this is a dictionary regardless of the value type
+            Dictionary<string, object> dict = ConvertToDictionaryOfStringObject(obj);
+            foreach (var key2 in keys)
+            {
+                if (key2 == null)
+                    continue;
+                var key = key2.ToString();
+                if (dict.ContainsKey(key))
+                {
+                    var returnValue = dict[key];
                     if (returnValue == null || returnValue.ToString().Length == 0)
                         continue;
 

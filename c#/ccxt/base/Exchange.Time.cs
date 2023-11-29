@@ -5,7 +5,7 @@ namespace ccxt;
 public partial class Exchange
 {
 
-    public long milliseconds()
+    public Int64 milliseconds()
     {
 
         DateTimeOffset dto = new DateTimeOffset(DateTime.UtcNow);
