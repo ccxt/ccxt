@@ -63,6 +63,7 @@ class NewTranspiler {
     }
 
     getWsRegexes() {
+        // hoplefully we won't need this in the future by having everything typed properly in the typescript side
         return [
             // [/typeof\(stored\)/gm, 'stored'],
             // [/typeof\(client\)/gm, 'client'],
@@ -653,7 +654,12 @@ class NewTranspiler {
         // WS fixes
         if (ws) {
             const wsRegexes = this.getWsRegexes();
-            content = this.regexAll (content, wsRegexes)
+            content = this.regexAll (content, wsRegexes);
+            const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
+            const classNameExec = classNameRegex.exec(content);
+            const className = classNameExec ? classNameExec[1] : '';
+            const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
+            content = constructorLine  + content;
         }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
