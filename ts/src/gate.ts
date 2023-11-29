@@ -5974,11 +5974,14 @@ export default class gate extends Exchange {
         const market = this.market (symbol);
         const [ request, query ] = this.prepareRequest (market, undefined, params);
         request['change'] = this.numberToString (amount);
-        const method = this.getSupportedMapping (market['type'], {
-            'swap': 'privateFuturesPostSettlePositionsContractMargin',
-            'future': 'privateDeliveryPostSettlePositionsContractMargin',
-        });
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (market['type'] === 'swap') {
+            response = await this.privateFuturesPostSettlePositionsContractMargin (this.extend (request, query));
+        } else if (market['type'] === 'future') {
+            response = await this.privateDeliveryPostSettlePositionsContractMargin (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
+        }
         return this.parseMarginModification (response, market);
     }
 

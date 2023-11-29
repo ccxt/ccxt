@@ -865,6 +865,46 @@
                     }
                 ]
             }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Reduce Margin - swap",
+                "method": "reduceMargin",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/positions/BTC_USDT/margin?change=-1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1
+                ]
+            },
+            {
+                "description": "Reduce Margin - swap",
+                "method": "reduceMargin",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/positions/BTC_USDT_20240329/margin?change=-1",
+                "input": [
+                    "BTC/USDT:USDT-240329",
+                    1
+                ]
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "Add Margin - swap",
+                "method": "addMargin",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/positions/BTC_USDT/margin?change=1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1
+                ]
+            },
+            {
+                "description": "Add Margin - swap",
+                "method": "addMargin",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/positions/BTC_USDT_20240329/margin?change=1",
+                "input": [
+                    "BTC/USDT:USDT-240329",
+                    1
+                ]
+            }
         ]
     }
 }
