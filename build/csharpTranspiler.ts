@@ -87,6 +87,7 @@ class NewTranspiler {
             [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
             // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
+            [/future(\.reject.+)/gm, '((Future)future)$1'],
             [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
             [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
             [/\(client,/g, '(client as WebSocketClient,'],
