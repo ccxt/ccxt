@@ -1746,7 +1746,7 @@ export default class bybit extends bybitRest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     handleErrorMessage (client: Client, message) {
