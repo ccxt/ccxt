@@ -508,6 +508,16 @@
                     "BTC/USDT:USDT-240329"
                 ]
             }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch Funding Rate History - swap",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/funding_rate?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

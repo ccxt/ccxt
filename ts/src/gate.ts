@@ -2979,8 +2979,7 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = 'publicFuturesGetSettleFundingRate';
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.publicFuturesGetSettleFundingRate (this.extend (request, query));
         //
         //     {
         //         "r": "0.00063521",
