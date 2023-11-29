@@ -300,9 +300,7 @@
                 "url": "https://api.coinex.com/v1/margin/config?access_id=86AC33D5904F432C9C9DDD4708233F38&tonce=1700202207814",
                 "input": []
             }
-        ]
-    },
-    "disabledTests": {
+        ],
         "cancelOrders": [
             {
                 "description": "Cancel multiple spot orders at once",
@@ -330,5 +328,7 @@
                 "output": "access_id=86AC33D5904F432C9C9DDD4708233F38&market=BTCUSDT&order_ids=115938781741,115938847458&timestamp=1701232526724"
             }
         ]
+    },
+    "disabledTests": {
     }
 }

@@ -2321,12 +2321,13 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
+        const idsString = ids.join (',');
         let response = undefined;
         if (market['spot']) {
-            request['batch_ids'] = ids.toString ();
+            request['batch_ids'] = idsString;
             response = await this.privateDeleteOrderPendingBatch (this.extend (request, params));
         } else {
-            request['order_ids'] = ids.toString ();
+            request['order_ids'] = idsString;
             response = await this.perpetualPrivatePostOrderCancelBatch (this.extend (request, params));
         }
         //
