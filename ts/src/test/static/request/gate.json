@@ -355,7 +355,7 @@
         ],
         "setLeverage": [
             {
-                "description": "Set linear leverage",
+                "description": "Set linear leverage - swap",
                 "method": "setLeverage",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/positions/LTC_USDT/leverage?leverage=5",
                 "input": [
@@ -364,12 +364,32 @@
                 ]
             },
             {
-                "description": "Set linear leverage",
+                "description": "Set linear leverage - future",
                 "method": "setLeverage",
                 "url": "https://api.gateio.ws/api/v4/delivery/usdt/positions/BTC_USDT_20240329/leverage?leverage=5",
                 "input": [
                     5,
                     "BTC/USDT:USDT-240329"
+                ]
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "Fetch Leverage Tiers - swap",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/contracts",
+                "input": [
+                    null,
+                    {"type": "swap"}
+                ]
+            },
+            {
+                "description": "Fetch Leverage Tiers - future",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/delivery/btc/contracts",
+                "input": [
+                    null,
+                    {"type": "future"}
                 ]
             }
         ],

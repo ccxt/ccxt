@@ -5460,11 +5460,14 @@ export default class gate extends Exchange {
         if (type !== 'future' && type !== 'swap') {
             throw new BadRequest (this.id + ' fetchLeverageTiers only supports swap and future');
         }
-        const method = this.getSupportedMapping (type, {
-            'swap': 'publicFuturesGetSettleContracts',
-            'future': 'publicDeliveryGetSettleContracts',
-        });
-        const response = await this[method] (this.extend (request, requestParams));
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.publicFuturesGetSettleContracts (this.extend (request, requestParams));
+        } else if (type === 'future') {
+            response = await this.publicDeliveryGetSettleContracts (this.extend (request, requestParams));
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverageTiers() not support this market type');
+        }
         //
         // Perpetual swap
         //
