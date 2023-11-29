@@ -1,58 +1,29 @@
-'use strict';
-
-// ----------------------------------------------------------------------------
 
 import assert from 'assert';
 import testOrder from '../../../test/Exchange/base/test.order.js';
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import errors from '../../../base/errors.js';
 
-/*  ------------------------------------------------------------------------ */
-
 async function testWatchOrders (exchange, skippedProperties, symbol) {
-
-    // log (symbol.green, 'watching orders...')
-
     const method = 'watchOrders';
-
-    if (!exchange.has[method]) {
-        console.log (exchange.id, 'does not support', method + '() method');
-        return;
-    }
-
-    let response = undefined;
-
-    let now = Date.now ();
-    const ends = now + 10000;
-
+    let now = exchange.milliseconds ();
+    const ends = now + exchange.wsMethodsTestTimeoutMS;
     while (now < ends) {
-
         try {
-
-            response = await exchange[method] (symbol);
-
-            now = Date.now ();
-
-            assert (response instanceof Array);
-
-            console.log (exchange.iso8601 (now), exchange.id, symbol.green, method, (Object.values (response).length.toString () as any).green, 'orders');
-
-            // log.noLocate (asTable (response))
-
+            const response = await exchange[method] (symbol);
+            assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
+            now = exchange.milliseconds ();
             for (let i = 0; i < response.length; i++) {
-                const order = response[i];
-                testOrder (exchange, skippedProperties, method, order, symbol, now);
+                testOrder (exchange, skippedProperties, method, response[i], symbol, now);
             }
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
         } catch (e) {
-
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof errors.OperationFailed)) {
                 throw e;
             }
-
-            now = Date.now ();
+            now = exchange.milliseconds ();
         }
     }
-
-    return response;
 }
 
 export default testWatchOrders;
