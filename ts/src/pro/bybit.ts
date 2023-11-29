@@ -1733,7 +1733,7 @@ export default class bybit extends bybitRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const expiresInt = this.milliseconds () + 10000;
-            const expires = expiresInt.toString ();
+            const expires = this.numberToString (expiresInt);
             const path = 'GET/realtime';
             const auth = path + expires;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256, 'hex');
