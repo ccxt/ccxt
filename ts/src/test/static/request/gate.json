@@ -518,6 +518,40 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch Trades - spot",
+                "method": "fetchTrades",
+                "url": "https://api.gateio.ws/api/v4/spot/trades?currency_pair=BTC_USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch Trades - swap",
+                "method": "fetchTrades",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/trades?contract=BTC_USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch Trades - future",
+                "method": "fetchTrades",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/trades?contract=BTC_USDT_20240329",
+                "input": [
+                    "BTC/USDT:USDT-240329"
+                ]
+            },
+            {
+                "description": "Fetch Trades - option",
+                "method": "fetchTrades",
+                "url": "https://api.gateio.ws/api/v4/options/trades?contract=BTC_USDT-20240126-20000-C",
+                "input": [
+                    "BTC/USDT:USDT-240126-20000-C"
+                ]
+            }
         ]
     }
 }

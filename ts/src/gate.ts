@@ -3095,13 +3095,6 @@ export default class gate extends Exchange {
         //     };
         //
         const [ request, query ] = this.prepareRequest (market, undefined, params);
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'publicSpotGetTrades',
-            'margin': 'publicSpotGetTrades',
-            'swap': 'publicFuturesGetSettleTrades',
-            'future': 'publicDeliveryGetSettleTrades',
-            'option': 'publicOptionsGetTrades',
-        });
         const until = this.safeInteger2 (params, 'to', 'until');
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
@@ -3113,7 +3106,18 @@ export default class gate extends Exchange {
         if (since !== undefined && (market['contract'])) {
             request['from'] = this.parseToInt (since / 1000);
         }
-        const response = await this[method] (this.extend (request, query));
+        let response = undefined;
+        if (market['type'] === 'spot' || market['type'] === 'margin') {
+            response = await this.publicSpotGetTrades (this.extend (request, query));
+        } else if (market['type'] === 'swap') {
+            response = await this.publicFuturesGetSettleTrades (this.extend (request, query));
+        } else if (market['type'] === 'future') {
+            response = await this.publicDeliveryGetSettleTrades (this.extend (request, query));
+        } else if (market['type'] === 'option') {
+            response = await this.publicOptionsGetTrades (this.extend (request, query));
+        } else {
+            throw new NotSupported (this.id + ' fetchTrades() not support this market type.');
+        }
         //
         // spot
         //
