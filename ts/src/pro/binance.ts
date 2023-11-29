@@ -1314,18 +1314,21 @@ export default class binance extends binanceRest {
             return;
         }
         let method = 'publicPutUserDataStream';
+        const request = {};
+        const symbol = this.safeString (params, 'symbol');
+        const sendParams = this.omit (params, [ 'type', 'symbol' ]);
         if (type === 'future') {
             method = 'fapiPrivatePutListenKey';
         } else if (type === 'delivery') {
             method = 'dapiPrivatePutListenKey';
-        } else if (type === 'margin') {
-            method = 'sapiPutUserDataStream';
+        } else {
+            request['listenKey'] = listenKey;
+            if (type === 'margin') {
+                request['symbol'] = symbol;
+                method = 'sapiPutUserDataStream';
+            }
         }
-        const request = {
-            'listenKey': listenKey,
-        };
         const time = this.milliseconds ();
-        const sendParams = this.omit (params, 'type');
         try {
             await this[method] (this.extend (request, sendParams));
         } catch (error) {
