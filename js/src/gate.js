@@ -2238,11 +2238,16 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = this.getSupportedMapping(type, {
-            'swap': 'privateFuturesGetSettleAccountBook',
-            'future': 'privateDeliveryGetSettleAccountBook',
-        });
-        const response = await this[method](this.extend(request, requestParams));
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.privateFuturesGetSettleAccountBook(this.extend(request, requestParams));
+        }
+        else if (type === 'future') {
+            response = await this.privateDeliveryGetSettleAccountBook(this.extend(request, requestParams));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchFundingHistory() only support swap & future market type');
+        }
         //
         //    [
         //        {
@@ -2315,18 +2320,26 @@ export default class gate extends Exchange {
         //     };
         //
         const [request, query] = this.prepareRequest(market, market['type'], params);
-        const method = this.getSupportedMapping(market['type'], {
-            'spot': 'publicSpotGetOrderBook',
-            'margin': 'publicSpotGetOrderBook',
-            'swap': 'publicFuturesGetSettleOrderBook',
-            'future': 'publicDeliveryGetSettleOrderBook',
-            'option': 'publicOptionsGetOrderBook',
-        });
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
         request['with_id'] = true;
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (market['spot'] || market['margin']) {
+            response = await this.publicSpotGetOrderBook(this.extend(request, query));
+        }
+        else if (market['swap']) {
+            response = await this.publicFuturesGetSettleOrderBook(this.extend(request, query));
+        }
+        else if (market['future']) {
+            response = await this.publicDeliveryGetSettleOrderBook(this.extend(request, query));
+        }
+        else if (market['option']) {
+            response = await this.publicOptionsGetOrderBook(this.extend(request, query));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOrderBook() not support this market type');
+        }
         //
         // spot
         //
@@ -2418,19 +2431,25 @@ export default class gate extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [request, query] = this.prepareRequest(market, undefined, params);
-        const method = this.getSupportedMapping(market['type'], {
-            'spot': 'publicSpotGetTickers',
-            'margin': 'publicSpotGetTickers',
-            'swap': 'publicFuturesGetSettleTickers',
-            'future': 'publicDeliveryGetSettleTickers',
-            'option': 'publicOptionsGetTickers',
-        });
-        if (market['option']) {
+        let response = undefined;
+        if (market['spot'] || market['margin']) {
+            response = await this.publicSpotGetTickers(this.extend(request, query));
+        }
+        else if (market['swap']) {
+            response = await this.publicFuturesGetSettleTickers(this.extend(request, query));
+        }
+        else if (market['future']) {
+            response = await this.publicDeliveryGetSettleTickers(this.extend(request, query));
+        }
+        else if (market['option']) {
             const marketId = market['id'];
             const optionParts = marketId.split('-');
             request['underlying'] = this.safeString(optionParts, 0);
+            response = await this.publicOptionsGetTickers(this.extend(request, query));
         }
-        const response = await this[method](this.extend(request, query));
+        else {
+            throw new NotSupported(this.id + ' fetchTicker() not support this market type');
+        }
         let ticker = undefined;
         if (market['option']) {
             for (let i = 0; i < response.length; i++) {
@@ -2580,20 +2599,26 @@ export default class gate extends Exchange {
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchTickers', market, params);
         const [request, requestParams] = this.prepareRequest(undefined, type, query);
-        const method = this.getSupportedMapping(type, {
-            'spot': 'publicSpotGetTickers',
-            'margin': 'publicSpotGetTickers',
-            'swap': 'publicFuturesGetSettleTickers',
-            'future': 'publicDeliveryGetSettleTickers',
-            'option': 'publicOptionsGetTickers',
-        });
-        if (type === 'option') {
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            response = await this.publicSpotGetTickers(this.extend(request, requestParams));
+        }
+        else if (type === 'swap') {
+            response = await this.publicFuturesGetSettleTickers(this.extend(request, requestParams));
+        }
+        else if (type === 'future') {
+            response = await this.publicDeliveryGetSettleTickers(this.extend(request, requestParams));
+        }
+        else if (type === 'option') {
             this.checkRequiredArgument('fetchTickers', symbols, 'symbols');
             const marketId = market['id'];
             const optionParts = marketId.split('-');
             request['underlying'] = this.safeString(optionParts, 0);
+            response = await this.publicOptionsGetTickers(this.extend(request, requestParams));
         }
-        const response = await this[method](this.extend(request, requestParams));
+        else {
+            throw new NotSupported(this.id + ' fetchTickers() not support this market type');
+        }
         return this.parseTickers(response, symbols);
     }
     parseBalanceHelper(entry) {
@@ -2624,18 +2649,36 @@ export default class gate extends Exchange {
             const market = this.market(symbol);
             request['currency_pair'] = market['id'];
         }
-        const method = this.getSupportedMapping(type, {
-            'spot': this.getSupportedMapping(marginMode, {
-                'spot': 'privateSpotGetAccounts',
-                'margin': 'privateMarginGetAccounts',
-                'cross_margin': 'privateMarginGetCrossAccounts',
-            }),
-            'funding': 'privateMarginGetFundingAccounts',
-            'swap': 'privateFuturesGetSettleAccounts',
-            'future': 'privateDeliveryGetSettleAccounts',
-            'option': 'privateOptionsGetAccounts',
-        });
-        let response = await this[method](this.extend(request, requestQuery));
+        let response = undefined;
+        if (type === 'spot') {
+            if (marginMode === 'spot') {
+                response = await this.privateSpotGetAccounts(this.extend(request, requestQuery));
+            }
+            else if (marginMode === 'margin') {
+                response = await this.privateMarginGetAccounts(this.extend(request, requestQuery));
+            }
+            else if (marginMode === 'cross_margin') {
+                response = await this.privateMarginGetCrossAccounts(this.extend(request, requestQuery));
+            }
+            else {
+                throw new NotSupported(this.id + ' fetchBalance() not support this marginMode');
+            }
+        }
+        else if (type === 'funding') {
+            response = await this.privateMarginGetFundingAccounts(this.extend(request, requestQuery));
+        }
+        else if (type === 'swap') {
+            response = await this.privateFuturesGetSettleAccounts(this.extend(request, requestQuery));
+        }
+        else if (type === 'future') {
+            response = await this.privateDeliveryGetSettleAccounts(this.extend(request, requestQuery));
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsGetAccounts(this.extend(request, requestQuery));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchBalance() not support this market type');
+        }
         const contract = ((type === 'swap') || (type === 'future') || (type === 'option'));
         if (contract) {
             response = [response];
@@ -2855,23 +2898,7 @@ export default class gate extends Exchange {
         let request = {};
         [request, params] = this.prepareRequest(market, undefined, params);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        let method = 'publicSpotGetCandlesticks';
         let maxLimit = 1000;
-        if (market['contract']) {
-            maxLimit = 1999;
-            if (market['future']) {
-                method = 'publicDeliveryGetSettleCandlesticks';
-            }
-            else if (market['swap']) {
-                method = 'publicFuturesGetSettleCandlesticks';
-            }
-            const isMark = (price === 'mark');
-            const isIndex = (price === 'index');
-            if (isMark || isIndex) {
-                request['contract'] = price + '_' + market['id'];
-                params = this.omit(params, 'price');
-            }
-        }
         limit = (limit === undefined) ? maxLimit : Math.min(limit, maxLimit);
         let until = this.safeInteger(params, 'until');
         if (until !== undefined) {
@@ -2898,7 +2925,25 @@ export default class gate extends Exchange {
             }
             request['limit'] = limit;
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (market['contract']) {
+            maxLimit = 1999;
+            const isMark = (price === 'mark');
+            const isIndex = (price === 'index');
+            if (isMark || isIndex) {
+                request['contract'] = price + '_' + market['id'];
+                params = this.omit(params, 'price');
+            }
+            if (market['future']) {
+                response = await this.publicDeliveryGetSettleCandlesticks(this.extend(request, params));
+            }
+            else if (market['swap']) {
+                response = await this.publicFuturesGetSettleCandlesticks(this.extend(request, params));
+            }
+        }
+        else {
+            response = await this.publicSpotGetCandlesticks(this.extend(request, params));
+        }
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
     async fetchOptionOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -2935,8 +2980,7 @@ export default class gate extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = 'publicFuturesGetSettleFundingRate';
-        const response = await this[method](this.extend(request, query));
+        const response = await this.publicFuturesGetSettleFundingRate(this.extend(request, query));
         //
         //     {
         //         "r": "0.00063521",
@@ -3051,13 +3095,6 @@ export default class gate extends Exchange {
         //     };
         //
         const [request, query] = this.prepareRequest(market, undefined, params);
-        const method = this.getSupportedMapping(market['type'], {
-            'spot': 'publicSpotGetTrades',
-            'margin': 'publicSpotGetTrades',
-            'swap': 'publicFuturesGetSettleTrades',
-            'future': 'publicDeliveryGetSettleTrades',
-            'option': 'publicOptionsGetTrades',
-        });
         const until = this.safeInteger2(params, 'to', 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
@@ -3069,7 +3106,22 @@ export default class gate extends Exchange {
         if (since !== undefined && (market['contract'])) {
             request['from'] = this.parseToInt(since / 1000);
         }
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (market['type'] === 'spot' || market['type'] === 'margin') {
+            response = await this.publicSpotGetTrades(this.extend(request, query));
+        }
+        else if (market['swap']) {
+            response = await this.publicFuturesGetSettleTrades(this.extend(request, query));
+        }
+        else if (market['future']) {
+            response = await this.publicDeliveryGetSettleTrades(this.extend(request, query));
+        }
+        else if (market['type'] === 'option') {
+            response = await this.publicOptionsGetTrades(this.extend(request, query));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchTrades() not support this market type.');
+        }
         //
         // spot
         //
@@ -3215,14 +3267,22 @@ export default class gate extends Exchange {
         if (until !== undefined) {
             request['to'] = this.parseToInt(until / 1000);
         }
-        const method = this.getSupportedMapping(type, {
-            'spot': 'privateSpotGetMyTrades',
-            'margin': 'privateSpotGetMyTrades',
-            'swap': 'privateFuturesGetSettleMyTradesTimerange',
-            'future': 'privateDeliveryGetSettleMyTrades',
-            'option': 'privateOptionsGetMyTrades',
-        });
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            response = await this.privateSpotGetMyTrades(this.extend(request, params));
+        }
+        else if (type === 'swap') {
+            response = await this.privateFuturesGetSettleMyTradesTimerange(this.extend(request, params));
+        }
+        else if (type === 'future') {
+            response = await this.privateDeliveryGetSettleMyTrades(this.extend(request, params));
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsGetMyTrades(this.extend(request, params));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchMyTrades() not support this market type.');
+        }
         //
         // spot
         //
@@ -4473,15 +4533,37 @@ export default class gate extends Exchange {
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         const [request, requestParams] = contract ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, stop, query);
         request['order_id'] = orderId;
-        const methodMiddle = stop ? 'PriceOrders' : 'Orders';
-        const method = this.getSupportedMapping(type, {
-            'spot': 'privateSpotGet' + methodMiddle + 'OrderId',
-            'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
-            'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
-            'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
-            'option': 'privateOptionsGetOrdersOrderId',
-        });
-        const response = await this[method](this.extend(request, requestParams));
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            if (stop) {
+                response = await this.privateSpotGetPriceOrdersOrderId(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateSpotGetOrdersOrderId(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'swap') {
+            if (stop) {
+                response = await this.privateFuturesGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateFuturesGetSettleOrdersOrderId(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'future') {
+            if (stop) {
+                response = await this.privateDeliveryGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateDeliveryGetSettleOrdersOrderId(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsGetOrdersOrderId(this.extend(request, requestParams));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOrder() not support this market type');
+        }
         return this.parseOrder(response, market);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4546,19 +4628,41 @@ export default class gate extends Exchange {
         if (since !== undefined && spot) {
             request['from'] = this.parseToInt(since / 1000);
         }
-        let methodTail = stop ? 'PriceOrders' : 'Orders';
         const openSpotOrders = spot && (status === 'open') && !stop;
-        if (openSpotOrders) {
-            methodTail = 'OpenOrders';
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            if (openSpotOrders) {
+                response = await this.privateSpotGetOpenOrders(this.extend(request, requestParams));
+            }
+            else if (stop) {
+                response = await this.privateSpotGetPriceOrders(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateSpotGetOrders(this.extend(request, requestParams));
+            }
         }
-        const method = this.getSupportedMapping(type, {
-            'spot': 'privateSpotGet' + methodTail,
-            'margin': 'privateSpotGet' + methodTail,
-            'swap': 'privateFuturesGetSettle' + methodTail,
-            'future': 'privateDeliveryGetSettle' + methodTail,
-            'option': 'privateOptionsGetOrders',
-        });
-        const response = await this[method](this.extend(request, requestParams));
+        else if (type === 'swap') {
+            if (stop) {
+                response = await this.privateFuturesGetSettlePriceOrders(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateFuturesGetSettleOrders(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'future') {
+            if (stop) {
+                response = await this.privateDeliveryGetSettlePriceOrders(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateDeliveryGetSettleOrders(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsGetOrders(this.extend(request, requestParams));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOrders() not support this market type');
+        }
         //
         // spot open orders
         //
@@ -4738,15 +4842,37 @@ export default class gate extends Exchange {
         const [type, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         const [request, requestParams] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
         request['order_id'] = id;
-        const pathMiddle = stop ? 'Price' : '';
-        const method = this.getSupportedMapping(type, {
-            'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
-            'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
-            'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
-            'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
-            'option': 'privateOptionsDeleteOrdersOrderId',
-        });
-        const response = await this[method](this.extend(request, requestParams));
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            if (stop) {
+                response = await this.privateSpotDeletePriceOrdersOrderId(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateSpotDeleteOrdersOrderId(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'swap') {
+            if (stop) {
+                response = await this.privateFuturesDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateFuturesDeleteSettleOrdersOrderId(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'future') {
+            if (stop) {
+                response = await this.privateDeliveryDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateDeliveryDeleteSettleOrdersOrderId(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsDeleteOrdersOrderId(this.extend(request, requestParams));
+        }
+        else {
+            throw new NotSupported(this.id + ' cancelOrder() not support this market type');
+        }
         //
         // spot
         //
@@ -4849,15 +4975,37 @@ export default class gate extends Exchange {
         params = this.omit(params, 'stop');
         const [type, query] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         const [request, requestParams] = (type === 'spot') ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
-        const methodTail = stop ? 'PriceOrders' : 'Orders';
-        const method = this.getSupportedMapping(type, {
-            'spot': 'privateSpotDelete' + methodTail,
-            'margin': 'privateSpotDelete' + methodTail,
-            'swap': 'privateFuturesDeleteSettle' + methodTail,
-            'future': 'privateDeliveryDeleteSettle' + methodTail,
-            'option': 'privateOptionsDeleteOrders',
-        });
-        const response = await this[method](this.extend(request, requestParams));
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            if (stop) {
+                response = await this.privateSpotDeletePriceOrders(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateSpotDeleteOrders(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'swap') {
+            if (stop) {
+                response = await this.privateFuturesDeleteSettlePriceOrders(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateFuturesDeleteSettleOrders(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'future') {
+            if (stop) {
+                response = await this.privateDeliveryDeleteSettlePriceOrders(this.extend(request, requestParams));
+            }
+            else {
+                response = await this.privateDeliveryDeleteSettleOrders(this.extend(request, requestParams));
+            }
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsDeleteOrders(this.extend(request, requestParams));
+        }
+        else {
+            throw new NotSupported(this.id + ' cancelAllOrders() not support this market type');
+        }
         //
         //    [
         //        {
@@ -4987,10 +5135,6 @@ export default class gate extends Exchange {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const method = this.getSupportedMapping(market['type'], {
-            'swap': 'privateFuturesPostSettlePositionsContractLeverage',
-            'future': 'privateDeliveryPostSettlePositionsContractLeverage',
-        });
         const [request, query] = this.prepareRequest(market, undefined, params);
         const defaultMarginMode = this.safeString2(this.options, 'marginMode', 'defaultMarginMode');
         const crossLeverageLimit = this.safeString(query, 'cross_leverage_limit');
@@ -5006,7 +5150,16 @@ export default class gate extends Exchange {
         else {
             request['leverage'] = leverage.toString();
         }
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.privateFuturesPostSettlePositionsContractLeverage(this.extend(request, query));
+        }
+        else if (market['future']) {
+            response = await this.privateDeliveryPostSettlePositionsContractLeverage(this.extend(request, query));
+        }
+        else {
+            throw new NotSupported(this.id + ' setLeverage() not support this market type');
+        }
         //
         //     {
         //         "value": "0",
@@ -5167,10 +5320,10 @@ export default class gate extends Exchange {
         [request, params] = this.prepareRequest(market, market['type'], params);
         const extendedRequest = this.extend(request, params);
         let response = undefined;
-        if (market['type'] === 'swap') {
+        if (market['swap']) {
             response = await this.privateFuturesGetSettlePositionsContract(extendedRequest);
         }
-        else if (market['type'] === 'future') {
+        else if (market['future']) {
             response = await this.privateDeliveryGetSettlePositionsContract(extendedRequest);
         }
         else if (market['type'] === 'option') {
@@ -5350,11 +5503,16 @@ export default class gate extends Exchange {
         if (type !== 'future' && type !== 'swap') {
             throw new BadRequest(this.id + ' fetchLeverageTiers only supports swap and future');
         }
-        const method = this.getSupportedMapping(type, {
-            'swap': 'publicFuturesGetSettleContracts',
-            'future': 'publicDeliveryGetSettleContracts',
-        });
-        const response = await this[method](this.extend(request, requestParams));
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.publicFuturesGetSettleContracts(this.extend(request, requestParams));
+        }
+        else if (type === 'future') {
+            response = await this.publicDeliveryGetSettleContracts(this.extend(request, requestParams));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchLeverageTiers() not support this market type');
+        }
         //
         // Perpetual swap
         //
@@ -5860,11 +6018,16 @@ export default class gate extends Exchange {
         const market = this.market(symbol);
         const [request, query] = this.prepareRequest(market, undefined, params);
         request['change'] = this.numberToString(amount);
-        const method = this.getSupportedMapping(market['type'], {
-            'swap': 'privateFuturesPostSettlePositionsContractMargin',
-            'future': 'privateDeliveryPostSettlePositionsContractMargin',
-        });
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.privateFuturesPostSettlePositionsContractMargin(this.extend(request, query));
+        }
+        else if (market['future']) {
+            response = await this.privateDeliveryPostSettlePositionsContractMargin(this.extend(request, query));
+        }
+        else {
+            throw new NotSupported(this.id + ' modifyMarginHelper() not support this market type');
+        }
         return this.parseMarginModification(response, market);
     }
     parseMarginModification(data, market = undefined) {
