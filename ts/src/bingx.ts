@@ -2043,7 +2043,7 @@ export default class bingx extends Exchange {
         const statusId = this.safeString2 (order, 'status', 'X');
         let feeCurrencyCode = this.safeString2 (order, 'feeAsset', 'N');
         const feeCost = this.safeStringN (order, [ 'fee', 'commission', 'n' ]);
-        if (feeCurrencyCode === undefined) {
+        if ((feeCurrencyCode === undefined) && market['spot']) {
             if (side === 'buy') {
                 feeCurrencyCode = market['base'];
             } else {
