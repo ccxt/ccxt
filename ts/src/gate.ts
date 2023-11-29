@@ -3109,9 +3109,9 @@ export default class gate extends Exchange {
         let response = undefined;
         if (market['type'] === 'spot' || market['type'] === 'margin') {
             response = await this.publicSpotGetTrades (this.extend (request, query));
-        } else if (market['type'] === 'swap') {
+        } else if (market['swap']) {
             response = await this.publicFuturesGetSettleTrades (this.extend (request, query));
-        } else if (market['type'] === 'future') {
+        } else if (market['future']) {
             response = await this.publicDeliveryGetSettleTrades (this.extend (request, query));
         } else if (market['type'] === 'option') {
             response = await this.publicOptionsGetTrades (this.extend (request, query));
@@ -5113,9 +5113,9 @@ export default class gate extends Exchange {
             request['leverage'] = leverage.toString ();
         }
         let response = undefined;
-        if (market['type'] === 'swap') {
+        if (market['swap']) {
             response = await this.privateFuturesPostSettlePositionsContractLeverage (this.extend (request, query));
-        } else if (market['type'] === 'future') {
+        } else if (market['future']) {
             response = await this.privateDeliveryPostSettlePositionsContractLeverage (this.extend (request, query));
         } else {
             throw new NotSupported (this.id + ' setLeverage() not support this market type');
@@ -5280,9 +5280,9 @@ export default class gate extends Exchange {
         [ request, params ] = this.prepareRequest (market, market['type'], params);
         const extendedRequest = this.extend (request, params);
         let response = undefined;
-        if (market['type'] === 'swap') {
+        if (market['swap']) {
             response = await this.privateFuturesGetSettlePositionsContract (extendedRequest);
-        } else if (market['type'] === 'future') {
+        } else if (market['future']) {
             response = await this.privateDeliveryGetSettlePositionsContract (extendedRequest);
         } else if (market['type'] === 'option') {
             response = await this.privateOptionsGetPositionsContract (extendedRequest);
@@ -5975,9 +5975,9 @@ export default class gate extends Exchange {
         const [ request, query ] = this.prepareRequest (market, undefined, params);
         request['change'] = this.numberToString (amount);
         let response = undefined;
-        if (market['type'] === 'swap') {
+        if (market['swap']) {
             response = await this.privateFuturesPostSettlePositionsContractMargin (this.extend (request, query));
-        } else if (market['type'] === 'future') {
+        } else if (market['future']) {
             response = await this.privateDeliveryPostSettlePositionsContractMargin (this.extend (request, query));
         } else {
             throw new NotSupported (this.id + ' modifyMarginHelper() not support this market type');
