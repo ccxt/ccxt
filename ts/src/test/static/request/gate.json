@@ -690,6 +690,92 @@
                     }
                 ]
             }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel Order - spot",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders/d82cc6af-b131-4398-b269-ddbafa760a19?account=spot&currency_pair=BTC_USDT",
+                "input": [
+                    "d82cc6af-b131-4398-b269-ddbafa760a19",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Cancel Order - swap",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders/d82cc6af-b131-4398-b269-ddbafa760a19?contract=BTC_USDT",
+                "input": [
+                    "d82cc6af-b131-4398-b269-ddbafa760a19",
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Cancel Order - future",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/orders/d82cc6af-b131-4398-b269-ddbafa760a19?contract=BTC_USDT_20240329",
+                "input": [
+                    "d82cc6af-b131-4398-b269-ddbafa760a19",
+                    "BTC/USDT:USDT-240329"
+                ]
+            },
+            {
+                "description": "Cancel Order - option",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/options/orders/d82cc6af-b131-4398-b269-ddbafa760a19?contract=BTC_USDT-20240126-20000-C",
+                "input": [
+                    "d82cc6af-b131-4398-b269-ddbafa760a19",
+                    "BTC/USDT:USDT-240126-20000-C"
+                ]
+            },
+            {
+                "description": "Cancel Order - spot & stop order",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/price_orders/d82cc6af-b131-4398-b269-ddbafa760a19",
+                "input": [
+                    "d82cc6af-b131-4398-b269-ddbafa760a19",
+                    "BTC/USDT",
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel Order - swap & stop order",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders/d82cc6af-b131-4398-b269-ddbafa760a19?contract=BTC_USDT",
+                "input": [
+                    "d82cc6af-b131-4398-b269-ddbafa760a19",
+                    "BTC/USDT:USDT",
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel Order - future & stop order",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/price_orders/d82cc6af-b131-4398-b269-ddbafa760a19?contract=BTC_USDT_20240329",
+                "input": [
+                    "d82cc6af-b131-4398-b269-ddbafa760a19",
+                    "BTC/USDT:USDT-240329",
+                    {
+                        "stop": true
+                    }
+                ]
+            },
+            {
+                "description": "Cancel Order - option & stop order",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/options/orders/d82cc6af-b131-4398-b269-ddbafa760a19?contract=BTC_USDT-20240126-20000-C",
+                "input": [
+                    "d82cc6af-b131-4398-b269-ddbafa760a19",
+                    "BTC/USDT:USDT-240126-20000-C",
+                    {
+                        "stop": true
+                    }
+                ]
+            }
         ]
     }
 }

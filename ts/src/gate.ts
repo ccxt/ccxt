@@ -4635,7 +4635,7 @@ export default class gate extends Exchange {
         } else if (type === 'option') {
             response = await this.privateOptionsGetOrders (this.extend (request, requestParams));
         } else {
-            throw new NotSupported (this.id + ' fetchOrder() not support this market type');
+            throw new NotSupported (this.id + ' fetchOrders() not support this market type');
         }
         //
         // spot open orders
@@ -4817,15 +4817,30 @@ export default class gate extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
         request['order_id'] = id;
-        const pathMiddle = stop ? 'Price' : '';
-        const method = this.getSupportedMapping (type, {
-            'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
-            'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
-            'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
-            'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
-            'option': 'privateOptionsDeleteOrdersOrderId',
-        });
-        const response = await this[method] (this.extend (request, requestParams));
+        let response = undefined;
+        if (type === 'spot' || type === 'margin') {
+            if (stop) {
+                response = await this.privateSpotDeletePriceOrdersOrderId (this.extend (request, requestParams));
+            } else {
+                response = await this.privateSpotDeleteOrdersOrderId (this.extend (request, requestParams));
+            }
+        } else if (type === 'swap') {
+            if (stop) {
+                response = await this.privateFuturesDeleteSettlePriceOrdersOrderId (this.extend (request, requestParams));
+            } else {
+                response = await this.privateFuturesDeleteSettleOrdersOrderId (this.extend (request, requestParams));
+            }
+        } else if (type === 'future') {
+            if (stop) {
+                response = await this.privateDeliveryDeleteSettlePriceOrdersOrderId (this.extend (request, requestParams));
+            } else {
+                response = await this.privateDeliveryDeleteSettleOrdersOrderId (this.extend (request, requestParams));
+            }
+        } else if (type === 'option') {
+            response = await this.privateOptionsDeleteOrdersOrderId (this.extend (request, requestParams));
+        } else {
+            throw new NotSupported (this.id + ' cancelOrder() not support this market type');
+        }
         //
         // spot
         //
