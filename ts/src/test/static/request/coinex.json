@@ -3,7 +3,8 @@
     "skipKeys": [
         "access_id",
         "timestamp",
-        "tonce"
+        "tonce",
+        "client_id"
     ],
     "outputType": "urlencoded",
     "methods": {
