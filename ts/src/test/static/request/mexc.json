@@ -18,6 +18,30 @@
                     1000,
                     0.005
                 ]
+            },
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=BUY&type=MARKET&quoteOrderQty=6&price=6&timestamp=1701338981732&recvWindow=5000&signature=b32153696c3ea535b0c796cefd1b5a576b140a6ba0bcb80c9bde15cee3384059",
+                "input": [
+                  "ATLAS/USDT",
+                  "market",
+                  "buy",
+                  1,
+                  6
+                ]
+            },
+            {
+                "description": "Spot limit sell",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v3/order?symbol=ATLASUSDT&side=SELL&type=LIMIT&quantity=1500&price=0.007&timestamp=1701339548556&recvWindow=5000&signature=878d2916312d109beef820082be7a9075c4bcaab6f8260b2c164222a458a76af",
+                "input": [
+                  "ATLAS/USDT",
+                  "limit",
+                  "sell",
+                  1500,
+                  0.007
+                ]
             }
         ],
         "createOrders": [
