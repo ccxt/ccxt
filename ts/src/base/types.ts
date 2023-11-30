@@ -12,7 +12,7 @@ export type IndexType = number | string;
 export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
-
+export type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
 }
@@ -70,6 +70,7 @@ export interface MarketInterface {
     settleId: Str;
     spot: boolean;
     strike: Num;
+    subType?: SubType;
     swap: boolean;
     symbol: string;
     taker?: Num

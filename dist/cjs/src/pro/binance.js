@@ -50,8 +50,8 @@ class binance extends binance$1 {
                 },
                 'api': {
                     'ws': {
-                        'spot': 'wss://stream.binance.com:9443/ws',
-                        'margin': 'wss://stream.binance.com:9443/ws',
+                        'spot': 'wss://stream.binance.com/ws',
+                        'margin': 'wss://stream.binance.com/ws',
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
                         'ws': 'wss://ws-api.binance.com:443/ws-api/v3',
@@ -737,7 +737,7 @@ class binance extends binance$1 {
     handleTrade(client, message) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        const isSpot = ((client.url.indexOf('/stream') > -1) || (client.url.indexOf('/testnet.binance') > -1));
+        const isSpot = ((client.url.indexOf('wss://stream.binance.com') > -1) || (client.url.indexOf('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
@@ -1306,20 +1306,23 @@ class binance extends binance$1 {
             return;
         }
         let method = 'publicPutUserDataStream';
+        const request = {};
+        const symbol = this.safeString(params, 'symbol');
+        const sendParams = this.omit(params, ['type', 'symbol']);
         if (type === 'future') {
             method = 'fapiPrivatePutListenKey';
         }
         else if (type === 'delivery') {
             method = 'dapiPrivatePutListenKey';
         }
-        else if (type === 'margin') {
-            method = 'sapiPutUserDataStream';
+        else {
+            request['listenKey'] = listenKey;
+            if (type === 'margin') {
+                request['symbol'] = symbol;
+                method = 'sapiPutUserDataStream';
+            }
         }
-        const request = {
-            'listenKey': listenKey,
-        };
         const time = this.milliseconds();
-        const sendParams = this.omit(params, 'type');
         try {
             await this[method](this.extend(request, sendParams));
         }
@@ -2073,9 +2076,7 @@ class binance extends binance$1 {
             market = this.market(symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params = this.extend(params, { 'type': market['type'], 'symbol': symbol }); // needed inside authenticate for isolated margin
         }
-        await this.authenticate(params);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
         let subType = undefined;
@@ -2086,6 +2087,8 @@ class binance extends binance$1 {
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
         }
+        params = this.extend(params, { 'type': type, 'symbol': symbol }); // needed inside authenticate for isolated margin
+        await this.authenticate(params);
         let urlType = type;
         if (type === 'margin') {
             urlType = 'spot'; // spot-margin shares the same stream as regular spot

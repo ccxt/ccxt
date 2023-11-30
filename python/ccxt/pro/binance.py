@@ -55,8 +55,8 @@ class binance(ccxt.async_support.binance):
                 },
                 'api': {
                     'ws': {
-                        'spot': 'wss://stream.binance.com:9443/ws',
-                        'margin': 'wss://stream.binance.com:9443/ws',
+                        'spot': 'wss://stream.binance.com/ws',
+                        'margin': 'wss://stream.binance.com/ws',
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
                         'ws': 'wss://ws-api.binance.com:443/ws-api/v3',
@@ -682,7 +682,7 @@ class binance(ccxt.async_support.binance):
     def handle_trade(self, client: Client, message):
         # the trade streams push raw trade information in real-time
         # each trade has a unique buyer and seller
-        isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))
+        isSpot = ((client.url.find('wss://stream.binance.com') > -1) or (client.url.find('/testnet.binance') > -1))
         marketType = 'spot' if (isSpot) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
@@ -1193,17 +1193,19 @@ class binance(ccxt.async_support.binance):
             # A network error happened: we can't renew a listen key that does not exist.
             return
         method = 'publicPutUserDataStream'
+        request = {}
+        symbol = self.safe_string(params, 'symbol')
+        sendParams = self.omit(params, ['type', 'symbol'])
         if type == 'future':
             method = 'fapiPrivatePutListenKey'
         elif type == 'delivery':
             method = 'dapiPrivatePutListenKey'
-        elif type == 'margin':
-            method = 'sapiPutUserDataStream'
-        request = {
-            'listenKey': listenKey,
-        }
+        else:
+            request['listenKey'] = listenKey
+            if type == 'margin':
+                request['symbol'] = symbol
+                method = 'sapiPutUserDataStream'
         time = self.milliseconds()
-        sendParams = self.omit(params, 'type')
         try:
             await getattr(self, method)(self.extend(request, sendParams))
         except Exception as error:
@@ -1904,8 +1906,6 @@ class binance(ccxt.async_support.binance):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-            params = self.extend(params, {'type': market['type'], 'symbol': symbol})  # needed inside authenticate for isolated margin
-        await self.authenticate(params)
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         subType = None
@@ -1914,6 +1914,8 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
+        params = self.extend(params, {'type': type, 'symbol': symbol})  # needed inside authenticate for isolated margin
+        await self.authenticate(params)
         urlType = type
         if type == 'margin':
             urlType = 'spot'  # spot-margin shares the same stream spot

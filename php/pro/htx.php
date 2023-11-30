@@ -352,9 +352,11 @@ class htx extends \ccxt\async\htx {
             // which means whenever there is an order book change at that level, it pushes an update;
             // 150-levels/400-level incremental MBP feed is based on the gap
             // between two snapshots at 100ms interval.
-            $limit = ($limit === null) ? 20 : $limit;
+            if ($limit === null) {
+                $limit = $market['spot'] ? 150 : 20;
+            }
             if (!$this->in_array($limit, $allowedLimits)) {
-                throw new ExchangeError($this->id . ' watchOrderBook swap $market accepts limits of 20 and 150 only');
+                throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 20 and 150 only');
             }
             $messageHash = null;
             if ($market['spot']) {

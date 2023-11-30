@@ -3217,5 +3217,55 @@
                 ]
             ]
         }
+    },
+    "BTC/USDT:USDT-240329": {
+        "id": "BTC_USDT_20240329",
+        "symbol": "BTC/USDT:USDT-240329",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "usdt",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.0000025,
+        "maker": -0.0000015,
+        "contractSize": 0.0001,
+        "expiry": 1711699200000,
+        "expiryDatetime": "2024-03-29T08:00:00.000Z",
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 100
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 19042.94,
+                "max": 57128.82
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null
     }
 }

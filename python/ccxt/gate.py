@@ -571,8 +571,6 @@ class gate(Exchange, ImplicitAPI):
                 'AXIS': 'Axis DeFi',
                 'BIFI': 'Bitcoin File',
                 'BOX': 'DefiBox',
-                'BTCBEAR': 'BEAR',
-                'BTCBULL': 'BULL',
                 'BYN': 'BeyondFi',
                 'EGG': 'Goose Finance',
                 'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
@@ -868,6 +866,7 @@ class gate(Exchange, ImplicitAPI):
                     'AUTO_TRIGGER_PRICE_LESS_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_LESS_LAST","message":"invalid argument: Trigger.Price must < last_price"}
                     'AUTO_TRIGGER_PRICE_GREATE_LAST': InvalidOrder,  # {"label":"AUTO_TRIGGER_PRICE_GREATE_LAST","message":"invalid argument: Trigger.Price must > last_price"}
                     'POSITION_HOLDING': BadRequest,
+                    'USER_LOAN_EXCEEDED': BadRequest,  # {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
                 },
                 'broad': {},
             },
@@ -2166,11 +2165,13 @@ class gate(Exchange, ImplicitAPI):
             request['from'] = since / 1000
         if limit is not None:
             request['limit'] = limit
-        method = self.get_supported_mapping(type, {
-            'swap': 'privateFuturesGetSettleAccountBook',
-            'future': 'privateDeliveryGetSettleAccountBook',
-        })
-        response = getattr(self, method)(self.extend(request, requestParams))
+        response = None
+        if type == 'swap':
+            response = self.privateFuturesGetSettleAccountBook(self.extend(request, requestParams))
+        elif type == 'future':
+            response = self.privateDeliveryGetSettleAccountBook(self.extend(request, requestParams))
+        else:
+            raise NotSupported(self.id + ' fetchFundingHistory() only support swap & future market type')
         #
         #    [
         #        {
@@ -2240,17 +2241,20 @@ class gate(Exchange, ImplicitAPI):
         #     }
         #
         request, query = self.prepare_request(market, market['type'], params)
-        method = self.get_supported_mapping(market['type'], {
-            'spot': 'publicSpotGetOrderBook',
-            'margin': 'publicSpotGetOrderBook',
-            'swap': 'publicFuturesGetSettleOrderBook',
-            'future': 'publicDeliveryGetSettleOrderBook',
-            'option': 'publicOptionsGetOrderBook',
-        })
         if limit is not None:
             request['limit'] = limit  # default 10, max 100
         request['with_id'] = True
-        response = getattr(self, method)(self.extend(request, query))
+        response = None
+        if market['spot'] or market['margin']:
+            response = self.publicSpotGetOrderBook(self.extend(request, query))
+        elif market['swap']:
+            response = self.publicFuturesGetSettleOrderBook(self.extend(request, query))
+        elif market['future']:
+            response = self.publicDeliveryGetSettleOrderBook(self.extend(request, query))
+        elif market['option']:
+            response = self.publicOptionsGetOrderBook(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOrderBook() not support self market type')
         #
         # spot
         #
@@ -2339,18 +2343,20 @@ class gate(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         request, query = self.prepare_request(market, None, params)
-        method = self.get_supported_mapping(market['type'], {
-            'spot': 'publicSpotGetTickers',
-            'margin': 'publicSpotGetTickers',
-            'swap': 'publicFuturesGetSettleTickers',
-            'future': 'publicDeliveryGetSettleTickers',
-            'option': 'publicOptionsGetTickers',
-        })
-        if market['option']:
+        response = None
+        if market['spot'] or market['margin']:
+            response = self.publicSpotGetTickers(self.extend(request, query))
+        elif market['swap']:
+            response = self.publicFuturesGetSettleTickers(self.extend(request, query))
+        elif market['future']:
+            response = self.publicDeliveryGetSettleTickers(self.extend(request, query))
+        elif market['option']:
             marketId = market['id']
             optionParts = marketId.split('-')
             request['underlying'] = self.safe_string(optionParts, 0)
-        response = getattr(self, method)(self.extend(request, query))
+            response = self.publicOptionsGetTickers(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchTicker() not support self market type')
         ticker = None
         if market['option']:
             for i in range(0, len(response)):
@@ -2491,19 +2497,21 @@ class gate(Exchange, ImplicitAPI):
             market = self.market(first)
         type, query = self.handle_market_type_and_params('fetchTickers', market, params)
         request, requestParams = self.prepare_request(None, type, query)
-        method = self.get_supported_mapping(type, {
-            'spot': 'publicSpotGetTickers',
-            'margin': 'publicSpotGetTickers',
-            'swap': 'publicFuturesGetSettleTickers',
-            'future': 'publicDeliveryGetSettleTickers',
-            'option': 'publicOptionsGetTickers',
-        })
-        if type == 'option':
+        response = None
+        if type == 'spot' or type == 'margin':
+            response = self.publicSpotGetTickers(self.extend(request, requestParams))
+        elif type == 'swap':
+            response = self.publicFuturesGetSettleTickers(self.extend(request, requestParams))
+        elif type == 'future':
+            response = self.publicDeliveryGetSettleTickers(self.extend(request, requestParams))
+        elif type == 'option':
             self.check_required_argument('fetchTickers', symbols, 'symbols')
             marketId = market['id']
             optionParts = marketId.split('-')
             request['underlying'] = self.safe_string(optionParts, 0)
-        response = getattr(self, method)(self.extend(request, requestParams))
+            response = self.publicOptionsGetTickers(self.extend(request, requestParams))
+        else:
+            raise NotSupported(self.id + ' fetchTickers() not support self market type')
         return self.parse_tickers(response, symbols)
 
     def parse_balance_helper(self, entry):
@@ -2532,18 +2540,26 @@ class gate(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
-        method = self.get_supported_mapping(type, {
-            'spot': self.get_supported_mapping(marginMode, {
-                'spot': 'privateSpotGetAccounts',
-                'margin': 'privateMarginGetAccounts',
-                'cross_margin': 'privateMarginGetCrossAccounts',
-            }),
-            'funding': 'privateMarginGetFundingAccounts',
-            'swap': 'privateFuturesGetSettleAccounts',
-            'future': 'privateDeliveryGetSettleAccounts',
-            'option': 'privateOptionsGetAccounts',
-        })
-        response = getattr(self, method)(self.extend(request, requestQuery))
+        response = None
+        if type == 'spot':
+            if marginMode == 'spot':
+                response = self.privateSpotGetAccounts(self.extend(request, requestQuery))
+            elif marginMode == 'margin':
+                response = self.privateMarginGetAccounts(self.extend(request, requestQuery))
+            elif marginMode == 'cross_margin':
+                response = self.privateMarginGetCrossAccounts(self.extend(request, requestQuery))
+            else:
+                raise NotSupported(self.id + ' fetchBalance() not support self marginMode')
+        elif type == 'funding':
+            response = self.privateMarginGetFundingAccounts(self.extend(request, requestQuery))
+        elif type == 'swap':
+            response = self.privateFuturesGetSettleAccounts(self.extend(request, requestQuery))
+        elif type == 'future':
+            response = self.privateDeliveryGetSettleAccounts(self.extend(request, requestQuery))
+        elif type == 'option':
+            response = self.privateOptionsGetAccounts(self.extend(request, requestQuery))
+        else:
+            raise NotSupported(self.id + ' fetchBalance() not support self market type')
         contract = ((type == 'swap') or (type == 'future') or (type == 'option'))
         if contract:
             response = [response]
@@ -2753,19 +2769,7 @@ class gate(Exchange, ImplicitAPI):
         request = {}
         request, params = self.prepare_request(market, None, params)
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        method = 'publicSpotGetCandlesticks'
         maxLimit = 1000
-        if market['contract']:
-            maxLimit = 1999
-            if market['future']:
-                method = 'publicDeliveryGetSettleCandlesticks'
-            elif market['swap']:
-                method = 'publicFuturesGetSettleCandlesticks'
-            isMark = (price == 'mark')
-            isIndex = (price == 'index')
-            if isMark or isIndex:
-                request['contract'] = price + '_' + market['id']
-                params = self.omit(params, 'price')
         limit = maxLimit if (limit is None) else min(limit, maxLimit)
         until = self.safe_integer(params, 'until')
         if until is not None:
@@ -2786,7 +2790,20 @@ class gate(Exchange, ImplicitAPI):
             if until is not None:
                 request['to'] = until
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if market['contract']:
+            maxLimit = 1999
+            isMark = (price == 'mark')
+            isIndex = (price == 'index')
+            if isMark or isIndex:
+                request['contract'] = price + '_' + market['id']
+                params = self.omit(params, 'price')
+            if market['future']:
+                response = self.publicDeliveryGetSettleCandlesticks(self.extend(request, params))
+            elif market['swap']:
+                response = self.publicFuturesGetSettleCandlesticks(self.extend(request, params))
+        else:
+            response = self.publicSpotGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_option_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
@@ -2818,8 +2835,7 @@ class gate(Exchange, ImplicitAPI):
         request, query = self.prepare_request(market, None, params)
         if limit is not None:
             request['limit'] = limit
-        method = 'publicFuturesGetSettleFundingRate'
-        response = getattr(self, method)(self.extend(request, query))
+        response = self.publicFuturesGetSettleFundingRate(self.extend(request, query))
         #
         #     {
         #         "r": "0.00063521",
@@ -2928,13 +2944,6 @@ class gate(Exchange, ImplicitAPI):
         #     }
         #
         request, query = self.prepare_request(market, None, params)
-        method = self.get_supported_mapping(market['type'], {
-            'spot': 'publicSpotGetTrades',
-            'margin': 'publicSpotGetTrades',
-            'swap': 'publicFuturesGetSettleTrades',
-            'future': 'publicDeliveryGetSettleTrades',
-            'option': 'publicOptionsGetTrades',
-        })
         until = self.safe_integer_2(params, 'to', 'until')
         if until is not None:
             params = self.omit(params, ['until'])
@@ -2943,7 +2952,17 @@ class gate(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100, max 1000
         if since is not None and (market['contract']):
             request['from'] = self.parse_to_int(since / 1000)
-        response = getattr(self, method)(self.extend(request, query))
+        response = None
+        if market['type'] == 'spot' or market['type'] == 'margin':
+            response = self.publicSpotGetTrades(self.extend(request, query))
+        elif market['swap']:
+            response = self.publicFuturesGetSettleTrades(self.extend(request, query))
+        elif market['future']:
+            response = self.publicDeliveryGetSettleTrades(self.extend(request, query))
+        elif market['type'] == 'option':
+            response = self.publicOptionsGetTrades(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchTrades() not support self market type.')
         #
         # spot
         #
@@ -3076,14 +3095,17 @@ class gate(Exchange, ImplicitAPI):
             request['from'] = self.parse_to_int(since / 1000)
         if until is not None:
             request['to'] = self.parse_to_int(until / 1000)
-        method = self.get_supported_mapping(type, {
-            'spot': 'privateSpotGetMyTrades',
-            'margin': 'privateSpotGetMyTrades',
-            'swap': 'privateFuturesGetSettleMyTradesTimerange',
-            'future': 'privateDeliveryGetSettleMyTrades',
-            'option': 'privateOptionsGetMyTrades',
-        })
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if type == 'spot' or type == 'margin':
+            response = self.privateSpotGetMyTrades(self.extend(request, params))
+        elif type == 'swap':
+            response = self.privateFuturesGetSettleMyTradesTimerange(self.extend(request, params))
+        elif type == 'future':
+            response = self.privateDeliveryGetSettleMyTrades(self.extend(request, params))
+        elif type == 'option':
+            response = self.privateOptionsGetMyTrades(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchMyTrades() not support self market type.')
         #
         # spot
         #
@@ -4223,15 +4245,26 @@ class gate(Exchange, ImplicitAPI):
         contract = (type == 'swap') or (type == 'future') or (type == 'option')
         request, requestParams = self.prepare_request(market, type, query) if contract else self.spot_order_prepare_request(market, stop, query)
         request['order_id'] = orderId
-        methodMiddle = 'PriceOrders' if stop else 'Orders'
-        method = self.get_supported_mapping(type, {
-            'spot': 'privateSpotGet' + methodMiddle + 'OrderId',
-            'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
-            'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
-            'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
-            'option': 'privateOptionsGetOrdersOrderId',
-        })
-        response = getattr(self, method)(self.extend(request, requestParams))
+        response = None
+        if type == 'spot' or type == 'margin':
+            if stop:
+                response = self.privateSpotGetPriceOrdersOrderId(self.extend(request, requestParams))
+            else:
+                response = self.privateSpotGetOrdersOrderId(self.extend(request, requestParams))
+        elif type == 'swap':
+            if stop:
+                response = self.privateFuturesGetSettlePriceOrdersOrderId(self.extend(request, requestParams))
+            else:
+                response = self.privateFuturesGetSettleOrdersOrderId(self.extend(request, requestParams))
+        elif type == 'future':
+            if stop:
+                response = self.privateDeliveryGetSettlePriceOrdersOrderId(self.extend(request, requestParams))
+            else:
+                response = self.privateDeliveryGetSettleOrdersOrderId(self.extend(request, requestParams))
+        elif type == 'option':
+            response = self.privateOptionsGetOrdersOrderId(self.extend(request, requestParams))
+        else:
+            raise NotSupported(self.id + ' fetchOrder() not support self market type')
         return self.parse_order(response, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -4288,18 +4321,29 @@ class gate(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None and spot:
             request['from'] = self.parse_to_int(since / 1000)
-        methodTail = 'PriceOrders' if stop else 'Orders'
         openSpotOrders = spot and (status == 'open') and not stop
-        if openSpotOrders:
-            methodTail = 'OpenOrders'
-        method = self.get_supported_mapping(type, {
-            'spot': 'privateSpotGet' + methodTail,
-            'margin': 'privateSpotGet' + methodTail,
-            'swap': 'privateFuturesGetSettle' + methodTail,
-            'future': 'privateDeliveryGetSettle' + methodTail,
-            'option': 'privateOptionsGetOrders',
-        })
-        response = getattr(self, method)(self.extend(request, requestParams))
+        response = None
+        if type == 'spot' or type == 'margin':
+            if openSpotOrders:
+                response = self.privateSpotGetOpenOrders(self.extend(request, requestParams))
+            elif stop:
+                response = self.privateSpotGetPriceOrders(self.extend(request, requestParams))
+            else:
+                response = self.privateSpotGetOrders(self.extend(request, requestParams))
+        elif type == 'swap':
+            if stop:
+                response = self.privateFuturesGetSettlePriceOrders(self.extend(request, requestParams))
+            else:
+                response = self.privateFuturesGetSettleOrders(self.extend(request, requestParams))
+        elif type == 'future':
+            if stop:
+                response = self.privateDeliveryGetSettlePriceOrders(self.extend(request, requestParams))
+            else:
+                response = self.privateDeliveryGetSettleOrders(self.extend(request, requestParams))
+        elif type == 'option':
+            response = self.privateOptionsGetOrders(self.extend(request, requestParams))
+        else:
+            raise NotSupported(self.id + ' fetchOrders() not support self market type')
         #
         # spot open orders
         #
@@ -4475,15 +4519,26 @@ class gate(Exchange, ImplicitAPI):
         type, query = self.handle_market_type_and_params('cancelOrder', market, params)
         request, requestParams = self.spot_order_prepare_request(market, stop, query) if (type == 'spot' or type == 'margin') else self.prepare_request(market, type, query)
         request['order_id'] = id
-        pathMiddle = 'Price' if stop else ''
-        method = self.get_supported_mapping(type, {
-            'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
-            'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
-            'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
-            'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
-            'option': 'privateOptionsDeleteOrdersOrderId',
-        })
-        response = getattr(self, method)(self.extend(request, requestParams))
+        response = None
+        if type == 'spot' or type == 'margin':
+            if stop:
+                response = self.privateSpotDeletePriceOrdersOrderId(self.extend(request, requestParams))
+            else:
+                response = self.privateSpotDeleteOrdersOrderId(self.extend(request, requestParams))
+        elif type == 'swap':
+            if stop:
+                response = self.privateFuturesDeleteSettlePriceOrdersOrderId(self.extend(request, requestParams))
+            else:
+                response = self.privateFuturesDeleteSettleOrdersOrderId(self.extend(request, requestParams))
+        elif type == 'future':
+            if stop:
+                response = self.privateDeliveryDeleteSettlePriceOrdersOrderId(self.extend(request, requestParams))
+            else:
+                response = self.privateDeliveryDeleteSettleOrdersOrderId(self.extend(request, requestParams))
+        elif type == 'option':
+            response = self.privateOptionsDeleteOrdersOrderId(self.extend(request, requestParams))
+        else:
+            raise NotSupported(self.id + ' cancelOrder() not support self market type')
         #
         # spot
         #
@@ -4584,15 +4639,26 @@ class gate(Exchange, ImplicitAPI):
         params = self.omit(params, 'stop')
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if (type == 'spot') else self.prepare_request(market, type, query)
-        methodTail = 'PriceOrders' if stop else 'Orders'
-        method = self.get_supported_mapping(type, {
-            'spot': 'privateSpotDelete' + methodTail,
-            'margin': 'privateSpotDelete' + methodTail,
-            'swap': 'privateFuturesDeleteSettle' + methodTail,
-            'future': 'privateDeliveryDeleteSettle' + methodTail,
-            'option': 'privateOptionsDeleteOrders',
-        })
-        response = getattr(self, method)(self.extend(request, requestParams))
+        response = None
+        if type == 'spot' or type == 'margin':
+            if stop:
+                response = self.privateSpotDeletePriceOrders(self.extend(request, requestParams))
+            else:
+                response = self.privateSpotDeleteOrders(self.extend(request, requestParams))
+        elif type == 'swap':
+            if stop:
+                response = self.privateFuturesDeleteSettlePriceOrders(self.extend(request, requestParams))
+            else:
+                response = self.privateFuturesDeleteSettleOrders(self.extend(request, requestParams))
+        elif type == 'future':
+            if stop:
+                response = self.privateDeliveryDeleteSettlePriceOrders(self.extend(request, requestParams))
+            else:
+                response = self.privateDeliveryDeleteSettleOrders(self.extend(request, requestParams))
+        elif type == 'option':
+            response = self.privateOptionsDeleteOrders(self.extend(request, requestParams))
+        else:
+            raise NotSupported(self.id + ' cancelAllOrders() not support self market type')
         #
         #    [
         #        {
@@ -4709,10 +4775,6 @@ class gate(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         self.load_markets()
         market = self.market(symbol)
-        method = self.get_supported_mapping(market['type'], {
-            'swap': 'privateFuturesPostSettlePositionsContractLeverage',
-            'future': 'privateDeliveryPostSettlePositionsContractLeverage',
-        })
         request, query = self.prepare_request(market, None, params)
         defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
         crossLeverageLimit = self.safe_string(query, 'cross_leverage_limit')
@@ -4725,7 +4787,13 @@ class gate(Exchange, ImplicitAPI):
             request['leverage'] = '0'
         else:
             request['leverage'] = str(leverage)
-        response = getattr(self, method)(self.extend(request, query))
+        response = None
+        if market['swap']:
+            response = self.privateFuturesPostSettlePositionsContractLeverage(self.extend(request, query))
+        elif market['future']:
+            response = self.privateDeliveryPostSettlePositionsContractLeverage(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' setLeverage() not support self market type')
         #
         #     {
         #         "value": "0",
@@ -4879,9 +4947,9 @@ class gate(Exchange, ImplicitAPI):
         request, params = self.prepare_request(market, market['type'], params)
         extendedRequest = self.extend(request, params)
         response = None
-        if market['type'] == 'swap':
+        if market['swap']:
             response = self.privateFuturesGetSettlePositionsContract(extendedRequest)
-        elif market['type'] == 'future':
+        elif market['future']:
             response = self.privateDeliveryGetSettlePositionsContract(extendedRequest)
         elif market['type'] == 'option':
             response = self.privateOptionsGetPositionsContract(extendedRequest)
@@ -5045,11 +5113,13 @@ class gate(Exchange, ImplicitAPI):
         request, requestParams = self.prepare_request(None, type, query)
         if type != 'future' and type != 'swap':
             raise BadRequest(self.id + ' fetchLeverageTiers only supports swap and future')
-        method = self.get_supported_mapping(type, {
-            'swap': 'publicFuturesGetSettleContracts',
-            'future': 'publicDeliveryGetSettleContracts',
-        })
-        response = getattr(self, method)(self.extend(request, requestParams))
+        response = None
+        if type == 'swap':
+            response = self.publicFuturesGetSettleContracts(self.extend(request, requestParams))
+        elif type == 'future':
+            response = self.publicDeliveryGetSettleContracts(self.extend(request, requestParams))
+        else:
+            raise NotSupported(self.id + ' fetchLeverageTiers() not support self market type')
         #
         # Perpetual swap
         #
@@ -5264,6 +5334,204 @@ class gate(Exchange, ImplicitAPI):
             floor = cap
         return tiers
 
+    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+        """
+        repay borrowed margin and interest
+        :see: https://www.gate.io/docs/apiv4/en/#repay-cross-margin-loan
+        :see: https://www.gate.io/docs/apiv4/en/#repay-a-loan
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str symbol: unified market symbol, required for isolated margin
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.mode]: 'all' or 'partial' payment mode, extra parameter required for isolated margin
+        :param str [params.id]: '34267567' loan id, extra parameter required for isolated margin
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        marginMode = None
+        marginMode, params = self.handle_option_and_params(params, 'repayMargin', 'marginMode')
+        self.check_required_argument('repayMargin', marginMode, 'marginMode', ['cross', 'isolated'])
+        self.check_required_margin_argument('repayMargin', symbol, marginMode)
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'].upper(),
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = None
+        if (marginMode == 'cross') and (symbol is None):
+            response = self.privateMarginPostCrossRepayments(self.extend(request, params))
+        elif (marginMode == 'isolated') or (symbol is not None):
+            if symbol is None:
+                raise BadRequest(self.id + ' repayMargin() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['currency_pair'] = market['id']
+            request['type'] = 'repay'
+            response = self.privateMarginPostUniLoans(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     [
+        #         {
+        #             "id": "17",
+        #             "create_time": 1620381696159,
+        #             "update_time": 1620381696159,
+        #             "currency": "EOS",
+        #             "amount": "110.553635",
+        #             "text": "web",
+        #             "status": 2,
+        #             "repaid": "110.506649705159",
+        #             "repaid_interest": "0.046985294841",
+        #             "unpaid_interest": "0.0000074393366667"
+        #         }
+        #     ]
+        #
+        # Isolated
+        #
+        #     {
+        #         "id": "34267567",
+        #         "create_time": "1656394778",
+        #         "expire_time": "1657258778",
+        #         "status": "finished",
+        #         "side": "borrow",
+        #         "currency": "USDT",
+        #         "rate": "0.0002",
+        #         "amount": "100",
+        #         "days": 10,
+        #         "auto_renew": False,
+        #         "currency_pair": "LTC_USDT",
+        #         "left": "0",
+        #         "repaid": "100",
+        #         "paid_interest": "0.003333333333",
+        #         "unpaid_interest": "0"
+        #     }
+        #
+        if marginMode == 'cross':
+            response = response[0]
+        return self.parse_margin_loan(response, currency)
+
+    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+        """
+        create a loan to borrow margin
+        :see: https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+        :see: https://www.gate.io/docs/developers/apiv4/en/#marginuni
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str symbol: unified market symbol, required for isolated margin
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.rate]: '0.0002' or '0.002' extra parameter required for isolated margin
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        """
+        marginMode = None
+        marginMode, params = self.handle_option_and_params(params, 'borrowMargin', 'marginMode')
+        self.check_required_argument('borrowMargin', marginMode, 'marginMode', ['cross', 'isolated'])
+        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'].upper(),
+            'amount': self.currency_to_precision(code, amount),
+        }
+        response = None
+        if (marginMode == 'cross') and (symbol is None):
+            response = self.privateMarginPostCrossLoans(self.extend(request, params))
+        elif (marginMode == 'isolated') or (symbol is not None):
+            if symbol is None:
+                raise BadRequest(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['currency_pair'] = market['id']
+            request['type'] = 'borrow'
+            response = self.privateMarginPostUniLoans(self.extend(request, params))
+        #
+        # Cross
+        #
+        #     {
+        #         "id": "17",
+        #         "create_time": 1620381696159,
+        #         "update_time": 1620381696159,
+        #         "currency": "EOS",
+        #         "amount": "110.553635",
+        #         "text": "web",
+        #         "status": 2,
+        #         "repaid": "110.506649705159",
+        #         "repaid_interest": "0.046985294841",
+        #         "unpaid_interest": "0.0000074393366667"
+        #     }
+        #
+        # Isolated
+        #
+        #     {
+        #         "id": "34267567",
+        #         "create_time": "1656394778",
+        #         "expire_time": "1657258778",
+        #         "status": "loaned",
+        #         "side": "borrow",
+        #         "currency": "USDT",
+        #         "rate": "0.0002",
+        #         "amount": "100",
+        #         "days": 10,
+        #         "auto_renew": False,
+        #         "currency_pair": "LTC_USDT",
+        #         "left": "0",
+        #         "repaid": "0",
+        #         "paid_interest": "0",
+        #         "unpaid_interest": "0.003333333333"
+        #     }
+        #
+        return self.parse_margin_loan(response, currency)
+
+    def parse_margin_loan(self, info, currency: Currency = None):
+        #
+        # Cross
+        #
+        #     {
+        #         "id": "17",
+        #         "create_time": 1620381696159,
+        #         "update_time": 1620381696159,
+        #         "currency": "EOS",
+        #         "amount": "110.553635",
+        #         "text": "web",
+        #         "status": 2,
+        #         "repaid": "110.506649705159",
+        #         "repaid_interest": "0.046985294841",
+        #         "unpaid_interest": "0.0000074393366667"
+        #     }
+        #
+        # Isolated
+        #
+        #     {
+        #         "id": "34267567",
+        #         "create_time": "1656394778",
+        #         "expire_time": "1657258778",
+        #         "status": "loaned",
+        #         "side": "borrow",
+        #         "currency": "USDT",
+        #         "rate": "0.0002",
+        #         "amount": "100",
+        #         "days": 10,
+        #         "auto_renew": False,
+        #         "currency_pair": "LTC_USDT",
+        #         "left": "0",
+        #         "repaid": "0",
+        #         "paid_interest": "0",
+        #         "unpaid_interest": "0.003333333333"
+        #     }
+        #
+        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        timestamp = self.safe_integer(info, 'create_time')
+        if marginMode == 'isolated':
+            timestamp = self.safe_timestamp(info, 'create_time')
+        currencyId = self.safe_string(info, 'currency')
+        marketId = self.safe_string(info, 'currency_pair')
+        return {
+            'id': self.safe_integer(info, 'id'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(info, 'amount'),
+            'symbol': self.safe_symbol(marketId, None, '_', 'margin'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': info,
+        }
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
@@ -5330,11 +5598,13 @@ class gate(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request, query = self.prepare_request(market, None, params)
         request['change'] = self.number_to_string(amount)
-        method = self.get_supported_mapping(market['type'], {
-            'swap': 'privateFuturesPostSettlePositionsContractMargin',
-            'future': 'privateDeliveryPostSettlePositionsContractMargin',
-        })
-        response = getattr(self, method)(self.extend(request, query))
+        response = None
+        if market['swap']:
+            response = self.privateFuturesPostSettlePositionsContractMargin(self.extend(request, query))
+        elif market['future']:
+            response = self.privateDeliveryPostSettlePositionsContractMargin(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' modifyMarginHelper() not support self market type')
         return self.parse_margin_modification(response, market)
 
     def parse_margin_modification(self, data, market: Market = None):

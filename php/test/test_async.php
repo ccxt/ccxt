@@ -58,6 +58,7 @@ class baseMainTestClass {
     public $root_dir = root_dir;
     public $env_vars = envVars;
     public $root_dir_for_skips = rootDirForSkips;
+    public $only_specific_tests = [];
     public $proxy_test_file_name = proxyTestFileName;
     public $ext = ext;
     public $LOG_CHARS_LENGTH = LOG_CHARS_LENGTH;
@@ -268,22 +269,22 @@ class testMainClass extends baseMainTestClass {
         $this->sandbox = get_cli_arg_value('--sandbox');
     }
 
-    public function init($exchange_id, $symbol) {
-        return Async\async(function () use ($exchange_id, $symbol) {
+    public function init($exchange_id, $symbol_argv) {
+        return Async\async(function () use ($exchange_id, $symbol_argv) {
             $this->parse_cli_args();
             if ($this->response_tests) {
-                Async\await($this->run_static_response_tests($exchange_id, $symbol));
+                Async\await($this->run_static_response_tests($exchange_id, $symbol_argv));
                 return;
             }
             if ($this->request_tests) {
-                Async\await($this->run_static_request_tests($exchange_id, $symbol)); // symbol here is the testname
+                Async\await($this->run_static_request_tests($exchange_id, $symbol_argv)); // symbol here is the testname
                 return;
             }
             if ($this->id_tests) {
                 Async\await($this->run_broker_id_tests());
                 return;
             }
-            $symbol_str = $symbol !== null ? $symbol : 'all';
+            $symbol_str = $symbol_argv !== null ? $symbol_argv : 'all';
             dump('\nTESTING ', $this->ext, array(
                 'exchange' => $exchange_id,
                 'symbol' => $symbol_str,
@@ -296,9 +297,33 @@ class testMainClass extends baseMainTestClass {
             );
             $exchange = init_exchange($exchange_id, $exchange_args);
             Async\await($this->import_files($exchange));
-            $this->expand_settings($exchange, $symbol);
-            Async\await($this->start_test($exchange, $symbol));
+            $this->expand_settings($exchange);
+            $symbol_or_undefined = $this->check_if_specific_test_is_chosen($symbol_argv);
+            Async\await($this->start_test($exchange, $symbol_or_undefined));
         }) ();
+    }
+
+    public function check_if_specific_test_is_chosen($symbol_argv) {
+        if ($symbol_argv !== null) {
+            $test_file_names = is_array($this->test_files) ? array_keys($this->test_files) : array();
+            $possible_method_names = explode(',', $symbol_argv); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            if (count($possible_method_names) >= 1) {
+                for ($i = 0; $i < count($test_file_names); $i++) {
+                    $test_file_name = $test_file_names[$i];
+                    for ($j = 0; $j < count($possible_method_names); $j++) {
+                        $method_name = $possible_method_names[$j];
+                        if ($test_file_name === $method_name) {
+                            $this->only_specific_tests[] = $test_file_name;
+                        }
+                    }
+                }
+            }
+            // if method names were found, then remove them from symbolArgv
+            if (count($this->only_specific_tests) > 0) {
+                return null;
+            }
+        }
+        return $symbol_argv;
     }
 
     public function import_files($exchange) {
@@ -311,7 +336,7 @@ class testMainClass extends baseMainTestClass {
         }) ();
     }
 
-    public function expand_settings($exchange, $symbol) {
+    public function expand_settings($exchange) {
         $exchange_id = $exchange->id;
         $keys_global = $this->root_dir . 'keys.json';
         $keys_local = $this->root_dir . 'keys.local.json';
@@ -391,7 +416,9 @@ class testMainClass extends baseMainTestClass {
             $skip_message = null;
             $is_proxy_test = $method_name === $this->proxy_test_file_name;
             $supported_by_exchange = (is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) && $exchange->has[$method_name];
-            if (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test) {
+            if (!$is_load_markets && (count($this->only_specific_tests) > 0 && !$exchange->in_array($method_name_in_test, $this->only_specific_tests))) {
+                $skip_message = '[INFO:IGNORED_TEST]';
+            } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test) {
                 $skip_message = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
             } elseif ((is_array($this->skipped_methods) && array_key_exists($method_name, $this->skipped_methods)) && (is_string($this->skipped_methods[$method_name]))) {
                 $skip_message = '[INFO:SKIPPED_TEST]';
@@ -529,7 +556,7 @@ class testMainClass extends baseMainTestClass {
                 }
                 // we don't throw exception for public-tests, see comments under 'testSafe' method
                 $errors_in_message = '';
-                if ($errors) {
+                if (count($errors)) {
                     $failed_msg = implode(', ', $errors);
                     $errors_in_message = ' | Failed methods : ' . $failed_msg;
                 }
@@ -686,14 +713,14 @@ class testMainClass extends baseMainTestClass {
             if (!$this->private_test_only) {
                 if ($exchange->has['spot'] && $spot_symbol !== null) {
                     if ($this->info) {
-                        dump('[INFO:SPOT TESTS]');
+                        dump('[INFO: ### SPOT TESTS ###]');
                     }
                     $exchange->options['type'] = 'spot';
                     Async\await($this->run_public_tests($exchange, $spot_symbol));
                 }
                 if ($exchange->has['swap'] && $swap_symbol !== null) {
                     if ($this->info) {
-                        dump('[INFO:SWAP TESTS]');
+                        dump('[INFO: ### SWAP TESTS ###]');
                     }
                     $exchange->options['type'] = 'swap';
                     Async\await($this->run_public_tests($exchange, $swap_symbol));

@@ -412,11 +412,20 @@
         ],
         "fetchOrderBook": [
             {
-                "description": "fetch spot orderbook",
+                "description": "fetch spot orderbook with limit < 30",
                 "method": "fetchOrderBook",
                 "url": "https://api.phemex.com/v1/md/orderbook?symbol=sBTCUSDT",
                 "input": [
-                    "BTC/USDT"
+                    "BTC/USDT",
+                    25
+                ]
+            },
+            {
+                "description": "Fetch complete spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.phemex.com/v1/md/fullbook?symbol=sBTCUSDT",
+                "input": [
+                  "BTC/USDT"
                 ]
             },
             {
@@ -428,11 +437,12 @@
                 ]
             },
             {
-                "description": "fetch swap orderbook - inverse",
+                "description": "fetch swap orderbook - inverse with limit < 30",
                 "method": "fetchOrderBook",
                 "url": "https://api.phemex.com/v1/md/orderbook?symbol=BTCUSD",
                 "input": [
-                    "BTC/USD:BTC"
+                    "BTC/USD:BTC",
+                    10
                 ]
             }
         ]

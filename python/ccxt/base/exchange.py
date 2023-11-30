@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.66'
+__version__ = '4.1.70'
 
 # -----------------------------------------------------------------------------
 
@@ -564,7 +564,7 @@ class Exchange(object):
             proxies['http'] = socksProxy
             proxies['https'] = socksProxy
         proxyAgentSet = proxies is not None
-        self.checkConflictingProxies(proxyAgentSet, proxyUrl)
+        self.check_conflicting_proxies(proxyAgentSet, proxyUrl)
         # specifically for async-python, there is ".proxies" property maintained
         if (self.proxies is not None):
             if (proxyAgentSet or proxyUrl):
@@ -1989,7 +1989,7 @@ class Exchange(object):
     def parse_markets(self, markets):
         result = []
         for i in range(0, len(markets)):
-            result.append(self.parseMarket(markets[i]))
+            result.append(self.parse_market(markets[i]))
         return result
 
     def parse_ticker(self, ticker: object, market: Market = None):
@@ -2192,6 +2192,7 @@ class Exchange(object):
             'contract': None,
             'linear': None,
             'inverse': None,
+            'subType': None,
             'taker': None,
             'maker': None,
             'contractSize': None,
@@ -2260,6 +2261,12 @@ class Exchange(object):
                 'precision': self.precision,
                 'limits': self.limits,
             }, self.fees['trading'], value)
+            if market['linear']:
+                market['subType'] = 'linear'
+            elif market['inverse']:
+                market['subType'] = 'inverse'
+            else:
+                market['subType'] = None
             values.append(market)
         self.markets = self.index_by(values, 'symbol')
         marketsSortedBySymbol = self.keysort(self.markets)
@@ -2825,7 +2832,7 @@ class Exchange(object):
             'bidVolume': self.safe_number(ticker, 'bidVolume'),
             'ask': self.parse_number(self.omit_zero(self.safe_number(ticker, 'ask'))),
             'askVolume': self.safe_number(ticker, 'askVolume'),
-            'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high"'))),
+            'high': self.parse_number(self.omit_zero(self.safe_string(ticker, 'high'))),
             'low': self.parse_number(self.omit_zero(self.safe_number(ticker, 'low'))),
             'open': self.parse_number(self.omit_zero(self.parse_number(open))),
             'close': self.parse_number(self.omit_zero(self.parse_number(close))),
@@ -4331,7 +4338,7 @@ class Exchange(object):
                 message += ', one of ' + '(' + messageOptions + ')'
             raise ArgumentsRequired(message)
 
-    def check_required_margin_argument(self, methodName: str, symbol: str, marginMode: str):
+    def check_required_margin_argument(self, methodName: str, symbol: Str, marginMode: str):
         """
          * @ignore
         :param str symbol: unified symbol of the market

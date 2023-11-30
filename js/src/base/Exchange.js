@@ -1744,6 +1744,7 @@ export default class Exchange {
             'contract': undefined,
             'linear': undefined,
             'inverse': undefined,
+            'subType': undefined,
             'taker': undefined,
             'maker': undefined,
             'contractSize': undefined,
@@ -1821,6 +1822,15 @@ export default class Exchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
+            if (market['linear']) {
+                market['subType'] = 'linear';
+            }
+            else if (market['inverse']) {
+                market['subType'] = 'inverse';
+            }
+            else {
+                market['subType'] = undefined;
+            }
             values.push(market);
         }
         this.markets = this.indexBy(values, 'symbol');
@@ -2503,7 +2513,7 @@ export default class Exchange {
             'bidVolume': this.safeNumber(ticker, 'bidVolume'),
             'ask': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'ask'))),
             'askVolume': this.safeNumber(ticker, 'askVolume'),
-            'high': this.parseNumber(this.omitZero(this.safeString(ticker, 'high"'))),
+            'high': this.parseNumber(this.omitZero(this.safeString(ticker, 'high'))),
             'low': this.parseNumber(this.omitZero(this.safeNumber(ticker, 'low'))),
             'open': this.parseNumber(this.omitZero(this.parseNumber(open))),
             'close': this.parseNumber(this.omitZero(this.parseNumber(close))),
@@ -3172,7 +3182,7 @@ export default class Exchange {
         throw new NotSupported(this.id + ' watchPositions() is not supported yet');
     }
     async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.watchPositions(symbols, since, limit, params);
+        return await this.watchPositions(symbols, since, limit, params);
     }
     async fetchPositionsForSymbol(symbol, params = {}) {
         /**
