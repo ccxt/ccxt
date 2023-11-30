@@ -214,6 +214,22 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"41000\",\"triggerDirection\":1,\"triggerPrice\":\"40000\",\"stopLoss\":\"39500\"}"
+            },
+            {
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false on the testnet",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    20,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"20\"}"
             }
         ],
         "createOrders": [
