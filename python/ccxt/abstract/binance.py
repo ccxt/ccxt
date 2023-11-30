@@ -352,6 +352,7 @@ class ImplicitAPI:
     sapi_delete_algo_futures_order = sapiDeleteAlgoFuturesOrder = Entry('algo/futures/order', 'sapi', 'DELETE', {'cost': 0.1})
     sapi_delete_sub_account_subaccountapi_iprestriction_iplist = sapiDeleteSubAccountSubAccountApiIpRestrictionIpList = Entry('sub-account/subAccountApi/ipRestriction/ipList', 'sapi', 'DELETE', {'cost': 20.001})
     sapiv2_get_sub_account_futures_account = sapiV2GetSubAccountFuturesAccount = Entry('sub-account/futures/account', 'sapiV2', 'GET', {'cost': 0.1})
+    sapiv2_get_sub_account_futures_accountsummary = sapiV2GetSubAccountFuturesAccountSummary = Entry('sub-account/futures/accountSummary', 'sapiV2', 'GET', {'cost': 1})
     sapiv2_get_sub_account_futures_positionrisk = sapiV2GetSubAccountFuturesPositionRisk = Entry('sub-account/futures/positionRisk', 'sapiV2', 'GET', {'cost': 0.1})
     sapiv2_post_sub_account_subaccountapi_iprestriction = sapiV2PostSubAccountSubAccountApiIpRestriction = Entry('sub-account/subAccountApi/ipRestriction', 'sapiV2', 'POST', {'cost': 20.001})
     sapiv3_get_sub_account_assets = sapiV3GetSubAccountAssets = Entry('sub-account/assets', 'sapiV3', 'GET', {'cost': 0.40002})

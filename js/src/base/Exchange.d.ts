@@ -844,7 +844,7 @@ export default class Exchange {
     handleTimeInForce(params?: {}): string;
     convertTypeToAccount(account: any): any;
     checkRequiredArgument(methodName: any, argument: any, argumentName: any, options?: any[]): void;
-    checkRequiredMarginArgument(methodName: string, symbol: string, marginMode: string): void;
+    checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
     parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): any;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     depositWithdrawFee(info: any): any;
