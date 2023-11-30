@@ -2430,7 +2430,7 @@ class Transpiler {
                 replace (/\$exchange\[\$method\]/g, '$exchange->$method').
                 replace (/\$test_shared_methods\->/g, '').
                 replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
-                replace (/Precise\->/g, 'Precise::');
+                replace (/Precise\->/g, 'Precise::').
                 replace (/catch\(Exception/g, 'catch\(\\Exception');
             return exchangeCamelCaseProps(str);
         }
