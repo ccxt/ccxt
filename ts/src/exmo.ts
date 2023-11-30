@@ -240,13 +240,12 @@ export default class exmo extends Exchange {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let method = undefined;
+        let response = undefined;
         if (type === 'add') {
-            method = 'privatePostMarginUserPositionMarginAdd';
+            response = await this.privatePostMarginUserPositionMarginAdd (this.extend (request, params));
         } else if (type === 'reduce') {
-            method = 'privatePostMarginUserPositionMarginReduce';
+            response = await this.privatePostMarginUserPositionMarginRemove (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         //      {}
         //
