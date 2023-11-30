@@ -1105,10 +1105,15 @@ export default class coinsph extends Exchange {
         // if market order
         } else if (orderType === 'MARKET' || orderType === 'STOP_LOSS' || orderType === 'TAKE_PROFIT') {
             newOrderRespType = this.safeString (newOrderRespType, 'market', 'FULL');
+            const quoteOrderQty = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
             if (orderSide === 'SELL') {
-                request['quantity'] = this.amountToPrecision (symbol, amount);
+                if (quoteOrderQty !== undefined) {
+                    request['quoteOrderQty'] = this.costToPrecision (symbol, quoteOrderQty);
+                }
+                if (amount !== undefined) {
+                    request['quantity'] = this.amountToPrecision (symbol, amount);
+                }
             } else if (orderSide === 'BUY') {
-                const quoteOrderQty = this.safeNumber2 (params, 'cost', 'quoteOrderQty');
                 const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
                 if (quoteOrderQty !== undefined) {
                     amount = quoteOrderQty;
@@ -1123,8 +1128,8 @@ export default class coinsph extends Exchange {
                     }
                 }
                 request['quoteOrderQty'] = this.costToPrecision (symbol, amount);
-                params = this.omit (params, 'cost', 'quoteOrderQty');
             }
+            params = this.omit (params, 'cost', 'quoteOrderQty');
         }
         if (orderType === 'STOP_LOSS' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT' || orderType === 'TAKE_PROFIT_LIMIT') {
             const stopPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
