@@ -3,7 +3,7 @@ image:
 
 environment:
   matrix:
-    - nodejs_version: '18'
+    - nodejs_version: '20'
 install:
   - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
