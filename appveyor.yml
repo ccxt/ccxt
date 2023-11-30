@@ -5,7 +5,7 @@ environment:
   matrix:
     - nodejs_version: '20'
 install:
-  - ps: Install-Product node 20
+  - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
   - set INCLUDE=C:\OpenSSL-Win64\include;%INCLUDE%
   - set CI=true
