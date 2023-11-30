@@ -2411,6 +2411,9 @@ export default class binance extends binanceRest {
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+        if (type === 'spot') {
+            return;
+        }
         if (this.positions === undefined) {
             this.positions = {};
         }
