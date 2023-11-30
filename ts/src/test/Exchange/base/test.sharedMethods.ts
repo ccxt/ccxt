@@ -1,7 +1,6 @@
 
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
-import { TICK_SIZE } from '../../../base/functions/number.js';
 import errors from '../../../base/errors.js';
 
 function logTemplate (exchange, method, entry) {
@@ -321,8 +320,7 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
     if (key in skippedProperties) {
         return;
     }
-    const isTickSizePrecisionMode = exchange.precisionMode === TICK_SIZE;
-    if (isTickSizePrecisionMode) {
+    if (exchange.isTickPrecision ()) {
         // TICK_SIZE should be above zero
         assertGreater (exchange, skippedProperties, method, entry, key, '0');
         // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
