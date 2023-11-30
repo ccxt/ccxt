@@ -308,13 +308,15 @@ export default class exmo extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
-        let method = this.safeString (params, 'method');
+        const options = this.safeValue (this.options, 'fetchTradingFees', {});
+        const defaultMethod = this.safeString (options, 'method', 'fetchPrivateTradingFees');
+        const method = this.safeString (params, 'method', defaultMethod);
         params = this.omit (params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchTradingFees', {});
-            method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
+        if (method === 'fetchPrivateTradingFees') {
+            return await this.fetchPrivateTradingFees (params);
+        } else {
+            return await this.fetchPublicTradingFees (params);
         }
-        return await this[method] (params);
     }
 
     async fetchPrivateTradingFees (params = {}) {
