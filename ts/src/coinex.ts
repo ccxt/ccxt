@@ -47,6 +47,7 @@ export default class coinex extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createMarketBuyOrderWithCost': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
@@ -1898,7 +1899,7 @@ export default class coinex extends Exchange {
         }, market);
     }
 
-    async createMarketBuyWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
         /**
          * @method
          * @name coinex#createMarketBuyWithCost
@@ -1906,13 +1907,10 @@ export default class coinex extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} params.createMarketBuyOrderRequiresPrice automatically set to false for this method
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        params = {
-            'createMarketBuyOrderRequiresPrice': false,
-        };
-        return this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
     createOrderRequest (symbol, type, side, amount, price = undefined, params = {}) {
