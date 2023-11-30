@@ -5,7 +5,7 @@ import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface } from './base/types.js';
-import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { TRUNCATE, DECIMAL_PLACES, ROUND } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -4613,12 +4613,14 @@ export default class binance extends Exchange {
                     const quoteOrderQtyNew = this.safeValue2 (query, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
                     if (quoteOrderQtyNew !== undefined) {
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
+                        // We shouldn't truncate as it will break the min amount logic
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, ROUND, precision, this.precisionMode);
                     } else if (price !== undefined) {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
                         const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
-                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+                        // We shouldn't truncate as it will break the min amount logic
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, ROUND, precision, this.precisionMode);
                     } else {
                         quantityIsRequired = true;
                     }
