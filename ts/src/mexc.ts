@@ -2309,7 +2309,7 @@ export default class mexc extends Exchange {
             ordersRequests.push (orderRequest);
         }
         const request = {
-            'batchOrders': ordersRequests,
+            'batchOrders': this.json (ordersRequests),
         };
         const response = await this.spotPrivatePostBatchOrders (request);
         //
