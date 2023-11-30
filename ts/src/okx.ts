@@ -2503,6 +2503,25 @@ export default class okx extends Exchange {
         return this.parseBalanceByType (marketType, response);
     }
 
+    async createMarketBuyWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name okx#createMarketBuyWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} params.createMarketBuyOrderRequiresPrice automatically set to false for this method
+         * @param {string} params.tgtCcy automatically set to quote_ccy
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params = {
+            'createMarketBuyOrderRequiresPrice': false,
+            'tgtCcy': 'quote_ccy',
+        };
+        return this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
@@ -2594,24 +2613,23 @@ export default class okx extends Exchange {
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy === 'quote_ccy') {
                     // quote_ccy: sz refers to units of quote currency
-                    let notional = this.safeNumber2 (params, 'cost', 'sz');
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    let createMarketBuyOrderRequiresPrice = true;
+                    [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    const cost = this.safeNumber2 (params, 'cost', 'sz');
+                    params = this.omit (params, [ 'cost', 'sz' ]);
                     if (createMarketBuyOrderRequiresPrice) {
-                        if (price !== undefined) {
-                            if (notional === undefined) {
-                                const amountString = this.numberToString (amount);
-                                const priceString = this.numberToString (price);
-                                const quoteAmount = Precise.stringMul (amountString, priceString);
-                                notional = this.parseNumber (quoteAmount);
-                            }
-                        } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
+                        if ((price === undefined) && (cost === undefined)) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                        } else {
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            const quoteAmount = this.parseToNumeric (Precise.stringMul (amountString, priceString));
+                            const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                            request['sz'] = this.costToPrecision (symbol, costRequest);
                         }
                     } else {
-                        notional = (notional === undefined) ? amount : notional;
+                        request['sz'] = this.costToPrecision (symbol, amount);
                     }
-                    request['sz'] = this.costToPrecision (symbol, notional);
-                    params = this.omit (params, [ 'cost', 'sz' ]);
                 }
             }
             if (marketIOC && contract) {
