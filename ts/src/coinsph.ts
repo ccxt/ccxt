@@ -311,6 +311,7 @@ export default class coinsph extends Exchange {
                     '-1104': BadRequest, // Not all sent parameters were read. Not all sent parameters were read; read ‘%s’ parameter(s) but was sent ‘%s’.
                     '-1105': BadRequest, // {"code":-1105,"msg":"Parameter \u0027orderId and origClientOrderId\u0027 is empty."}
                     '-1106': BadRequest, // A parameter was sent when not required. Parameter ‘%s’ sent when not required.
+                    '-1107': BadRequest, // {"code":-1107,"msg":"Parameter quantity and quoteOrderQty should not be both set."}
                     '-1111': BadRequest, // Precision is over the maximum defined for this asset.
                     '-1112': BadResponse, // No orders on book for symbol.
                     '-1114': BadRequest, // TimeInForce parameter sent when not required.
