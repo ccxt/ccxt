@@ -160,7 +160,7 @@ public partial class Exchange
     public bool newUpdates;
 
     public object positions;
-    public object trades;
+    public object trades = new dict();
     public object orderbooks = new dict();
 
     public object ohlcvs = new dict();

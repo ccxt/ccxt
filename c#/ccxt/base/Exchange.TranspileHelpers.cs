@@ -151,43 +151,43 @@ public partial class Exchange
         value = normalizeIntIfNeeded(value);
 
         // return value != null && value != false && value != 0 && value != "" && value != "0" && value != "false" && value != "False" && value != "FALSE";
-        if (value.GetType() == typeof(bool))
+        if (value is (bool))
         {
             return (bool)value;
         }
-        else if (value.GetType() == typeof(Int64))
+        else if (value is (Int64))
         {
             return (Int64)value != 0;
         }
-        else if (value.GetType() == typeof(double))
+        else if (value is (double))
         {
             return (double)value != 0;
         }
-        else if (value.GetType() == typeof(string))
+        else if (value is (string))
         {
             return (string)value != "";
         }
-        else if (value.GetType() == typeof(List<object>))
+        else if (value is (List<object>))
         {
             return ((List<object>)value).Count > 0;
         }
-        else if (value.GetType() == typeof(List<string>))
+        else if (value is (List<string>))
         {
             return ((List<string>)value).Count > 0;
         }
-        else if (value.GetType() == typeof(List<int>))
+        else if (value is (List<int>))
         {
             return ((List<string>)value).Count > 0;
         }
-        else if (value.GetType() == typeof(List<Int64>))
+        else if (value is (List<Int64>))
         {
             return ((List<string>)value).Count > 0;
         }
-        else if (value.GetType() == typeof(List<double>))
+        else if (value is (List<double>))
         {
             return ((List<double>)value).Count > 0;
         }
-        else if (value.GetType() == typeof(Dictionary<string, object>))
+        else if (value is (Dictionary<string, object>))
         {
             return true;
         }
@@ -502,19 +502,19 @@ public partial class Exchange
             return 0;
         }
 
-        if (value.GetType() == typeof(List<object>))
+        if (value is (List<object>))
         {
             return ((List<object>)value).Count;
         }
-        else if (value.GetType() == typeof(List<string>))
+        else if (value is (List<string>))
         {
             return ((List<string>)value).Count;
         }
-        else if (value.GetType() == typeof(List<dict>))
+        else if (value is (List<dict>))
         {
             return ((List<dict>)value).Count;
         }
-        else if (value.GetType() == typeof(string))
+        else if (value is (string))
         {
             return ((string)value).Length; // fallback that should not be used
         }
@@ -614,15 +614,15 @@ public partial class Exchange
 
     public static int getIndexOf(object str, object target)
     {
-        if (str.GetType() == typeof(List<object>))
+        if (str is (List<object>))
         {
             return ((List<object>)str).IndexOf(target);
         }
-        else if (str.GetType() == typeof(List<string>))
+        else if (str is (List<string>))
         {
             return ((List<string>)str).IndexOf((string)target);
         }
-        else if (str.GetType() == typeof(string))
+        else if (str is (string))
         {
             return ((string)str).IndexOf((string)target);
         }
@@ -826,21 +826,21 @@ public partial class Exchange
         {
             return false;
         }
-        if (obj.GetType() == typeof(List<object>))
+        if (obj is (List<object>))
         {
             return ((List<object>)obj).Contains(key);
         }
-        else if (obj.GetType() == typeof(List<string>))
+        else if (obj is (List<string>))
         {
             return ((List<string>)obj).Contains((string)key);
         }
-        else if (obj.GetType() == typeof(List<Int64>))
+        else if (obj is (List<Int64>))
         {
             return ((List<Int64>)obj).Contains((Int64)key);
         }
-        else if (obj.GetType() == typeof(dict))
+        else if (obj is (dict))
         {
-            if (key.GetType() == typeof(string))
+            if (key is (string))
                 return ((dict)obj).ContainsKey((string)key);
             else
                 return false;
