@@ -151,8 +151,8 @@ class CCXTProTranspiler extends Transpiler {
 
     transpileOrderBookTest () {
         const jsFile = './ts/src/pro/test/base/test.OrderBook.ts'
-        const pyFile = './python/ccxt/pro/test/test_order_book.py'
-        const phpFile = './php/pro/test/OrderBook.php'
+        const pyFile = './python/ccxt/pro/test/base/test_order_book.py'
+        const phpFile = './php/pro/test/base/OrderBook.php'
         const pyImports = [
             '',
             'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
@@ -165,8 +165,8 @@ class CCXTProTranspiler extends Transpiler {
 
     transpileCacheTest () {
         const jsFile = './ts/src/pro/test/base/test.Cache.ts'
-        const pyFile = './python/ccxt/pro/test/test_cache.py'
-        const phpFile = './php/pro/test/Cache.php'
+        const pyFile = './python/ccxt/pro/test/base/test_cache.py'
+        const phpFile = './php/pro/test/base/Cache.php'
         const pyImports = [
             '',
             'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402',
