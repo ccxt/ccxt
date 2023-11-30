@@ -12,10 +12,10 @@ export default class bitteam extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitteam',
-            'name': 'BitTeam', // todo: check
-            'countries': [ 'UK', 'RU' ], // todo: check
-            'version': 'v1', // todo: check
-            'rateLimit': 1, // todo: has no rate limiter
+            'name': 'BIT.TEAM',
+            'countries': [ 'UK' ],
+            'version': 'v2.0.6',
+            'rateLimit': 1,
             'certified': false,
             'pro': false,
             'has': {
@@ -141,22 +141,22 @@ export default class bitteam extends Exchange {
                 'public': {
                     'get': {
                         'trade/api/asset': 1, // not unified
-                        'trade/api/currencies': 1, // fetchCurrencies
+                        'trade/api/currencies': 1,
                         'trade/api/login-confirmation': 1, // not unified
                         'trade/api/orderbooks/{symbol}': 1, // not unified
                         'trade/api/orders': 1, // not unified
-                        'trade/api/pair/{name}': 1, // fetchTicker
-                        'trade/api/pairs': 1, // fetchMarkets
+                        'trade/api/pair/{name}': 1,
+                        'trade/api/pairs': 1,
                         'trade/api/pairs/precisions': 1, // not unified
                         'trade/api/rates': 1, // not unified
                         'trade/api/stats': 1, // not unified returns 500000
                         'trade/api/trade/{id}': 1, // not unified
                         'trade/api/trades': 1, // not unified
-                        'trade/api/cmc/assets': 1, // not unified
-                        'trade/api/cmc/orderbook/{pair}': 1, // fetchOrderBook
-                        'trade/api/cmc/summary': 1, // fetchTickers
+                        'trade/api/cmc/assets': 1,
+                        'trade/api/cmc/orderbook/{pair}': 1,
+                        'trade/api/cmc/summary': 1,
                         'trade/api/cmc/ticker': 1, // not unified
-                        'trade/api/cmc/trades/{pair}': 1, // fetchTrades
+                        'trade/api/cmc/trades/{pair}': 1,
                     },
                     'post': {
                         'trade/api/login-oauth': 1, // not unified
@@ -166,10 +166,10 @@ export default class bitteam extends Exchange {
                 'private': {
                     'get': {
                         'trade/api/address/wallets': 1, // not unified returns 401000
-                        'trade/api/ccxt/balance': 1, // fetchBalance
-                        'trade/api/ccxt/order/{id}': 1, // fetchOrder
-                        'trade/api/ccxt/ordersOfUser': 1, // fetchOrders, fetchClosedOrders, fetchCanceledOrders, fetchOpenOrders
-                        'trade/api/ccxt/tradesOfUser': 1, // fetchMyTrades
+                        'trade/api/ccxt/balance': 1,
+                        'trade/api/ccxt/order/{id}': 1,
+                        'trade/api/ccxt/ordersOfUser': 1,
+                        'trade/api/ccxt/tradesOfUser': 1,
                         'trade/api/discount': 1, // not unified returns 401000
                         'trade/api/discounts': 1, // not unified returns 401000
                         'trade/api/forgot-2fa': 1, // not unified returns 401000
@@ -197,9 +197,9 @@ export default class bitteam extends Exchange {
                         'trade/api/access-check': 1, // not unified returns 401000
                         'trade/api/all-orders/cancel': 1, // not unified returns 401000
                         'trade/api/before-transaction-email': 1, // not unified returns 401000
-                        'trade/api/ccxt/cancel-all-order': 1, // cancelAllOrders
-                        'trade/api/ccxt/cancelorder': 1, // cancelOrder
-                        'trade/api/ccxt/ordercreate': 1, // createOrder
+                        'trade/api/ccxt/cancel-all-order': 1,
+                        'trade/api/ccxt/cancelorder': 1,
+                        'trade/api/ccxt/ordercreate': 1,
                         'trade/api/confirm-email': 1, // not unified returns 401000
                         'trade/api/disable-2fa': 1, // not unified returns 401000
                         'trade/api/enable-2fa': 1, // not unified returns 401000
@@ -265,10 +265,14 @@ export default class bitteam extends Exchange {
                     'ufobject': 'ufobject',
                     'tonchain': 'tonchain',
                 },
+                'currenciesValuedInUsd': {
+                    'USDT': true,
+                    'BUSD': true,
+                },
             },
             'exceptions': {
                 'exact': {
-                    '400002': BadSymbol, // todo: check {"ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair"}
+                    '400002': BadSymbol, // {"ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair"}
                     '401000': AuthenticationError, // {"ok":false,"code":401000,"data": {},"message": "Missing authentication"}
                     '403002': BadRequest, // {"ok":false,"code":403002,"data":{},"message":"Order cannot be deleted, status does not match"}
                     '404200': BadSymbol, // {"ok":false,"code":404200,"data":{},"message":"Pair was not found"}
@@ -405,9 +409,13 @@ export default class bitteam extends Exchange {
         const pricePrecision = this.safeInteger (market, 'quoteStep');
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
-        const settings = this.safeValue (market, 'settings', {});
-        const minCost = this.safeNumber (settings, 'limit_usd');
-        // todo: find out how to calculate minCost, when quote is not USDT or BUSD
+        let minCost = undefined;
+        const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
+        const quoteInUsd = this.safeValue (currenciesValuedInUsd, quote, false);
+        if (quoteInUsd) {
+            const settings = this.safeValue (market, 'settings', {});
+            minCost = this.safeNumber (settings, 'limit_usd');
+        }
         return {
             'id': id,
             'numericId': numericId,
@@ -562,6 +570,29 @@ export default class bitteam extends Exchange {
         //
         const responseResult = this.safeValue (response, 'result', {});
         const currencies = this.safeValue (responseResult, 'currencies', []);
+        // usding another endpoint to fetch statuses of deposits and withdrawals
+        let statusesResponse = await this.publicGetTradeApiCmcAssets ();
+        //
+        //     {
+        //         "ZNX": {
+        //             "name": "ZeNeX Coin",
+        //             "unified_cryptoasset_id": 30,
+        //             "withdrawStatus": true,
+        //             "depositStatus": true,
+        //             "min_withdraw": 0.00001,
+        //             "max_withdraw": 10000
+        //         },
+        //         "USDT": {
+        //             "name": "Tether USD",
+        //             "unified_cryptoasset_id": 3,
+        //             "withdrawStatus": true,
+        //             "depositStatus": true,
+        //             "min_withdraw": 1,
+        //             "max_withdraw": 100000
+        //         },
+        //     }
+        //
+        statusesResponse = this.indexBy (statusesResponse, 'unified_cryptoasset_id');
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -585,8 +616,12 @@ export default class bitteam extends Exchange {
             } else {
                 feesByNetworkId = withdrawCommissionFixed;
             }
+            const statuses = this.safeValue (statusesResponse, numericId, {});
+            const deposit = this.safeValue (statuses, 'depositStatus');
+            const withdraw = this.safeValue (statuses, 'withdrawStatus');
             const networkIds = Object.keys (feesByNetworkId);
             const networks = {};
+            const networkPrecision = this.safeInteger (currency, 'decimals');
             for (let j = 0; j < networkIds.length; j++) {
                 const networkId = networkIds[j];
                 const networkCode = this.networkIdToCode (networkId);
@@ -594,11 +629,11 @@ export default class bitteam extends Exchange {
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
-                    'deposit': true, // todo: check
-                    'withdraw': true, // todo: check
+                    'deposit': deposit,
+                    'withdraw': withdraw,
                     'active': active,
                     'fee': networkFee,
-                    'precision': undefined, // todo: check
+                    'precision': networkPrecision,
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -623,8 +658,8 @@ export default class bitteam extends Exchange {
                 'name': code,
                 'info': currency,
                 'active': active,
-                'deposit': true, // todo: check
-                'withdraw': true, // todo: check
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -786,7 +821,7 @@ export default class bitteam extends Exchange {
         let market = undefined;
         // todo: limit and offset params work bad - looks like the exchange keeps orders badly sorted by timestamp
         // limit = 0 returns all orders
-        // also filtration by symbol breaks pagination (maybe should set limit to 0?)
+        // also filtration by symbol breaks pagination (maybe should set limit to 0?) - check in other exchanges
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1022,7 +1057,7 @@ export default class bitteam extends Exchange {
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        await this.loadMarkets (true);
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pairId': market['numericId'].toString (),
@@ -1040,7 +1075,7 @@ export default class bitteam extends Exchange {
             const info = market['info'];
             request['price'] = this.safeString (info, 'lastPrice');
         }
-        // todo: should we check the total cost of the order?
+        // todo: ask about executed price for an order filled with many trades with different prices
         const response = await this.privatePostTradeApiCcxtOrdercreate (this.extend (request, params));
         //
         //     {
@@ -1751,7 +1786,7 @@ export default class bitteam extends Exchange {
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        // todo: offset owerwrites limit
+        // todo: offset overwrites limit
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1965,7 +2000,6 @@ export default class bitteam extends Exchange {
         let takerOrMaker = undefined;
         let feeInfo = undefined;
         let order = undefined;
-        let type = undefined;
         let fee = undefined;
         const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
         // if trade from fetchMyTrades
@@ -1979,14 +2013,12 @@ export default class bitteam extends Exchange {
             if (makerFeeAmount === '0') {
                 // user is taker
                 takerOrMaker = 'taker';
-                type = 'market';
                 feeInfo = feeTaker;
                 order = this.safeString (trade, 'takerOrderId');
                 side = (isBuyerMaker) ? 'sell' : 'buy';
             } else if (takerFeeAmount === '0') {
                 // user is maker
                 takerOrMaker = 'maker';
-                type = 'limit';
                 feeInfo = feeMaker;
                 order = this.safeString (trade, 'makerOrderId');
                 side = (isBuyerMaker) ? 'buy' : 'sell';
@@ -2005,7 +2037,7 @@ export default class bitteam extends Exchange {
             'timestamp': this.parseToInt (timestamp),
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': type, // todo: check
+            'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
@@ -2072,7 +2104,6 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        // todo: check
         const timestamp = this.milliseconds ();
         const balance = {
             'info': response,
@@ -2081,16 +2112,14 @@ export default class bitteam extends Exchange {
         };
         const result = this.safeValue (response, 'result', {});
         const balanceByCurrencies = this.omit (result, [ 'free', 'used', 'total' ]);
-        const rawCurrencyCodes = Object.keys (balanceByCurrencies);
-        for (let i = 0; i < rawCurrencyCodes.length; i++) {
-            let currencyCode = rawCurrencyCodes[i];
-            const currencyBalance = this.safeValue (result, currencyCode);
+        const rawCurrencyIds = Object.keys (balanceByCurrencies);
+        for (let i = 0; i < rawCurrencyIds.length; i++) {
+            const rawCurrencyId = rawCurrencyIds[i];
+            const currencyBalance = this.safeValue (result, rawCurrencyId);
             const free = this.safeString (currencyBalance, 'free');
             const used = this.safeString (currencyBalance, 'used');
             const total = this.safeString (currencyBalance, 'total');
-            const currency = this.safeValue (this.currencies, currencyCode);
-            // checking for proper currency code
-            currencyCode = this.safeCurrencyCode (currencyCode, currency);
+            const currencyCode = this.safeCurrencyCode (rawCurrencyId.toLowerCase ());
             balance[currencyCode] = {
                 'free': free,
                 'used': used,
