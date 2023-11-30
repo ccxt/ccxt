@@ -1158,6 +1158,23 @@ export default class bigone extends Exchange {
         }, market);
     }
 
+    async createMarketBuyWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name bigone#createMarketBuyWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} params.createMarketBuyOrderRequiresPrice automatically set to false for this method
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params = {
+            'createMarketBuyOrderRequiresPrice': false,
+        };
+        return this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1209,19 +1226,30 @@ export default class bigone extends Exchange {
                     request['post_only'] = true;
                 }
             }
+            request['amount'] = this.amountToPrecision (symbol, amount);
         } else {
-            const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
-            if (createMarketBuyOrderRequiresPrice && (side === 'buy')) {
-                if (price === undefined) {
-                    throw new InvalidOrder (this.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+            if (isBuy) {
+                let createMarketBuyOrderRequiresPrice = true;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber (params, 'cost');
+                params = this.omit (params, 'cost');
+                if (createMarketBuyOrderRequiresPrice) {
+                    if ((price === undefined) && (cost === undefined)) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteAmount = this.parseToNumeric (Precise.stringMul (amountString, priceString));
+                        const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                        request['amount'] = this.costToPrecision (symbol, costRequest);
+                    }
                 } else {
-                    const amountString = this.numberToString (amount);
-                    const priceString = this.numberToString (price);
-                    amount = this.parseNumber (Precise.stringMul (amountString, priceString));
+                    request['amount'] = this.costToPrecision (symbol, amount);
                 }
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
             }
         }
-        request['amount'] = this.amountToPrecision (symbol, amount);
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['operator'] = isBuy ? 'GTE' : 'LTE';
