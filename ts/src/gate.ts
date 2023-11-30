@@ -1931,7 +1931,22 @@ export default class gate extends Exchange {
         //
         const currencyId = this.safeString (response, 'currency');
         code = this.safeCurrencyCode (currencyId);
-        const addressField = this.safeString (response, 'address');
+        // extract the address for the right network
+        const multichainAddresses = this.safeValue (response, 'multichain_addresses', []);
+        const network = this.safeString (params, 'network');
+        let networkAddress = undefined;
+        for (let i = 0; i < multichainAddresses.length; i++) {
+            const multichainAddress = multichainAddresses[i];
+            const chain = this.safeString (multichainAddress, 'chain');
+            if (chain === network) {
+                networkAddress = multichainAddress;
+                break;
+            }
+        }
+        if (networkAddress === undefined) {
+            throw new BadRequest (this.id + ' fetchDepositAddress() could not find address for network ' + network);
+        }
+        const addressField = this.safeString (networkAddress, 'address');
         let tag = undefined;
         let address = undefined;
         if (addressField !== undefined) {
@@ -1953,7 +1968,7 @@ export default class gate extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': network,
         };
     }
 
