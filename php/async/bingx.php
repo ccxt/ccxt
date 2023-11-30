@@ -1981,15 +1981,17 @@ class bingx extends Exchange {
         //       "symbol" => "XRP-USDT",
         //       "orderId" => 1514073325788200960,
         //       "price" => "0.5",
+        //       "StopPrice" => "0",
         //       "origQty" => "20",
-        //       "executedQty" => "0",
-        //       "cummulativeQuoteQty" => "0",
+        //       "executedQty" => "10",
+        //       "cummulativeQuoteQty" => "5",
         //       "status" => "PENDING",
         //       "type" => "LIMIT",
         //       "side" => "BUY",
         //       "time" => 1649818185647,
         //       "updateTime" => 1649818185647,
         //       "origQuoteOrderQty" => "0"
+        //       "fee" => "-0.01"
         //   }
         //
         //
@@ -2049,9 +2051,22 @@ class bingx extends Exchange {
         $amount = $this->safe_string_2($order, 'origQty', 'q');
         $filled = $this->safe_string_2($order, 'executedQty', 'z');
         $statusId = $this->safe_string_2($order, 'status', 'X');
+        $feeCurrencyCode = $this->safe_string_2($order, 'feeAsset', 'N');
+        $feeCost = $this->safe_string_n($order, array( 'fee', 'commission', 'n' ));
+        if (($feeCurrencyCode === null)) {
+            if ($market['spot']) {
+                if ($side === 'buy') {
+                    $feeCurrencyCode = $market['base'];
+                } else {
+                    $feeCurrencyCode = $market['quote'];
+                }
+            } else {
+                $feeCurrencyCode = $market['quote'];
+            }
+        }
         $fee = array(
-            'currency' => $this->safe_string_2($order, 'feeAsset', 'N'),
-            'rate' => $this->safe_string_n($order, array( 'fee', 'commission', 'n' )),
+            'currency' => $feeCurrencyCode,
+            'cost' => Precise::string_abs($feeCost),
         );
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'c');
         return $this->safe_order(array(

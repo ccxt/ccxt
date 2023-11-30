@@ -2393,6 +2393,9 @@ class binance extends binance$1 {
         return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
     }
     setPositionsCache(client, type, symbols = undefined) {
+        if (type === 'spot') {
+            return;
+        }
         if (this.positions === undefined) {
             this.positions = {};
         }
