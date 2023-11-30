@@ -334,9 +334,10 @@ class htx(ccxt.async_support.htx):
         # which means whenever there is an order book change at that level, it pushes an update
         # 150-levels/400-level incremental MBP feed is based on the gap
         # between two snapshots at 100ms interval.
-        limit = 20 if (limit is None) else limit
+        if limit is None:
+            limit = 150 if market['spot'] else 20
         if not self.in_array(limit, allowedLimits):
-            raise ExchangeError(self.id + ' watchOrderBook swap market accepts limits of 20 and 150 only')
+            raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 20 and 150 only')
         messageHash = None
         if market['spot']:
             messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)

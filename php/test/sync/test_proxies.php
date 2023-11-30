@@ -10,7 +10,7 @@ use \ccxt\Precise;
 // -----------------------------------------------------------------------------
 
 
-function test_all_proxies($exchange, $skipped_properties) {
+function test_proxies($exchange, $skipped_properties) {
     test_proxy_url($exchange, $skipped_properties);
     test_http_proxy($exchange, $skipped_properties);
     // 'httpsProxy', 'socksProxy'

@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.66';
+$version = '4.1.70';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.66';
+    const VERSION = '4.1.70';
 
     public $browser;
     public $marketsLoading = null;
@@ -690,7 +690,7 @@ class Exchange extends \ccxt\Exchange {
     public function parse_markets($markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parseMarket ($markets[$i]);
+            $result[] = $this->parse_market($markets[$i]);
         }
         return $result;
     }
@@ -963,6 +963,7 @@ class Exchange extends \ccxt\Exchange {
             'settleId' => null,
             'spot' => null,
             'strike' => null,
+            'subType' => null,
             'swap' => null,
             'symbol' => null,
             'taker' => null,
@@ -1012,6 +1013,13 @@ class Exchange extends \ccxt\Exchange {
                 'precision' => $this->precision,
                 'limits' => $this->limits,
             ), $this->fees['trading'], $value);
+            if ($market['linear']) {
+                $market['subType'] = 'linear';
+            } elseif ($market['inverse']) {
+                $market['subType'] = 'inverse';
+            } else {
+                $market['subType'] = null;
+            }
             $values[] = $market;
         }
         $this->markets = $this->index_by($values, 'symbol');
@@ -1689,7 +1697,7 @@ class Exchange extends \ccxt\Exchange {
             'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
             'change' => $this->parse_number($change),
             'close' => $this->parse_number($this->omit_zero($this->parse_number($close))),
-            'high' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'high"'))),
+            'high' => $this->parse_number($this->omit_zero($this->safe_string($ticker, 'high'))),
             'last' => $this->parse_number($this->omit_zero($this->parse_number($last))),
             'low' => $this->parse_number($this->omit_zero($this->safe_number($ticker, 'low'))),
             'open' => $this->parse_number($this->omit_zero($this->parse_number($open))),
@@ -2416,7 +2424,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_position_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return $this->watchPositions ($symbols, $since, $limit, $params);
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            return Async\await($this->watchPositions ($symbols, $since, $limit, $params));
+        }) ();
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
@@ -3648,7 +3658,7 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function check_required_margin_argument(string $methodName, string $symbol, string $marginMode) {
+    public function check_required_margin_argument(string $methodName, ?string $symbol, string $marginMode) {
         /**
          * @ignore
          * @param {string} $symbol unified $symbol of the market

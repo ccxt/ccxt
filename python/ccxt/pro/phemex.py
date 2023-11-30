@@ -1213,7 +1213,7 @@ class phemex(ccxt.async_support.phemex):
         lastTradeTimestamp = self.safe_integer_product(order, 'transactTimeNs', 0.000001)
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
-        timeInForce = self.parseTimeInForce(self.safe_string(order, 'timeInForce'))
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         stopPrice = self.safe_string(order, 'stopPx')
         postOnly = (timeInForce == 'PO')
         return self.safe_order({

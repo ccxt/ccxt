@@ -16,7 +16,7 @@ sys.path.append(root)
 from ccxt.test.base import test_shared_methods  # noqa E402
 
 
-def test_all_proxies(exchange, skipped_properties):
+def test_proxies(exchange, skipped_properties):
     test_proxy_url(exchange, skipped_properties)
     test_http_proxy(exchange, skipped_properties)
     # 'httpsProxy', 'socksProxy'

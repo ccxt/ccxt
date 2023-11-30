@@ -270,7 +270,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'account-category': 'cash',  # 'cash', 'margin', 'futures'  # obsolete
                 'account-group': None,
                 'fetchClosedOrders': {
-                    'method': 'v2PrivateDataGetOrderHist',  # 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
+                    'method': 'v2PrivateDataGetOrderHist',  # 'v1PrivateAccountCategoryGetOrderHistCurrent'
                 },
                 'defaultType': 'spot',  # 'spot', 'margin', 'swap'
                 'accountsByType': {
@@ -792,6 +792,9 @@ class ascendex(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
+        :see: https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -802,8 +805,7 @@ class ascendex(Exchange, ImplicitAPI):
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         isMargin = self.safe_value(params, 'margin', False)
         marketType = 'margin' if isMargin else marketType
-        params = self.omit(params, 'margin')
-        options = self.safe_value(self.options, 'fetchBalance', {})
+        query = self.omit(query, 'margin')
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, marketType, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -811,15 +813,15 @@ class ascendex(Exchange, ImplicitAPI):
         request = {
             'account-group': accountGroup,
         }
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetBalance')
-        method = self.get_supported_mapping(marketType, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesPosition',
-        })
         if (accountCategory == 'cash') or (accountCategory == 'margin'):
             request['account-category'] = accountCategory
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if (marketType == 'spot') or (marketType == 'margin'):
+            response = await self.v1PrivateAccountCategoryGetBalance(self.extend(request, query))
+        elif marketType == 'swap':
+            response = await self.v2PrivateAccountGroupGetFuturesPosition(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchBalance() is not currently supported for ' + marketType + ' markets')
         #
         # cash
         #
@@ -1675,6 +1677,8 @@ class ascendex(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://ascendex.github.io/ascendex-pro-api/#query-order
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1685,7 +1689,6 @@ class ascendex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         type, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        options = self.safe_value(self.options, 'fetchOrder', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, type, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -1695,18 +1698,14 @@ class ascendex(Exchange, ImplicitAPI):
             'account-category': accountCategory,
             'orderId': id,
         }
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetOrderStatus')
-        method = self.get_supported_mapping(type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesOrderStatus',
-        })
-        if method == 'v1PrivateAccountCategoryGetOrderStatus':
-            if accountCategory is not None:
-                request['category'] = accountCategory
-        else:
+        response = None
+        if (type == 'spot') or (type == 'margin'):
+            response = await self.v1PrivateAccountCategoryGetOrderStatus(self.extend(request, query))
+        elif type == 'swap':
             request['account-category'] = accountCategory
-        response = await getattr(self, method)(self.extend(request, query))
+            response = await self.v2PrivateAccountGroupGetFuturesOrderStatus(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOrder() is not currently supported for ' + type + ' markets')
         #
         # AccountCategoryGetOrderStatus
         #
@@ -1780,6 +1779,8 @@ class ascendex(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
+        :see: https://ascendex.github.io/ascendex-pro-api/#list-open-orders
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1801,19 +1802,14 @@ class ascendex(Exchange, ImplicitAPI):
             'account-group': accountGroup,
             'account-category': accountCategory,
         }
-        options = self.safe_value(self.options, 'fetchOpenOrders', {})
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetOrderOpen')
-        method = self.get_supported_mapping(type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupGetFuturesOrderOpen',
-        })
-        if method == 'v1PrivateAccountCategoryGetOrderOpen':
-            if accountCategory is not None:
-                request['category'] = accountCategory
-        else:
+        response = None
+        if (type == 'spot') or (type == 'margin'):
+            response = await self.v1PrivateAccountCategoryGetOrderOpen(self.extend(request, query))
+        elif type == 'swap':
             request['account-category'] = accountCategory
-        response = await getattr(self, method)(self.extend(request, query))
+            response = await self.v2PrivateAccountGroupGetFuturesOrderOpen(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOpenOrders() is not currently supported for ' + type + ' markets')
         #
         # AccountCategoryGetOrderOpen
         #
@@ -1895,6 +1891,7 @@ class ascendex(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
         :see: https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -1907,7 +1904,6 @@ class ascendex(Exchange, ImplicitAPI):
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         request = {
-            'account-group': accountGroup,
             # 'category': accountCategory,
             # 'symbol': market['id'],
             # 'orderType': 'market',  # optional, string
@@ -1930,22 +1926,33 @@ class ascendex(Exchange, ImplicitAPI):
             'margin': defaultMethod,
             'swap': 'v2PrivateAccountGroupGetFuturesOrderHistCurrent',
         })
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        accountCategory = self.safe_string(accountsByType, type, 'cash')  # margin, futures
-        if method == 'v2PrivateDataGetOrderHist':
-            request['account'] = accountCategory
-            if limit is not None:
-                request['limit'] = limit
-        else:
-            request['account-category'] = accountCategory
-            if limit is not None:
-                request['pageSize'] = limit
         if since is not None:
             request['startTime'] = since
         until = self.safe_string(params, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await getattr(self, method)(self.extend(request, query))
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountCategory = self.safe_string(accountsByType, type, 'cash')  # margin, futures
+        response = None
+        if method == 'v1PrivateAccountCategoryGetOrderHistCurrent':
+            request['account-group'] = accountGroup
+            request['account-category'] = accountCategory
+            if limit is not None:
+                request['limit'] = limit
+            response = await self.v1PrivateAccountCategoryGetOrderHistCurrent(self.extend(request, query))
+        elif method == 'v2PrivateDataGetOrderHist':
+            request['account'] = accountCategory
+            if limit is not None:
+                request['limit'] = limit
+            response = await self.v2PrivateDataGetOrderHist(self.extend(request, query))
+        elif method == 'v2PrivateAccountGroupGetFuturesOrderHistCurrent':
+            request['account-group'] = accountGroup
+            request['account-category'] = accountCategory
+            if limit is not None:
+                request['pageSize'] = limit
+            response = await self.v2PrivateAccountGroupGetFuturesOrderHistCurrent(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchClosedOrders() is not currently supported for ' + type + ' markets')
         #
         # accountCategoryGetOrderHistCurrent
         #
@@ -2046,6 +2053,8 @@ class ascendex(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://ascendex.github.io/ascendex-pro-api/#cancel-order
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2057,7 +2066,6 @@ class ascendex(Exchange, ImplicitAPI):
         await self.load_accounts()
         market = self.market(symbol)
         type, query = self.handle_market_type_and_params('cancelOrder', market, params)
-        options = self.safe_value(self.options, 'cancelOrder', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, type, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -2069,24 +2077,20 @@ class ascendex(Exchange, ImplicitAPI):
             'time': self.milliseconds(),
             'id': 'foobar',
         }
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryDeleteOrder')
-        method = self.get_supported_mapping(type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupDeleteFuturesOrder',
-        })
-        if method == 'v1PrivateAccountCategoryDeleteOrder':
-            if accountCategory is not None:
-                request['category'] = accountCategory
-        else:
-            request['account-category'] = accountCategory
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
         if clientOrderId is None:
             request['orderId'] = id
         else:
             request['id'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'id'])
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if (type == 'spot') or (type == 'margin'):
+            response = await self.v1PrivateAccountCategoryDeleteOrder(self.extend(request, query))
+        elif type == 'swap':
+            request['account-category'] = accountCategory
+            response = await self.v2PrivateAccountGroupDeleteFuturesOrder(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' cancelOrder() is not currently supported for ' + type + ' markets')
         #
         # AccountCategoryDeleteOrder
         #
@@ -2157,6 +2161,8 @@ class ascendex(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
+        :see: https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2167,7 +2173,6 @@ class ascendex(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        options = self.safe_value(self.options, 'cancelAllOrders', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, type, 'cash')
         account = self.safe_value(self.accounts, 0, {})
@@ -2179,18 +2184,14 @@ class ascendex(Exchange, ImplicitAPI):
         }
         if symbol is not None:
             request['symbol'] = market['id']
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryDeleteOrderAll')
-        method = self.get_supported_mapping(type, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupDeleteFuturesOrderAll',
-        })
-        if method == 'v1PrivateAccountCategoryDeleteOrderAll':
-            if accountCategory is not None:
-                request['category'] = accountCategory
-        else:
+        response = None
+        if (type == 'spot') or (type == 'margin'):
+            response = await self.v1PrivateAccountCategoryDeleteOrderAll(self.extend(request, query))
+        elif type == 'swap':
             request['account-category'] = accountCategory
-        response = await getattr(self, method)(self.extend(request, query))
+            response = await self.v2PrivateAccountGroupDeleteFuturesOrderAll(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' cancelAllOrders() is not currently supported for ' + type + ' markets')
         #
         # AccountCategoryDeleteOrderAll
         #

@@ -2115,8 +2115,8 @@ class bybit extends bybit$1 {
         }
         const request = {
         // 'symbol': market['id'],
-        // 'baseCoin': '', Base coin. For option only
-        // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
+        // 'baseCoin': '', // Base coin. For option only
+        // 'expDate': '', // Expiry date. e.g., 25DEC22. For option only
         };
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchTickers', market, params);

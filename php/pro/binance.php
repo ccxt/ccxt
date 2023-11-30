@@ -52,8 +52,8 @@ class binance extends \ccxt\async\binance {
                 ),
                 'api' => array(
                     'ws' => array(
-                        'spot' => 'wss://stream.binance.com:9443/ws',
-                        'margin' => 'wss://stream.binance.com:9443/ws',
+                        'spot' => 'wss://stream.binance.com/ws',
+                        'margin' => 'wss://stream.binance.com/ws',
                         'future' => 'wss://fstream.binance.com/ws',
                         'delivery' => 'wss://dstream.binance.com/ws',
                         'ws' => 'wss://ws-api.binance.com:443/ws-api/v3',
@@ -747,7 +747,7 @@ class binance extends \ccxt\async\binance {
     public function handle_trade(Client $client, $message) {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
-        $isSpot = ((mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, '/testnet.binance') > -1));
+        $isSpot = ((mb_strpos($client->url, 'wss://stream.binance.com') > -1) || (mb_strpos($client->url, '/testnet.binance') > -1));
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
@@ -1318,18 +1318,21 @@ class binance extends \ccxt\async\binance {
                 return;
             }
             $method = 'publicPutUserDataStream';
+            $request = array();
+            $symbol = $this->safe_string($params, 'symbol');
+            $sendParams = $this->omit($params, array( 'type', 'symbol' ));
             if ($type === 'future') {
                 $method = 'fapiPrivatePutListenKey';
             } elseif ($type === 'delivery') {
                 $method = 'dapiPrivatePutListenKey';
-            } elseif ($type === 'margin') {
-                $method = 'sapiPutUserDataStream';
+            } else {
+                $request['listenKey'] = $listenKey;
+                if ($type === 'margin') {
+                    $request['symbol'] = $symbol;
+                    $method = 'sapiPutUserDataStream';
+                }
             }
-            $request = array(
-                'listenKey' => $listenKey,
-            );
             $time = $this->milliseconds();
-            $sendParams = $this->omit($params, 'type');
             try {
                 Async\await($this->$method (array_merge($request, $sendParams)));
             } catch (Exception $error) {
@@ -2095,9 +2098,7 @@ class binance extends \ccxt\async\binance {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $messageHash .= ':' . $symbol;
-                $params = array_merge($params, array( 'type' => $market['type'], 'symbol' => $symbol )); // needed inside authenticate for isolated margin
             }
-            Async\await($this->authenticate($params));
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $subType = null;
@@ -2107,6 +2108,8 @@ class binance extends \ccxt\async\binance {
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
+            $params = array_merge($params, array( 'type' => $type, 'symbol' => $symbol )); // needed inside authenticate for isolated margin
+            Async\await($this->authenticate($params));
             $urlType = $type;
             if ($type === 'margin') {
                 $urlType = 'spot'; // spot-margin shares the same stream spot

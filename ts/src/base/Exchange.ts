@@ -2166,6 +2166,7 @@ export default class Exchange {
             'settleId': undefined,
             'spot': undefined,
             'strike': undefined,
+            'subType': undefined,
             'swap': undefined,
             'symbol': undefined,
             'taker': undefined,
@@ -2215,6 +2216,13 @@ export default class Exchange {
                 'precision': this.precision,
                 'limits': this.limits,
             }, this.fees['trading'], value);
+            if (market['linear']) {
+                market['subType'] = 'linear';
+            } else if (market['inverse']) {
+                market['subType'] = 'inverse';
+            } else {
+                market['subType'] = undefined;
+            }
             values.push (market);
         }
         this.markets = this.indexBy (values, 'symbol') as any;
@@ -2892,7 +2900,7 @@ export default class Exchange {
             'bidVolume': this.safeNumber (ticker, 'bidVolume'),
             'change': this.parseNumber (change),
             'close': this.parseNumber (this.omitZero (this.parseNumber (close))),
-            'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high"'))),
+            'high': this.parseNumber (this.omitZero (this.safeString (ticker, 'high'))),
             'last': this.parseNumber (this.omitZero (this.parseNumber (last))),
             'low': this.parseNumber (this.omitZero (this.safeNumber (ticker, 'low'))),
             'open': this.parseNumber (this.omitZero (this.parseNumber (open))),
@@ -3601,7 +3609,7 @@ export default class Exchange {
     }
 
     async watchPositionForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        return this.watchPositions (symbols, since, limit, params);
+        return await this.watchPositions (symbols, since, limit, params);
     }
 
     async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
@@ -4786,7 +4794,7 @@ export default class Exchange {
         }
     }
 
-    checkRequiredMarginArgument (methodName: string, symbol: string, marginMode: string) {
+    checkRequiredMarginArgument (methodName: string, symbol: Str, marginMode: string) {
         /**
          * @ignore
          * @method
