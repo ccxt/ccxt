@@ -9,7 +9,7 @@
                 "input": [
                   "LTC/USDT",
                   null,
-                  "1"
+                  1
                 ],
                 "httpResponse": {
                   "code": "0",
@@ -97,7 +97,7 @@
                 "input": [
                   "LTC/USDT:USDT",
                   null,
-                  "1"
+                  1
                 ],
                 "httpResponse": {
                   "code": "0",
