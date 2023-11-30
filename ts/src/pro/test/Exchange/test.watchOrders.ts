@@ -2,7 +2,6 @@
 import assert from 'assert';
 import testOrder from '../../../test/Exchange/base/test.order.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import errors from '../../../base/errors.js';
 
 async function testWatchOrders (exchange, skippedProperties, symbol) {
     const method = 'watchOrders';
@@ -18,7 +17,7 @@ async function testWatchOrders (exchange, skippedProperties, symbol) {
             }
             testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
         } catch (e) {
-            if (!(e instanceof errors.OperationFailed)) {
+            if (testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
             now = exchange.milliseconds ();

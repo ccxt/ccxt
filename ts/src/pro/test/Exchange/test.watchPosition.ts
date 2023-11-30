@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
-import errors from '../../../base/errors.js';
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 
 async function testWatchPosition (exchange, skippedProperties, symbol) {
     const method = 'watchPosition';
@@ -14,7 +14,7 @@ async function testWatchPosition (exchange, skippedProperties, symbol) {
             now = exchange.milliseconds ();
             testPosition (exchange, skippedProperties, method, response, undefined, now);
         } catch (e) {
-            if (!(e instanceof errors.OperationFailed)) {
+            if (testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
             now = exchange.milliseconds ();

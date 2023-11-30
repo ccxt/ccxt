@@ -2,7 +2,6 @@
 import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import errors from '../../../base/errors.js';
 
 async function testWatchPositions (exchange, skippedProperties, symbol) {
     const method = 'watchPositions';
@@ -29,7 +28,7 @@ async function testWatchPositions (exchange, skippedProperties, symbol) {
             }
             testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbols);
         } catch (e) {
-            if (!(e instanceof errors.OperationFailed)) {
+            if (testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
             now = exchange.milliseconds ();

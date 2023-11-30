@@ -2,9 +2,14 @@
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
 import { TICK_SIZE } from '../../../base/functions/number.js';
+import errors from '../../../base/errors.js';
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
+}
+
+function isTemporaryFailure (e) {
+    return (e instanceof errors.OperationFailed) && (!(e instanceof errors.OnMaintenance));
 }
 
 function stringValue (value) {
@@ -358,6 +363,7 @@ function setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, http
 
 export default {
     logTemplate,
+    isTemporaryFailure,
     assertTimestamp,
     assertTimestampAndDatetime,
     assertStructure,

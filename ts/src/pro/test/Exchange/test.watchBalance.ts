@@ -1,6 +1,6 @@
 
 import testBalance from '../../../test/Exchange/base/test.balance.js';
-import errors from '../../../base/errors.js';
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 
 async function testWatchBalance (exchange, skippedProperties, symbol) {
     const method = 'watchBalance';
@@ -11,7 +11,7 @@ async function testWatchBalance (exchange, skippedProperties, symbol) {
             const response = await exchange[method] (symbol);
             testBalance (exchange, skippedProperties, method, response);
         } catch (e) {
-            if (!(e instanceof errors.OperationFailed)) {
+            if (testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
             now = exchange.milliseconds ();
