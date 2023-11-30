@@ -2093,6 +2093,7 @@ export default class mexc extends Exchange {
 
     createSpotOrderRequest (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
+        side = side.toLowerCase ();
         const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
         const request = {
             'symbol': market['id'],
