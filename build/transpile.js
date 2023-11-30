@@ -2454,6 +2454,9 @@ class Transpiler {
             const usesTickSize = pythonAsync.indexOf ('TICK_SIZE') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
 
+            let importedErrors = imports.filter(x => Object.keys(errors).includes(x.name)).map(x => x.name); // returns 'OnMaintenance,ExchangeNotAvailable', etc...
+            
+
             let pythonHeaderSync = []
             let pythonHeaderAsync = []
             let phpHeaderSync = []
@@ -2470,6 +2473,12 @@ class Transpiler {
             if (usesPrecise) {
                 pythonHeaderAsync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
+            }
+
+            for (const importedError of importedErrors) {
+                const py = `from ccxt.base.errors import ${importedError}  # noqa E402`;
+                pythonHeaderAsync.push (py)
+                pythonHeaderSync.push (py)
             }
 
             for (const subTestName of requiredSubTests) {

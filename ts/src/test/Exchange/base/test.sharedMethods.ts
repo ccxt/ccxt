@@ -1,14 +1,14 @@
 
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
-import errors from '../../../base/errors.js';
+import { OperationFailed, OnMaintenance } from '../../../base/errors.js';
 
 function logTemplate (exchange, method, entry) {
     return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
 }
 
 function isTemporaryFailure (e) {
-    return (e instanceof errors.OperationFailed) && (!(e instanceof errors.OnMaintenance));
+    return (e instanceof OperationFailed) && (!(e instanceof OnMaintenance));
 }
 
 function stringValue (value) {
