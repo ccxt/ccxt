@@ -177,6 +177,31 @@
                     }
                 ],
                 "output": "nonce=1700155664178&pair=BTC_USDT&quantity=1&type=buy&trigger_price=1000"
+            },
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.exmo.com/v1.1/order_create",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  50
+                ],
+                "output": "nonce=1701427482963&pair=LTC_USDT&quantity=0.1&price=50&type=buy"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://api.exmo.com/v1.1/order_create",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1
+                ],
+                "output": "nonce=1701427519555&pair=LTC_USDT&quantity=0.1&price=0&type=market_sell"
             }
         ]
     }
