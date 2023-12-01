@@ -140,13 +140,13 @@ const exec = (bin, ...args) =>
             }
 
             // Infos
-            const info = []
+            const infos = []
             if (output.length) {
                 // check output for pattern like `[INFO: whatever]`
                 const infoRegex = /\[INFO:([\w_-]+)].+$(?!\n)*/gmi
                 let matchInfo;
                 while ((matchInfo = infoRegex.exec (output))) {
-                    info.push (matchInfo[0])
+                    infos.push (matchInfo[0])
                 }
             }
 
@@ -168,7 +168,7 @@ const exec = (bin, ...args) =>
                 failed: hasFailed || code !== 0,
                 output,
                 warnings: warnings,
-                infos: info,
+                infos: infos,
             })
         })
 
@@ -293,7 +293,7 @@ const testExchange = async (exchange) => {
     if (hasInfo) {
         if (exchangeSpecificFlags['--info']) {
             logMessage += ' ' + 'INFO'.blue + ' ';
-            const infoMessages = infos.join(' ');
+            const infoMessages = infos.join('\n');
             logMessage += infoMessages.blue;
         }
     }
