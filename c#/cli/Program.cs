@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 public static class Program
 {
 
+    public static bool verbose = false;
+
     public class Options
     {
         public bool Verbose { get; set; }
@@ -23,7 +25,8 @@ public static class Program
     {
         if (args.Contains("--verbose"))
         {
-            instance.verbose = true;
+            // instance.verbose = true;
+            verbose = true;
         }
         if (args.Contains("--sandbox"))
         {
@@ -51,10 +54,6 @@ public static class Program
         }
     }
 
-    public async static Task<int> Test()
-    {
-        return 1;
-    }
 
     public static void Main(string[] args)
     {
@@ -65,24 +64,28 @@ public static class Program
         List<string> strings = ids.Select(s => (string)s).ToList();
         exchangesId = strings;
 
-        if (true || args.Contains("--ws"))
-        {
-            // instance.verbose = true;
-            // Exchange.runWs().Wait();
-            var ws = new Exchange();
-            ws.runWs().Wait();
-            return;
-        }
+        // if (true || args.Contains("--ws"))
+        // {
+        //     // instance.verbose = true;
+        //     // Exchange.runWs().Wait();
+        //     var ws = new Exchange();
+        //     ws.runWs().Wait();
+        //     return;
+        // }
 
         if (args.Length < 2)
         {
             Helper.Red("Exchange name and method required!");
             return;
         }
-
+        // var args = new string[3];
+        // args[0] = "bybit";
+        // args[1] = "watchOrders";
+        // args[2] = "LTC/USDT";
 
         var exchangeName = args[0];
         var methodName = args[1];
+
 
         if (!exchangesId.Contains(exchangeName.ToLower()))
         {
@@ -113,16 +116,27 @@ public static class Program
             })
             .ToList();
 
-        var instance = Exchange.MagicallyCreateInstance(exchangeName);
+        var isWsMethod = methodName.StartsWith("watch") || methodName.StartsWith("Watch");
+        var exchangeNameAdapted = (isWsMethod) ? exchangeName + "Ws" : exchangeName;
+        var instance = Exchange.MagicallyCreateInstance(exchangeNameAdapted);
 
         InitOptions(instance, flags);
+        instance.apiKey = "lug8rHp6sfJjg2RMX3EnHosE4GLAXpcUiBgLumscNS11hW5laeadqvXhA3JWBNci";
+        instance.secret = "vhD77dqxSEwwnWwxvlk9OAUVRbee8xAvl8bOEqpe1QU2hsP6t0uS55HL5y72qVsv";
         SetCredentials(instance);
 
+        // tmp
+        // instance.setSandboxMode(true);
         try
         {
             Console.WriteLine(JsonConvert.SerializeObject(parameters, Formatting.Indented));
             var task = instance.loadMarkets();
             task.Wait();
+            if (verbose)
+            {
+                instance.verbose = true;
+            }
+            // instance.verbose = true; // hardcoded verboe log
             var method = instance.GetType().GetMethod(methodName);
             var parametersNumber = method.GetParameters().Length;
             var missing = parametersNumber - parameters.Count;
@@ -133,10 +147,21 @@ public static class Program
                     parameters.Add(null);
                 }
             }
+            while (true)
+            {
 
-            var result = method.Invoke(instance, parameters.ToArray());
-            var resultNew = result.GetType().GetProperty("Result").GetValue(result, null);
-            Console.WriteLine(JsonConvert.SerializeObject(resultNew, Formatting.Indented));
+                var result = method.Invoke(instance, parameters.ToArray());
+                var resultNew = result.GetType().GetProperty("Result").GetValue(result, null);
+                // var resultNew = instance.watchOrders("LTC/USDT");
+                // resultNew.Wait();
+                Console.WriteLine(JsonConvert.SerializeObject(resultNew, Formatting.Indented));
+
+                if (!isWsMethod)
+                {
+                    break;
+                }
+
+            }
         }
         catch (Exception e)
         {
