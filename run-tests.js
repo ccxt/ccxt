@@ -141,14 +141,12 @@ const exec = (bin, ...args) =>
 
             // Infos
             const info = []
-            let outputInfo = '';
             if (output.length) {
                 // check output for pattern like `[INFO: whatever]`
                 const infoRegex = /\[INFO:([\w_-]+)].+$\n*/gmi
                 let matchInfo;
                 while ((matchInfo = infoRegex.exec (output))) {
-                    info.push ('[' + matchInfo[1] + ']')
-                    outputInfo += matchInfo[0]
+                    info.push ('[' + matchInfo[0] + ']')
                 }
             }
 
@@ -169,7 +167,6 @@ const exec = (bin, ...args) =>
             return_ ({
                 failed: hasFailed || code !== 0,
                 output,
-                outputInfo,
                 warnings: warnings,
                 infos: info,
             })
@@ -267,8 +264,8 @@ const testExchange = async (exchange) => {
         }
         const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
-        , hasWarnings    = completeTests.find (test => test.warnings.length > 0)
-        , hasInfo        = completeTests.find (test => test.infos.length > 0)
+        , hasWarnings    = completeTests.find (test => test.warnings.length)
+        , hasInfo        = completeTests.find (test => test.infos.length)
         , warnings       = completeTests.reduce (
             (total, { warnings }) => {
                 return total.concat (warnings)
@@ -311,8 +308,8 @@ const testExchange = async (exchange) => {
         failed,
         hasWarnings,
         explain () {
-            for (let { language, failed, output, hasWarnings, hasInfo, outputInfo } of completeTests) {
-                if (failed || hasWarnings) {
+            for (let { language, failed, output, warnings, infos } of completeTests) {
+                if (failed || warnings.length) {
                     const fullSkip = output.indexOf('[SKIPPED]') >= 0;
                     if (!failed && fullSkip)
                         continue;
@@ -322,9 +319,9 @@ const testExchange = async (exchange) => {
 
                     log.indent (1) (output)
                 }
-                if (hasInfo) {
+                if (infos.length) {
                     log.bright ('\nINFO'.blue.inverse,':\n')
-                    log.indent (1) (outputInfo)
+                    log.indent (1) (infos.join('\n'))
                 }
             }
         }
