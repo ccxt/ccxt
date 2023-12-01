@@ -170,11 +170,8 @@ const exec = (bin, ...args) =>
                 failed: hasFailed || code !== 0,
                 output,
                 outputInfo,
-                hasOutput: output.length > 0,
-                hasWarnings: hasWarnings || warnings.length > 0,
                 warnings: warnings,
                 infos: info,
-                hasInfo: info.length > 0,
             })
         })
 
@@ -183,7 +180,7 @@ const exec = (bin, ...args) =>
         failed: true,
         output: e.message
 
-    })).then (x => Object.assign (x, { hasOutput: x.output.length > 0 }))
+    }))
 
 /*  ------------------------------------------------------------------------ */
 
@@ -270,8 +267,8 @@ const testExchange = async (exchange) => {
         }
         const completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
-        , hasWarnings    = completeTests.find (test => test.hasWarnings)
-        , hasInfo        = completeTests.find (test => test.hasInfo)
+        , hasWarnings    = completeTests.find (test => test.warnings.length > 0)
+        , hasInfo        = completeTests.find (test => test.infos.length > 0)
         , warnings       = completeTests.reduce (
             (total, { warnings }) => {
                 return total.concat (warnings)
@@ -313,7 +310,6 @@ const testExchange = async (exchange) => {
         exchange,
         failed,
         hasWarnings,
-        hasInfo: hasInfo && exchangeSpecificFlags['--info'],
         explain () {
             for (let { language, failed, output, hasWarnings, hasInfo, outputInfo } of completeTests) {
                 if (failed || hasWarnings) {
