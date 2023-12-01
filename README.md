@@ -21,8 +21,7 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Earn Up to 2,000 BMEX Tokens This November](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/279670432-d73a8de9-c373-427a-a905-c90d9d63dd28.png)](https://www.bitmex.com/ccxt-trading-offer)
-
+[![BitMart Trading Journey Through CCXT – Win VIP Fee Rates and Dive into a $30,000 Rewards Pool](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/287287291-697bdaf6-6ded-4c53-abb5-511a37ffd1bb.jpg)](https://www.bitmart.com/activity/CCXT-Promotion)
 
 ## See Also
 
