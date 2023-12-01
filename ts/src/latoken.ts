@@ -1599,20 +1599,19 @@ export default class latoken extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let method = undefined;
-        if (toAccount.indexOf ('@') >= 0) {
-            method = 'privatePostAuthTransferEmail';
-        } else if (toAccount.length === 36) {
-            method = 'privatePostAuthTransferId';
-        } else {
-            method = 'privatePostAuthTransferPhone';
-        }
         const request = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': this.currencyToPrecision (code, amount),
         };
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (toAccount.indexOf ('@') >= 0) {
+            response = await this.privatePostAuthTransferEmail (this.extend (request, params));
+        } else if (toAccount.length === 36) {
+            response = await this.privatePostAuthTransferId (this.extend (request, params));
+        } else {
+            response = await this.privatePostAuthTransferPhone (this.extend (request, params));
+        }
         //
         //     {
         //         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",
