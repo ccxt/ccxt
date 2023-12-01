@@ -230,6 +230,16 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"20\"}"
+            },
+            {
+                "description": "Spot market buy with createMarketBuyOrderWithCost ",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT",
+                  10
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\"}"
             }
         ],
         "createOrders": [

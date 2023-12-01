@@ -3442,12 +3442,18 @@ export default class bybit extends Exchange {
         /**
          * @method
          * @name bybit#createMarketBuyOrderWithCost
+         * @see https://bybit-exchange.github.io/docs/v5/order/create-order
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
         params['createMarketBuyOrderRequiresPrice'] = false;
         return this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
