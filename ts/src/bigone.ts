@@ -1164,6 +1164,7 @@ export default class bigone extends Exchange {
         /**
          * @method
          * @name bigone#createMarketBuyOrderWithCost
+         * @see https://open.big.one/docs/spot_orders.html#create-order
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
@@ -1171,7 +1172,7 @@ export default class bigone extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         params['createMarketBuyOrderRequiresPrice'] = false;
-        return this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
