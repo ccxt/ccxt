@@ -20,6 +20,16 @@
             {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
+                "url": "https://api.latoken.com/v2/auth/trade?limit=5",
+                "input": [
+                    null,
+                    1699457638000,
+                    5
+                ]
+            },
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
                 "url": "https://api.latoken.com/v2/auth/trade/pair/0d02fdfc-9555-4cd9-8398-006003033a9e/0c3a106d-bde3-4c13-a26e-3fd2394529e5?limit=5",
                 "input": [
                     "LTC/USDT",

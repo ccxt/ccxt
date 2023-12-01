@@ -916,18 +916,19 @@ export default class latoken extends Exchange {
             // 'from': this.milliseconds (),
             // 'limit': limit, // default '100'
         };
-        let method = 'privateGetAuthTrade';
         let market = undefined;
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
+        let response = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            method = 'privateGetAuthTradePairCurrencyQuote';
+            response = await this.privateGetAuthTradePairCurrencyQuote (this.extend (request, params));
+        } else {
+            response = await this.privateGetAuthTrade (this.extend (request, params));
         }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100
-        }
-        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         {
