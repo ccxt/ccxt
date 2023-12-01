@@ -1610,7 +1610,14 @@ export default class idex extends Exchange {
         // ]
         const method = params['method'];
         params = this.omit (params, 'method');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetDeposits') {
+            response = await this.privateGetDeposits (this.extend (request, params));
+        } else if (method === 'privateGetWithdrawals') {
+            response = await this.privateGetWithdrawals (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchTransactionsHelper() not support this method');
+        }
         return this.parseTransactions (response, currency, since, limit);
     }
 
