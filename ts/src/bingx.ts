@@ -1726,7 +1726,13 @@ export default class bingx extends Exchange {
             if (cost !== undefined) {
                 request['quoteOrderQty'] = this.parseToNumeric (this.costToPrecision (symbol, cost));
             } else {
-                request['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+                if (market['spot'] && isMarketOrder && (price !== undefined)) {
+                    // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
+                    const calculatedCost = Precise.stringMul (this.numberToString (amount), this.numberToString (price));
+                    request['quoteOrderQty'] = this.parseToNumeric (calculatedCost);
+                } else {
+                    request['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+                }
             }
             if (!isMarketOrder) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
