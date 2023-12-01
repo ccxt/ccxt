@@ -40,7 +40,6 @@ const exchangeSpecificFlags = {
     '--verbose': false,
     '--private': false,
     '--privateOnly': false,
-    '--info': false,
 }
 
 const content = fs.readFileSync ('skip-tests.json', 'utf8');
@@ -291,9 +290,9 @@ const testExchange = async (exchange) => {
 
     // info messages
     if (hasInfo) {
-        if (exchangeSpecificFlags['--info']) {
+        if (debugKeys['--info']) {
             logMessage += ' ' + 'INFO'.blue + ' ';
-            const infoMessages = infos.join('\n');
+            const infoMessages = '\n' + infos.join('\n');
             logMessage += infoMessages.blue;
         }
     }
