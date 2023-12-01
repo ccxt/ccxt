@@ -21,6 +21,7 @@ async function testWatchOHLCV (exchange, skippedProperties, symbol) {
         try {
             const response = await exchange[method] (symbol, chosenTimeframeKey, since, limit);
             assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
+            now = exchange.milliseconds ();
             for (let i = 0; i < response.length; i++) {
                 testOHLCV (exchange, skippedProperties, method, response[i], symbol, now);
             }
@@ -28,8 +29,8 @@ async function testWatchOHLCV (exchange, skippedProperties, symbol) {
             if (testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
-            now = exchange.milliseconds ();
         }
+        now = exchange.milliseconds ();
     }
 }
 

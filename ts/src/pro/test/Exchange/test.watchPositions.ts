@@ -23,6 +23,7 @@ async function testWatchPositions (exchange, skippedProperties, symbol) {
             assert (Array.isArray (positionsForSymbols), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbols));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert (positionsForSymbols.length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json (positionsForSymbols));
+            now = exchange.milliseconds ();
             for (let i = 0; i < positionsForSymbols.length; i++) {
                 testPosition (exchange, skippedProperties, method, positionsForSymbols[i], symbol, now);
             }
