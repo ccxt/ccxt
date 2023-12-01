@@ -57,6 +57,8 @@ class okx(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': False,
+                'createMarketBuyOrderWithCost': True,
+                'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
                 'createPostOnlyOrder': True,
@@ -2412,6 +2414,40 @@ class okx(Exchange, ImplicitAPI):
         #
         return self.parse_balance_by_type(marketType, response)
 
+    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+        create a market buy order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot markets only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        params['tgtCcy'] = 'quote_ccy'
+        return self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+        create a market buy order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot markets only')
+        params['createMarketBuyOrderRequiresPrice'] = False
+        params['tgtCcy'] = 'quote_ccy'
+        return self.create_order(symbol, 'market', 'sell', cost, None, params)
+
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         market = self.market(symbol)
         request = {
@@ -2497,8 +2533,10 @@ class okx(Exchange, ImplicitAPI):
                 # see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if tgtCcy == 'quote_ccy':
                     # quote_ccy: sz refers to units of quote currency
+                    createMarketBuyOrderRequiresPrice = True
+                    createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                     notional = self.safe_number_2(params, 'cost', 'sz')
-                    createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                    params = self.omit(params, ['cost', 'sz'])
                     if createMarketBuyOrderRequiresPrice:
                         if price is not None:
                             if notional is None:
@@ -2511,7 +2549,6 @@ class okx(Exchange, ImplicitAPI):
                     else:
                         notional = amount if (notional is None) else notional
                     request['sz'] = self.cost_to_precision(symbol, notional)
-                    params = self.omit(params, ['cost', 'sz'])
             if marketIOC and contract:
                 request['ordType'] = 'optimal_limit_ioc'
         else:

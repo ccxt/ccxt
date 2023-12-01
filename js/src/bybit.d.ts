@@ -58,6 +58,7 @@ export default class bybit extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
