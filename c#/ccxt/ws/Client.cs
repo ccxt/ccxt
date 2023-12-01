@@ -131,7 +131,7 @@ public partial class Exchange
                     await webSocket.ConnectAsync(new Uri(url), CancellationToken.None);
                     if (this.verbose)
                     {
-                        Console.WriteLine("WebSocket connected!");
+                        Console.WriteLine("WebSocket connected to " + url);
                     }
                     Task.Run(async () =>
                     {

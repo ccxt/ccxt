@@ -90,37 +90,11 @@ public partial class Exchange
         }
     }
 
-    async public Task runWs()
-    {
-        try
-        {
-
-            var binance = new binanceWs();
-            await binance.loadMarkets();
-            binance.verbose = true;
-            while (true)
-            {
-                var message = await binance.watchTrades("BTC/USDT");
-                Console.WriteLine(JsonConvert.SerializeObject(message, Formatting.Indented));
-            }
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("ERROR: " + ex.ToString());
-        }
-    }
-
 
     public virtual void handleMessage(WebSocketClient client, object messageContent)
     {
-        Console.WriteLine("handleMessage");
-        Console.WriteLine(messageContent);
-        // var future = client.futures["test"];
-        // future.resolve(messageContent);
-        client.resolve(messageContent, "test");
-        // future.SetResult(messageContent);
-
+        // Console.WriteLine("handleMessage");
+        // Console.WriteLine(messageContent);
     }
 
     public WebSocketClient client(object url2)
