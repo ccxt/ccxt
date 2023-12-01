@@ -2006,7 +2006,7 @@ class mexc(Exchange, ImplicitAPI):
 
     def create_spot_order_request(self, market, type, side, amount, price=None, marginMode=None, params={}):
         symbol = market['symbol']
-        orderSide = 'BUY' if (side == 'buy') else 'SELL'
+        orderSide = side.upper()
         request = {
             'symbol': market['id'],
             'side': orderSide,
@@ -2023,8 +2023,8 @@ class mexc(Exchange, ImplicitAPI):
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
                     quoteAmount = Precise.string_mul(amountString, priceString)
-                    amount = self.parse_number(quoteAmount)
-            request['quoteOrderQty'] = amount
+                    amount = quoteAmount
+            request['quoteOrderQty'] = self.cost_to_precision(symbol, amount)
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
         if price is not None:
@@ -2193,7 +2193,7 @@ class mexc(Exchange, ImplicitAPI):
             orderRequest = self.create_spot_order_request(market, type, side, amount, price, marginMode, orderParams)
             ordersRequests.append(orderRequest)
         request = {
-            'batchOrders': ordersRequests,
+            'batchOrders': self.json(ordersRequests),
         }
         response = self.spotPrivatePostBatchOrders(request)
         #

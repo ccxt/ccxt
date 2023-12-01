@@ -2417,6 +2417,9 @@ class binance extends \ccxt\async\binance {
     }
 
     public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+        if ($type === 'spot') {
+            return;
+        }
         if ($this->positions === null) {
             $this->positions = array();
         }
