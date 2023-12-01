@@ -1,0 +1,3271 @@
+{
+    "BTC/USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 20000000
+            },
+            "leverage": {
+                "min": 1,
+                "max": 10
+            }
+        },
+        "info": {
+            "id": "BTC_USDT",
+            "base": "BTC",
+            "quote": "USDT",
+            "leverage": "10",
+            "min_base_amount": "0.00001",
+            "min_quote_amount": "1",
+            "max_quote_amount": "20000000",
+            "status": "1",
+            "fee": "0.2",
+            "amount_precision": "5",
+            "precision": "1",
+            "trade_status": "tradable",
+            "sell_start": "0",
+            "buy_start": "0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "ETH/USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 20000000
+            },
+            "leverage": {
+                "min": 1,
+                "max": 10
+            }
+        },
+        "info": {
+            "id": "ETH_USDT",
+            "base": "ETH",
+            "quote": "USDT",
+            "leverage": "10",
+            "min_base_amount": "0.001",
+            "min_quote_amount": "1",
+            "max_quote_amount": "20000000",
+            "status": "1",
+            "fee": "0.2",
+            "amount_precision": "4",
+            "precision": "2",
+            "trade_status": "tradable",
+            "sell_start": "0",
+            "buy_start": "0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "ADA/USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 40000
+            },
+            "leverage": {
+                "min": 1,
+                "max": 3
+            }
+        },
+        "info": {
+            "id": "ADA_USDT",
+            "base": "ADA",
+            "quote": "USDT",
+            "leverage": "3",
+            "min_base_amount": "20",
+            "min_quote_amount": "1",
+            "max_quote_amount": "40000",
+            "status": "1",
+            "fee": "0.2",
+            "amount_precision": "3",
+            "precision": "5",
+            "trade_status": "tradable",
+            "sell_start": "0",
+            "buy_start": "0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "LTC/USDT": {
+        "id": "LTC_USDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.003
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 40000
+            },
+            "leverage": {
+                "min": 1,
+                "max": 10
+            }
+        },
+        "info": {
+            "id": "LTC_USDT",
+            "base": "LTC",
+            "quote": "USDT",
+            "leverage": "10",
+            "min_base_amount": "0.003",
+            "min_quote_amount": "1",
+            "max_quote_amount": "40000",
+            "status": "1",
+            "fee": "0.2",
+            "amount_precision": "4",
+            "precision": "2",
+            "trade_status": "tradable",
+            "sell_start": "0",
+            "buy_start": "0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "XRP/USDT": {
+        "id": "XRP_USDT",
+        "symbol": "XRP/USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 1000000
+            },
+            "leverage": {
+                "min": 1,
+                "max": 10
+            }
+        },
+        "info": {
+            "id": "XRP_USDT",
+            "base": "XRP",
+            "quote": "USDT",
+            "leverage": "10",
+            "min_base_amount": "2",
+            "min_quote_amount": "1",
+            "max_quote_amount": "1000000",
+            "status": "1",
+            "fee": "0.2",
+            "amount_precision": "3",
+            "precision": "5",
+            "trade_status": "tradable",
+            "sell_start": "0",
+            "buy_start": "0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "DOGE/USDT": {
+        "id": "DOGE_USDT",
+        "symbol": "DOGE/USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.000001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 40000
+            },
+            "leverage": {
+                "min": 1,
+                "max": 10
+            }
+        },
+        "info": {
+            "id": "DOGE_USDT",
+            "base": "DOGE",
+            "quote": "USDT",
+            "leverage": "10",
+            "min_base_amount": "10",
+            "min_quote_amount": "1",
+            "max_quote_amount": "40000",
+            "status": "1",
+            "fee": "0.2",
+            "amount_precision": "2",
+            "precision": "6",
+            "trade_status": "tradable",
+            "sell_start": "0",
+            "buy_start": "0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "TRX/USDT": {
+        "id": "TRX_USDT",
+        "symbol": "TRX/USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": true,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 0.01
+            },
+            "price": {},
+            "cost": {
+                "min": 1,
+                "max": 40000
+            },
+            "leverage": {
+                "min": 1,
+                "max": 5
+            }
+        },
+        "info": {
+            "id": "TRX_USDT",
+            "base": "TRX",
+            "quote": "USDT",
+            "leverage": "5",
+            "min_base_amount": "50",
+            "min_quote_amount": "1",
+            "max_quote_amount": "40000",
+            "status": "1",
+            "fee": "0.2",
+            "amount_precision": "2",
+            "precision": "5",
+            "trade_status": "tradable",
+            "sell_start": "0",
+            "buy_start": "0"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.002,
+        "maker": 0.002,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTC_USDT",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.0001,
+        "settle": "USDT",
+        "settleId": "usdt",
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 17220.495,
+                "max": 51661.485
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 125
+            }
+        },
+        "info": {
+            "funding_rate_indicative": "0.0001",
+            "mark_price_round": "0.01",
+            "funding_offset": "0",
+            "in_delisting": false,
+            "risk_limit_base": "1000000",
+            "interest_rate": "0.0003",
+            "index_price": "34437.94",
+            "order_price_round": "0.1",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "BTC_USDT",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.5",
+            "maintenance_rate": "0.004",
+            "mark_type": "index",
+            "funding_interval": "28800",
+            "type": "direct",
+            "risk_limit_step": "1000000",
+            "enable_bonus": true,
+            "enable_credit": true,
+            "leverage_min": "1",
+            "funding_rate": "0.0001",
+            "last_price": "34436.1",
+            "mark_price": "34440.99",
+            "order_size_max": "1000000",
+            "funding_next_apply": "1698796800",
+            "short_users": "3219",
+            "config_change_time": "1694678514",
+            "create_time": "0",
+            "trade_size": "241162230941",
+            "position_size": "180669006",
+            "long_users": "3960",
+            "quanto_multiplier": "0.0001",
+            "funding_impact_value": "60000",
+            "leverage_max": "125",
+            "risk_limit_max": "30000000",
+            "maker_fee_rate": "-0.000152",
+            "taker_fee_rate": "0.00075",
+            "orders_limit": "100",
+            "trade_id": "235430907",
+            "orderbook_id": "52142346005"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0000075,
+        "maker": -0.00000152,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "BTC/USD:BTC": {
+        "id": "BTC_USD",
+        "symbol": "BTC/USD:BTC",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "swap",
+        "linear": false,
+        "inverse": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0,
+        "settle": "BTC",
+        "settleId": "btc",
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 17219.11,
+                "max": 51657.33
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 100
+            }
+        },
+        "info": {
+            "funding_rate_indicative": "0.0001",
+            "mark_price_round": "0.01",
+            "funding_offset": "0",
+            "in_delisting": false,
+            "risk_limit_base": "100",
+            "interest_rate": "0.0003",
+            "index_price": "34435.17",
+            "order_price_round": "0.1",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "BTC_USD",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.5",
+            "maintenance_rate": "0.005",
+            "mark_type": "index",
+            "funding_interval": "28800",
+            "type": "inverse",
+            "risk_limit_step": "100",
+            "enable_bonus": false,
+            "enable_credit": true,
+            "leverage_min": "1",
+            "funding_rate": "0.0001",
+            "last_price": "34422.4",
+            "mark_price": "34438.22",
+            "order_size_max": "1000000",
+            "funding_next_apply": "1698796800",
+            "short_users": "181",
+            "config_change_time": "1692326979",
+            "create_time": "0",
+            "trade_size": "56110490038",
+            "position_size": "7587476",
+            "long_users": "314",
+            "quanto_multiplier": "0",
+            "funding_impact_value": "1",
+            "leverage_max": "100",
+            "risk_limit_max": "800",
+            "maker_fee_rate": "-0.0002",
+            "taker_fee_rate": "0.00075",
+            "orders_limit": "50",
+            "trade_id": "40642030",
+            "orderbook_id": "4238942830"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0000075,
+        "maker": -0.000002,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH_USDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.01,
+        "settle": "USDT",
+        "settleId": "usdt",
+        "precision": {
+            "amount": 1,
+            "price": 0.05
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 901.82,
+                "max": 2705.46
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 100
+            }
+        },
+        "info": {
+            "funding_rate_indicative": "0.0001",
+            "mark_price_round": "0.01",
+            "funding_offset": "0",
+            "in_delisting": false,
+            "risk_limit_base": "1000000",
+            "interest_rate": "0.0003",
+            "index_price": "1803.48",
+            "order_price_round": "0.05",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "ETH_USDT",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.5",
+            "maintenance_rate": "0.005",
+            "mark_type": "index",
+            "funding_interval": "28800",
+            "type": "direct",
+            "risk_limit_step": "1000000",
+            "enable_bonus": true,
+            "enable_credit": true,
+            "leverage_min": "1",
+            "funding_rate": "0.0001",
+            "last_price": "1803.3",
+            "mark_price": "1803.64",
+            "order_size_max": "1000000",
+            "funding_next_apply": "1698796800",
+            "short_users": "1874",
+            "config_change_time": "1682318747",
+            "create_time": "0",
+            "trade_size": "41910615245",
+            "position_size": "25626993",
+            "long_users": "3182",
+            "quanto_multiplier": "0.01",
+            "funding_impact_value": "20000",
+            "leverage_max": "100",
+            "risk_limit_max": "30000000",
+            "maker_fee_rate": "-0.0001368",
+            "taker_fee_rate": "0.00075",
+            "orders_limit": "100",
+            "trade_id": "246845039",
+            "orderbook_id": "44963942785"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0000075,
+        "maker": -0.000001368,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "LTC/USDT:USDT": {
+        "id": "LTC_USDT",
+        "symbol": "LTC/USDT:USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 0.1,
+        "settle": "USDT",
+        "settleId": "usdt",
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 34.445,
+                "max": 103.335
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "funding_rate_indicative": "0.0001",
+            "mark_price_round": "0.01",
+            "funding_offset": "0",
+            "in_delisting": false,
+            "risk_limit_base": "500000",
+            "interest_rate": "0.0003",
+            "index_price": "68.89",
+            "order_price_round": "0.01",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "LTC_USDT",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.5",
+            "maintenance_rate": "0.01",
+            "mark_type": "index",
+            "funding_interval": "28800",
+            "type": "direct",
+            "risk_limit_step": "500000",
+            "enable_bonus": true,
+            "enable_credit": true,
+            "leverage_min": "1",
+            "funding_rate": "0.0001",
+            "last_price": "68.96",
+            "mark_price": "68.89",
+            "order_size_max": "1000000",
+            "funding_next_apply": "1698796800",
+            "short_users": "174",
+            "config_change_time": "1697166184",
+            "create_time": "0",
+            "trade_size": "1869176296",
+            "position_size": "611023",
+            "long_users": "610",
+            "quanto_multiplier": "0.1",
+            "funding_impact_value": "5000",
+            "leverage_max": "50",
+            "risk_limit_max": "5000000",
+            "maker_fee_rate": "-0.000152",
+            "taker_fee_rate": "0.00075",
+            "orders_limit": "100",
+            "trade_id": "27828634",
+            "orderbook_id": "8106617652"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0000075,
+        "maker": -0.00000152,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "ADA/USDT:USDT": {
+        "id": "ADA_USDT",
+        "symbol": "ADA/USDT:USDT",
+        "base": "ADA",
+        "quote": "USDT",
+        "baseId": "ADA",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 10,
+        "settle": "USDT",
+        "settleId": "usdt",
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.204652,
+                "max": 0.380068
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "funding_rate_indicative": "0.0001",
+            "mark_price_round": "0.00001",
+            "funding_offset": "0",
+            "in_delisting": false,
+            "risk_limit_base": "500000",
+            "interest_rate": "0.0003",
+            "index_price": "0.29242",
+            "order_price_round": "0.00001",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "ADA_USDT",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.3",
+            "maintenance_rate": "0.01",
+            "mark_type": "index",
+            "funding_interval": "28800",
+            "type": "direct",
+            "risk_limit_step": "500000",
+            "enable_bonus": true,
+            "enable_credit": true,
+            "leverage_min": "1",
+            "funding_rate": "0.0001",
+            "last_price": "0.29264",
+            "mark_price": "0.29236",
+            "order_size_max": "1000000",
+            "funding_next_apply": "1698796800",
+            "short_users": "98",
+            "config_change_time": "1698462187",
+            "create_time": "0",
+            "trade_size": "582596919",
+            "position_size": "586274",
+            "long_users": "353",
+            "quanto_multiplier": "10",
+            "funding_impact_value": "5000",
+            "leverage_max": "50",
+            "risk_limit_max": "5000000",
+            "maker_fee_rate": "-0.000152",
+            "taker_fee_rate": "0.00075",
+            "orders_limit": "100",
+            "trade_id": "9801555",
+            "orderbook_id": "7184411269"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0000075,
+        "maker": -0.00000152,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "XRP/USDT:USDT": {
+        "id": "XRP_USDT",
+        "symbol": "XRP/USDT:USDT",
+        "base": "XRP",
+        "quote": "USDT",
+        "baseId": "XRP",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 10,
+        "settle": "USDT",
+        "settleId": "usdt",
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.30005,
+                "max": 0.90015
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "funding_rate_indicative": "0.0001",
+            "mark_price_round": "0.0001",
+            "funding_offset": "0",
+            "in_delisting": false,
+            "risk_limit_base": "500000",
+            "interest_rate": "0.0003",
+            "index_price": "0.6003",
+            "order_price_round": "0.0001",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "XRP_USDT",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.5",
+            "maintenance_rate": "0.01",
+            "mark_type": "index",
+            "funding_interval": "28800",
+            "type": "direct",
+            "risk_limit_step": "500000",
+            "enable_bonus": true,
+            "enable_credit": true,
+            "leverage_min": "1",
+            "funding_rate": "0.0001",
+            "last_price": "0.6002",
+            "mark_price": "0.6001",
+            "order_size_max": "1000000",
+            "funding_next_apply": "1698796800",
+            "short_users": "187",
+            "config_change_time": "1697684584",
+            "create_time": "0",
+            "trade_size": "2250637901",
+            "position_size": "1303045",
+            "long_users": "804",
+            "quanto_multiplier": "10",
+            "funding_impact_value": "5000",
+            "leverage_max": "50",
+            "risk_limit_max": "5000000",
+            "maker_fee_rate": "-0.000152",
+            "taker_fee_rate": "0.00075",
+            "orders_limit": "100",
+            "trade_id": "22846075",
+            "orderbook_id": "9313679914"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0000075,
+        "maker": -0.00000152,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "DOGE/USDT:USDT": {
+        "id": "DOGE_USDT",
+        "symbol": "DOGE/USDT:USDT",
+        "base": "DOGE",
+        "quote": "USDT",
+        "baseId": "DOGE",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 10,
+        "settle": "USDT",
+        "settleId": "usdt",
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.033895,
+                "max": 0.101685
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 50
+            }
+        },
+        "info": {
+            "funding_rate_indicative": "0.0001",
+            "mark_price_round": "0.00001",
+            "funding_offset": "0",
+            "in_delisting": false,
+            "risk_limit_base": "500000",
+            "interest_rate": "0.0003",
+            "index_price": "0.067792",
+            "order_price_round": "0.00001",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "DOGE_USDT",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.5",
+            "maintenance_rate": "0.01",
+            "mark_type": "index",
+            "funding_interval": "28800",
+            "type": "direct",
+            "risk_limit_step": "500000",
+            "enable_bonus": true,
+            "enable_credit": true,
+            "leverage_min": "1",
+            "funding_rate": "0.0001",
+            "last_price": "0.0678",
+            "mark_price": "0.06779",
+            "order_size_max": "1000000",
+            "funding_next_apply": "1698796800",
+            "short_users": "237",
+            "config_change_time": "1697252583",
+            "create_time": "0",
+            "trade_size": "19785940760",
+            "position_size": "9167017",
+            "long_users": "1108",
+            "quanto_multiplier": "10",
+            "funding_impact_value": "5000",
+            "leverage_max": "50",
+            "risk_limit_max": "5000000",
+            "maker_fee_rate": "-0.000152",
+            "taker_fee_rate": "0.00075",
+            "orders_limit": "100",
+            "trade_id": "57634547",
+            "orderbook_id": "19759400317"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0000075,
+        "maker": -0.00000152,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "TRX/USDT:USDT": {
+        "id": "TRX_USDT",
+        "symbol": "TRX/USDT:USDT",
+        "base": "TRX",
+        "quote": "USDT",
+        "baseId": "TRX",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 100,
+        "settle": "USDT",
+        "settleId": "usdt",
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 0.067501,
+                "max": 0.125359
+            },
+            "cost": {},
+            "leverage": {
+                "min": 1,
+                "max": 20
+            }
+        },
+        "info": {
+            "funding_rate_indicative": "0.0001",
+            "mark_price_round": "0.00001",
+            "funding_offset": "0",
+            "in_delisting": false,
+            "risk_limit_base": "500000",
+            "interest_rate": "0.0003",
+            "index_price": "0.096417",
+            "order_price_round": "0.00001",
+            "order_size_min": "1",
+            "ref_rebate_rate": "0.2",
+            "name": "TRX_USDT",
+            "ref_discount_rate": "0",
+            "order_price_deviate": "0.3",
+            "maintenance_rate": "0.025",
+            "mark_type": "index",
+            "funding_interval": "28800",
+            "type": "direct",
+            "risk_limit_step": "500000",
+            "enable_bonus": true,
+            "enable_credit": true,
+            "leverage_min": "1",
+            "funding_rate": "0.0001",
+            "last_price": "0.09634",
+            "mark_price": "0.09643",
+            "order_size_max": "1000000",
+            "funding_next_apply": "1698796800",
+            "short_users": "106",
+            "config_change_time": "1695783784",
+            "create_time": "0",
+            "trade_size": "277481285",
+            "position_size": "51603",
+            "long_users": "126",
+            "quanto_multiplier": "100",
+            "funding_impact_value": "5000",
+            "leverage_max": "20",
+            "risk_limit_max": "5000000",
+            "maker_fee_rate": "-0.000152",
+            "taker_fee_rate": "0.00075",
+            "orders_limit": "100",
+            "trade_id": "4357457",
+            "orderbook_id": "3732186055"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "taker": 0.0000075,
+        "maker": -0.00000152,
+        "feeSide": "get",
+        "tiers": {
+            "maker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00185
+                ],
+                [
+                    3,
+                    0.00175
+                ],
+                [
+                    6,
+                    0.00165
+                ],
+                [
+                    12.5,
+                    0.00155
+                ],
+                [
+                    25,
+                    0.00145
+                ],
+                [
+                    75,
+                    0.00135
+                ],
+                [
+                    200,
+                    0.00125
+                ],
+                [
+                    500,
+                    0.00115
+                ],
+                [
+                    1250,
+                    0.00105
+                ],
+                [
+                    2500,
+                    0.00095
+                ],
+                [
+                    3000,
+                    0.00085
+                ],
+                [
+                    6000,
+                    0.00075
+                ],
+                [
+                    11000,
+                    0.00065
+                ],
+                [
+                    20000,
+                    0.00055
+                ],
+                [
+                    40000,
+                    0.00055
+                ],
+                [
+                    75000,
+                    0.00055
+                ]
+            ],
+            "taker": [
+                [
+                    0,
+                    0.002
+                ],
+                [
+                    1.5,
+                    0.00195
+                ],
+                [
+                    3,
+                    0.00185
+                ],
+                [
+                    6,
+                    0.00175
+                ],
+                [
+                    12.5,
+                    0.00165
+                ],
+                [
+                    25,
+                    0.00155
+                ],
+                [
+                    75,
+                    0.00145
+                ],
+                [
+                    200,
+                    0.00135
+                ],
+                [
+                    500,
+                    0.00125
+                ],
+                [
+                    1250,
+                    0.00115
+                ],
+                [
+                    2500,
+                    0.00105
+                ],
+                [
+                    3000,
+                    0.00095
+                ],
+                [
+                    6000,
+                    0.00085
+                ],
+                [
+                    11000,
+                    0.00075
+                ],
+                [
+                    20000,
+                    0.00065
+                ],
+                [
+                    40000,
+                    0.00065
+                ],
+                [
+                    75000,
+                    0.00065
+                ]
+            ]
+        }
+    },
+    "BTC/USDT:USDT-240329": {
+        "id": "BTC_USDT_20240329",
+        "symbol": "BTC/USDT:USDT-240329",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": "usdt",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.0000025,
+        "maker": -0.0000015,
+        "contractSize": 0.0001,
+        "expiry": 1711699200000,
+        "expiryDatetime": "2024-03-29T08:00:00.000Z",
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 100
+            },
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "price": {
+                "min": 19042.94,
+                "max": 57128.82
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null
+    }
+}

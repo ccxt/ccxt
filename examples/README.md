@@ -2,13 +2,17 @@
 
 ![preview](https://user-images.githubusercontent.com/1294454/31798504-ca2af4cc-b53c-11e7-946c-620d744f6d16.gif)
 
--------------
-
 To run the ccxt examples from any folder type one of the following commands in console.
+
+## Typescript
+
+[Typescript Examples](https://github.com/ccxt/ccxt/tree/master/examples/ts/)
+
+---
 
 ## JavaScript
 
-[JavaScript Examples](https://github.com/ccxt/ccxt/tree/master/examples/js)
+[JavaScript Examples](https://github.com/ccxt/ccxt/tree/master/examples/js/)
 
 ```shell
 node path/to/example.js # substitute for actual filename here
@@ -24,23 +28,26 @@ All of the modules above are installed with the ccxt library devDependencies by 
 
 <img width="842" alt="bitcoin ascii chart" src="https://user-images.githubusercontent.com/1294454/29673849-156f58c6-88f9-11e7-8955-fb3f37467234.png">
 
+---
+
+## PHP
+
+[PHP Examples](https://github.com/ccxt/ccxt/tree/master/examples/php/)
+
+```shell
+php -f path/to/example.php # substitute for actual filename here
+```
+
+---
 
 ## Python
 
-[Python Examples](https://github.com/ccxt/ccxt/tree/master/examples/py)
+[Python Examples](https://github.com/ccxt/ccxt/tree/master/examples/py/)
 
 ![basic-chart](https://user-images.githubusercontent.com/1294454/29979754-6d62354c-8f4f-11e7-9e0a-22e87b4a093b.jpg)
 
 ```shell
 python path/to/example.py # substitute for actual filename here
-```
-
-## PHP
-
-[PHP Examples](https://github.com/ccxt/ccxt/tree/master/examples/php)
-
-```shell
-php -f path/to/example.php # substitute for actual filename here
 ```
 
 -------------------------------------------------------------------------------
@@ -186,6 +193,12 @@ php -f path/to/example.php # substitute for actual filename here
 
 [ByBit API Tutorial with CCXT: Functions Explained](https://medium.com/@yussf_26476/bybit-api-tutorial-with-ccxt-functions-explained-a7e1b4579b4a) – An article @ Medium explaining trading functions from CCXT for Bybit.
 
+[How to work with CCXT in Python](https://zetcode.com/python/ccxt/) – An article showing how to work with cryptocurrency exchange library (CCXT) in Python.
+
+[CryptoCurrency eXchange Trading library - CCXT](https://barbotine.medium.com/crypto-currency-exchange-trading-library-ccxt-34ed66ebede8) – An overview of CCXT.
+
+[https://python.plainenglish.io/cryptocurrency-trading-with-python-5f655d06a4bd](Cryptocurrency Trading with Python) – How to trade cryptocurrencies with CCXT in Python.
+
 [비트코인 해외 거래소 API - 바이낸스 CCXT설치](https://www.youtube.com/watch?v=7dMGbjwZwlU) – Using CCXT to trade with Binance API, a video overview of CCXT in Korean.
 
 [ccxt_라이브러리](https://www.youtube.com/watch?v=ifkJ5FtMpKY) – A quick short demo of CCXT on YouTube.
@@ -254,6 +267,8 @@ https://www.youtube.com/watch?v=K-EZ9QXezZM
 [Algorithmic Trading - Aula 4](https://www.youtube.com/watch?v=BkKebXrhMGY) – A video introduction to algorithmic trading with CCXT from Curso Algo Trading in Portuguese language.
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
+
+[Как использовать CCXT и Python для работы с криптовалютами](https://sky.pro/media/kak-ispolzovat-python-dlya-raboty-s-kriptovalyutami/) – An article in Russian explaining how to trade cryptocurrencies using CCXT in Python.
 
 [Open source бот для торгов на Binance](https://habr.com/ru/articles/737236/) – A russian article on building an open source trading bot with CCXT.
 

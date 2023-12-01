@@ -6,8 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\InvalidNonce;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class bittrex extends \ccxt\async\bittrex {
@@ -16,6 +18,15 @@ class bittrex extends \ccxt\async\bittrex {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'cancelAllOrdersWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelOrderWs' => false,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchBalanceWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'fetchTradesWs' => false,
                 'watchBalance' => true,
                 'watchHeartbeat' => true,
                 'watchMyTrades' => true,
@@ -46,7 +57,13 @@ class bittrex extends \ccxt\async\bittrex {
                 'hub' => 'c3',
                 'I' => $this->milliseconds(),
                 'watchOrderBook' => array(
-                    'snapshotMaxRetries' => 3,
+                    'maxRetries' => 3,
+                ),
+            ),
+            'exceptions' => array(
+                'exact' => array(
+                    'INVALID_APIKEY' => '\\ccxt\\AuthenticationError',
+                    'UNAUTHORIZED_USER' => '\\ccxt\\AuthenticationError',
                 ),
             ),
         ));
@@ -109,6 +126,7 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
+            $this->check_required_credentials();
             Async\await($this->load_markets());
             $request = Async\await($this->negotiate());
             return Async\await($this->send_request_to_authenticate($request, false, $params));
@@ -132,7 +150,7 @@ class bittrex extends \ccxt\async\bittrex {
                     'negotiation' => $negotiation,
                     'method' => array($this, 'handle_authenticate'),
                 );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $requestId, $subscription);
+                $this->watch($url, $messageHash, $request, $requestId, $subscription);
             }
             return Async\await($future);
         }) ();
@@ -164,8 +182,8 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_authentication_expiring(Client $client, $message) {
         //
         //     {
-        //         C => 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
-        //         M => array( array( H => 'C3', M => 'authenticationExpiring', A => array() ) )
+        //         "C" => "d-B1733F58-B,0|vT7,1|vT8,2|vBR,3",
+        //         "M" => array( array( H => "C3", M => "authenticationExpiring", A => array() ) )
         //     }
         //
         // resend the authentication request and refresh the subscription
@@ -200,16 +218,16 @@ class bittrex extends \ccxt\async\bittrex {
                 $response = Async\await($this->signalrGetNegotiate (array_merge($request, $params)));
                 //
                 //     {
-                //         Url => '/signalr/v1.1/signalr',
-                //         ConnectionToken => 'lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O',
-                //         ConnectionId => 'a2afb0f7-346f-4f32-b7c7-01e04584b86a',
-                //         KeepAliveTimeout => 20,
-                //         DisconnectTimeout => 30,
-                //         ConnectionTimeout => 110,
-                //         TryWebSockets => true,
-                //         ProtocolVersion => '1.5',
-                //         TransportConnectTimeout => 5,
-                //         LongPollDelay => 0
+                //         "Url" => "/signalr/v1.1/signalr",
+                //         "ConnectionToken" => "lT/sa19+FcrEb4W53On2v+Pcc3d4lVCHV5/WJtmQw1RQNQMpm7K78w/WnvfTN2EgwQopTUiFX1dioHN7Bd1p8jAbfdxrqf5xHAMntJfOrw1tON0O",
+                //         "ConnectionId" => "a2afb0f7-346f-4f32-b7c7-01e04584b86a",
+                //         "KeepAliveTimeout" => 20,
+                //         "DisconnectTimeout" => 30,
+                //         "ConnectionTimeout" => 110,
+                //         "TryWebSockets" => true,
+                //         "ProtocolVersion" => "1.5",
+                //         "TransportConnectTimeout" => 5,
+                //         "LongPollDelay" => 0
                 //     }
                 //
                 $result = array(
@@ -239,7 +257,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -265,22 +283,22 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_order(Client $client, $message) {
         //
         //     {
-        //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //         sequence => 41,
-        //         $delta => {
-        //             id => 'b91eff76-10eb-4382-834a-b753b770283e',
-        //             marketSymbol => 'BTC-USDT',
-        //             direction => 'BUY',
-        //             type => 'LIMIT',
-        //             quantity => '0.01000000',
-        //             $limit => '3000.00000000',
-        //             timeInForce => 'GOOD_TIL_CANCELLED',
-        //             fillQuantity => '0.00000000',
-        //             commission => '0.00000000',
-        //             proceeds => '0.00000000',
-        //             status => 'OPEN',
-        //             createdAt => '2020-10-07T12:51:43.16Z',
-        //             updatedAt => '2020-10-07T12:51:43.16Z'
+        //         "accountId" => "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        //         "sequence" => 41,
+        //         "delta" => {
+        //             "id" => "b91eff76-10eb-4382-834a-b753b770283e",
+        //             "marketSymbol" => "BTC-USDT",
+        //             "direction" => "BUY",
+        //             "type" => "LIMIT",
+        //             "quantity" => "0.01000000",
+        //             "limit" => "3000.00000000",
+        //             "timeInForce" => "GOOD_TIL_CANCELLED",
+        //             "fillQuantity" => "0.00000000",
+        //             "commission" => "0.00000000",
+        //             "proceeds" => "0.00000000",
+        //             "status" => "OPEN",
+        //             "createdAt" => "2020-10-07T12:51:43.16Z",
+        //             "updatedAt" => "2020-10-07T12:51:43.16Z"
         //         }
         //     }
         //
@@ -300,8 +318,8 @@ class bittrex extends \ccxt\async\bittrex {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $authentication = Async\await($this->authenticate());
@@ -319,13 +337,13 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_balance(Client $client, $message) {
         //
         //     {
-        //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //         sequence => 9,
-        //         $delta => {
-        //             currencySymbol => 'USDT',
-        //             total => '32.88918476',
-        //             available => '2.82918476',
-        //             updatedAt => '2020-10-06T13:49:20.29Z'
+        //         "accountId" => "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        //         "sequence" => 9,
+        //         "delta" => {
+        //             "currencySymbol" => "USDT",
+        //             "total" => "32.88918476",
+        //             "available" => "2.82918476",
+        //             "updatedAt" => "2020-10-06T13:49:20.29Z"
         //         }
         //     }
         //
@@ -381,7 +399,7 @@ class bittrex extends \ccxt\async\bittrex {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
@@ -415,10 +433,10 @@ class bittrex extends \ccxt\async\bittrex {
         // $ticker subscription update
         //
         //     {
-        //         $symbol => 'BTC-USDT',
-        //         lastTradeRate => '10701.02140008',
-        //         bidRate => '10701.02140007',
-        //         askRate => '10705.71049998'
+        //         "symbol" => "BTC-USDT",
+        //         "lastTradeRate" => "10701.02140008",
+        //         "bidRate" => "10701.02140007",
+        //         "askRate" => "10705.71049998"
         //     }
         //
         $ticker = $this->parse_ticker($message);
@@ -438,7 +456,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -472,17 +490,17 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         sequence => 28286,
-        //         marketSymbol => 'BTC-USD',
-        //         $interval => 'MINUTE_1',
-        //         $delta => {
-        //             startsAt => '2020-10-05T18:52:00Z',
-        //             open => '10706.62600000',
-        //             high => '10706.62600000',
-        //             low => '10703.25900000',
-        //             close => '10703.26000000',
-        //             volume => '0.86822264',
-        //             quoteVolume => '9292.84594774'
+        //         "sequence" => 28286,
+        //         "marketSymbol" => "BTC-USD",
+        //         "interval" => "MINUTE_1",
+        //         "delta" => {
+        //             "startsAt" => "2020-10-05T18:52:00Z",
+        //             "open" => "10706.62600000",
+        //             "high" => "10706.62600000",
+        //             "low" => "10703.25900000",
+        //             "close" => "10703.26000000",
+        //             "volume" => "0.86822264",
+        //             "quoteVolume" => "9292.84594774"
         //         }
         //     }
         //
@@ -512,8 +530,8 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -544,17 +562,17 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         $deltas => array(
+        //         "deltas" => array(
         //             {
-        //                 id => '5bf67885-a0a8-4c62-b73d-534e480e3332',
-        //                 executedAt => '2020-10-05T23:02:17.49Z',
-        //                 quantity => '0.00166790',
-        //                 rate => '10763.97000000',
-        //                 takerSide => 'BUY'
+        //                 "id" => "5bf67885-a0a8-4c62-b73d-534e480e3332",
+        //                 "executedAt" => "2020-10-05T23:02:17.49Z",
+        //                 "quantity" => "0.00166790",
+        //                 "rate" => "10763.97000000",
+        //                 "takerSide" => "BUY"
         //             }
         //         ),
-        //         sequence => 24391,
-        //         marketSymbol => 'BTC-USD'
+        //         "sequence" => 24391,
+        //         "marketSymbol" => "BTC-USD"
         //     }
         //
         $deltas = $this->safe_value($message, 'deltas', array());
@@ -583,11 +601,13 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {string} $symbol unified market $symbol of the market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
+            if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
+            }
             $authentication = Async\await($this->authenticate());
             $trades = Async\await($this->subscribe_to_my_trades($authentication, $params));
             if ($this->newUpdates) {
@@ -607,18 +627,18 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_my_trades(Client $client, $message) {
         //
         //     {
-        //         accountId => '2832c5c6-ac7a-493e-bc16-ebca06c73670',
-        //         sequence => 42,
-        //         $deltas => array(
+        //         "accountId" => "2832c5c6-ac7a-493e-bc16-ebca06c73670",
+        //         "sequence" => 42,
+        //         "deltas" => array(
         //             {
-        //                 id => '5bf67885-a0a8-4c62-b73d-534e480e3332',
-        //                 marketSymbol => 'BTC-USDT',
-        //                 executedAt => '2020-10-05T23:02:17.49Z',
-        //                 quantity => '0.00166790',
-        //                 rate => '10763.97000000',
-        //                 orderId => "string (uuid)",
-        //                 commission => '0.00000000',
-        //                 isTaker => False
+        //                 "id" => "5bf67885-a0a8-4c62-b73d-534e480e3332",
+        //                 "marketSymbol" => "BTC-USDT",
+        //                 "executedAt" => "2020-10-05T23:02:17.49Z",
+        //                 "quantity" => "0.00166790",
+        //                 "rate" => "10763.97000000",
+        //                 "orderId" => "string (uuid)",
+        //                 "commission" => "0.00000000",
+        //                 "isTaker" => False
         //             }
         //         )
         //     }
@@ -644,7 +664,7 @@ class bittrex extends \ccxt\async\bittrex {
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $limit = ($limit === null) ? 25 : $limit; // 25 by default
@@ -701,8 +721,7 @@ class bittrex extends \ccxt\async\bittrex {
                 // then we cannot align it with the cached deltas and we need to
                 // retry synchronizing in $maxAttempts
                 if (($sequence !== null) && ($nonce < $sequence)) {
-                    $options = $this->safe_value($this->options, 'fetchOrderBookSnapshot', array());
-                    $maxAttempts = $this->safe_integer($options, 'maxAttempts', 3);
+                    $maxAttempts = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                     $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
                     // retry to syncrhonize if we haven't reached $maxAttempts yet
                     if ($numAttempts < $maxAttempts) {
@@ -722,8 +741,8 @@ class bittrex extends \ccxt\async\bittrex {
                     // unroll the accumulated deltas
                     // 3. Playback the cached Level 2 data flow.
                     for ($i = 0; $i < count($messages); $i++) {
-                        $message = $messages[$i];
-                        $this->handle_order_book_message($client, $message, $orderbook);
+                        $messageItem = $messages[$i];
+                        $this->handle_order_book_message($client, $messageItem, $orderbook);
                     }
                     $this->orderbooks[$symbol] = $orderbook;
                     $client->resolve ($orderbook, $messageHash);
@@ -747,8 +766,8 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_delta($bookside, $delta) {
         //
         //     {
-        //         quantity => '0.05100000',
-        //         rate => '10694.86410031'
+        //         "quantity" => "0.05100000",
+        //         "rate" => "10694.86410031"
         //     }
         //
         $price = $this->safe_float($delta, 'rate');
@@ -759,8 +778,8 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_deltas($bookside, $deltas) {
         //
         //     array(
-        //         array( quantity => '0.05100000', rate => '10694.86410031' ),
-        //         array( quantity => '0', rate => '10665.72578226' )
+        //         array( quantity => '0.05100000', rate => "10694.86410031" ),
+        //         array( quantity => "0", rate => "10665.72578226" )
         //     )
         //
         for ($i = 0; $i < count($deltas); $i++) {
@@ -771,14 +790,14 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         marketSymbol => 'BTC-USDT',
-        //         depth => 25,
-        //         sequence => 3009387,
-        //         bidDeltas => array(
-        //             array( quantity => '0.05100000', rate => '10694.86410031' ),
-        //             array( quantity => '0', rate => '10665.72578226' )
+        //         "marketSymbol" => "BTC-USDT",
+        //         "depth" => 25,
+        //         "sequence" => 3009387,
+        //         "bidDeltas" => array(
+        //             array( quantity => '0.05100000', rate => "10694.86410031" ),
+        //             array( quantity => "0", rate => "10665.72578226" )
         //         ),
-        //         askDeltas => array()
+        //         "askDeltas" => array()
         //     }
         //
         $marketId = $this->safe_string($message, 'marketSymbol');
@@ -798,14 +817,14 @@ class bittrex extends \ccxt\async\bittrex {
     public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
-        //         marketSymbol => 'BTC-USDT',
-        //         $depth => 25,
-        //         sequence => 3009387,
-        //         bidDeltas => array(
-        //             array( quantity => '0.05100000', rate => '10694.86410031' ),
-        //             array( quantity => '0', rate => '10665.72578226' )
+        //         "marketSymbol" => "BTC-USDT",
+        //         "depth" => 25,
+        //         "sequence" => 3009387,
+        //         "bidDeltas" => array(
+        //             array( quantity => '0.05100000', rate => "10694.86410031" ),
+        //             array( quantity => "0", rate => "10665.72578226" )
         //         ),
-        //         askDeltas => array()
+        //         "askDeltas" => array()
         //     }
         //
         $marketId = $this->safe_string($message, 'marketSymbol');
@@ -839,14 +858,14 @@ class bittrex extends \ccxt\async\bittrex {
         //
         // success
         //
-        //     array( R => array( array( Success => true, ErrorCode => null ) ), $I => '1601891513224' )
+        //     array( R => array( array( Success => true, ErrorCode => null ) ), $I => "1601891513224" )
         //
         // failure
         // todo add error handling and future rejections
         //
         //     {
-        //         $I => '1601942374563',
-        //         E => "There was an error invoking Hub $method 'c3.Authenticate'."
+        //         "I" => "1601942374563",
+        //         "E" => "There was an error invoking Hub $method "c3.Authenticate"."
         //     }
         //
         $I = $this->safe_string($message, 'I'); // noqa => E741
@@ -867,23 +886,76 @@ class bittrex extends \ccxt\async\bittrex {
         return $message;
     }
 
+    public function handle_error_message(Client $client, $message) {
+        //
+        //    {
+        //        "R" => [array( Success => false, ErrorCode => "UNAUTHORIZED_USER" ), ... ],
+        //        "I" => "1698601759267"
+        //    }
+        //    {
+        //        "R" => array( Success => false, ErrorCode => "INVALID_APIKEY" ),
+        //        "I" => "1698601759266"
+        //    }
+        //
+        $R = $this->safe_value($message, 'R');
+        if ($R === null) {
+            // Return there is no error
+            return false;
+        }
+        $I = $this->safe_string($message, 'I');
+        $errorCode = null;
+        if (gettype($R) === 'array' && array_keys($R) === array_keys(array_keys($R))) {
+            for ($i = 0; $i < count($R); $i++) {
+                $response = $this->safe_value($R, $i);
+                $success = $this->safe_value($response, 'Success', true);
+                if (!$success) {
+                    $errorCode = $this->safe_string($response, 'ErrorCode');
+                    break;
+                }
+            }
+        } else {
+            $success = $this->safe_value($R, 'Success', true);
+            if (!$success) {
+                $errorCode = $this->safe_string($R, 'ErrorCode');
+            }
+        }
+        if ($errorCode === null) {
+            // Return there is no error
+            return false;
+        }
+        $feedback = $this->id . ' ' . $errorCode;
+        try {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            if ($message !== null) {
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
+            }
+            throw new ExchangeError($feedback);
+        } catch (Exception $e) {
+            if ($e instanceof AuthenticationError) {
+                $client->reject ($e, 'authenticate');
+            }
+            $client->reject ($e, $I);
+        }
+        return true;
+    }
+
     public function handle_message(Client $client, $message) {
         //
         // subscription confirmation
         //
         //     {
-        //         R => array(
+        //         "R" => array(
         //             array( Success => true, ErrorCode => null )
         //         ),
-        //         I => '1601899375696'
+        //         "I" => "1601899375696"
         //     }
         //
         // heartbeat subscription $update
         //
         //     {
-        //         C => 'd-6010FB90-B,0|o_b,0|o_c,2|8,1F4E',
-        //         $M => array(
-        //             array( H => 'C3', $M => 'heartbeat', $A => array() )
+        //         "C" => "d-6010FB90-B,0|o_b,0|o_c,2|8,1F4E",
+        //         "M" => array(
+        //             array( H => "C3", $M => "heartbeat", $A => array() )
         //         )
         //     }
         //
@@ -894,13 +966,13 @@ class bittrex extends \ccxt\async\bittrex {
         // subscription $update
         //
         //     {
-        //         C => 'd-ED78B69D-E,0|rq4,0|rq5,2|puI,60C',
-        //         $M => array(
+        //         "C" => "d-ED78B69D-E,0|rq4,0|rq5,2|puI,60C",
+        //         "M" => array(
         //             {
-        //                 H => 'C3',
-        //                 $M => 'ticker', // orderBook, trade, candle, balance, order
-        //                 $A => array(
-        //                     'q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=='
+        //                 "H" => "C3",
+        //                 "M" => "ticker", // orderBook, trade, candle, balance, order
+        //                 "A" => array(
+        //                     "q1YqrsxNys9RslJyCnHWDQ12CVHSUcpJLC4JKUpMSQ1KLEkFShkamBsa6VkYm5paGJuZAhUkZaYgpAws9QwszAwsDY1MgFKJxdlIuiz0jM3MLIHATKkWAA=="
         //                 )
         //             }
         //         )
@@ -909,10 +981,13 @@ class bittrex extends \ccxt\async\bittrex {
         // authentication expiry notification
         //
         //     {
-        //         C => 'd-B1733F58-B,0|vT7,1|vT8,2|vBR,3',
-        //         $M => array( array( H => 'C3', $M => 'authenticationExpiring', $A => array() ) )
+        //         "C" => "d-B1733F58-B,0|vT7,1|vT8,2|vBR,3",
+        //         "M" => array( array( H => "C3", $M => "authenticationExpiring", $A => array() ) )
         //     }
         //
+        if ($this->handle_error_message($client, $message)) {
+            return;
+        }
         $methods = array(
             'authenticationExpiring' => array($this, 'handle_authentication_expiring'),
             'order' => array($this, 'handle_order'),
