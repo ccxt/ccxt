@@ -136,6 +136,18 @@
                 "output": "nonce=1700155664178&position_id=BTC_USDT&quantity=1"
             }
         ],
+        "reduceMargin": [
+            {
+                "description": "Reduce Margin",
+                "method": "reduceMargin",
+                "url": "https://api.exmo.com/v1.1/margin/user/position/margin_remove",
+                "input": [
+                    "BTC/USDT",
+                    1
+                ],
+                "output": "nonce=1700155664178&position_id=BTC_USDT&quantity=1"
+            }
+        ],
         "createOrder": [
             {
                 "description": "Create Order - spot",
