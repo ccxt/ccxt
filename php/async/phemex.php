@@ -151,7 +151,8 @@ class phemex extends Exchange {
                 ),
                 'v1' => array(
                     'get' => array(
-                        'md/orderbook' => 5, // ?symbol=<symbol>&id=<id>
+                        'md/fullbook' => 5, // ?symbol=<symbol>
+                        'md/orderbook' => 5, // ?symbol=<symbol>
                         'md/trade' => 5, // ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr/all' => 5, // ?id=<id>
@@ -204,6 +205,11 @@ class phemex extends Exchange {
                         'phemex-user/users/children' => 5, // ?offset=<offset>&limit=<limit>&withCount=<withCount>
                         'phemex-user/wallets/v2/depositAddress' => 5, // ?_t=1592722635531&currency=USDT
                         'phemex-user/wallets/tradeAccountDetail' => 5, // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-deposit/wallets/api/depositAddress' => 5, // ?currency=<currency>&chainName=<chainName>
+                        'phemex-deposit/wallets/api/depositHist' => 5, // ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-deposit/wallets/api/chainCfg' => 5, // ?currency=<currency>
+                        'phemex-withdraw/wallets/api/withdrawHist' => 5, // ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-withdraw/wallets/api/asset/info' => 5, // ?currency=<currency>&amount=<amount>
                         'phemex-user/order/closedPositionList' => 5, // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
                         'exchange/margins/transfer' => 5, // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         'exchange/wallets/confirm/withdraw' => 5, // ?code=<withdrawConfirmCode>
@@ -242,6 +248,9 @@ class phemex extends Exchange {
                         'assets/futures/sub-accounts/transfer' => 5, // for sub-account only
                         'assets/universal-transfer' => 5, // for Main account only
                         'assets/convert' => 5,
+                        // withdraw
+                        'phemex-withdraw/wallets/api/createWithdraw' => 5, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
+                        'phemex-withdraw/wallets/api/cancelWithdraw' => 5, // ?id=<id>
                     ),
                     'put' => array(
                         // spot
@@ -1001,7 +1010,11 @@ class phemex extends Exchange {
             if ($market['linear'] && $market['settle'] === 'USDT') {
                 $response = Async\await($this->v2GetMdV2Orderbook (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->v1GetMdOrderbook (array_merge($request, $params)));
+                if (($limit !== null) && ($limit <= 30)) {
+                    $response = Async\await($this->v1GetMdOrderbook (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->v1GetMdFullbook (array_merge($request, $params)));
+                }
             }
             //
             //     {

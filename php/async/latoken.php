@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\latoken as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -838,13 +839,17 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
              */
-            $method = $this->safe_string($params, 'method');
+            $options = $this->safe_value($this->options, 'fetchTradingFee', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTradingFee');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchTradingFee', array());
-                $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFee');
+            if ($method === 'fetchPrivateTradingFee') {
+                return Async\await($this->fetch_private_trading_fee($symbol, $params));
+            } elseif ($method === 'fetchPublicTradingFee') {
+                return Async\await($this->fetch_public_trading_fee($symbol, $params));
+            } else {
+                throw new NotSupported($this->id . ' not support this method');
             }
-            return Async\await($this->$method ($symbol, $params));
         }) ();
     }
 
@@ -917,18 +922,19 @@ class latoken extends Exchange {
                 // 'from' => $this->milliseconds(),
                 // 'limit' => $limit, // default '100'
             );
-            $method = 'privateGetAuthTrade';
             $market = null;
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 100
+            }
+            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['currency'] = $market['baseId'];
                 $request['quote'] = $market['quoteId'];
-                $method = 'privateGetAuthTradePairCurrencyQuote';
+                $response = Async\await($this->privateGetAuthTradePairCurrencyQuote (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetAuthTrade (array_merge($request, $params)));
             }
-            if ($limit !== null) {
-                $request['limit'] = $limit; // default 100
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     array(
             //         {
@@ -1599,20 +1605,19 @@ class latoken extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $method = null;
-            if (mb_strpos($toAccount, '@') !== false) {
-                $method = 'privatePostAuthTransferEmail';
-            } elseif (strlen($toAccount) === 36) {
-                $method = 'privatePostAuthTransferId';
-            } else {
-                $method = 'privatePostAuthTransferPhone';
-            }
             $request = array(
                 'currency' => $currency['id'],
                 'recipient' => $toAccount,
                 'value' => $this->currency_to_precision($code, $amount),
             );
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if (mb_strpos($toAccount, '@') !== false) {
+                $response = Async\await($this->privatePostAuthTransferEmail (array_merge($request, $params)));
+            } elseif (strlen($toAccount) === 36) {
+                $response = Async\await($this->privatePostAuthTransferId (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostAuthTransferPhone (array_merge($request, $params)));
+            }
             //
             //     {
             //         "id" => "e6fc4ace-7750-44e4-b7e9-6af038ac7107",

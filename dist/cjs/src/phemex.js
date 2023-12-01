@@ -144,6 +144,7 @@ class phemex extends phemex$1 {
                 },
                 'v1': {
                     'get': {
+                        'md/fullbook': 5,
                         'md/orderbook': 5,
                         'md/trade': 5,
                         'md/ticker/24hr': 5,
@@ -197,6 +198,11 @@ class phemex extends phemex$1 {
                         'phemex-user/users/children': 5,
                         'phemex-user/wallets/v2/depositAddress': 5,
                         'phemex-user/wallets/tradeAccountDetail': 5,
+                        'phemex-deposit/wallets/api/depositAddress': 5,
+                        'phemex-deposit/wallets/api/depositHist': 5,
+                        'phemex-deposit/wallets/api/chainCfg': 5,
+                        'phemex-withdraw/wallets/api/withdrawHist': 5,
+                        'phemex-withdraw/wallets/api/asset/info': 5,
                         'phemex-user/order/closedPositionList': 5,
                         'exchange/margins/transfer': 5,
                         'exchange/wallets/confirm/withdraw': 5,
@@ -235,6 +241,9 @@ class phemex extends phemex$1 {
                         'assets/futures/sub-accounts/transfer': 5,
                         'assets/universal-transfer': 5,
                         'assets/convert': 5,
+                        // withdraw
+                        'phemex-withdraw/wallets/api/createWithdraw': 5,
+                        'phemex-withdraw/wallets/api/cancelWithdraw': 5, // ?id=<id>
                     },
                     'put': {
                         // spot
@@ -991,7 +1000,12 @@ class phemex extends phemex$1 {
             response = await this.v2GetMdV2Orderbook(this.extend(request, params));
         }
         else {
-            response = await this.v1GetMdOrderbook(this.extend(request, params));
+            if ((limit !== undefined) && (limit <= 30)) {
+                response = await this.v1GetMdOrderbook(this.extend(request, params));
+            }
+            else {
+                response = await this.v1GetMdFullbook(this.extend(request, params));
+            }
         }
         //
         //     {

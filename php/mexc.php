@@ -2066,7 +2066,7 @@ class mexc extends Exchange {
 
     public function create_spot_order_request($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         $symbol = $market['symbol'];
-        $orderSide = ($side === 'buy') ? 'BUY' : 'SELL';
+        $orderSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
             'side' => $orderSide,
@@ -2083,10 +2083,10 @@ class mexc extends Exchange {
                     $amountString = $this->number_to_string($amount);
                     $priceString = $this->number_to_string($price);
                     $quoteAmount = Precise::string_mul($amountString, $priceString);
-                    $amount = $this->parse_number($quoteAmount);
+                    $amount = $quoteAmount;
                 }
             }
-            $request['quoteOrderQty'] = $amount;
+            $request['quoteOrderQty'] = $this->cost_to_precision($symbol, $amount);
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -2279,7 +2279,7 @@ class mexc extends Exchange {
             $ordersRequests[] = $orderRequest;
         }
         $request = array(
-            'batchOrders' => $ordersRequests,
+            'batchOrders' => $this->json($ordersRequests),
         );
         $response = $this->spotPrivatePostBatchOrders ($request);
         //

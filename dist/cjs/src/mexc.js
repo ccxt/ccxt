@@ -2083,7 +2083,7 @@ class mexc extends mexc$1 {
     }
     createSpotOrderRequest(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
-        const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
+        const orderSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
             'side': orderSide,
@@ -2102,10 +2102,10 @@ class mexc extends mexc$1 {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
                     const quoteAmount = Precise["default"].stringMul(amountString, priceString);
-                    amount = this.parseNumber(quoteAmount);
+                    amount = quoteAmount;
                 }
             }
-            request['quoteOrderQty'] = amount;
+            request['quoteOrderQty'] = this.costToPrecision(symbol, amount);
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
@@ -2305,7 +2305,7 @@ class mexc extends mexc$1 {
             ordersRequests.push(orderRequest);
         }
         const request = {
-            'batchOrders': ordersRequests,
+            'batchOrders': this.json(ordersRequests),
         };
         const response = await this.spotPrivatePostBatchOrders(request);
         //

@@ -237,14 +237,13 @@ class exmo extends exmo$1 {
             'position_id': market['id'],
             'quantity': amount,
         };
-        let method = undefined;
+        let response = undefined;
         if (type === 'add') {
-            method = 'privatePostMarginUserPositionMarginAdd';
+            response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, params));
         }
         else if (type === 'reduce') {
-            method = 'privatePostMarginUserPositionMarginReduce';
+            response = await this.privatePostMarginUserPositionMarginRemove(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //      {}
         //
@@ -303,13 +302,16 @@ class exmo extends exmo$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
-        let method = this.safeString(params, 'method');
+        const options = this.safeValue(this.options, 'fetchTradingFees', {});
+        const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTradingFees');
+        const method = this.safeString(params, 'method', defaultMethod);
         params = this.omit(params, 'method');
-        if (method === undefined) {
-            const options = this.safeValue(this.options, 'fetchTradingFees', {});
-            method = this.safeString(options, 'method', 'fetchPrivateTradingFees');
+        if (method === 'fetchPrivateTradingFees') {
+            return await this.fetchPrivateTradingFees(params);
         }
-        return await this[method](params);
+        else {
+            return await this.fetchPublicTradingFees(params);
+        }
     }
     async fetchPrivateTradingFees(params = {}) {
         await this.loadMarkets();
@@ -1422,7 +1424,6 @@ class exmo extends exmo$1 {
             // 'client_id': 123, // optional, must be a positive integer
             // 'comment': '', // up to 50 latin symbols, whitespaces, underscores
         };
-        let method = isSpot ? 'privatePostOrderCreate' : 'privatePostMarginUserOrderCreate';
         let clientOrderId = this.safeValue2(params, 'client_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
             clientOrderId = this.safeInteger2(params, 'client_id', 'clientOrderId');
@@ -1438,32 +1439,22 @@ class exmo extends exmo$1 {
             throw new errors.ArgumentsRequired(this.id + ' createOrder requires an extra param params["leverage"] for margin orders');
         }
         params = this.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId']);
-        if (triggerPrice !== undefined) {
-            if (isSpot) {
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision(market['symbol'], price);
+        }
+        let response = undefined;
+        if (isSpot) {
+            if (triggerPrice !== undefined) {
                 if (type === 'limit') {
                     throw new errors.BadRequest(this.id + ' createOrder () cannot create stop limit orders for spot, only stop market');
                 }
                 else {
-                    method = 'privatePostStopMarketOrderCreate';
                     request['type'] = side;
                     request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
                 }
+                response = await this.privatePostStopMarketOrderCreate(this.extend(request, params));
             }
             else {
-                request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
-                if (type === 'limit') {
-                    request['type'] = 'stop_limit_' + side;
-                }
-                else if (type === 'market') {
-                    request['type'] = 'stop_' + side;
-                }
-                else {
-                    request['type'] = type;
-                }
-            }
-        }
-        else {
-            if (isSpot) {
                 const execType = this.safeString(params, 'exec_type');
                 let isPostOnly = undefined;
                 [isPostOnly, params] = this.handlePostOnly(type === 'market', execType === 'post_only', params);
@@ -1481,6 +1472,21 @@ class exmo extends exmo$1 {
                 else if (timeInForce !== undefined) {
                     request['exec_type'] = timeInForce;
                 }
+                response = await this.privatePostOrderCreate(this.extend(request, params));
+            }
+        }
+        else {
+            if (triggerPrice !== undefined) {
+                request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
+                if (type === 'limit') {
+                    request['type'] = 'stop_limit_' + side;
+                }
+                else if (type === 'market') {
+                    request['type'] = 'stop_' + side;
+                }
+                else {
+                    request['type'] = type;
+                }
             }
             else {
                 if (type === 'limit' || type === 'market') {
@@ -1490,11 +1496,8 @@ class exmo extends exmo$1 {
                     request['type'] = type;
                 }
             }
+            response = await this.privatePostMarginUserOrderCreate(this.extend(request, params));
         }
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision(market['symbol'], price);
-        }
-        const response = await this[method](this.extend(request, params));
         return this.parseOrder(response, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
