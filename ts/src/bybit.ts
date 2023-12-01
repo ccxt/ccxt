@@ -3560,7 +3560,7 @@ export default class bybit extends Exchange {
                 } else {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
-                    const quoteAmount = this.parseToNumeric (Precise.stringMul (amountString, priceString));
+                    const quoteAmount = Precise.stringMul (amountString, priceString);
                     const costRequest = (cost !== undefined) ? cost : quoteAmount;
                     request['qty'] = this.costToPrecision (symbol, costRequest);
                 }
