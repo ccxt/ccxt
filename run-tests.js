@@ -143,7 +143,7 @@ const exec = (bin, ...args) =>
             const info = []
             if (output.length) {
                 // check output for pattern like `[INFO: whatever]`
-                const infoRegex = /\[INFO:([\w_-]+)].+$\n*/gmi
+                const infoRegex = /\[INFO:([\w_-]+)].+$(?!\n)*/gmi
                 let matchInfo;
                 while ((matchInfo = infoRegex.exec (output))) {
                     info.push (matchInfo[0])
