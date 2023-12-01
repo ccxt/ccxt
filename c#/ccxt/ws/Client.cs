@@ -43,17 +43,26 @@ public partial class Exchange
 
         public onErrorDelegate onError = null;
 
+        public delegate object pingDelegate(WebSocketClient client);
+
+        public pingDelegate ping = null;
+
         public object lastPong = null;
 
         public object keepAlive = null;
 
+        public int maxPingPongMisses = 3;
+
+        public Int64? connectionEstablished;
+
         public bool error = false;
 
-        public WebSocketClient(string url, handleMessageDelegate handleMessage, bool isVerbose = false)
+        public WebSocketClient(string url, handleMessageDelegate handleMessage, pingDelegate ping = null, bool isVerbose = false)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
             this.connected = tcs;
+            this.ping = ping;
             this.handleMessage = handleMessage;
             this.verbose = isVerbose;
         }
@@ -102,12 +111,34 @@ public partial class Exchange
                     future.reject(content);
                 }
             }
-
+            else
+            {
+                foreach (var messageHash in this.futures.Keys)
+                {
+                    var future = this.futures[messageHash];
+                    this.futures.Remove(messageHash); // this order matters
+                    future.reject(content);
+                }
+            }
         }
 
         public void reset(object message2)
         {
             // stub implement this later
+            this.reject(error);
+        }
+
+        public void onOpen()
+        {
+
+            this.connected.SetResult(true);
+            this.connectionEstablished = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            this.isConnected = true;
+            // this.clearConnectionTimeout();
+            Task.Run(async () =>
+            {
+                PingLoop();
+            });
         }
 
         public Task connect(int backoffDelay = 0)
@@ -118,6 +149,49 @@ public partial class Exchange
                 Task.Run(async () => Connect());
             }
             return this.connected.Task;
+        }
+
+        public async void PingLoop()
+        {
+
+            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (this.verbose)
+            {
+                Console.WriteLine($"PingLoop: {Exchange.Iso8601(now)}");
+            }
+
+            while (this.keepAlive != null && this.isConnected)
+            {
+
+                if (this.lastPong == null)
+                {
+                    this.lastPong = now;
+                }
+
+                var lastPongConverted = Convert.ToInt64(this.lastPong);
+                var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
+                if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
+                {
+                    this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
+                }
+                else
+                {
+                    if (this.ping != null)
+                    {
+                        var pingResult = this.ping(this);
+                        if (pingResult != null)
+                        {
+                            await this.send(pingResult);
+                        }
+                    }
+                    else
+                    {
+                        // this.webSocket.SendPing(); should we send ping here?
+
+                    }
+                }
+                await Task.Delay((int)convertedKeepAlive);
+            }
         }
 
         public void Connect()
@@ -133,12 +207,11 @@ public partial class Exchange
                     {
                         Console.WriteLine("WebSocket connected to " + url);
                     }
+                    this.onOpen();
                     Task.Run(async () =>
                     {
                         Receiving(webSocket);
                     });
-                    // tcs.SetResult(true); // Mark the task as complete upon successful connection
-                    tcs.SetResult(true);
                 }
                 catch (Exception ex)
                 {
@@ -212,7 +285,13 @@ public partial class Exchange
                     {
                         this.onClose(this, null);
                         await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                        this.isConnected = false;
                     }
+                    // else if (result.MessageType == WebSocketMessageType.Pong)
+                    // {
+                    //     Console.WriteLine("On Pong message:");
+                    //     // Handle the Pong message as needed
+                    // }
                 }
             }
             catch (Exception ex)
@@ -221,6 +300,7 @@ public partial class Exchange
                 {
                     Console.WriteLine($"Receiving error: {ex.Message}");
                 }
+                this.isConnected = false;
                 this.onError(this, ex);
             }
         }

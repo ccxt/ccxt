@@ -97,12 +97,18 @@ public partial class Exchange
         // Console.WriteLine(messageContent);
     }
 
+    public virtual object ping(WebSocketClient client)
+    {
+        // Console.WriteLine("ping");
+        return null;
+    }
+
     public WebSocketClient client(object url2)
     {
         var url = url2.ToString();
         if (!this.clients.ContainsKey(url))
         {
-            this.clients[url] = new WebSocketClient(url, handleMessage, this.verbose);
+            this.clients[url] = new WebSocketClient(url, handleMessage, ping, this.verbose);
         }
         return this.clients[url];
     }
