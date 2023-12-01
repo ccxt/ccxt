@@ -38,7 +38,7 @@ export default class okx extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketSellOrderWithCost': undefined,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
