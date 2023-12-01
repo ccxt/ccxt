@@ -1,17 +1,13 @@
 export type Bool = boolean | undefined;
-export type Currency = CurrencyInterface | undefined;
-export type Int = number | undefined;
-export type Market = MarketInterface | undefined;
-export type Num = number | undefined;
-export type Str = string | undefined;
-export type Strings = string[] | undefined;
-export type Num = number | undefined;
-export type Bool = boolean | undefined;
-// must be an integer in other langs
 export type IndexType = number | string;
+// must be an integer in other langs
+export type Int = number | undefined;
+export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
+export type Num = number | undefined;
 export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
-export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option';
+export type Str = string | undefined;
+export type Strings = string[] | undefined;
 export type SubType = 'linear' | 'inverse' | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
@@ -340,6 +336,3 @@ export type OHLCV = [Num, Num, Num, Num, Num, Num];
 export type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 
 export type implicitReturnType = any;
-
-export type Market = MarketInterface | undefined;
-export type Currency = CurrencyInterface | undefined;
