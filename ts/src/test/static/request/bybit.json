@@ -230,9 +230,11 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"20\"}"
-            },
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
             {
-                "description": "Spot market buy with createMarketBuyOrderWithCost ",
+                "description": "Spot market buy with createMarketBuyOrderWithCost",
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
                 "input": [
