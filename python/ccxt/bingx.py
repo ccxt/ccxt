@@ -1871,15 +1871,17 @@ class bingx(Exchange, ImplicitAPI):
         #       "symbol": "XRP-USDT",
         #       "orderId": 1514073325788200960,
         #       "price": "0.5",
+        #       "StopPrice": "0",
         #       "origQty": "20",
-        #       "executedQty": "0",
-        #       "cummulativeQuoteQty": "0",
+        #       "executedQty": "10",
+        #       "cummulativeQuoteQty": "5",
         #       "status": "PENDING",
         #       "type": "LIMIT",
         #       "side": "BUY",
         #       "time": 1649818185647,
         #       "updateTime": 1649818185647,
         #       "origQuoteOrderQty": "0"
+        #       "fee": "-0.01"
         #   }
         #
         #
@@ -1939,9 +1941,19 @@ class bingx(Exchange, ImplicitAPI):
         amount = self.safe_string_2(order, 'origQty', 'q')
         filled = self.safe_string_2(order, 'executedQty', 'z')
         statusId = self.safe_string_2(order, 'status', 'X')
+        feeCurrencyCode = self.safe_string_2(order, 'feeAsset', 'N')
+        feeCost = self.safe_string_n(order, ['fee', 'commission', 'n'])
+        if (feeCurrencyCode is None):
+            if market['spot']:
+                if side == 'buy':
+                    feeCurrencyCode = market['base']
+                else:
+                    feeCurrencyCode = market['quote']
+            else:
+                feeCurrencyCode = market['quote']
         fee = {
-            'currency': self.safe_string_2(order, 'feeAsset', 'N'),
-            'rate': self.safe_string_n(order, ['fee', 'commission', 'n']),
+            'currency': feeCurrencyCode,
+            'cost': Precise.string_abs(feeCost),
         }
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'c')
         return self.safe_order({

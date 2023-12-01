@@ -2203,6 +2203,8 @@ class binance(ccxt.async_support.binance):
         return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
 
     def set_positions_cache(self, client: Client, type, symbols: Strings = None):
+        if type == 'spot':
+            return
         if self.positions is None:
             self.positions = {}
         if type in self.positions:

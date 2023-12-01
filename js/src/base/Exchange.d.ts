@@ -296,6 +296,8 @@ export default class Exchange {
             createLimitOrder: boolean;
             createMarketOrder: boolean;
             createOrder: boolean;
+            createMarketBuyOrderWithCost: any;
+            createMarketSellOrderWithCost: any;
             createOrders: any;
             createOrderWs: any;
             createPostOnlyOrder: any;
@@ -744,6 +746,8 @@ export default class Exchange {
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;

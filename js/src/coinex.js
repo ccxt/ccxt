@@ -48,6 +48,7 @@ export default class coinex extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createMarketBuyOrderWithCost': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
@@ -1886,6 +1887,19 @@ export default class coinex extends Exchange {
             'info': order,
         }, market);
     }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name coinex#createMarketBuyWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
+    }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
         const swap = market['swap'];
@@ -1986,16 +2000,20 @@ export default class coinex extends Exchange {
         else {
             request['type'] = side;
             if ((type === 'market') && (side === 'buy')) {
-                if (this.options['createMarketBuyOrderRequiresPrice']) {
-                    if (price === undefined) {
-                        throw new InvalidOrder(this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                let createMarketBuyOrderRequiresPrice = true;
+                [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                const cost = this.safeNumber(params, 'cost');
+                params = this.omit(params, 'cost');
+                if (createMarketBuyOrderRequiresPrice) {
+                    if ((price === undefined) && (cost === undefined)) {
+                        throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                     }
                     else {
-                        const amountString = this.amountToPrecision(symbol, amount);
-                        const priceString = this.priceToPrecision(symbol, price);
-                        const costString = Precise.stringMul(amountString, priceString);
-                        const costNumber = this.parseNumber(costString);
-                        request['amount'] = this.costToPrecision(symbol, costNumber);
+                        const amountString = this.numberToString(amount);
+                        const priceString = this.numberToString(price);
+                        const quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
+                        const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                        request['amount'] = this.costToPrecision(symbol, costRequest);
                     }
                 }
                 else {

@@ -182,6 +182,22 @@
                 "output": "{\"access_id\":\"86AC33D5904F432C9C9DDD4708233F38\",\"amount\":\"0.0005\",\"client_id\":\"x-167673045-de0c9f4634898ab2\",\"market\":\"BTCUSDT\",\"price\":\"25000\",\"stop_price\":\"26000\",\"tonce\":\"1701227312608\",\"type\":\"buy\"}"
             },
             {
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/v1/order/market",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    20,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "{\"access_id\":\"86AC33D5904F432C9C9DDD4708233F38\",\"amount\":\"20\",\"client_id\":\"x-167673045-c652179664b5b9b7\",\"market\":\"BTCUSDT\",\"tonce\":\"1701315225775\",\"type\":\"buy\"}"
+            },
+            {
                 "description": "Swap limit buy",
                 "method": "createOrder",
                 "url": "https://api.coinex.com/perpetual/v1/order/put_limit",

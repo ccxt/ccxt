@@ -50,6 +50,7 @@ class coinex extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
+                'createMarketBuyOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createReduceOnlyOrder' => true,
@@ -1916,6 +1917,20 @@ class coinex extends Exchange {
         ), $market);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
     public function create_order_request($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $swap = $market['swap'];
@@ -2006,15 +2021,19 @@ class coinex extends Exchange {
         } else {
             $request['type'] = $side;
             if (($type === 'market') && ($side === 'buy')) {
-                if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($createMarketBuyOrderRequiresPrice) {
+                    if (($price === null) && ($cost === null)) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice $option or param to false and pass the $cost to spend in the $amount argument');
                     } else {
-                        $amountString = $this->amount_to_precision($symbol, $amount);
-                        $priceString = $this->price_to_precision($symbol, $price);
-                        $costString = Precise::string_mul($amountString, $priceString);
-                        $costNumber = $this->parse_number($costString);
-                        $request['amount'] = $this->cost_to_precision($symbol, $costNumber);
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
+                        $costRequest = ($cost !== null) ? $cost : $quoteAmount;
+                        $request['amount'] = $this->cost_to_precision($symbol, $costRequest);
                     }
                 } else {
                     $request['amount'] = $this->cost_to_precision($symbol, $amount);

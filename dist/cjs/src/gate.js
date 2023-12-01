@@ -3620,7 +3620,14 @@ class gate extends gate$1 {
             'PEND': 'pending',
             'REQUEST': 'pending',
             'DMOVE': 'pending',
-            'CANCEL': 'failed',
+            'MANUAL': 'pending',
+            'VERIFY': 'pending',
+            'PROCES': 'pending',
+            'EXTPEND': 'pending',
+            'SPLITPEND': 'pending',
+            'CANCEL': 'canceled',
+            'FAIL': 'failed',
+            'INVALID': 'failed',
             'DONE': 'ok',
             'BCODE': 'ok', // GateCode withdrawal
         };
