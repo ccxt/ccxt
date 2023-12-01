@@ -178,28 +178,29 @@ To connect to an exchange and start trading you need to instantiate an exchange 
 
 To get the full list of ids of supported exchanges programmatically:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 const ccxt = require ('ccxt')
 console.log (ccxt.exchanges)
 ```
-
+#### **Python**
 ```python
-# Python
 import ccxt
 print (ccxt.exchanges)
 ```
-
+#### **PHP**
 ```php
-// PHP
 include 'ccxt.php';
 var_dump (\ccxt\Exchange::$exchanges);
 ```
+<!-- tabs:end -->
 
 An exchange can be instantiated like shown in the examples below:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 const ccxt = require ('ccxt')
 let exchange = new ccxt.kraken () // default id
 let kraken1 = new ccxt.kraken ({ id: 'kraken1' })
@@ -215,9 +216,8 @@ const exchangeId = 'binance'
         'secret': 'YOUR_SECRET',
     })
 ```
-
+#### **Python**
 ```python
-# Python
 import ccxt
 exchange = ccxt.okcoin () # default id
 okcoin1 = ccxt.okcoin ({ 'id': 'okcoin1' })
@@ -234,6 +234,7 @@ exchange = exchange_class({
     'secret': 'YOUR_SECRET',
 })
 ```
+#### **PHP**
 
 The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call [date_default_timezone_set()](http://php.net/manual/en/function.date-default-timezone-set.php) function before using the PHP version of the library. The recommended timezone setting is `"UTC"`.
 
@@ -256,13 +257,17 @@ $exchange = new $exchange_class(array(
     'secret' => 'YOUR_SECRET',
 ));
 ```
+<!-- tabs:end -->
 
 ### Overriding Exchange Properties Upon Instantiation
 
 Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
 
+<!-- tabs:start -->
+
+#### **Javascript**
 ```javascript
-// JavaScript
+
 const exchange = new ccxt.binance ({
     'rateLimit': 10000, // unified exchange property
     'headers': {
@@ -275,8 +280,9 @@ const exchange = new ccxt.binance ({
 exchange.options['adjustForTimeDifference'] = false
 ```
 
+
+#### **Python**
 ```python
-# Python
 exchange = ccxt.binance ({
     'rateLimit': 10000,  # unified exchange property
     'headers': {
@@ -289,8 +295,8 @@ exchange = ccxt.binance ({
 exchange.options['adjustForTimeDifference'] = False
 ```
 
+#### **PHP**
 ```php
-// PHP
 $exchange_id = 'binance';
 $exchange_class = "\\ccxt\\$exchange_id";
 $exchange = new $exchange_class(array(
@@ -304,22 +310,25 @@ $exchange = new $exchange_class(array(
 ));
 $exchange->options['adjustForTimeDifference'] = false;
 ```
+<!-- tabs:end -->
 
 ### Overriding Exchange Methods
 
 In all CCXT-supported languages, you can override instance methods during runtime:
 
+<!-- tabs:start -->
+
+#### **Javascript**
 ```javascript
-// JavaScript
+
 const ex = new ccxt.binance ();
 ex.fetch_ticker = function (symbol, params = {}) {
     // your codes go here
 };
 console.log (ex.fetch_ticker('BTC/USDT'));
 ```
-
+#### **Python**
 ```python
-# PYTHON
 ex = ccxt.binance()
 def my_overload(symbol, params = {}):
     # your codes go here
@@ -328,14 +337,17 @@ ex.fetch_ticker = my_overload
 print(ex.fetch_ticker('BTC/USDT'))
 ```
 
+#### **PHP**
 ```php
-// PHP
 $ex = new \ccxt\binance();
 $ex->add_method('fetch_ticker', function($symbol, $params = []) {
     // your codes go here
 });
 var_dump($ex->call_method('fetch_ticker', ['BTC/USDT']));
 ```
+
+<!-- tabs:end -->
+
 
 ### Testnets And Sandbox Environments
 
@@ -344,23 +356,27 @@ Some exchanges also offer separate APIs for testing purposes that allows develop
 CCXT unifies that aspect and allows the user to switch to the exchange's sandbox (if supported by the underlying exchange).
 To switch to the sandbox one has to call the `exchange.setSandboxMode (true)` or `exchange.set_sandbox_mode(true)` **immediately after creating the exchange before any other call**!
 
+<!-- tabs:start -->
+
+#### **Javascript**
 ```javascript
-// JavaScript
 const exchange = new ccxt.binance (config)
 exchange.setSandboxMode (true) // enable sandbox mode
 ```
 
+#### **Python**
 ```python
-# Python
 exchange = ccxt.binance(config)
 exchange.set_sandbox_mode(True)  # enable sandbox mode
 ```
 
+#### **PHP**
 ```php
-// PHP
 $exchange = new \ccxt\binance($config);
 $exchange->set_sandbox_mode(true); // enable sandbox mode
 ```
+
+<!-- tabs:end -->
 
 - The `exchange.setSandboxMode (true) / exchange.set_sandbox_mode (True)` has to be your first call immediately after creating the exchange (before any other calls)
 - To obtain the [API keys](#authentication) to the sandbox the user has to register with the sandbox website of the exchange in question and create a sandbox keypair
@@ -562,9 +578,10 @@ The CCXT library has a built-in experimental rate-limiter that will do the neces
 
 You can turn on/off the built-in rate-limiter with `.enableRateLimit` property, like so:
 
-```javascript
-// JavaScript
+<!-- tabs:start -->
 
+#### **Javascript**
+```javascript
 // enable built-in rate limiting upon instantiation of the exchange
 const exchange = new ccxt.bitfinex ({
     // 'enableRateLimit': true, // enabled by default
@@ -574,9 +591,8 @@ const exchange = new ccxt.bitfinex ({
 exchange.enableRateLimit = true // enable
 exchange.enableRateLimit = false // disable
 ```
-
+#### **Python**
 ```python
-# Python
 
 # enable built-in rate limiting upon instantiation of the exchange
 exchange = ccxt.bitfinex({
@@ -588,8 +604,8 @@ exchange.enableRateLimit = True  # enable
 exchange.enableRateLimit = False  # disable
 ```
 
+#### **PHP**
 ```php
-// PHP
 
 // enable built-in rate limiting upon instantiation of the exchange
 $exchange = new \ccxt\bitfinex (array (
@@ -600,6 +616,8 @@ $exchange = new \ccxt\bitfinex (array (
 $exchange->enableRateLimit = true; // enable
 $exchange->enableRateLimit = false; // disable
 ```
+
+<!-- tabs:end -->
 
 In case your calls hit a rate limit or get nonce errors, the ccxt library will throw an `InvalidNonce` exception, or, in some cases, one of the following types:
 
@@ -965,21 +983,26 @@ Most of the time the user does not have to take care of precision formatting, si
 
 The exchange base class contains the `decimalToPrecision` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
+<!-- tabs:start -->
+
+#### **Javascript**
 ```javascript
-// JavaScript
+
 function decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode = DECIMAL_PLACES, paddingMode = NO_PADDING)
 ```
 
+#### **Python**
 ```python
-# Python
 # WARNING! The `decimal_to_precision` method is susceptible to getcontext().prec!
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
 ```
 
+#### **PHP**
 ```php
-// PHP
 function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
 ```
+
+<!-- tabs:end -->
 
 For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
 
@@ -992,29 +1015,29 @@ For examples of how to use the `decimalToPrecision` to format strings and floats
 
 For users' convenience CCXT base exchange class also implements the following methods:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 function amountToPrecision (symbol, amount)
 function priceToPrecision (symbol, price)
 function costToPrecision (symbol, cost)
 function currencyToPrecision (code, amount)
 ```
-
+#### **Python**
 ```python
-# Python
 def amount_to_precision (symbol, amount):
 def price_to_precision (symbol, price):
 def cost_to_precision (symbol, cost):
 def currency_to_precision (code, amount):
 ```
-
+#### **PHP**
 ```php
-// PHP
 function amount_to_precision($symbol, $amount)
 function price_to_precision($symbol, $price)
 function cost_to_precision($symbol, $cost)
 function currency_to_precision($code, $amount)
 ```
+<!-- tabs:end -->
 
 Every exchange has its own precision settings, the above methods will help format those values according to exchange-specific precision rules, in a way that is portable and agnostic of the underlying exchange. In order to make that possible, markets and currencies have to be loaded prior to formatting any values.
 
@@ -1022,8 +1045,10 @@ Every exchange has its own precision settings, the above methods will help forma
 
 For example:
 
+
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 await exchange.loadMarkets ()
 const symbol = 'BTC/USDT'
 const amount = 1.2345678 // amount in base currency BTC
@@ -1033,8 +1058,9 @@ const formattedPrice = exchange.priceToPrecision (symbol, price)
 console.log (formattedAmount, formattedPrice)
 ```
 
+
+#### **Python**
 ```python
-# Python
 exchange.load_markets()
 symbol = 'BTC/USDT'
 amount = 1.2345678  # amount in base currency BTC
@@ -1044,8 +1070,8 @@ formatted_price = exchange.price_to_precision(symbol, price)
 print(formatted_amount, formatted_price)
 ```
 
+#### **PHP**
 ```php
-// PHP
 $exchange->load_markets();
 $symbol = 'BTC/USDT';
 $amount = 1.2345678;  // amount in base currency BTC
@@ -1054,6 +1080,7 @@ $formatted_amount = $exchange->amount_to_precision($symbol, $amount);
 $formatted_price = $exchange->price_to_precision($symbol, $price);
 echo $formatted_amount, " ", $formatted_price, "\n";
 ```
+<!-- tabs:end -->
 
 More practical examples that describe the behavior of `exchange.precisionMode`:
 
@@ -1090,8 +1117,10 @@ In most cases you are required to load the list of markets and trading symbols f
 
 In order to load markets manually beforehand call the `loadMarkets ()` / `load_markets ()` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets by hand is recommended.
 
+<!-- tabs:start -->
+
+#### **Javascript**
 ```javascript
-// JavaScript
 (async () => {
     let kraken = new ccxt.kraken ()
     let markets = await kraken.loadMarkets ()
@@ -1099,21 +1128,23 @@ In order to load markets manually beforehand call the `loadMarkets ()` / `load_m
 }) ()
 ```
 
+#### **Python**
 ```python
-# Python
 okcoin = ccxt.okcoin()
 markets = okcoin.load_markets()
 print(okcoin.id, markets)
 ```
 
+#### **PHP**
 ```php
-// PHP
 $id = 'huobipro';
 $exchange = '\\ccxt\\' . $id;
 $huobipro = new $exchange();
 $markets = $huobipro->load_markets();
 var_dump($huobipro->id, $markets);
 ```
+
+<!-- tabs:end -->
 
 Apart from the market info, the `loadMarkets()` call will also load the currencies from the exchange and will cache the info in the `.markets` and the `.currencies` properties respectively.
 
@@ -1136,10 +1167,10 @@ Market structures are indexed by symbols and ids. The base exchange class also h
 Most of the time users will be working with market symbols. You will get a standard userland exception if you access non-existent keys in these dicts.
 
 ### Methods For Markets And Currencies
+<!-- tabs:start -->
 
+#### **Javascript**
 ```javascript
-// JavaScript
-
 (async () => {
 
     console.log (await exchange.loadMarkets ())
@@ -1168,9 +1199,8 @@ Most of the time users will be working with market symbols. You will get a stand
 }) ()
 ```
 
+#### **Python**
 ```python
-# Python
-
 print(exchange.load_markets())
 
 etheur1 = exchange.markets['ETH/EUR']         # get market structure by symbol
@@ -1195,9 +1225,8 @@ kraken.markets['BTC/USD']['id']               # symbol → id (get id by symbol)
 kraken.markets_by_id['XXRPZUSD'][0]['symbol'] # id → symbol (get symbol by id)
 ```
 
+#### **PHP**
 ```php
-// PHP
-
 $var_dump($exchange->load_markets());
 
 $dashcny1 = $exchange->markets['DASH/CNY'];        // get market structure by symbol
@@ -1223,6 +1252,8 @@ $okcoin->markets_by_id['btc_usd'][0];              // id → market (get market 
 $okcoin->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
 $okcoin->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
 ```
+
+<!-- tabs:end -->
 
 ### Naming Consistency
 
@@ -1354,9 +1385,10 @@ A future market symbol consists of the underlying currency, the quoting currency
 The `loadMarkets () / load_markets ()` is also a dirty method with a side effect of saving the array of markets on the exchange instance. You only need to call it once per exchange. All subsequent calls to the same method will return the locally saved (cached) array of markets.
 
 When exchange markets are loaded, you can then access market information any time via the `markets` property. This property contains an associative array of markets indexed by symbol. If you need to force reload the list of markets after you have them loaded already, pass the reload = true flag to the same method again.
+<!-- tabs:start -->
 
+#### **Javascript**
 ```javascript
-// JavaScript
 (async () => {
     let kraken = new ccxt.kraken ({ verbose: true }) // log HTTP requests
     await kraken.loadMarkets () // request markets
@@ -1368,9 +1400,8 @@ When exchange markets are loaded, you can then access market information any tim
     console.log (reloadedMarkets['ETH/BTC'])
 }) ()
 ```
-
+#### **Python**
 ```python
-# Python
 poloniex = ccxt.poloniex({'verbose': True}) # log HTTP requests
 poloniex.load_markets() # request markets
 print(poloniex.id, poloniex.markets)   # output a full list of all loaded markets
@@ -1380,9 +1411,8 @@ poloniex.load_markets() # return a locally cached version, no reload
 reloadedMarkets = poloniex.load_markets(True) # force HTTP reload = True
 print(reloadedMarkets['ETH/ZEC'])
 ```
-
+#### **PHP**
 ```php
-// PHP
 $bitfinex = new \ccxt\bitfinex(array('verbose' => true)); // log HTTP requests
 $bitfinex.load_markets(); // request markets
 var_dump($bitfinex->id, $bitfinex->markets); // output a full list of all loaded markets
@@ -1392,6 +1422,8 @@ $bitfinex->load_markets(); // return a locally cached version, no reload
 $reloadedMarkets = $bitfinex->load_markets(true); // force HTTP reload = true
 var_dump($bitfinex->markets['XRP/BTC']);
 ```
+
+<!-- tabs:end -->
 
 # Implicit API
 
@@ -1483,7 +1515,9 @@ var_dump (new \ccxt\kraken ()); // PHP
 
 ## Synchronous vs Asynchronous Calls
 
-### JavaScript
+<!-- tabs:start -->
+
+#### **Javascript**
 
 In the JavaScript version of CCXT all methods are asynchronous and return [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) that resolve with a decoded JSON object. In CCXT we use the modern *async/await* syntax to work with Promises. If you're not familiar with that syntax, you can read more about it [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function).
 
@@ -1499,7 +1533,8 @@ In the JavaScript version of CCXT all methods are asynchronous and return [Promi
 }) ()
 ```
 
-### Python
+
+#### **Python**
 
 The ccxt library supports asynchronous concurrency mode in Python 3.5+ with async/await syntax. The asynchronous Python version uses pure [asyncio](https://docs.python.org/3/library/asyncio.html) with [aiohttp](http://aiohttp.readthedocs.io). In async mode you have all the same properties and methods, but most methods are decorated with an async keyword. If you want to use async mode, you should link against the `ccxt.async_support` subpackage, like in the following example:
 
@@ -1517,7 +1552,7 @@ async def print_poloniex_ethbtc_ticker():
 asyncio.run(print_poloniex_ethbtc_ticker())
 ```
 
-### PHP
+#### **PHP**
 
 CCXT support PHP 8+ versions. The library has both synchronous and asynchronous versions. To use synchronous version, use `\ccxt` namespace (i.e. `new ccxt\binance()`) and to use asynchronous version, use `\ccxt\async` namespace (i.e. `new ccxt\async\binance()`). Asynchronous version uses [ReactPHP](https://reactphp.org/) library in the background. In async mode you have all the same properties and methods, but any networking API method should be decorated with the `\React\Async\await` keyword and your script should be in a ReactPHP wrapper:
 ```php
@@ -1535,6 +1570,8 @@ while (true) {
 ```
 
 See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
+
+<!-- tabs:end -->
 
 ### Returned JSON Objects
 
@@ -1648,8 +1685,10 @@ TODO: better formatting
 
 Note, that most of methods of the unified API accept an optional `params` argument. It is an associative array (a dictionary, empty by default) containing the params you want to override. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values. Use the `params` dictionary if you need to pass a custom setting or an optional parameter to your unified query.
 
+<!-- tabs:start -->
+
+#### **Javascript**
 ```javascript
-// JavaScript
 (async () => {
 
     const params = {
@@ -1662,8 +1701,8 @@ Note, that most of methods of the unified API accept an optional `params` argume
 }) ()
 ```
 
+#### **Python**
 ```python
-# Python
 params = {
     'foo': 'bar',       # exchange-specific overrides in unified queries
     'Hello': 'World!',  # see their docs for more details on parameter names
@@ -1673,8 +1712,8 @@ params = {
 result = exchange.fetch_order_book(symbol, length, params)
 ```
 
+#### **PHP**
 ```php
-// PHP
 $params = array (
     'foo' => 'bar',       // exchange-specific overrides in unified queries
     'Hello' => 'World!',  // see their docs for more details on parameter names
@@ -1683,6 +1722,8 @@ $params = array (
 // overrides go into the last argument to the unified call ↓ HERE
 $result = $exchange->fetch_order_book ($symbol, $length, $params);
 ```
+
+<!-- tabs:end -->
 
 ## Pagination
 
@@ -1766,9 +1807,10 @@ exchange.milliseconds () // integer UTC timestamp in milliseconds
 ### Date-based Pagination
 
 This is the type of pagination currently used throughout the CCXT Unified API. The user supplies a `since` timestamp **in milliseconds** (!) and a number to `limit` results. To traverse the objects of interest page by page, the user runs the following (below is pseudocode, it may require overriding some exchange-specific params, depending on the exchange in question):
+<!-- tabs:start -->
 
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['fetchTrades']) {
     let since = exchange.milliseconds () - 86400000 // -1 day from now
     // alternatively, fetch from a certain starting datetime
@@ -1788,8 +1830,8 @@ if (exchange.has['fetchTrades']) {
 }
 ```
 
+#### **Python**
 ```python
-# Python
 if exchange.has['fetchOrders']:
     since = exchange.milliseconds () - 86400000  # -1 day from now
     # alternatively, fetch from a certain starting datetime
@@ -1806,8 +1848,8 @@ if exchange.has['fetchOrders']:
             break
 ```
 
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['fetchMyTrades']) {
     $since = exchange->milliseconds () - 86400000; // -1 day from now
     // alternatively, fetch from a certain starting datetime
@@ -1827,12 +1869,16 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
+<!-- tabs:end -->
+
 ### id-based Pagination
 
 The user supplies a `from_id` of the object, from where the query should continue returning results, and a number to `limit` results. This is the default with some exchanges, however, this type is not unified (yet). To paginate objects based on their ids, the user would run the following:
 
+<!-- tabs:start -->
+
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['fetchTrades']) {
     let from_id = 'abc123' // all ids are strings
     let allTrades = []
@@ -1854,8 +1900,8 @@ if (exchange.has['fetchTrades']) {
 }
 ```
 
+#### **Python**
 ```python
-# Python
 if exchange.has['fetchOrders']:
     from_id = 'abc123'  # all ids are strings
     all_orders = []
@@ -1874,8 +1920,8 @@ if exchange.has['fetchOrders']:
             break
 ```
 
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['fetchMyTrades']) {
     $from_id = 'abc123' // all ids are strings
     $all_trades = array ();
@@ -1897,6 +1943,11 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
+<!-- tabs:end -->
+
+
+
+
 ### Pagenumber-based (Cursor) Pagination
 
 The user supplies a page number or an *initial "cursor"* value. The exchange returns a page of results and the *next "cursor"* value, to proceed from. Most of exchanges that implement this type of pagination will either return the next cursor within the response itself or will return the next cursor values within HTTP response headers.
@@ -1904,9 +1955,10 @@ The user supplies a page number or an *initial "cursor"* value. The exchange ret
 See an example implementation here: https://github.com/ccxt/ccxt/blob/master/examples/py/coinbasepro-fetch-my-trades-pagination.py
 
 Upon each iteration of the loop the user has to take the next cursor and put it into the overrided params for the next query (on the following iteration):
+<!-- tabs:start -->
 
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['fetchTrades']) {
     let page = 0  // exchange-specific type and value
     let allTrades = []
@@ -1929,8 +1981,8 @@ if (exchange.has['fetchTrades']) {
 }
 ```
 
+#### **Python**
 ```python
-# Python
 if exchange.has['fetchOrders']:
     cursor = 0  # exchange-specific type and value
     all_orders = []
@@ -1950,8 +2002,8 @@ if exchange.has['fetchOrders']:
             break
 ```
 
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['fetchMyTrades']) {
     $start = '0' // exchange-specific type and value
     $all_trades = array ();
@@ -1973,6 +2025,8 @@ if ($exchange->has['fetchMyTrades']) {
     }
 }
 ```
+
+<!-- tabs:end -->
 
 # Public API
 
@@ -2032,9 +2086,10 @@ Returns
 - A dictionary of [order book structures](#order-book-structure) indexed by market symbols
 
 ### fetchOrderBook Examples
+<!-- tabs:start -->
 
+#### **Javascript**
 ```javascript
-// JavaScript
 delay = 2000 // milliseconds = seconds * 1000
 (async () => {
     for (symbol in exchange.markets) {
@@ -2044,8 +2099,8 @@ delay = 2000 // milliseconds = seconds * 1000
 }) ()
 ```
 
+#### **Python**
 ```python
-# Python
 import time
 delay = 2 # seconds
 for symbol in exchange.markets:
@@ -2053,14 +2108,16 @@ for symbol in exchange.markets:
     time.sleep (delay) # rate limit
 ```
 
+#### **PHP**
 ```php
-// PHP
 $delay = 2000000; // microseconds = seconds * 1000000
 foreach ($exchange->markets as $symbol => $market) {
     var_dump ($exchange->fetch_order_book ($symbol));
     usleep ($delay); // rate limit
 }
 ```
+
+<!-- tabs:end -->
 
 ### Order Book Structure
 
@@ -2100,8 +2157,11 @@ Exchanges may return the stack of orders in various levels of details for analys
 
 Some exchanges accept a dictionary of extra parameters to the `fetchOrderBook () / fetch_order_book ()` function. **All extra `params` are exchange-specific (non-unified)**. You will need to consult exchanges docs if you want to override a particular param, like the depth of the order book. You can get a limited count of returned orders or a desired level of aggregation (aka *market depth*) by specifying an limit argument and exchange-specific extra `params` like so:
 
+<!-- tabs:start -->
+
+#### **Javascript**
 ```javascript
-// JavaScript
+
 
 (async function test () {
     const ccxt = require ('ccxt')
@@ -2114,8 +2174,8 @@ Some exchanges accept a dictionary of extra parameters to the `fetchOrderBook ()
 }) ()
 ```
 
+#### **Python**
 ```python
-# Python
 
 import ccxt
 # return up to ten bidasks on each side of the order book stack
@@ -2123,8 +2183,8 @@ limit = 10
 ccxt.cex().fetch_order_book('BTC/USD', limit)
 ```
 
+#### **PHP**
 ```php
-// PHP
 
 // instantiate the exchange by id
 $exchange = '\\ccxt\\kraken';
@@ -2133,6 +2193,8 @@ $exchange = new $exchange ();
 $limit = 20;
 var_dump ($exchange->fetch_order_book ('BTC/USD', $limit));
 ```
+
+<!-- tabs:end -->
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
 
@@ -2148,8 +2210,10 @@ The `limit` argument does not guarantee that the number of bids or asks will alw
 
 In order to get current best price (query market price) and calculate bidask spread take first elements from bid and ask, like so:
 
+<!-- tabs:start -->
+
+#### **Javascript**
 ```javascript
-// JavaScript
 let orderbook = await exchange.fetchOrderBook (exchange.symbols[0])
 let bid = orderbook.bids.length ? orderbook.bids[0][0] : undefined
 let ask = orderbook.asks.length ? orderbook.asks[0][0] : undefined
@@ -2157,8 +2221,9 @@ let spread = (bid && ask) ? ask - bid : undefined
 console.log (exchange.id, 'market price', { bid, ask, spread })
 ```
 
+
+#### **Python**
 ```python
-# Python
 orderbook = exchange.fetch_order_book (exchange.symbols[0])
 bid = orderbook['bids'][0][0] if len (orderbook['bids']) > 0 else None
 ask = orderbook['asks'][0][0] if len (orderbook['asks']) > 0 else None
@@ -2166,8 +2231,8 @@ spread = (ask - bid) if (bid and ask) else None
 print (exchange.id, 'market price', { 'bid': bid, 'ask': ask, 'spread': spread })
 ```
 
+#### **PHP**
 ```php
-// PHP
 $orderbook = $exchange->fetch_order_book ($exchange->symbols[0]);
 $bid = count ($orderbook['bids']) ? $orderbook['bids'][0][0] : null;
 $ask = count ($orderbook['asks']) ? $orderbook['asks'][0][0] : null;
@@ -2175,6 +2240,7 @@ $spread = ($bid && $ask) ? $ask - $bid : null;
 $result = array ('bid' => $bid, 'ask' => $ask, 'spread' => $spread);
 var_dump ($exchange->id, 'market price', $result);
 ```
+<!-- tabs:end -->
 
 ## Price Tickers
 
@@ -2276,8 +2342,9 @@ Methods for fetching tickers:
 
 To get the individual ticker data from an exchange for a particular trading pair or a specific symbol – call the `fetchTicker (symbol)`:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['fetchTicker']) {
     console.log (await (exchange.fetchTicker ('BTC/USD'))) // ticker for BTC/USD
     let symbols = Object.keys (exchange.markets)
@@ -2285,18 +2352,17 @@ if (exchange.has['fetchTicker']) {
     console.log (exchange.fetchTicker (symbols[random])) // ticker for a random symbol
 }
 ```
-
+#### **Python**
 ```python
-# Python
 import random
 if (exchange.has['fetchTicker']):
     print(exchange.fetch_ticker('LTC/ZEC')) # ticker for LTC/ZEC
     symbols = list(exchange.markets.keys())
     print(exchange.fetch_ticker(random.choice(symbols))) # ticker for a random symbol
 ```
-
+#### **PHP**
 ```php
-// PHP (don't forget to set your timezone properly!)
+//(don't forget to set your timezone properly!)
 if ($exchange->has['fetchTicker']) {
     var_dump ($exchange->fetch_ticker ('ETH/CNY')); // ticker for ETH/CNY
     $symbols = array_keys ($exchange->markets);
@@ -2304,54 +2370,56 @@ if ($exchange->has['fetchTicker']) {
     var_dump ($exchange->fetch_ticker ($symbols[$random])); // ticker for a random symbol
 }
 ```
+<!-- tabs:end -->
 
 ### All At Once
 
 Some exchanges (not all of them) also support fetching all tickers at once. See [their docs](#exchanges) for details. You can fetch all tickers with a single call like so:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['fetchTickers']) {
     console.log (await (exchange.fetchTickers ())) // all tickers indexed by their symbols
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if (exchange.has['fetchTickers']):
     print(exchange.fetch_tickers()) # all tickers indexed by their symbols
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['fetchTickers']) {
     var_dump ($exchange->fetch_tickers ()); // all tickers indexed by their symbols
 }
 ```
+<!-- tabs:end -->
 
 Fetching all tickers requires more traffic than fetching a single ticker. Also, note that some exchanges impose higher rate-limits on subsequent fetches of all tickers (see their docs on corresponding endpoints for details). **The cost of the `fetchTickers()` call in terms of rate limit is often higher than average**. If you only need one ticker, fetching by a particular symbol is faster as well. You probably want to fetch all tickers only if you really need all of them and, most likely, you don't want to fetchTickers more frequently than once in a minute or so.
 
 Also, some exchanges may impose additional requirements on the `fetchTickers()` call, sometimes you can't fetch the tickers for all symbols because of the API limitations of the exchange in question. Some exchanges accept a list of symbols in HTTP URL query params, however, because URL length is limited, and in extreme cases exchanges can have thousands of markets – a list of all their symbols simply would not fit in the URL, so it has to be a limited subset of their symbols. Sometimes, there are other reasons for requiring a list of symbols, and there may be a limit on the number of symbols you can fetch at once, but whatever the limitation, please, blame the exchange. To pass the symbols of interest to the exchange, you can supply a list of strings as the first argument to fetchTickers:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
 //JavaScript
 if (exchange.has['fetchTickers']) {
     console.log (await (exchange.fetchTickers ([ 'ETH/BTC', 'LTC/BTC' ]))) // listed tickers indexed by their symbols
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if (exchange.has['fetchTickers']):
     print(exchange.fetch_tickers(['ETH/BTC', 'LTC/BTC'])) # listed tickers indexed by their symbols
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['fetchTickers']) {
     var_dump ($exchange->fetch_tickers (array ('ETH/BTC', 'LTC/BTC'))); // listed tickers indexed by their symbols
 }
 ```
+<!-- tabs:end -->
 
 Note that the list of symbols is not required in most cases, but you must add additional logic if you want to handle all possible limitations that might be imposed on the exchanges' side.
 
@@ -2390,8 +2458,9 @@ fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, para
 
 You can call the unified `fetchOHLCV` / `fetch_ohlcv` method to get the list of OHLCV candles for a particular symbol like so:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 if (exchange.has.fetchOHLCV) {
     for (symbol in exchange.markets) {
@@ -2400,18 +2469,16 @@ if (exchange.has.fetchOHLCV) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 import time
 if exchange.has['fetchOHLCV']:
     for symbol in exchange.markets:
         time.sleep (exchange.rateLimit / 1000) # time.sleep wants seconds
         print (symbol, exchange.fetch_ohlcv (symbol, '1d')) # one day
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['fetchOHLCV']) {
     foreach ($exchange->markets as $symbol => $market) {
         usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
@@ -2419,6 +2486,7 @@ if ($exchange->has['fetchOHLCV']) {
     }
 }
 ```
+<!-- tabs:end -->
 
 To get the list of available timeframes for your exchange see the `timeframes` property. Note that it is only populated when `has['fetchOHLCV']` is true as well.
 
@@ -2506,8 +2574,9 @@ main ()
 
 There are also convenience methods `fetchMarkOHLCV`, `fetchIndexOHLCV` and `fetchPremiumIndexOHLCV`
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 async function main () {
     const exchange = new ccxt.binanceusdm ()
     const markKlines = await exchange.fetchMarkOHLCV ('ADA/USDT', '1h')
@@ -2518,9 +2587,8 @@ async function main () {
 
 main ()
 ```
-
+#### **Python**
 ```python
-# Python
 exchange = ccxt.binance()
 response = exchange.fetch_ohlcv('ADA/USDT', '1h', params={'price':'index'})
 pprint(response)
@@ -2530,6 +2598,7 @@ index_klines = exchange.fetch_index_ohlcv('ADA/USDT', '1h')
 pprint(mark_klines)
 pprint(index_klines)
 ```
+<!-- tabs:end -->
 
 ### OHLCV Emulation
 
@@ -2555,8 +2624,9 @@ async fetchTrades (symbol, since = undefined, limit = undefined, params = {})
 
 For example, if you want to print recent trades for all symbols one by one sequentially (mind the rateLimit!) you would do it like so:
 
+<!-- tabs:start -->
+#### **Typescript**
 ```javascript
-// JavaScript
 if (exchange.has['fetchTrades']) {
     let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
     for (symbol in exchange.markets) {
@@ -2564,23 +2634,22 @@ if (exchange.has['fetchTrades']) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 import time
 if exchange.has['fetchTrades']:
     for symbol in exchange.markets:  # ensure you have called loadMarkets() or load_markets() method.
         print (symbol, exchange.fetch_trades (symbol))
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['fetchTrades']) {
     foreach ($exchange->markets as $symbol => $market) {
         var_dump ($exchange->fetch_trades ($symbol));
     }
 }
 ```
+<!-- tabs:end -->
 
 The fetchTrades method shown above returns an ordered list of trades (a flat array, sorted by timestamp in ascending order, oldest trade first, most recent trade last). A list of trades is represented by the [trade structure](#trade-structure).
 
@@ -3270,38 +3339,37 @@ In order to create API keys find the API tab or button in your user settings on 
 #### Credential Validation
 
 For checking if the user has supplied all the required credentials the `Exchange` base class has a method called `exchange.checkRequiredCredentials()` or `exchange.check_required_credentials()`. Calling that method will throw an `AuthenticationError`, if some of the credentials are missing or empty. The `Exchange` base class also has  property `exchange.requiredCredentials` that allows a user to see which credentials are required for this or that exchange, as shown below:
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 const ccxt = require ('ccxt')
 const exchange = new ccxt.binance()
 console.log (exchange.requiredCredentials) // prints required credentials
 exchange.checkRequiredCredentials() // throw AuthenticationError
 ```
-
+#### **Python**
 ```python
-# Python
 import ccxt
 exchange = ccxt.coinbasepro()
 print(exchange.requiredCredentials)  # prints required credentials
 exchange.check_required_credentials()  # raises AuthenticationError
 ```
-
+#### **PHP**
 ```php
-// PHP
 include 'ccxt.php';
 $exchange = new \ccxt\bittrex ();
 var_dump($exchange->requiredCredentials); // prints required credentials
 $exchange->check_required_credentials(); // throws AuthenticationError
 ```
+<!-- tabs:end -->
 
 #### Configuring API Keys
 
 To set up an exchange for trading just assign the API credentials to an existing exchange instance or pass them to exchange constructor upon instantiation, like so:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
-
 const ccxt = require ('ccxt')
 
 // any time
@@ -3323,10 +3391,8 @@ const exchangeId = 'binance'
         'secret': 'YOUR_SECRET',
     })
 ```
-
+#### **Python**
 ```python
-# Python
-
 import ccxt
 
 # any time
@@ -3348,10 +3414,8 @@ exchange = exchange_class({
     'secret': 'YOUR_SECRET',
 })
 ```
-
+#### **PHP**
 ```php
-// PHP
-
 include 'ccxt.php'
 
 // any time
@@ -3373,6 +3437,7 @@ $exchange = new $exchange_class (array (
     'secret' => 'YOUR_SECRET',
 ));
 ```
+<!-- tabs:end -->
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
 
@@ -3389,6 +3454,8 @@ When you get errors like `"Invalid API-key, IP, or permissions for action."`, th
 
 Some exchanges required you to sign in prior to calling private methods, which can be done using the `signIn` method
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
 signIn (params = {})
 ```
@@ -3589,23 +3656,22 @@ Returns
 The `timestamp` and `datetime` values may be undefined or missing if the underlying exchange does not provide them.
 
 Some exchanges may not return full balance info. Many exchanges do not return balances for your empty or unused accounts. In that case some currencies may be missing in returned balance structure.
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 (async () => {
     console.log (await exchange.fetchBalance ())
 }) ()
 ```
-
+#### **Python**
 ```python
-# Python
 print (exchange.fetch_balance ())
 ```
-
+#### **PHP**
 ```php
-// PHP
 var_dump ($exchange->fetch_balance ());
 ```
+<!-- tabs:end -->
 
 ## Orders
 
@@ -3635,8 +3701,9 @@ The library will throw a NotSupported exception if a user calls a method that is
 
 To check if any of the above methods are available, look into the `.has` property of the exchange:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 'use strict';
 
 const ccxt = require ('ccxt')
@@ -3644,20 +3711,19 @@ const id = 'poloniex'
 exchange = new ccxt[id] ()
 console.log (exchange.has)
 ```
-
+#### **Python**
 ```python
-# Python
 import ccxt
 id = 'binance'
 exchange = getattr(ccxt, id)()
 print(exchange.has)
 ```
-
+#### **PHP**
 ```php
-// PHP
 $exchange = new \ccxt\bitfinex();
 print_r ($exchange->has); // or var_dump
 ```
+<!-- tabs:end -->
 
 A typical structure of the `.has` property usually contains the following flags corresponding to order API methods for querying orders:
 
@@ -3751,17 +3817,16 @@ if (exchange.has['fetchOrder']) {
 You can pass custom overrided key-values in the additional params argument to supply a specific order type, or some other setting if needed.
 
 Below are examples of using the fetchOrder method to get order info from an authenticated exchange instance:
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 (async function () {
     const order = await exchange.fetchOrder (id)
     console.log (order)
 }) ()
 ```
-
-```python
-# Python 3 (synchronous)
+#### **Python**
+```python 3 (synchronous)
 if exchange.has['fetchOrder']:
     order = exchange.fetch_order(id)
     print(order)
@@ -3773,14 +3838,14 @@ if exchange.has['fetchOrder']:
     order = asyncio.run(exchange.fetch_order(id))
     print(order)
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['fetchOrder']) {
     $order = $exchange->fetch_order($id);
     var_dump($order);
 }
 ```
+<!-- tabs:end -->
 
 #### All Orders
 
@@ -4006,26 +4071,25 @@ exchange.create_order (symbol, 'market', side, amount, ...)
 ```
 
 **Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the `.has['createMarketOrder']` exchange property:
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['createMarketOrder']) {
     ...
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if exchange.has['createMarketOrder']:
     ...
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['createMarketOrder']) {
     ...
 }
 ```
+<!-- tabs:end -->
 
 #### Market Buys
 
@@ -4150,29 +4214,29 @@ Traditional "stop" order (which you might see across exchanges' websites) is now
 
 * Typically, it is activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**. However, some exchanges' API require to set `triggerDirection` too, which triggers order depending whether price is above or below `triggerPrice`. For example, if you want to trigger  limit order (buy 0.1 `ETH` at limit price `1500`) once pair price crosses `1700`:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 const params = {
     'triggerPrice': 1700,
 }
 const order = await exchange.createOrder ('ETH/USDT', 'market', 'buy', 0.1, 1500, params)
 ```
-
+#### **Python**
 ```python
-# Python
 params = {
     'triggerPrice': 1700,
 }
 order = exchange.create_order('ETH/USDT', 'market', 'buy', 0.1, 1500, params)
 ```
-
+#### **PHP**
 ```php
-// PHP
 $params = {
     'triggerPrice': 1700,
 }
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
 ```
+<!-- tabs:end -->
 However, if some exchanges require that you provided `triggerDirection`, with either `above` or `below` values:
 
 ```
@@ -4235,9 +4299,9 @@ Stop Loss orders are activated when the price of the underlying asset/contract:
 * drops below the `stopLossPrice` from above, for sell orders. (eg: to close a long position, and avoid further losses)
 * rises above the `stopLossPrice` from below, for buy orders (eg: to close a short position, and avoid further losses)
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
-
 // for a stop loss order
 const params = {
     'stopLossPrice': 55.45, // your stop loss price
@@ -4245,10 +4309,8 @@ const params = {
 
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
 ```
-
+#### **Python**
 ```python
-# Python
-
 # for a stop loss order
 params = {
     'stopLossPrice': 55.45,  # your stop loss price
@@ -4256,10 +4318,8 @@ params = {
 
 order = exchange.create_order (symbol, type, side, amount, price, params)
 ```
-
+#### **PHP**
 ```php
-// PHP
-
 // for a stop loss order
 $params = {
     'stopLossPrice': 55.45, // your stop loss price
@@ -4267,6 +4327,7 @@ $params = {
 
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
+<!-- tabs:end -->
 
 ##### Take Profit Orders
 
@@ -4321,9 +4382,9 @@ Take Profit orders are activated when the price of the underlying:
 * rises above the `takeProfitPrice` from below, for sell orders (eg: to close a long position, at a profit)
 * drops below the `takeProfitPrice` from above, for buy orders (eg: to close a short position, at a profit)
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
-
 // for a take profit order
 const params = {
     'takeProfitPrice': 120.45, // your take profit price
@@ -4331,10 +4392,8 @@ const params = {
 
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
 ```
-
+#### **Python**
 ```python
-# Python
-
 # for a take profit order
 params = {
     'takeProfitPrice': 120.45,  # your take profit price
@@ -4342,10 +4401,8 @@ params = {
 
 order = exchange.create_order (symbol, type, side, amount, price, params)
 ```
-
+#### **PHP**
 ```php
-// PHP
-
 // for a take profit order
 $params = {
     'takeProfitPrice': 120.45, // your take profit price
@@ -4353,6 +4410,7 @@ $params = {
 
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
+<!-- tabs:end -->
 
 #### StopLoss And TakeProfit Orders Attached To A Position
 
@@ -4365,9 +4423,9 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 *Note: This is still under unification and is work in progress*
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
-
 const params = {
     'stopLoss': {
         'type': 'limit', // or 'market', this field is not necessary if limit price is specified
@@ -4383,9 +4441,8 @@ const params = {
 }
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
 ```
-
+#### **Python**
 ```python
-# Python
 symbol = 'ETH/BTC'
 type = 'limit'  # or 'market'
 side = 'buy'
@@ -4406,9 +4463,8 @@ params = {
 }
 order = exchange.create_order (symbol, type, side, amount, price, params)
 ```
-
+#### **PHP**
 ```php
-// PHP
 $symbol = 'ETH/BTC';
 $type = 'limit'; // or 'market'
 $side = 'buy';
@@ -4429,28 +4485,29 @@ $params = {
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
+<!-- tabs:end -->
 
 #### Custom Order Params
 
 Some exchanges allow you to specify optional parameters for your order. You can pass your optional parameters and override your query with an associative array using the `params` argument to your unified API call. All custom params are exchange-specific, of course, and aren't interchangeable, do not expect those custom params for one exchange to work with another exchange.
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 // use a custom order type
 bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
 ```
-
+#### **Python**
 ```python
-# Python
 # add a custom order flag
 kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 ```
-
+#### **PHP**
 ```php
-// PHP
 // add custom user id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
 ```
+<!-- tabs:end -->
 
 ##### User-defined `clientOrderId`
 
@@ -4462,23 +4519,26 @@ $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId
 
 The user can specify a custom `clientOrderId` field can be set upon placing orders with the `params`. Using the `clientOrderId` one can later distinguish between own orders. This is only available for the exchanges that do support `clientOrderId` at this time. For the exchanges that don't support it will either throw an error upon supplying the `clientOrderId` or will ignore it setting the `clientOrderId` to `undefined/None/null`.
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
 exchange.createOrder (symbol, type, side, amount, price, {
     'clientOrderId': 'Hello',
 })
 ```
-
+#### **Python**
 ```python
 exchange.create_order(symbol, type, side, amount, price, {
     'clientOrderId': 'World',
 })
 ```
-
+#### **PHP**
 ```php
 $exchange->create_order($symbol, $type, $side, $amount, $price, array(
     'clientOrderId' => 'Foobar',
 ))
 ```
+<!-- tabs:end -->
 
 ### Editing Orders
 
@@ -4669,31 +4729,31 @@ In many cases a `symbol` argument is required by the exchanges' APIs, therefore 
 
 In most cases users are **required to use at least some type of [pagination](#pagination)** in order to get the expected results consistently.
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 // fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 
 if (exchange.has['fetchMyTrades']) {
     const trades = await exchange.fetchMyTrades (symbol, since, limit, params)
 }
 ```
-
+#### **Python**
 ```python
-# Python
 # fetch_my_trades(symbol=None, since=None, limit=None, params={})
 
 if exchange.has['fetchMyTrades']:
     exchange.fetch_my_trades(symbol=None, since=None, limit=None, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 // fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array())
 
 if ($exchange->has['fetchMyTrades']) {
     $trades = $exchange->fetch_my_trades($symbol, $since, $limit, $params);
 }
 ```
+<!-- tabs:end -->
 
 Returns ordered array `[]` of trades (most recent trade last).
 
@@ -4734,32 +4794,31 @@ Returns ordered array `[]` of trades (most recent trade last).
 - The `cost` of the trade is a _"gross"_ value. That is the value pre-fee, and the fee has to be applied afterwards.
 
 ### Trades By Order Id
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 // fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {})
 
 if (exchange.has['fetchOrderTrades']) {
     const trades = await exchange.fetchOrderTrades (orderId, symbol, since, limit, params)
 }
 ```
-
+#### **Python**
 ```python
-# Python
 # fetch_order_trades(id, symbol=None, since=None, limit=None, params={})
 
 if exchange.has['fetchOrderTrades']:
     exchange.fetch_order_trades(order_id, symbol=None, since=None, limit=None, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 // fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array())
 
 if ($exchange->has['fetchOrderTrades']) {
     $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
 }
 ```
+<!-- tabs:end -->
 
 ## Ledger
 
@@ -4898,21 +4957,20 @@ The `withdraw` method can be used to withdraw funds from an account
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](#exchanges) for details.
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 withdraw (code, amount, address, tag = undefined, params = {})
 ```
-
+#### **Python**
 ```python
-# Python
 withdraw(code, amount, address, tag=None, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 withdraw ($code, $amount, $address, $tag = null, $params = array ())
 ```
+<!-- tabs:end -->
 
 Parameters
 
@@ -4962,21 +5020,20 @@ Returns
 ### Deposit And Withdrawal Networks
 
 It is also possible to pass the parameters as the fourth argument with or without a specified tag
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 withdraw (code, amount, address, { tag, network: 'ETH' })
 ```
-
+#### **Python**
 ```python
-# Python
 withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
 ```
-
+#### **PHP**
 ```php
-// PHP
 withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
 ```
+<!-- tabs:end -->
 
 The following aliases of `network` allow for withdrawing crypto on multiple chains
 
@@ -5035,9 +5092,9 @@ You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km9
 - The `type` field may be `deposit/withdrawal` or, in some cases (when the exchange's endpoint returns both internal transfers and blockchain transactions, e.g. `ccxt.coinlist`), could be `transfer`.
 
 ### fetchDeposits Examples
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 // fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
 
 if (exchange.has['fetchDeposits']) {
@@ -5046,9 +5103,8 @@ if (exchange.has['fetchDeposits']) {
     throw new Error (exchange.id + ' does not have the fetchDeposits method')
 }
 ```
-
+#### **Python**
 ```python
-# Python
 # fetch_deposits(code = None, since = None, limit = None, params = {})
 
 if exchange.has['fetchDeposits']:
@@ -5056,9 +5112,8 @@ if exchange.has['fetchDeposits']:
 else:
     raise Exception (exchange.id + ' does not have the fetch_deposits method')
 ```
-
+#### **PHP**
 ```php
-// PHP
 // fetch_deposits ($code = null, $since = null, $limit = null, $params = {})
 
 if ($exchange->has['fetchDeposits']) {
@@ -5067,11 +5122,13 @@ if ($exchange->has['fetchDeposits']) {
     throw new Exception ($exchange->id . ' does not have the fetch_deposits method');
 }
 ```
+<!-- tabs:end -->
 
 ### fetchWithdrawals Examples
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 // fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
 
 if (exchange.has['fetchWithdrawals']) {
@@ -5080,9 +5137,8 @@ if (exchange.has['fetchWithdrawals']) {
     throw new Error (exchange.id + ' does not have the fetchWithdrawals method')
 }
 ```
-
+#### **Python**
 ```python
-# Python
 # fetch_withdrawals(code = None, since = None, limit = None, params = {})
 
 if exchange.has['fetchWithdrawals']:
@@ -5090,9 +5146,8 @@ if exchange.has['fetchWithdrawals']:
 else:
     raise Exception (exchange.id + ' does not have the fetch_withdrawals method')
 ```
-
+#### **PHP**
 ```php
-// PHP
 // fetch_withdrawals ($code = null, $since = null, $limit = null, $params = {})
 
 if ($exchange->has['fetchWithdrawals']) {
@@ -5101,11 +5156,13 @@ if ($exchange->has['fetchWithdrawals']) {
     throw new Exception ($exchange->id . ' does not have the fetch_withdrawals method');
 }
 ```
+<!-- tabs:end -->
 
 ### fetchTransactions Examples
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 // fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {})
 
 if (exchange.has['fetchTransactions']) {
@@ -5114,9 +5171,8 @@ if (exchange.has['fetchTransactions']) {
     throw new Error (exchange.id + ' does not have the fetchTransactions method')
 }
 ```
-
+#### **Python**
 ```python
-# Python
 # fetch_transactions(code = None, since = None, limit = None, params = {})
 
 if exchange.has['fetchTransactions']:
@@ -5124,9 +5180,8 @@ if exchange.has['fetchTransactions']:
 else:
     raise Exception (exchange.id + ' does not have the fetch_transactions method')
 ```
-
+#### **PHP**
 ```php
-// PHP
 // fetch_transactions ($code = null, $since = null, $limit = null, $params = {})
 
 if ($exchange->has['fetchTransactions']) {
@@ -5135,6 +5190,7 @@ if ($exchange->has['fetchTransactions']) {
     throw new Exception ($exchange->id . ' does not have the fetch_transactions method');
 }
 ```
+<!-- tabs:end -->
 
 ## Deposit Addresses
 
@@ -5970,10 +6026,9 @@ So, in such cases you will need to communicate a "CORS" proxy, which would redir
 The error handling with CCXT is done with the exception mechanism that is natively available with all languages.
 
 To handle the errors you should add a `try` block around the call to a unified method and catch the exceptions like you would normally do with your language:
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
-
 // try to call a unified method
 try {
     const response = await exchange.fetchTicker ('ETH/BTC')
@@ -5994,10 +6049,8 @@ try {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
-
 # try to call a unified method
 try:
     response = await exchange.fetch_order_book('ETH/BTC')
@@ -6012,10 +6065,8 @@ except Exception as e:
     print(exchange.id, 'fetch_order_book failed with:', str(e))
     # retry or whatever
 ```
-
+#### **PHP**
 ```php
-// PHP
-
 // try to call a unified method
 try {
     $response = $exchange->fetch_trades('ETH/BTC');
@@ -6031,13 +6082,15 @@ try {
     // retry or whatever
 }
 ```
+<!-- tabs:end -->
 
 ## Exception Hierarchy
 
 All exceptions are derived from the base BaseError exception, which, in its turn, is defined in the ccxt library like so:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 class BaseError extends Error {
     constructor () {
         super ()
@@ -6047,17 +6100,16 @@ class BaseError extends Error {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 class BaseError (Exception):
     pass
 ```
-
+#### **PHP**
 ```php
-// PHP
 class BaseError extends \Exception {}
 ```
+<!-- tabs:end -->
 
 Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts
 
