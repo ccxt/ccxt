@@ -36,6 +36,7 @@ const debugKeys = {
 }
 
 const exchangeSpecificFlags = {
+    '--ws': false,
     '--sandbox': false,
     '--verbose': false,
     '--private': false,
@@ -49,7 +50,6 @@ let exchanges = []
 let symbol = 'all'
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
-const wsFlag = args.includes("--ws") ? '--ws' : false;
 for (const arg of args) {
     if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
     else if (arg.startsWith ('--'))          {
@@ -85,7 +85,7 @@ if (!exchanges.length) {
     }
     let exchangesFile =  fs.readFileSync('./exchanges.json');
     exchangesFile = JSON.parse(exchangesFile)
-    exchanges = wsFlag ? exchangesFile.ws : exchangesFile.ids
+    exchanges = exchangeSpecificFlags['--ws'] ? exchangesFile.ws : exchangesFile.ids
 }
 
 /*  --------------------------------------------------------------------------- */
@@ -237,8 +237,9 @@ const testExchange = async (exchange) => {
         args.push(symbol);
     }
     args = args.concat(exchangeOptions)
-    if (wsFlag) {
-        args.push(wsFlag);
+    // pass it to the test(ts/py/php) script too
+    if (debugKeys['--info']) {
+        args.push ('--info')
     }
     const allTestsWithoutTs = [
             { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
