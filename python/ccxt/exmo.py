@@ -249,12 +249,11 @@ class exmo(Exchange, ImplicitAPI):
             'position_id': market['id'],
             'quantity': amount,
         }
-        method = None
+        response = None
         if type == 'add':
-            method = 'privatePostMarginUserPositionMarginAdd'
+            response = self.privatePostMarginUserPositionMarginAdd(self.extend(request, params))
         elif type == 'reduce':
-            method = 'privatePostMarginUserPositionMarginReduce'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostMarginUserPositionMarginRemove(self.extend(request, params))
         #
         #      {}
         #
@@ -306,12 +305,14 @@ class exmo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'fetchTradingFees', {})
+        defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchTradingFees', {})
-            method = self.safe_string(options, 'method', 'fetchPrivateTradingFees')
-        return getattr(self, method)(params)
+        if method == 'fetchPrivateTradingFees':
+            return self.fetch_private_trading_fees(params)
+        else:
+            return self.fetch_public_trading_fees(params)
 
     def fetch_private_trading_fees(self, params={}):
         self.load_markets()
@@ -1335,7 +1336,6 @@ class exmo(Exchange, ImplicitAPI):
             # 'client_id': 123,  # optional, must be a positive integer
             # 'comment': '',  # up to 50 latin symbols, whitespaces, underscores
         }
-        method = 'privatePostOrderCreate' if isSpot else 'privatePostMarginUserOrderCreate'
         clientOrderId = self.safe_value_2(params, 'client_id', 'clientOrderId')
         if clientOrderId is not None:
             clientOrderId = self.safe_integer_2(params, 'client_id', 'clientOrderId')
@@ -1347,24 +1347,18 @@ class exmo(Exchange, ImplicitAPI):
         if not isSpot and (leverage is None):
             raise ArgumentsRequired(self.id + ' createOrder requires an extra param params["leverage"] for margin orders')
         params = self.omit(params, ['stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId'])
-        if triggerPrice is not None:
-            if isSpot:
+        if price is not None:
+            request['price'] = self.price_to_precision(market['symbol'], price)
+        response = None
+        if isSpot:
+            if triggerPrice is not None:
                 if type == 'limit':
                     raise BadRequest(self.id + ' createOrder() cannot create stop limit orders for spot, only stop market')
                 else:
-                    method = 'privatePostStopMarketOrderCreate'
                     request['type'] = side
                     request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+                response = self.privatePostStopMarketOrderCreate(self.extend(request, params))
             else:
-                request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
-                if type == 'limit':
-                    request['type'] = 'stop_limit_' + side
-                elif type == 'market':
-                    request['type'] = 'stop_' + side
-                else:
-                    request['type'] = type
-        else:
-            if isSpot:
                 execType = self.safe_string(params, 'exec_type')
                 isPostOnly = None
                 isPostOnly, params = self.handle_post_only(type == 'market', execType == 'post_only', params)
@@ -1378,14 +1372,22 @@ class exmo(Exchange, ImplicitAPI):
                     request['exec_type'] = 'post_only'
                 elif timeInForce is not None:
                     request['exec_type'] = timeInForce
+                response = self.privatePostOrderCreate(self.extend(request, params))
+        else:
+            if triggerPrice is not None:
+                request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
+                if type == 'limit':
+                    request['type'] = 'stop_limit_' + side
+                elif type == 'market':
+                    request['type'] = 'stop_' + side
+                else:
+                    request['type'] = type
             else:
                 if type == 'limit' or type == 'market':
                     request['type'] = type + '_' + side
                 else:
                     request['type'] = type
-        if price is not None:
-            request['price'] = self.price_to_precision(market['symbol'], price)
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostMarginUserOrderCreate(self.extend(request, params))
         return self.parse_order(response, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):

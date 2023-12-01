@@ -42,7 +42,7 @@ export default class exmo extends Exchange {
         total: any;
         status: string;
     }>;
-    fetchTradingFees(params?: {}): Promise<any>;
+    fetchTradingFees(params?: {}): Promise<{}>;
     fetchPrivateTradingFees(params?: {}): Promise<{}>;
     fetchPublicTradingFees(params?: {}): Promise<{}>;
     parseFixedFloatValue(input: any): number;

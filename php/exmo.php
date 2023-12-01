@@ -235,13 +235,12 @@ class exmo extends Exchange {
             'position_id' => $market['id'],
             'quantity' => $amount,
         );
-        $method = null;
+        $response = null;
         if ($type === 'add') {
-            $method = 'privatePostMarginUserPositionMarginAdd';
+            $response = $this->privatePostMarginUserPositionMarginAdd (array_merge($request, $params));
         } elseif ($type === 'reduce') {
-            $method = 'privatePostMarginUserPositionMarginReduce';
+            $response = $this->privatePostMarginUserPositionMarginRemove (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //      array()
         //
@@ -298,13 +297,15 @@ class exmo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
-        $method = $this->safe_string($params, 'method');
+        $options = $this->safe_value($this->options, 'fetchTradingFees', array());
+        $defaultMethod = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+        $method = $this->safe_string($params, 'method', $defaultMethod);
         $params = $this->omit($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchTradingFees', array());
-            $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+        if ($method === 'fetchPrivateTradingFees') {
+            return $this->fetch_private_trading_fees($params);
+        } else {
+            return $this->fetch_public_trading_fees($params);
         }
-        return $this->$method ($params);
     }
 
     public function fetch_private_trading_fees($params = array ()) {
@@ -1401,7 +1402,6 @@ class exmo extends Exchange {
             // 'client_id' => 123, // optional, must be a positive integer
             // 'comment' => '', // up to 50 latin symbols, whitespaces, underscores
         );
-        $method = $isSpot ? 'privatePostOrderCreate' : 'privatePostMarginUserOrderCreate';
         $clientOrderId = $this->safe_value_2($params, 'client_id', 'clientOrderId');
         if ($clientOrderId !== null) {
             $clientOrderId = $this->safe_integer_2($params, 'client_id', 'clientOrderId');
@@ -1416,27 +1416,20 @@ class exmo extends Exchange {
             throw new ArgumentsRequired($this->id . ' createOrder requires an extra param $params["leverage"] for margin orders');
         }
         $params = $this->omit($params, array( 'stopPrice', 'stop_price', 'triggerPrice', 'timeInForce', 'client_id', 'clientOrderId' ));
-        if ($triggerPrice !== null) {
-            if ($isSpot) {
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+        }
+        $response = null;
+        if ($isSpot) {
+            if ($triggerPrice !== null) {
                 if ($type === 'limit') {
                     throw new BadRequest($this->id . ' createOrder () cannot create stop limit orders for spot, only stop market');
                 } else {
-                    $method = 'privatePostStopMarketOrderCreate';
                     $request['type'] = $side;
                     $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 }
+                $response = $this->privatePostStopMarketOrderCreate (array_merge($request, $params));
             } else {
-                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
-                if ($type === 'limit') {
-                    $request['type'] = 'stop_limit_' . $side;
-                } elseif ($type === 'market') {
-                    $request['type'] = 'stop_' . $side;
-                } else {
-                    $request['type'] = $type;
-                }
-            }
-        } else {
-            if ($isSpot) {
                 $execType = $this->safe_string($params, 'exec_type');
                 $isPostOnly = null;
                 list($isPostOnly, $params) = $this->handle_post_only($type === 'market', $execType === 'post_only', $params);
@@ -1452,6 +1445,18 @@ class exmo extends Exchange {
                 } elseif ($timeInForce !== null) {
                     $request['exec_type'] = $timeInForce;
                 }
+                $response = $this->privatePostOrderCreate (array_merge($request, $params));
+            }
+        } else {
+            if ($triggerPrice !== null) {
+                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                if ($type === 'limit') {
+                    $request['type'] = 'stop_limit_' . $side;
+                } elseif ($type === 'market') {
+                    $request['type'] = 'stop_' . $side;
+                } else {
+                    $request['type'] = $type;
+                }
             } else {
                 if ($type === 'limit' || $type === 'market') {
                     $request['type'] = $type . '_' . $side;
@@ -1459,11 +1464,8 @@ class exmo extends Exchange {
                     $request['type'] = $type;
                 }
             }
+            $response = $this->privatePostMarginUserOrderCreate (array_merge($request, $params));
         }
-        if ($price !== null) {
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
-        }
-        $response = $this->$method (array_merge($request, $params));
         return $this->parse_order($response, $market);
     }
 
