@@ -37,6 +37,8 @@ export default class okx extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketSellOrderWithCost': undefined,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -2503,22 +2505,18 @@ export default class okx extends Exchange {
         return this.parseBalanceByType (marketType, response);
     }
 
-    async createMarketBuyWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
         /**
          * @method
-         * @name okx#createMarketBuyWithCost
+         * @name okx#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} params.createMarketBuyOrderRequiresPrice automatically set to false for this method
-         * @param {string} params.tgtCcy automatically set to quote_ccy
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        params = {
-            'createMarketBuyOrderRequiresPrice': false,
-            'tgtCcy': 'quote_ccy',
-        };
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        params['tgtCcy'] = 'quote_ccy';
         return this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
