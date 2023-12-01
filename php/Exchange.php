@@ -456,7 +456,6 @@ class Exchange {
         'poloniex',
         'poloniexfutures',
         'probit',
-        'tidex',
         'timex',
         'tokocrypto',
         'upbit',
