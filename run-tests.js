@@ -146,7 +146,7 @@ const exec = (bin, ...args) =>
                 const infoRegex = /\[INFO:([\w_-]+)].+$\n*/gmi
                 let matchInfo;
                 while ((matchInfo = infoRegex.exec (output))) {
-                    info.push ('[' + matchInfo[0] + ']')
+                    info.push (matchInfo[0])
                 }
             }
 
