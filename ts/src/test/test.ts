@@ -442,10 +442,9 @@ export default class testMainClass extends baseMainTestClass {
             tests = {
                 // @ts-ignore
                 'watchOHLCV': [ symbol ],
-                // 'watchTicker': [ symbol ],
-                // 'watchTickers': [],
-                // 'watchTrades': [ symbol ],
-                // 'watchOrderBook': [ symbol ],
+                'watchTicker': [ symbol ],
+                'watchOrderBook': [ symbol ],
+                'watchTrades': [ symbol ],
             };
         }
         const market = exchange.market (symbol);
@@ -794,7 +793,6 @@ export default class testMainClass extends baseMainTestClass {
         };
         if (this.isWsTests) {
             tests = {
-                'signIn': [ ],
                 // @ts-ignore
                 'watchBalance': [ code ],
                 'watchMyTrades': [ symbol ],
