@@ -224,8 +224,8 @@ export interface DepositAddressResponse {
 
 export interface Position {
     collateral?: number;
-    contracts?: number;
     contractSize?: number;
+    contracts?: number;
     datetime: string;
     entryPrice?: number;
     hedged?: boolean;
