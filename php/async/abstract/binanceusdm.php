@@ -1057,6 +1057,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     public function sapiv2_get_sub_account_futures_account($params = array()) {
         return $this->request('sub-account/futures/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiv2_get_sub_account_futures_accountsummary($params = array()) {
+        return $this->request('sub-account/futures/accountSummary', 'sapiV2', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function sapiv2_get_sub_account_futures_positionrisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3036,6 +3039,9 @@ abstract class binanceusdm extends \ccxt\async\binance {
     }
     public function sapiV2GetSubAccountFuturesAccount($params = array()) {
         return $this->request('sub-account/futures/account', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiV2GetSubAccountFuturesAccountSummary($params = array()) {
+        return $this->request('sub-account/futures/accountSummary', 'sapiV2', 'GET', $params, null, null, array("cost" => 1));
     }
     public function sapiV2GetSubAccountFuturesPositionRisk($params = array()) {
         return $this->request('sub-account/futures/positionRisk', 'sapiV2', 'GET', $params, null, null, array("cost" => 0.1));

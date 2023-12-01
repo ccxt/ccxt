@@ -37,10 +37,17 @@ export default class Exchange {
     user_agent: {
         'User-Agent': string;
     } | false;
+    wsProxy: string;
+    ws_proxy: string;
+    wssProxy: string;
+    wss_proxy: string;
     userAgents: any;
     headers: any;
     origin: string;
     agent: any;
+    nodeHttpModuleLoaded: boolean;
+    httpAgent: any;
+    httpsAgent: any;
     minFundingAddressLength: number;
     substituteCommonCurrencyCodes: boolean;
     quoteJsonNumbers: boolean;
@@ -288,6 +295,8 @@ export default class Exchange {
             createLimitOrder: boolean;
             createMarketOrder: boolean;
             createOrder: boolean;
+            createMarketBuyOrderWithCost: any;
+            createMarketSellOrderWithCost: any;
             createOrders: any;
             createPostOnlyOrder: any;
             createReduceOnlyOrder: any;
@@ -493,6 +502,14 @@ export default class Exchange {
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
     log(...args: any[]): void;
+    httpProxyAgentModule: any;
+    httpsProxyAgentModule: any;
+    socksProxyAgentModule: any;
+    socksProxyAgentModuleChecked: boolean;
+    proxyDictionaries: any;
+    proxyModulesLoaded: boolean;
+    loadProxyModules(): Promise<void>;
+    setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
@@ -526,12 +543,16 @@ export default class Exchange {
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
+    setProperty(obj: any, property: any, defaultValue?: any): void;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
     handleDeltas(orderbook: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     findTimeframe(timeframe: any, timeframes?: any): string;
-    checkProxySettings(url: any, method: any, headers: any, body: any): string[];
+    checkProxyUrlSettings(url?: any, method?: any, headers?: any, body?: any): any;
+    checkProxySettings(url?: any, method?: any, headers?: any, body?: any): any[];
+    checkWsProxySettings(): any[];
+    checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
@@ -738,6 +759,8 @@ export default class Exchange {
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
+    createMarketSellOrderWithCost(symbol: string, cost: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
@@ -760,8 +783,8 @@ export default class Exchange {
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
     fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposits(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
@@ -825,7 +848,7 @@ export default class Exchange {
     handleTimeInForce(params?: {}): string;
     convertTypeToAccount(account: any): any;
     checkRequiredArgument(methodName: any, argument: any, argumentName: any, options?: any[]): void;
-    checkRequiredMarginArgument(methodName: string, symbol: string, marginMode: string): void;
+    checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
     parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): any;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     depositWithdrawFee(info: any): any;

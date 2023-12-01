@@ -1297,7 +1297,7 @@ class phemex extends \ccxt\async\phemex {
         if ($lastTradeTimestamp === 0) {
             $lastTradeTimestamp = null;
         }
-        $timeInForce = $this->parseTimeInForce ($this->safe_string($order, 'timeInForce'));
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $stopPrice = $this->safe_string($order, 'stopPx');
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(

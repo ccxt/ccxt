@@ -8,14 +8,13 @@ import sys
 from traceback import format_tb, format_exception
 
 import importlib  # noqa: E402
-import glob  # noqa: E402
 import re
 
 # ------------------------------------------------------------------------------
 # logging.basicConfig(level=logging.INFO)
 # ------------------------------------------------------------------------------
-current_dir = os.path.dirname(os.path.abspath(__file__))
-root = os.path.dirname(os.path.dirname(current_dir))
+DIR_NAME = os.path.dirname(os.path.abspath(__file__))
+root = os.path.dirname(os.path.dirname(DIR_NAME))
 sys.path.append(root)
 
 import ccxt  # noqa: E402
@@ -95,11 +94,12 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 is_synchronous = 'async' not in os.path.basename(__file__)
 
-rootDir = current_dir + '/../../../'
-rootDirForSkips = current_dir + '/../../../'
+rootDir = DIR_NAME + '/../../../'
+rootDirForSkips = DIR_NAME + '/../../../'
 envVars = os.environ
 LOG_CHARS_LENGTH = 10000
 ext = 'py'
+proxyTestFileName = 'proxies'
 
 
 class baseMainTestClass():
@@ -115,6 +115,8 @@ class baseMainTestClass():
     env_vars = envVars
     ext = ext
     root_dir_for_skips = rootDirForSkips
+    only_specific_tests = []
+    proxy_test_file_name = proxyTestFileName
     pass
 
 
@@ -138,12 +140,12 @@ def get_cli_arg_value(arg):
     arg_exists_wo_hyphen = getattr(argv, without_hyphen) if hasattr(argv, without_hyphen) else False
     return arg_exists or arg_exists_with_hyphen or arg_exists_wo_hyphen
 
+def convert_to_snake_case(conent):
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', conent).lower()
 
 def get_test_name(methodName):
-    snake_cased = re.sub(r'(?<!^)(?=[A-Z])', '_', methodName).lower()  # snake_case
-    snake_cased = snake_cased.replace('o_h_l_c_v', 'ohlcv')
-    full_name = 'test_' + snake_cased
-    return full_name
+    # stub
+    return methodName
 
 
 def io_file_exists(path):
@@ -163,8 +165,10 @@ def io_dir_read(path):
     return os.listdir(path)
 
 
-def call_method(testFiles, methodName, exchange, skippedProperties, args):
-    return getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
+def call_method(test_files, methodName, exchange, skippedProperties, args):
+    methodNameToCall = convert_to_snake_case(methodName)
+    methodNameToCall = 'test_' + methodNameToCall.replace('o_h_l_c_v', 'ohlcv')
+    return getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
 
 
 def call_exchange_method_dynamically(exchange, methodName, args):
@@ -203,14 +207,15 @@ def init_exchange(exchangeId, args):
 
 
 def set_test_files(holderClass, properties):
-    skip_tests = ['test_throttle']
-    setattr(holderClass, 'testFiles', {})
+    finalPropList = properties + [proxyTestFileName]
     syncAsync = 'async' if not is_synchronous else 'sync'
-    for file_path in glob.glob(current_dir + '/' + syncAsync + '/test_*.py'):
-        name = os.path.basename(file_path)[:-3]
-        if not (name in skip_tests):
-            imp = importlib.import_module('ccxt.test.' + syncAsync + '.' + name)
-            holderClass.testFiles[name] = imp  # getattr(imp, finalName)
+    for i in range(0, len(finalPropList)):
+        name = finalPropList[i]
+        name_snake_case = convert_to_snake_case(name)
+        filePathWithExt = DIR_NAME + '/' + syncAsync + '/test_' + name_snake_case + '.py'
+        if (io_file_exists (filePathWithExt)):
+            imp = importlib.import_module('ccxt.test.' + syncAsync + '.test_' + name_snake_case)
+            holderClass.test_files[name] = imp  # getattr(imp, finalName)
 
 
 def close(exchange):
@@ -240,18 +245,18 @@ class testMainClass(baseMainTestClass):
         self.private_test_only = get_cli_arg_value('--privateOnly')
         self.sandbox = get_cli_arg_value('--sandbox')
 
-    def init(self, exchange_id, symbol):
+    def init(self, exchange_id, symbol_argv):
         self.parse_cli_args()
         if self.response_tests:
-            self.run_static_response_tests(exchange_id, symbol)
+            self.run_static_response_tests(exchange_id, symbol_argv)
             return
         if self.request_tests:
-            self.run_static_request_tests(exchange_id, symbol)  # symbol here is the testname
+            self.run_static_request_tests(exchange_id, symbol_argv)  # symbol here is the testname
             return
         if self.id_tests:
             self.run_broker_id_tests()
             return
-        symbol_str = symbol if symbol is not None else 'all'
+        symbol_str = symbol_argv if symbol_argv is not None else 'all'
         dump('\nTESTING ', self.ext, {
             'exchange': exchange_id,
             'symbol': symbol_str,
@@ -264,8 +269,25 @@ class testMainClass(baseMainTestClass):
         }
         exchange = init_exchange(exchange_id, exchange_args)
         self.import_files(exchange)
-        self.expand_settings(exchange, symbol)
-        self.start_test(exchange, symbol)
+        self.expand_settings(exchange)
+        symbol_or_undefined = self.check_if_specific_test_is_chosen(symbol_argv)
+        self.start_test(exchange, symbol_or_undefined)
+
+    def check_if_specific_test_is_chosen(self, symbol_argv):
+        if symbol_argv is not None:
+            test_file_names = list(self.test_files.keys())
+            possible_method_names = symbol_argv.split(',')  # i.e. `test.ts binance fetchBalance,fetchDeposits`
+            if len(possible_method_names) >= 1:
+                for i in range(0, len(test_file_names)):
+                    test_file_name = test_file_names[i]
+                    for j in range(0, len(possible_method_names)):
+                        method_name = possible_method_names[j]
+                        if test_file_name == method_name:
+                            self.only_specific_tests.append(test_file_name)
+            # if method names were found, then remove them from symbolArgv
+            if len(self.only_specific_tests) > 0:
+                return None
+        return symbol_argv
 
     def import_files(self, exchange):
         # exchange tests
@@ -274,7 +296,7 @@ class testMainClass(baseMainTestClass):
         properties.append('loadMarkets')
         set_test_files(self, properties)
 
-    def expand_settings(self, exchange, symbol):
+    def expand_settings(self, exchange):
         exchange_id = exchange.id
         keys_global = self.root_dir + 'keys.json'
         keys_local = self.root_dir + 'keys.local.json'
@@ -316,6 +338,7 @@ class testMainClass(baseMainTestClass):
         timeout = exchange.safe_value(skipped_settings_for_exchange, 'timeout')
         if timeout is not None:
             exchange.timeout = timeout
+        exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
         exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
@@ -337,7 +360,11 @@ class testMainClass(baseMainTestClass):
         if not is_public and (method_name_in_test in self.checked_public_tests) and (method_name != 'fetchCurrencies'):
             return
         skip_message = None
-        if not is_load_markets and (not (method_name in exchange.has) or not exchange.has[method_name]):
+        is_proxy_test = method_name == self.proxy_test_file_name
+        supported_by_exchange = (method_name in exchange.has) and exchange.has[method_name]
+        if not is_load_markets and (len(self.only_specific_tests) > 0 and not exchange.in_array(method_name_in_test, self.only_specific_tests)):
+            skip_message = '[INFO:IGNORED_TEST]'
+        elif not is_load_markets and not supported_by_exchange and not is_proxy_test:
             skip_message = '[INFO:UNSUPPORTED_TEST]'  # keep it aligned with the longest message
         elif (method_name in self.skipped_methods) and (isinstance(self.skipped_methods[method_name], str)):
             skip_message = '[INFO:SKIPPED_TEST]'
@@ -452,7 +479,7 @@ class testMainClass(baseMainTestClass):
                     errors.append(test_names[i])
             # we don't throw exception for public-tests, see comments under 'testSafe' method
             errors_in_message = ''
-            if errors:
+            if len(errors):
                 failed_msg = ', '.join(errors)
                 errors_in_message = ' | Failed methods : ' + failed_msg
             message_content = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errors_in_message
@@ -570,12 +597,12 @@ class testMainClass(baseMainTestClass):
         if not self.private_test_only:
             if exchange.has['spot'] and spot_symbol is not None:
                 if self.info:
-                    dump('[INFO:SPOT TESTS]')
+                    dump('[INFO: ### SPOT TESTS ###]')
                 exchange.options['type'] = 'spot'
                 self.run_public_tests(exchange, spot_symbol)
             if exchange.has['swap'] and swap_symbol is not None:
                 if self.info:
-                    dump('[INFO:SWAP TESTS]')
+                    dump('[INFO: ### SWAP TESTS ###]')
                 exchange.options['type'] = 'swap'
                 self.run_public_tests(exchange, swap_symbol)
         if self.private_test or self.private_test_only:
@@ -661,6 +688,24 @@ class testMainClass(baseMainTestClass):
             if self.info:
                 dump(self.add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
 
+    def test_proxies(self, exchange):
+        # these tests should be synchronously executed, because of conflicting nature of proxy settings
+        proxy_test_name = self.proxy_test_file_name
+        if self.info:
+            dump(self.add_padding('[INFO:TESTING]', 25), exchange.id, proxy_test_name)
+        # try proxy several times
+        max_retries = 3
+        exception = None
+        for j in range(0, max_retries):
+            try:
+                self.test_method(proxy_test_name, exchange, [], True)
+                break  # if successfull, then break
+            except Exception as e:
+                exception = e
+        # if exception was set, then throw it
+        if exception:
+            raise Error('[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception))
+
     def start_test(self, exchange, symbol):
         # we do not need to test aliases
         if exchange.alias:
@@ -672,6 +717,9 @@ class testMainClass(baseMainTestClass):
             if not result:
                 close(exchange)
                 return
+            if exchange.id == 'binance':
+                # we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
+                self.test_proxies(exchange)
             self.test_exchange(exchange, symbol)
             close(exchange)
         except Exception as e:

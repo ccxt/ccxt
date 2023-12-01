@@ -195,12 +195,15 @@ class coinbase extends coinbase$1 {
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
+                            'brokerage/convert/trade/{trade_id}',
                         ],
                         'post': [
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/convert/quote',
+                            'brokerage/convert/trade/{trade_id}',
                         ],
                     },
                 },
@@ -1593,7 +1596,7 @@ class coinbase extends coinbase$1 {
          */
         await this.loadMarkets();
         const request = {
-            'limit': 100,
+            'limit': 250,
         };
         let response = undefined;
         const isV3 = this.safeValue(params, 'v3', false);

@@ -200,12 +200,15 @@ class coinbase extends Exchange {
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
+                            'brokerage/convert/trade/{trade_id}',
                         ),
                         'post' => array(
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/convert/quote',
+                            'brokerage/convert/trade/{trade_id}',
                         ),
                     ),
                 ),
@@ -1639,7 +1642,7 @@ class coinbase extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array(
-                'limit' => 100,
+                'limit' => 250,
             );
             $response = null;
             $isV3 = $this->safe_value($params, 'v3', false);

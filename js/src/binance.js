@@ -594,6 +594,7 @@ export default class binance extends Exchange {
                 'sapiV2': {
                     'get': {
                         'sub-account/futures/account': 0.1,
+                        'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
                     },
                     'post': {

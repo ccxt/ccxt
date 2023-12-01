@@ -161,7 +161,8 @@ class phemex(Exchange, ImplicitAPI):
                 },
                 'v1': {
                     'get': {
-                        'md/orderbook': 5,  # ?symbol=<symbol>&id=<id>
+                        'md/fullbook': 5,  # ?symbol=<symbol>
+                        'md/orderbook': 5,  # ?symbol=<symbol>
                         'md/trade': 5,  # ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
                         'md/ticker/24hr/all': 5,  # ?id=<id>
@@ -214,6 +215,11 @@ class phemex(Exchange, ImplicitAPI):
                         'phemex-user/users/children': 5,  # ?offset=<offset>&limit=<limit>&withCount=<withCount>
                         'phemex-user/wallets/v2/depositAddress': 5,  # ?_t=1592722635531&currency=USDT
                         'phemex-user/wallets/tradeAccountDetail': 5,  # ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-deposit/wallets/api/depositAddress': 5,  # ?currency=<currency>&chainName=<chainName>
+                        'phemex-deposit/wallets/api/depositHist': 5,  # ?currency=<currency>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-deposit/wallets/api/chainCfg': 5,  # ?currency=<currency>
+                        'phemex-withdraw/wallets/api/withdrawHist': 5,  # ?currency=<currency>&chainName=<chainNameList>&offset=<offset>&limit=<limit>&withCount=<withCount>
+                        'phemex-withdraw/wallets/api/asset/info': 5,  # ?currency=<currency>&amount=<amount>
                         'phemex-user/order/closedPositionList': 5,  # ?currency=USD&limit=10&offset=0&symbol=&withCount=true
                         'exchange/margins/transfer': 5,  # ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         'exchange/wallets/confirm/withdraw': 5,  # ?code=<withdrawConfirmCode>
@@ -252,6 +258,9 @@ class phemex(Exchange, ImplicitAPI):
                         'assets/futures/sub-accounts/transfer': 5,  # for sub-account only
                         'assets/universal-transfer': 5,  # for Main account only
                         'assets/convert': 5,
+                        # withdraw
+                        'phemex-withdraw/wallets/api/createWithdraw': 5,  # ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
+                        'phemex-withdraw/wallets/api/cancelWithdraw': 5,  # ?id=<id>
                     },
                     'put': {
                         # spot
@@ -987,7 +996,10 @@ class phemex(Exchange, ImplicitAPI):
         if market['linear'] and market['settle'] == 'USDT':
             response = await self.v2GetMdV2Orderbook(self.extend(request, params))
         else:
-            response = await self.v1GetMdOrderbook(self.extend(request, params))
+            if (limit is not None) and (limit <= 30):
+                response = await self.v1GetMdOrderbook(self.extend(request, params))
+            else:
+                response = await self.v1GetMdFullbook(self.extend(request, params))
         #
         #     {
         #         "error": null,

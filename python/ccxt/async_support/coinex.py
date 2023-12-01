@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -55,8 +55,11 @@ class coinex(Exchange, ImplicitAPI):
                 'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createDepositAddress': True,
+                'createMarketBuyOrderWithCost': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -1494,6 +1497,8 @@ class coinex(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status):
         statuses = {
+            'rejected': 'rejected',
+            'open': 'open',
             'not_deal': 'open',
             'part_deal': 'open',
             'done': 'closed',
@@ -1527,7 +1532,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "client_id": "",
         #     }
         #
-        # Spot and Margin createOrder, cancelOrder, fetchOrder
+        # Spot and Margin createOrder, createOrders, cancelOrder, cancelOrders, fetchOrder
         #
         #      {
         #          "amount":"1.5",
@@ -1726,13 +1731,50 @@ class coinex(Exchange, ImplicitAPI):
         #         "user_id": 3620173
         #     }
         #
+        # swap: cancelOrders
+        #
+        #     {
+        #         "amount": "0.0005",
+        #         "client_id": "x-167673045-b0cee0c584718b65",
+        #         "create_time": 1701233683.294231,
+        #         "deal_asset_fee": "0.00000000000000000000",
+        #         "deal_fee": "0.00000000000000000000",
+        #         "deal_profit": "0.00000000000000000000",
+        #         "deal_stock": "0.00000000000000000000",
+        #         "effect_type": 1,
+        #         "fee_asset": "",
+        #         "fee_discount": "0.00000000000000000000",
+        #         "last_deal_amount": "0.00000000000000000000",
+        #         "last_deal_id": 0,
+        #         "last_deal_price": "0.00000000000000000000",
+        #         "last_deal_role": 0,
+        #         "last_deal_time": 0,
+        #         "last_deal_type": 0,
+        #         "left": "0.0005",
+        #         "leverage": "3",
+        #         "maker_fee": "0.00030",
+        #         "market": "BTCUSDT",
+        #         "option": 0,
+        #         "order_id": 115940476323,
+        #         "position_id": 0,
+        #         "position_type": 2,
+        #         "price": "25000.00",
+        #         "side": 2,
+        #         "source": "api.v1",
+        #         "stop_id": 0,
+        #         "stop_loss_price": "0.00000000000000000000",
+        #         "stop_loss_type": 0,
+        #         "take_profit_price": "0.00000000000000000000",
+        #         "take_profit_type": 0,
+        #         "taker_fee": "0.00050",
+        #         "target": 0,
+        #         "type": 1,
+        #         "update_time": 1701233721.718884,
+        #         "user_id": 3620173
+        #     }
+        #
+        rawStatus = self.safe_string(order, 'status')
         timestamp = self.safe_timestamp(order, 'create_time')
-        priceString = self.safe_string(order, 'price')
-        costString = self.safe_string(order, 'deal_money')
-        amountString = self.safe_string(order, 'amount')
-        filledString = self.safe_string(order, 'deal_amount')
-        averageString = self.safe_string(order, 'avg_price')
-        remainingString = self.safe_string(order, 'left')
         marketId = self.safe_string(order, 'market')
         defaultType = self.safe_string(self.options, 'defaultType')
         orderType = 'swap' if ('source' in order) else defaultType
@@ -1741,7 +1783,6 @@ class coinex(Exchange, ImplicitAPI):
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         if feeCurrency is None:
             feeCurrency = market['quote']
-        status = self.parse_order_status(self.safe_string(order, 'status'))
         rawSide = self.safe_integer(order, 'side')
         side: Str = None
         if rawSide == 1:
@@ -1769,21 +1810,23 @@ class coinex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': self.safe_timestamp(order, 'update_time'),
-            'status': status,
+            'status': self.parse_order_status(rawStatus),
             'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
             'reduceOnly': None,
             'side': side,
-            'price': priceString,
+            'price': self.safe_string(order, 'price'),
             'stopPrice': self.safe_string(order, 'stop_price'),
             'triggerPrice': self.safe_string(order, 'stop_price'),
-            'cost': costString,
-            'average': averageString,
-            'amount': amountString,
-            'filled': filledString,
-            'remaining': remainingString,
+            'takeProfitPrice': self.safe_number(order, 'take_profit_price'),
+            'stopLossPrice': self.safe_number(order, 'stop_loss_price'),
+            'cost': self.safe_string(order, 'deal_money'),
+            'average': self.safe_string(order, 'avg_price'),
+            'amount': self.safe_string(order, 'amount'),
+            'filled': self.safe_string(order, 'deal_amount'),
+            'remaining': self.safe_string(order, 'left'),
             'trades': None,
             'fee': {
                 'currency': feeCurrency,
@@ -1792,32 +1835,18 @@ class coinex(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
         """
-        create a trade order
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
-        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
+        create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float triggerPrice: price at which to triger stop orders
-        :param float stopPrice: price at which to triger stop orders
-        :param float stopLossPrice: price at which to trigger stop-loss orders
-        :param float takeProfitPrice: price at which to trigger take-profit orders
-        :param str [params.timeInForce]: "GTC", "IOC", "FOK", "PO"
-        :param bool params.postOnly:
-        :param bool params.reduceOnly:
-        :param bool [params.position_id]: *required for reduce only orders* the position id to reduce
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        await self.load_markets()
+        params['createMarketBuyOrderRequiresPrice'] = False
+        return await self.create_order(symbol, 'market', 'buy', cost, None, params)
+
+    def create_order_request(self, symbol, type, side, amount, price=None, params={}):
         market = self.market(symbol)
         swap = market['swap']
         clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
@@ -1831,11 +1860,10 @@ class coinex(Exchange, ImplicitAPI):
         timeInForceRaw = self.safe_string(params, 'timeInForce')  # Spot: IOC, FOK, PO, GTC, ... NORMAL(default), MAKER_ONLY
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly:
-            if market['type'] != 'swap':
+            if not market['swap']:
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap markets only')
             if positionId is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a position_id/positionId parameter for reduceOnly orders')
-        method = None
         request = {
             'market': market['id'],
         }
@@ -1852,13 +1880,10 @@ class coinex(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' createOrder() requires a position_id parameter for stop loss and take profit orders')
                 request['position_id'] = positionId
                 if stopLossPrice:
-                    method = 'perpetualPrivatePostPositionStopLoss'
                     request['stop_loss_price'] = self.price_to_precision(symbol, stopLossPrice)
                 elif takeProfitPrice:
-                    method = 'perpetualPrivatePostPositionTakeProfit'
                     request['take_profit_price'] = self.price_to_precision(symbol, takeProfitPrice)
             else:
-                method = 'perpetualPrivatePostOrderPut' + self.capitalize(type)
                 requestSide = 2 if (side == 'buy') else 1
                 if stopPrice is not None:
                     request['stop_price'] = self.price_to_precision(symbol, stopPrice)
@@ -1866,10 +1891,7 @@ class coinex(Exchange, ImplicitAPI):
                     request['amount'] = self.amount_to_precision(symbol, amount)
                     request['side'] = requestSide
                     if type == 'limit':
-                        method = 'perpetualPrivatePostOrderPutStopLimit'
                         request['price'] = self.price_to_precision(symbol, price)
-                    elif type == 'market':
-                        method = 'perpetualPrivatePostOrderPutStopMarket'
                     request['amount'] = self.amount_to_precision(symbol, amount)
                 timeInForce = None
                 if (type != 'market') or (stopPrice is not None):
@@ -1885,7 +1907,6 @@ class coinex(Exchange, ImplicitAPI):
                         request['effect_type'] = timeInForce  # exchange takes 'IOC' and 'FOK'
                 if type == 'limit' and stopPrice is None:
                     if reduceOnly:
-                        method = 'perpetualPrivatePostOrderCloseLimit'
                         request['position_id'] = positionId
                     else:
                         request['side'] = requestSide
@@ -1893,24 +1914,26 @@ class coinex(Exchange, ImplicitAPI):
                     request['amount'] = self.amount_to_precision(symbol, amount)
                 elif type == 'market' and stopPrice is None:
                     if reduceOnly:
-                        method = 'perpetualPrivatePostOrderCloseMarket'
                         request['position_id'] = positionId
                     else:
                         request['side'] = requestSide
                         request['amount'] = self.amount_to_precision(symbol, amount)
         else:
-            method = 'privatePostOrder' + self.capitalize(type)
             request['type'] = side
             if (type == 'market') and (side == 'buy'):
-                if self.options['createMarketBuyOrderRequiresPrice']:
-                    if price is None:
-                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+                cost = self.safe_number(params, 'cost')
+                params = self.omit(params, 'cost')
+                if createMarketBuyOrderRequiresPrice:
+                    if (price is None) and (cost is None):
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
-                        amountString = self.amount_to_precision(symbol, amount)
-                        priceString = self.price_to_precision(symbol, price)
-                        costString = Precise.string_mul(amountString, priceString)
-                        costNumber = self.parse_number(costString)
-                        request['amount'] = self.cost_to_precision(symbol, costNumber)
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteAmount = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
+                        costRequest = cost if (cost is not None) else quoteAmount
+                        request['amount'] = self.cost_to_precision(symbol, costRequest)
                 else:
                     request['amount'] = self.cost_to_precision(symbol, amount)
             else:
@@ -1919,10 +1942,6 @@ class coinex(Exchange, ImplicitAPI):
                 request['price'] = self.price_to_precision(symbol, price)
             if stopPrice is not None:
                 request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-                if type == 'limit':
-                    method = 'privatePostOrderStopLimit'
-                elif type == 'market':
-                    method = 'privatePostOrderStopMarket'
             if (type != 'market') or (stopPrice is not None):
                 # following options cannot be applied to vanilla market orders(but can be applied to stop-market orders)
                 if (timeInForceRaw is not None) or postOnly:
@@ -1940,7 +1959,77 @@ class coinex(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' createOrder() requires an account_id parameter for margin orders')
             request['account_id'] = accountId
         params = self.omit(params, ['reduceOnly', 'positionId', 'timeInForce', 'postOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
-        response = await getattr(self, method)(self.extend(request, params))
+        return self.extend(request, params)
+
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        create a trade order
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.triggerPrice]: price to trigger stop orders
+        :param float [params.stopLossPrice]: price to trigger stop loss orders
+        :param float [params.takeProfitPrice]: price to trigger take profit orders
+        :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK', 'PO'
+        :param boolean [params.postOnly]: set to True if you wish to make a post only order
+        :param boolean [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
+        :param int [params.position_id]: *required for reduce only orders* the position id to reduce
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        reduceOnly = self.safe_value(params, 'reduceOnly')
+        triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
+        stopLossTriggerPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitTriggerPrice = self.safe_number(params, 'takeProfitPrice')
+        isTriggerOrder = triggerPrice is not None
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
+        isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder or isTakeProfitTriggerOrder
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        response = None
+        if market['spot']:
+            if isTriggerOrder:
+                if type == 'limit':
+                    response = await self.privatePostOrderStopLimit(request)
+                else:
+                    response = await self.privatePostOrderStopMarket(request)
+            else:
+                if type == 'limit':
+                    response = await self.privatePostOrderLimit(request)
+                else:
+                    response = await self.privatePostOrderMarket(request)
+        else:
+            if isTriggerOrder:
+                if type == 'limit':
+                    response = await self.perpetualPrivatePostOrderPutStopLimit(request)
+                else:
+                    response = await self.perpetualPrivatePostOrderPutStopMarket(request)
+            elif isStopLossOrTakeProfitTrigger:
+                if isStopLossTriggerOrder:
+                    response = await self.perpetualPrivatePostPositionStopLoss(request)
+                elif isTakeProfitTriggerOrder:
+                    response = await self.perpetualPrivatePostPositionTakeProfit(request)
+            else:
+                if reduceOnly:
+                    if type == 'limit':
+                        response = await self.perpetualPrivatePostOrderCloseLimit(request)
+                    else:
+                        response = await self.perpetualPrivatePostOrderCloseMarket(request)
+                else:
+                    if type == 'limit':
+                        response = await self.perpetualPrivatePostOrderPutLimit(request)
+                    else:
+                        response = await self.perpetualPrivatePostOrderPutMarket(request)
         #
         # Spot and Margin
         #
@@ -2018,8 +2107,224 @@ class coinex(Exchange, ImplicitAPI):
         #
         #     {"code":0,"data":{"status":"success"},"message":"OK"}
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
+
+    async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+        """
+        create a list of trade orders(all orders should be of the same symbol)
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade002_batch_limit_orders
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        symbol = None
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            if symbol is None:
+                symbol = marketId
+            else:
+                if symbol != marketId:
+                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            if type != 'limit':
+                raise NotSupported(self.id + ' createOrders() does not support ' + type + ' orders, only limit orders are accepted')
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createOrders() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+        request = {
+            'market': market['id'],
+            'batch_orders': self.json(ordersRequests),
+        }
+        response = await self.privatePostOrderLimitBatch(request)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "code": 0,
+        #                 "data": {
+        #                     "amount": "0.0005",
+        #                     "asset_fee": "0",
+        #                     "avg_price": "0.00",
+        #                     "client_id": "x-167673045-d34bfb41242d8fd1",
+        #                     "create_time": 1701229157,
+        #                     "deal_amount": "0",
+        #                     "deal_fee": "0",
+        #                     "deal_money": "0",
+        #                     "fee_asset": null,
+        #                     "fee_discount": "1",
+        #                     "finished_time": null,
+        #                     "id": 107745856676,
+        #                     "left": "0.0005",
+        #                     "maker_fee_rate": "0.002",
+        #                     "market": "BTCUSDT",
+        #                     "money_fee": "0",
+        #                     "order_type": "limit",
+        #                     "price": "23000",
+        #                     "source_id": "",
+        #                     "status": "not_deal",
+        #                     "stock_fee": "0",
+        #                     "taker_fee_rate": "0.002",
+        #                     "type": "buy"
+        #                 },
+        #                 "message": "OK"
+        #             },
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        results = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            status = None
+            code = self.safe_integer(entry, 'code')
+            if code is not None:
+                if code != 0:
+                    status = 'rejected'
+                else:
+                    status = 'open'
+            item = self.safe_value(entry, 'data', {})
+            item['status'] = status
+            order = self.parse_order(item, market)
+            results.append(order)
+        return results
+
+    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+        """
+        cancel multiple orders
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade016_batch_cancel_order
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http021-0_cancel_order_batch
+        :param str[] ids: order ids
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        idsString = ','.join(ids)
+        response = None
+        if market['spot']:
+            request['batch_ids'] = idsString
+            response = await self.privateDeleteOrderPendingBatch(self.extend(request, params))
+        else:
+            request['order_ids'] = idsString
+            response = await self.perpetualPrivatePostOrderCancelBatch(self.extend(request, params))
+        #
+        # spot
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "code": 0,
+        #                 "data": {
+        #                     "account_id": 0,
+        #                     "amount": "0.0005",
+        #                     "asset_fee": "0",
+        #                     "avg_price": "0.00",
+        #                     "client_id": "x-167673045-d4e03c38f4d19b4e",
+        #                     "create_time": 1701229157,
+        #                     "deal_amount": "0",
+        #                     "deal_fee": "0",
+        #                     "deal_money": "0",
+        #                     "fee_asset": null,
+        #                     "fee_discount": "1",
+        #                     "finished_time": 0,
+        #                     "id": 107745856682,
+        #                     "left": "0",
+        #                     "maker_fee_rate": "0.002",
+        #                     "market": "BTCUSDT",
+        #                     "money_fee": "0",
+        #                     "order_type": "limit",
+        #                     "price": "22000",
+        #                     "status": "not_deal",
+        #                     "stock_fee": "0",
+        #                     "taker_fee_rate": "0.002",
+        #                     "type": "buy"
+        #                 },
+        #                 "message": ""
+        #             },
+        #         ],
+        #         "message": "Success"
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "code": 0,
+        #                 "message": "",
+        #                 "order": {
+        #                     "amount": "0.0005",
+        #                     "client_id": "x-167673045-b0cee0c584718b65",
+        #                     "create_time": 1701233683.294231,
+        #                     "deal_asset_fee": "0.00000000000000000000",
+        #                     "deal_fee": "0.00000000000000000000",
+        #                     "deal_profit": "0.00000000000000000000",
+        #                     "deal_stock": "0.00000000000000000000",
+        #                     "effect_type": 1,
+        #                     "fee_asset": "",
+        #                     "fee_discount": "0.00000000000000000000",
+        #                     "last_deal_amount": "0.00000000000000000000",
+        #                     "last_deal_id": 0,
+        #                     "last_deal_price": "0.00000000000000000000",
+        #                     "last_deal_role": 0,
+        #                     "last_deal_time": 0,
+        #                     "last_deal_type": 0,
+        #                     "left": "0.0005",
+        #                     "leverage": "3",
+        #                     "maker_fee": "0.00030",
+        #                     "market": "BTCUSDT",
+        #                     "option": 0,
+        #                     "order_id": 115940476323,
+        #                     "position_id": 0,
+        #                     "position_type": 2,
+        #                     "price": "25000.00",
+        #                     "side": 2,
+        #                     "source": "api.v1",
+        #                     "stop_id": 0,
+        #                     "stop_loss_price": "0.00000000000000000000",
+        #                     "stop_loss_type": 0,
+        #                     "take_profit_price": "0.00000000000000000000",
+        #                     "take_profit_type": 0,
+        #                     "taker_fee": "0.00050",
+        #                     "target": 0,
+        #                     "type": 1,
+        #                     "update_time": 1701233721.718884,
+        #                     "user_id": 3620173
+        #                 }
+        #             },
+        #         ],
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        results = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            dataRequest = 'data' if market['spot'] else 'order'
+            item = self.safe_value(entry, dataRequest, {})
+            order = self.parse_order(item, market)
+            results.append(order)
+        return results
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         """
