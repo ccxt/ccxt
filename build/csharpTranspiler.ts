@@ -315,6 +315,7 @@ class NewTranspiler {
             'setL',
             'transfer',
             'withdraw',
+            'watch',
             // 'load',
         ];
         const blacklistMethods = [
