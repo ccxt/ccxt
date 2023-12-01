@@ -33,6 +33,8 @@ export default class bigone extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketSellOrderWithCost': false,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -1158,20 +1160,17 @@ export default class bigone extends Exchange {
         }, market);
     }
 
-    async createMarketBuyWithCost (symbol: string, cost, params = {}) {
+    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
         /**
          * @method
-         * @name bigone#createMarketBuyWithCost
+         * @name bigone#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} params.createMarketBuyOrderRequiresPrice automatically set to false for this method
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        params = {
-            'createMarketBuyOrderRequiresPrice': false,
-        };
+        params['createMarketBuyOrderRequiresPrice'] = false;
         return this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
