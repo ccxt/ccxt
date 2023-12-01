@@ -38,7 +38,7 @@ export default class okx extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketSellOrderWithCost': false,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
@@ -2509,15 +2509,42 @@ export default class okx extends Exchange {
         /**
          * @method
          * @name okx#createMarketBuyOrderWithCost
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot markets only');
+        }
         params['createMarketBuyOrderRequiresPrice'] = false;
         params['tgtCcy'] = 'quote_ccy';
-        return this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
+    async createMarketSellOrderWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name okx#createMarketSellOrderWithCost
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot markets only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        params['tgtCcy'] = 'quote_ccy';
+        return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
