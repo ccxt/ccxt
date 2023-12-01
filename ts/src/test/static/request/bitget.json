@@ -1,7 +1,9 @@
 {
     "exchange": "bitget",
     "skipKeys": [
-        "endTime"
+        "endTime",
+        "newClientOid",
+        "startTime"
     ],
     "outputType": "json",
     "methods": {
