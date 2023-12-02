@@ -41,6 +41,7 @@ class cex(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'createDepositAddress': False,
@@ -464,6 +465,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}) -> Balances:
         """
+        :see: https://docs.cex.io/#account-balance
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -474,6 +476,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
+        :see: https://docs.cex.io/#orderbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -513,6 +516,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
+        :see: https://docs.cex.io/#historical-ohlcv-chart
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -607,6 +611,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
+        :see: https://docs.cex.io/#ticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -657,6 +662,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
+        :see: https://docs.cex.io/#trade-history
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -674,6 +680,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_trading_fees(self, params={}):
         """
+        :see: https://docs.cex.io/#get-my-fee
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -712,6 +719,7 @@ class cex(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+        :see: https://docs.cex.io/#place-order
         create a trade order
         :see: https://cex.io/rest-api#place-order
         :param str symbol: unified symbol of the market to create an order in
@@ -786,6 +794,7 @@ class cex(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
+        :see: https://docs.cex.io/#cancel-order
         cancels an open order
         :param str id: order id
         :param str symbol: not used by cex cancelOrder()
@@ -800,6 +809,33 @@ class cex(Exchange, ImplicitAPI):
         # 'true'
         return self.extend(self.parse_order({}), {'info': response, 'type': None, 'id': id, 'status': 'canceled'})
 
+    def cancel_all_orders(self, symbol: str = None, params={}):
+        """
+        :see: https://docs.cex.io/#cancel-all-orders-for-given-pair
+        cancel all open orders in a market
+        :param str symbol: unified market symbol of the market to cancel orders in
+        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol.')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        orders = self.privatePostCancelOrdersPair(self.extend(request, params))
+        #
+        #  {
+        #      "e":"cancel_orders",
+        #      "ok":"ok",
+        #      "data":[
+        #      ]
+        #   }
+        #
+        return orders
+
     def parse_order(self, order, market: Market = None) -> Order:
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
         # Yes, really
@@ -811,9 +847,9 @@ class cex(Exchange, ImplicitAPI):
             # either integer or string integer
             timestamp = int(timestamp)
         symbol = None
-        if market is None:
-            baseId = self.safe_string(order, 'symbol1')
-            quoteId = self.safe_string(order, 'symbol2')
+        baseId = self.safe_string(order, 'symbol1')
+        quoteId = self.safe_string(order, 'symbol2')
+        if market is None and baseId is not None and quoteId is not None:
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             if (base is not None) and (quote is not None):
@@ -1048,6 +1084,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        :see: https://docs.cex.io/#open-orders
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1070,6 +1107,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        :see: https://docs.cex.io/#archived-orders
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1088,6 +1126,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
+        :see: https://docs.cex.io/?python#get-order-details
         fetches information on an order made by the user
         :param str symbol: not used by cex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1203,6 +1242,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        :see: https://docs.cex.io/#archived-orders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1420,6 +1460,18 @@ class cex(Exchange, ImplicitAPI):
         return self.safe_string(self.options['order']['status'], status, status)
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
+        """
+        edit a trade order
+        :see: https://docs.cex.io/#cancel-replace-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the cex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a amount argument')
         if price is None:
@@ -1439,6 +1491,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_deposit_address(self, code: str, params={}):
         """
+        :see: https://docs.cex.io/#get-crypto-address
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint

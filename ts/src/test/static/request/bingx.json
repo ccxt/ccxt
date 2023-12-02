@@ -238,6 +238,40 @@
                 ]
             }
         ],
+        "createMarketOrderWithCost": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "createMarketOrderWithCost",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=10&side=BUY&symbol=BTC-USDT&timestamp=1701413688001&type=MARKET&signature=fed01fa9ea12fdeae745f7c7cee390763e21af614d93bc92bde5419dad250399",     
+                "input": [
+                    "BTC/USDT",
+                    "buy",
+                    10
+                ]
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=10&side=BUY&symbol=BTC-USDT&timestamp=1701413753563&type=MARKET&signature=4194ff6c2eb53217252960743199e47e8e45dea7755c1f3b055552a0d4b6d93c",
+                "input": [
+                    "BTC/USDT",
+                    10
+                ]
+            }
+        ],
+        "createMarketSellOrderWithCost": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "createMarketSellOrderWithCost",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=20&side=SELL&symbol=BTC-USDT&timestamp=1701413792846&type=MARKET&signature=0e18f383d49758634c6c66f0a8fad5374762e9996bc2d45882fda91e8998a94b",    
+                "input": [
+                    "BTC/USDT",
+                    20
+                ]
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "Spot cancel order",

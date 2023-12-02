@@ -43,6 +43,8 @@ class ImplicitAPI:
     private_post_withdraw = privatePostWithdraw = Entry('Withdraw', 'private', 'POST', {'cost': 3})
     private_post_withdrawcancel = privatePostWithdrawCancel = Entry('WithdrawCancel', 'private', 'POST', {'cost': 3})
     private_post_withdrawinfo = privatePostWithdrawInfo = Entry('WithdrawInfo', 'private', 'POST', {'cost': 3})
+    private_post_withdrawmethods = privatePostWithdrawMethods = Entry('WithdrawMethods', 'private', 'POST', {'cost': 3})
+    private_post_withdrawaddresses = privatePostWithdrawAddresses = Entry('WithdrawAddresses', 'private', 'POST', {'cost': 3})
     private_post_withdrawstatus = privatePostWithdrawStatus = Entry('WithdrawStatus', 'private', 'POST', {'cost': 3})
     private_post_wallettransfer = privatePostWalletTransfer = Entry('WalletTransfer', 'private', 'POST', {'cost': 3})
     private_post_createsubaccount = privatePostCreateSubaccount = Entry('CreateSubaccount', 'private', 'POST', {'cost': 3})

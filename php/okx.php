@@ -32,6 +32,8 @@ class okx extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
@@ -2472,6 +2474,44 @@ class okx extends Exchange {
         return $this->parse_balance_by_type($marketType, $response);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+         * create a $market buy order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot markets only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        $params['tgtCcy'] = 'quote_ccy';
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+         * create a $market buy order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot markets only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        $params['tgtCcy'] = 'quote_ccy';
+        return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
+    }
+
     public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $request = array(
@@ -2563,8 +2603,10 @@ class okx extends Exchange {
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if ($tgtCcy === 'quote_ccy') {
                     // quote_ccy => sz refers to units of quote $currency
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                     $notional = $this->safe_number_2($params, 'cost', 'sz');
-                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                    $params = $this->omit($params, array( 'cost', 'sz' ));
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
                             if ($notional === null) {
@@ -2580,7 +2622,6 @@ class okx extends Exchange {
                         $notional = ($notional === null) ? $amount : $notional;
                     }
                     $request['sz'] = $this->cost_to_precision($symbol, $notional);
-                    $params = $this->omit($params, array( 'cost', 'sz' ));
                 }
             }
             if ($marketIOC && $contract) {
