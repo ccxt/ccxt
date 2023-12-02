@@ -4741,10 +4741,10 @@ class Exchange {
         const first = this.safeValue(result, 0);
         if (first !== undefined) {
             if ('timestamp' in first) {
-                return this.sortBy(result, 'timestamp');
+                return this.sortBy(result, 'timestamp', true);
             }
             if ('id' in first) {
-                return this.sortBy(result, 'id');
+                return this.sortBy(result, 'id', true);
             }
         }
         return result;

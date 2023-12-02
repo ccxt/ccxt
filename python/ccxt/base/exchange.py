@@ -4727,9 +4727,9 @@ class Exchange(object):
         first = self.safe_value(result, 0)
         if first is not None:
             if 'timestamp' in first:
-                return self.sort_by(result, 'timestamp')
+                return self.sort_by(result, 'timestamp', True)
             if 'id' in first:
-                return self.sort_by(result, 'id')
+                return self.sort_by(result, 'id', True)
         return result
 
     def remove_repeated_elements_from_array(self, input):

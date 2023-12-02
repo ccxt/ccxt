@@ -5858,10 +5858,10 @@ class Exchange {
         $first = $this->safe_value($result, 0);
         if ($first !== null) {
             if (is_array($first) && array_key_exists('timestamp', $first)) {
-                return $this->sort_by($result, 'timestamp');
+                return $this->sort_by($result, 'timestamp', true);
             }
             if (is_array($first) && array_key_exists('id', $first)) {
-                return $this->sort_by($result, 'id');
+                return $this->sort_by($result, 'id', true);
             }
         }
         return $result;
