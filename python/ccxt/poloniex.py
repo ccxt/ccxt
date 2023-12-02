@@ -752,32 +752,33 @@ class poloniex(Exchange, ImplicitAPI):
             withdrawAvailable = self.safe_value(result[code], 'withdraw')
             withdrawAvailable = withdrawEnabled if (withdrawEnabled) else withdrawAvailable
             networks = self.safe_value(result[code], 'networks', {})
-            networks[networkCode] = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'currencyId': id,
-                'numericId': numericId,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'active': active,
-                'fee': self.parse_number(feeString),
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'currencyId': id,
+                    'numericId': numericId,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'active': active,
+                    'fee': self.parse_number(feeString),
+                    'precision': None,
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
+                }
             result[code]['networks'] = networks
             info = self.safe_value(result[code], 'info', [])
             rawInfo = {}
