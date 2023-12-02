@@ -3,7 +3,7 @@
 import wazirxRest from '../wazirx.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -49,8 +49,8 @@ export default class wazirx extends wazirxRest {
          * @name wazirx#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.wazirx.com/#account-update
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const token = await this.authenticate (params);
@@ -92,8 +92,8 @@ export default class wazirx extends wazirxRest {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
-            const available = this.safeNumber (balance, 'b');
-            const locked = this.safeNumber (balance, 'l');
+            const available = this.safeString (balance, 'b');
+            const locked = this.safeString (balance, 'l');
             const account = this.account ();
             account['free'] = available;
             account['used'] = locked;
@@ -173,7 +173,7 @@ export default class wazirx extends wazirxRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://docs.wazirx.com/#all-market-tickers-stream
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -190,14 +190,14 @@ export default class wazirx extends wazirxRest {
         return await this.watch (url, messageHash, request, subscribeHash);
     }
 
-    async watchTickers (symbols: string[] = undefined, params = {}) {
+    async watchTickers (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @see https://docs.wazirx.com/#all-market-tickers-stream
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
@@ -300,8 +300,8 @@ export default class wazirx extends wazirxRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -359,7 +359,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchMyTrades
@@ -368,8 +368,8 @@ export default class wazirx extends wazirxRest {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
         const token = await this.authenticate (params);
@@ -401,7 +401,7 @@ export default class wazirx extends wazirxRest {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -458,7 +458,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
         //        "E":1631683058904,      Event time
@@ -491,7 +491,7 @@ export default class wazirx extends wazirxRest {
          * @see https://docs.wazirx.com/#depth-stream
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the wazirx api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -560,7 +560,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -673,8 +673,8 @@ export default class wazirx extends wazirxRest {
         //             "a": 114144050,
         //             "b": 114144121,
         //             "f": "0.2",
-        //             "ga": '0.0',
-        //             "gc": 'usdt',
+        //             "ga": "0.0",
+        //             "gc": "usdt",
         //             "m": true,
         //             "o": 26946170,
         //             "p": "5.0",
@@ -704,10 +704,10 @@ export default class wazirx extends wazirxRest {
     handleConnected (client: Client, message) {
         //
         //     {
-        //         data: {
-        //             timeout_duration: 1800
+        //         "data": {
+        //             "timeout_duration": 1800
         //         },
-        //         event: 'connected'
+        //         "event": "connected"
         //     }
         //
         return message;
@@ -716,11 +716,11 @@ export default class wazirx extends wazirxRest {
     handleSubscribed (client: Client, message) {
         //
         //     {
-        //         data: {
-        //             streams: ['!ticker@arr']
+        //         "data": {
+        //             "streams": ["!ticker@arr"]
         //         },
-        //         event: 'subscribed',
-        //         id: 0
+        //         "event": "subscribed",
+        //         "id": 0
         //     }
         //
         return message;
@@ -738,8 +738,8 @@ export default class wazirx extends wazirxRest {
         //     }
         //
         //     {
-        //         message: 'HeartBeat message not received, closing the connection',
-        //         status: 'error'
+        //         "message": "HeartBeat message not received, closing the connection",
+        //         "status": "error"
         //     }
         //
         throw new ExchangeError (this.id + ' ' + this.json (message));

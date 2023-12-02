@@ -1,6 +1,6 @@
 import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
 import { inflateSync, gunzipSync } from '../../static_dependencies/fflake/browser.js';
-import { createFuture } from './Future.js';
+import { Future, createFuture } from './Future.js';
 
 import {
     isNode,
@@ -12,6 +12,7 @@ import { utf8 } from '../../static_dependencies/scure-base/index.js';
 
 export default class Client {
     connected: Promise<any>
+    disconnected: Future
     futures: {}
     rejections: {}
     keepAlive: number
@@ -244,6 +245,9 @@ export default class Client {
         if (!this.error) {
             // todo: exception types for server-side disconnects
             this.reset (new NetworkError ('connection closed by remote server, closing code ' + String (event.code)))
+        }
+        if (this.disconnected !== undefined) {
+            this.disconnected.resolve (true);
         }
         this.onCloseCallback (this, event)
     }

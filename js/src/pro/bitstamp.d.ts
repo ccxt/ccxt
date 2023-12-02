@@ -1,5 +1,5 @@
 import bitstampRest from '../bitstamp.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitstamp extends bitstampRest {
     describe(): any;
@@ -11,7 +11,7 @@ export default class bitstamp extends bitstampRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     handleTrade(client: Client, message: any): void;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrderBookSubscription(client: Client, message: any): void;

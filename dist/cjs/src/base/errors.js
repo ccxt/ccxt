@@ -82,6 +82,12 @@ class BadRequest extends ExchangeError {
         this.name = 'BadRequest';
     }
 }
+class OperationRejected extends BadRequest {
+    constructor(message) {
+        super(message);
+        this.name = 'OperationRejected';
+    }
+}
 class BadSymbol extends BadRequest {
     constructor(message) {
         super(message);
@@ -134,6 +140,12 @@ class InvalidOrder extends ExchangeError {
     constructor(message) {
         super(message);
         this.name = 'InvalidOrder';
+    }
+}
+class ContractUnavailable extends InvalidOrder {
+    constructor(message) {
+        super(message);
+        this.name = 'ContractUnavailable';
     }
 }
 class OrderNotFound extends InvalidOrder {
@@ -221,6 +233,12 @@ class RequestTimeout extends NetworkError {
         this.name = 'RequestTimeout';
     }
 }
+class OperationFailed extends BaseError {
+    constructor(message) {
+        super(message);
+        this.name = 'OperationFailed';
+    }
+}
 /*  ------------------------------------------------------------------------ */
 // export default subclass (
 //     // Root class
@@ -228,7 +246,7 @@ class RequestTimeout extends NetworkError {
 //     // Derived class hierarchy
 //     errorHierarchy
 // )
-const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
+const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed };
 
 exports.AccountNotEnabled = AccountNotEnabled;
 exports.AccountSuspended = AccountSuspended;
@@ -240,6 +258,7 @@ exports.BadResponse = BadResponse;
 exports.BadSymbol = BadSymbol;
 exports.BaseError = BaseError;
 exports.CancelPending = CancelPending;
+exports.ContractUnavailable = ContractUnavailable;
 exports.DDoSProtection = DDoSProtection;
 exports.DuplicateOrderId = DuplicateOrderId;
 exports.ExchangeError = ExchangeError;
@@ -250,9 +269,12 @@ exports.InvalidNonce = InvalidNonce;
 exports.InvalidOrder = InvalidOrder;
 exports.MarginModeAlreadySet = MarginModeAlreadySet;
 exports.NetworkError = NetworkError;
+exports.NoChange = NoChange;
 exports.NotSupported = NotSupported;
 exports.NullResponse = NullResponse;
 exports.OnMaintenance = OnMaintenance;
+exports.OperationFailed = OperationFailed;
+exports.OperationRejected = OperationRejected;
 exports.OrderImmediatelyFillable = OrderImmediatelyFillable;
 exports.OrderNotCached = OrderNotCached;
 exports.OrderNotFillable = OrderNotFillable;

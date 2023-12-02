@@ -1,0 +1,688 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "info": {
+            "deposit_status": "1",
+            "min_withdraw_fee": "0.0004",
+            "withdraw_fee_currency": "BTC",
+            "chain": "",
+            "withdraw_fee_rate": "0",
+            "min_withdraw_amount": "0.0001",
+            "currency": "BTC",
+            "withdraw_status": "1",
+            "min_deposit_amount": "0.0001"
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0004,
+        "precision": 0.0001,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.0001
+            },
+            "deposit": {
+                "min": 0.0001
+            }
+        },
+        "networks": {}
+    },
+    "USDT": {
+        "id": "USDT",
+        "code": "USDT",
+        "info": [
+            {
+                "deposit_status": "0",
+                "min_withdraw_fee": "5",
+                "withdraw_fee_currency": "USDT",
+                "chain": "OMNI",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDT",
+                "withdraw_status": "0",
+                "min_deposit_amount": "10"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "5",
+                "withdraw_fee_currency": "USDT",
+                "chain": "ERC20",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDT",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "1",
+                "withdraw_fee_currency": "USDT",
+                "chain": "TRC20",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDT",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "1",
+                "withdraw_fee_currency": "USDT",
+                "chain": "BEP20",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDT",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "2",
+                "withdraw_fee_currency": "USDT",
+                "chain": "Polygon",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDT",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "0.1",
+                "withdraw_fee_currency": "USDT",
+                "chain": "Arbitrum-One",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDT",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 5,
+        "precision": 5,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10
+            },
+            "deposit": {
+                "min": 10
+            }
+        },
+        "networks": {
+            "OMNI": {
+                "info": {
+                    "deposit_status": "0",
+                    "min_withdraw_fee": "5",
+                    "withdraw_fee_currency": "USDT",
+                    "chain": "OMNI",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDT",
+                    "withdraw_status": "0",
+                    "min_deposit_amount": "10"
+                },
+                "id": "OMNI",
+                "network": "OMNI",
+                "active": false,
+                "fee": 5,
+                "precision": 5,
+                "deposit": false,
+                "withdraw": false,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "5",
+                    "withdraw_fee_currency": "USDT",
+                    "chain": "ERC20",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDT",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "ERC20",
+                "network": "ETH",
+                "active": true,
+                "fee": 5,
+                "precision": 5,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "1",
+                    "withdraw_fee_currency": "USDT",
+                    "chain": "TRC20",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDT",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "TRC20",
+                "network": "TRX",
+                "active": true,
+                "fee": 1,
+                "precision": 1,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "1",
+                    "withdraw_fee_currency": "USDT",
+                    "chain": "BEP20",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDT",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "BEP20",
+                "network": "BSC",
+                "active": true,
+                "fee": 1,
+                "precision": 1,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            },
+            "Polygon": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "2",
+                    "withdraw_fee_currency": "USDT",
+                    "chain": "Polygon",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDT",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "Polygon",
+                "network": "POLYGON",
+                "active": true,
+                "fee": 2,
+                "precision": 2,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            },
+            "Arbitrum-One": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "0.1",
+                    "withdraw_fee_currency": "USDT",
+                    "chain": "Arbitrum-One",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDT",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "Arbitrum-One",
+                "network": "Arbitrum-One",
+                "active": true,
+                "fee": 0.1,
+                "precision": 0.1,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            }
+        }
+    },
+    "LTC": {
+        "id": "LTC",
+        "code": "LTC",
+        "info": {
+            "deposit_status": "1",
+            "min_withdraw_fee": "0.03",
+            "withdraw_fee_currency": "LTC",
+            "chain": "",
+            "withdraw_fee_rate": "0",
+            "min_withdraw_amount": "0.1",
+            "currency": "LTC",
+            "withdraw_status": "1",
+            "min_deposit_amount": "0.1"
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.03,
+        "precision": 0.03,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.1
+            },
+            "deposit": {
+                "min": 0.1
+            }
+        },
+        "networks": {}
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "info": [
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "0.004",
+                "withdraw_fee_currency": "ETH",
+                "chain": "ETH",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "0.01",
+                "currency": "ETH",
+                "withdraw_status": "1",
+                "min_deposit_amount": "0.02"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "0.0001",
+                "withdraw_fee_currency": "ETH",
+                "chain": "Arbitrum-One",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "0.01",
+                "currency": "ETH",
+                "withdraw_status": "1",
+                "min_deposit_amount": "0.02"
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.004,
+        "precision": 0.004,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.01
+            },
+            "deposit": {
+                "min": 0.02
+            }
+        },
+        "networks": {
+            "ETH": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "0.004",
+                    "withdraw_fee_currency": "ETH",
+                    "chain": "ETH",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "0.01",
+                    "currency": "ETH",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "0.02"
+                },
+                "id": "ETH",
+                "network": "ETH",
+                "active": true,
+                "fee": 0.004,
+                "precision": 0.004,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.01
+                    },
+                    "deposit": {
+                        "min": 0.02
+                    }
+                }
+            },
+            "Arbitrum-One": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "0.0001",
+                    "withdraw_fee_currency": "ETH",
+                    "chain": "Arbitrum-One",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "0.01",
+                    "currency": "ETH",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "0.02"
+                },
+                "id": "Arbitrum-One",
+                "network": "Arbitrum-One",
+                "active": true,
+                "fee": 0.0001,
+                "precision": 0.0001,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.01
+                    },
+                    "deposit": {
+                        "min": 0.02
+                    }
+                }
+            }
+        }
+    },
+    "ADA": {
+        "id": "ADA",
+        "code": "ADA",
+        "info": {
+            "deposit_status": "1",
+            "min_withdraw_fee": "0.25",
+            "withdraw_fee_currency": "ADA",
+            "chain": "Cardano",
+            "withdraw_fee_rate": "0",
+            "min_withdraw_amount": "3",
+            "currency": "ADA",
+            "withdraw_status": "1",
+            "min_deposit_amount": "3"
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.25,
+        "precision": 0.25,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 3
+            },
+            "deposit": {
+                "min": 3
+            }
+        },
+        "networks": {
+            "Cardano": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "0.25",
+                    "withdraw_fee_currency": "ADA",
+                    "chain": "Cardano",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "3",
+                    "currency": "ADA",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "3"
+                },
+                "id": "Cardano",
+                "network": "CARDANO",
+                "active": true,
+                "fee": 0.25,
+                "precision": 0.25,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 3
+                    },
+                    "deposit": {
+                        "min": 3
+                    }
+                }
+            }
+        }
+    },
+    "XRP": {
+        "id": "XRP",
+        "code": "XRP",
+        "info": {
+            "deposit_status": "1",
+            "min_withdraw_fee": "10",
+            "withdraw_fee_currency": "XRP",
+            "chain": "XRP",
+            "withdraw_fee_rate": "0",
+            "min_withdraw_amount": "20",
+            "currency": "XRP",
+            "withdraw_status": "1",
+            "min_deposit_amount": "2"
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 10,
+        "precision": 2,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 20
+            },
+            "deposit": {
+                "min": 2
+            }
+        },
+        "networks": {
+            "XRP": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "10",
+                    "withdraw_fee_currency": "XRP",
+                    "chain": "XRP",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "20",
+                    "currency": "XRP",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "2"
+                },
+                "id": "XRP",
+                "network": "RIPPLE",
+                "active": true,
+                "fee": 10,
+                "precision": 2,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 20
+                    },
+                    "deposit": {
+                        "min": 2
+                    }
+                }
+            }
+        }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": [
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "1",
+                "withdraw_fee_currency": "USDC",
+                "chain": "TRC20",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDC",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "10",
+                "withdraw_fee_currency": "USDC",
+                "chain": "ERC20",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDC",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "2",
+                "withdraw_fee_currency": "USDT",
+                "chain": "BEP20",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDC",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "precision": 10,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10
+            },
+            "deposit": {
+                "min": 10
+            }
+        },
+        "networks": {
+            "TRC20": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "1",
+                    "withdraw_fee_currency": "USDC",
+                    "chain": "TRC20",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDC",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "TRC20",
+                "network": "TRX",
+                "active": true,
+                "fee": 1,
+                "precision": 1,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "10",
+                    "withdraw_fee_currency": "USDC",
+                    "chain": "ERC20",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDC",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "ERC20",
+                "network": "ETH",
+                "active": true,
+                "fee": 10,
+                "precision": 10,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "2",
+                    "withdraw_fee_currency": "USDT",
+                    "chain": "BEP20",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDC",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "BEP20",
+                "network": "BSC",
+                "active": true,
+                "fee": 2,
+                "precision": 2,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            }
+        }
+    }
+}

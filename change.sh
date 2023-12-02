@@ -8,11 +8,9 @@ do
         if [ "$previous_tag" != 0 ]; then
             tag_date=$(git log -1 --pretty=format:'%ad' --date=short ${previous_tag})
             printf "## ${previous_tag} (${tag_date})\n\n"
-            git log ${current_tag}...${previous_tag} --pretty=format:'*  %s [%h](https://github.com/ccxt/ccxt/commits/%H)' --reverse | grep -v Merge | grep -v skip | grep -v '-'
-            # print $commits
+            gh pr list --limit 100 --state all | awk -F"\t" '{print "* [" $1 "](https://github.com/ccxt/ccxt/pull/" $1 ") " $2}'
             printf "\n\n"
         fi
         previous_tag=${current_tag}
     fi
-
 done

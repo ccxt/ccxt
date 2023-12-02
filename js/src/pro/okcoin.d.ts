@@ -1,11 +1,11 @@
 import okcoinRest from '../okcoin.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class okcoin extends okcoinRest {
     describe(): any;
     subscribe(channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription?: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): any;

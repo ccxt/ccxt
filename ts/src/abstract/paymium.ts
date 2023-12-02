@@ -10,6 +10,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
     publicGetCountries (params?: {}): Promise<implicitReturnType>;
+    publicGetCurrencies (params?: {}): Promise<implicitReturnType>;
     publicGetDataCurrencyTicker (params?: {}): Promise<implicitReturnType>;
     publicGetDataCurrencyTrades (params?: {}): Promise<implicitReturnType>;
     publicGetDataCurrencyDepth (params?: {}): Promise<implicitReturnType>;

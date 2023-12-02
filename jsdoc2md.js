@@ -53,31 +53,47 @@ proTemplateData.forEach((proData) => {
 
 console.log ('📰 rendering docs for each exchange...')
 const template = fs.readFileSync ('./wiki/spec.hbs', 'utf8')
-const outputs = await Promise.all (templateData.map (data => jsdoc2md.render ({ template, data, partial, helper })))
 
-console.log ('📰 creating index of exchange classes')
-const classes = templateData.map (data => data[0].id).sort ()
+// Group docs by method
+const groupedByMethod = templateData.reduce((acc, arr) => {
+  arr.filter(obj => obj.kind === 'function' && !obj.ignore).forEach(obj => {
+    const method = obj.name;
+    if (!acc[method]) {
+      acc[method] = [{
+        id: method,
+        longname: method,
+        name: method,
+        kind: "",
+        scope: "instance",
+        description: obj.description,
+        params: obj.params,
+        returns: obj.returns,
+      }];
+    }
+    obj.exchange = obj.memberof
+    obj.memberof = method
+    acc[method].push(obj);
+  });
+  return acc;
+}, {});
+
+const templateDataGroupedByMethod = Object.values(groupedByMethod).sort((a, b) =>a[0].name < b[0].name ? -1 : 1)
+console.log (templateDataGroupedByMethod)
+
+
+const outputs = await Promise.all (templateDataGroupedByMethod.map (data => jsdoc2md.render ({ template, data, partial, helper})))
+
+console.log ('📰 creating index of exchange functions')
+const functions = Object.keys(groupedByMethod).sort ()
 const alphabet = Array.from ( Array (26)).map((e, i) => String.fromCharCode(i + 97));
 
 const index = {}
 let i = -1
 for (const char of alphabet) {
     do {
-        index[char] = classes[++i]
-    } while (char > classes[i])
+        index[char] = functions[++i]
+    } while (char > functions[i])
 }
-index.b = 'binance'
-index.o = 'okx'
-index.h = 'huobi'
-
-// add a glossary 🧐
-const result = []
-for (const char of alphabet) {
-    result.push (`[${char}](#${index[char]})`)
-}
-const markdown = '## glossary\n' + result.join (' ') + '\n'
-outputs.unshift (markdown)
-outputs.push (markdown)
 
 fs.writeFileSync (outputFile, outputs.join ('\n---\n'))
 console.log ('📰 finished rendering docs! 🙌 😶‍🌫')

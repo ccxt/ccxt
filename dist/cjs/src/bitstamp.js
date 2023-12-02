@@ -39,11 +39,10 @@ class bitstamp extends bitstamp$1 {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositsWithdrawals': true,
@@ -54,6 +53,8 @@ class bitstamp extends bitstamp$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
@@ -123,9 +124,16 @@ class bitstamp extends bitstamp$1 {
                         'trading-pairs-info/': 1,
                         'currencies/': 1,
                         'eur_usd/': 1,
+                        'travel_rule/vasps/': 1,
                     },
                 },
                 'private': {
+                    'get': {
+                        'travel_rule/contacts/': 1,
+                        'contacts/{contact_uuid}/': 1,
+                        'earn/subscriptions/': 1,
+                        'earn/transactions/': 1,
+                    },
                     'post': {
                         'account_balances/': 1,
                         'account_balances/{currency}/': 1,
@@ -152,6 +160,7 @@ class bitstamp extends bitstamp$1 {
                         'transfer-from-main/': 1,
                         'my_trading_pairs/': 1,
                         'fees/trading/': 1,
+                        'fees/trading/{pair}': 1,
                         'fees/withdrawal/': 1,
                         'fees/withdrawal/{currency}/': 1,
                         'withdrawal-requests/': 1,
@@ -325,6 +334,10 @@ class bitstamp extends bitstamp$1 {
                         'dgld_address/': 1,
                         'ldo_withdrawal/': 1,
                         'ldo_address/': 1,
+                        'travel_rule/contacts/': 1,
+                        'earn/subscribe/': 1,
+                        'earn/subscriptions/setting/': 1,
+                        'earn/unsubscribe': 1,
                     },
                 },
             },
@@ -428,7 +441,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchMarkets
          * @description retrieves data on all markets for bitstamp
-         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.fetchMarketsFromCache(params);
@@ -505,6 +518,7 @@ class bitstamp extends bitstamp$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -570,7 +584,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.fetchMarketsFromCache(params);
@@ -620,7 +634,7 @@ class bitstamp extends bitstamp$1 {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -704,7 +718,7 @@ class bitstamp extends bitstamp$1 {
          * @name bitstamp#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -734,10 +748,10 @@ class bitstamp extends bitstamp$1 {
         /**
          * @method
          * @name bitstamp#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://www.bitstamp.net/api/#all-tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
@@ -968,8 +982,8 @@ class bitstamp extends bitstamp$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -981,18 +995,18 @@ class bitstamp extends bitstamp$1 {
         //
         //     [
         //         {
-        //             date: '1551814435',
-        //             tid: '83581898',
-        //             price: '0.03532850',
-        //             type: '1',
-        //             amount: '0.85945907'
+        //             "date": "1551814435",
+        //             "tid": "83581898",
+        //             "price": "0.03532850",
+        //             "type": "1",
+        //             "amount": "0.85945907"
         //         },
         //         {
-        //             date: '1551814434',
-        //             tid: '83581896',
-        //             price: '0.03532851',
-        //             type: '1',
-        //             amount: '11.34130961'
+        //             "date": "1551814434",
+        //             "tid": "83581896",
+        //             "price": "0.03532851",
+        //             "type": "1",
+        //             "amount": "11.34130961"
         //         },
         //     ]
         //
@@ -1027,7 +1041,7 @@ class bitstamp extends bitstamp$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
@@ -1098,8 +1112,8 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostBalance(params);
@@ -1129,7 +1143,7 @@ class bitstamp extends bitstamp$1 {
          * @name bitstamp#fetchTradingFee
          * @description fetch the trading fees for a market
          * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -1168,7 +1182,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
@@ -1183,7 +1197,7 @@ class bitstamp extends bitstamp$1 {
          * @description please use fetchDepositWithdrawFees instead
          * @see https://www.bitstamp.net/api/#balance
          * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
@@ -1193,18 +1207,18 @@ class bitstamp extends bitstamp$1 {
     parseTransactionFees(response, codes = undefined) {
         //
         //  {
-        //     yfi_available: '0.00000000',
-        //     yfi_balance: '0.00000000',
-        //     yfi_reserved: '0.00000000',
-        //     yfi_withdrawal_fee: '0.00070000',
-        //     yfieur_fee: '0.000',
-        //     yfiusd_fee: '0.000',
-        //     zrx_available: '0.00000000',
-        //     zrx_balance: '0.00000000',
-        //     zrx_reserved: '0.00000000',
-        //     zrx_withdrawal_fee: '12.00000000',
-        //     zrxeur_fee: '0.000',
-        //     zrxusd_fee: '0.000',
+        //     "yfi_available": "0.00000000",
+        //     "yfi_balance": "0.00000000",
+        //     "yfi_reserved": "0.00000000",
+        //     "yfi_withdrawal_fee": "0.00070000",
+        //     "yfieur_fee": "0.000",
+        //     "yfiusd_fee": "0.000",
+        //     "zrx_available": "0.00000000",
+        //     "zrx_balance": "0.00000000",
+        //     "zrx_reserved": "0.00000000",
+        //     "zrx_withdrawal_fee": "12.00000000",
+        //     "zrxeur_fee": "0.000",
+        //     "zrxusd_fee": "0.000",
         //     ...
         //  }
         //
@@ -1245,25 +1259,25 @@ class bitstamp extends bitstamp$1 {
          * @description fetch deposit and withdraw fees
          * @see https://www.bitstamp.net/api/#balance
          * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostBalance(params);
         //
         //    {
-        //        yfi_available: '0.00000000',
-        //        yfi_balance: '0.00000000',
-        //        yfi_reserved: '0.00000000',
-        //        yfi_withdrawal_fee: '0.00070000',
-        //        yfieur_fee: '0.000',
-        //        yfiusd_fee: '0.000',
-        //        zrx_available: '0.00000000',
-        //        zrx_balance: '0.00000000',
-        //        zrx_reserved: '0.00000000',
-        //        zrx_withdrawal_fee: '12.00000000',
-        //        zrxeur_fee: '0.000',
-        //        zrxusd_fee: '0.000',
+        //        "yfi_available": "0.00000000",
+        //        "yfi_balance": "0.00000000",
+        //        "yfi_reserved": "0.00000000",
+        //        "yfi_withdrawal_fee": "0.00070000",
+        //        "yfieur_fee": "0.000",
+        //        "yfiusd_fee": "0.000",
+        //        "zrx_available": "0.00000000",
+        //        "zrx_balance": "0.00000000",
+        //        "zrx_reserved": "0.00000000",
+        //        "zrx_withdrawal_fee": "12.00000000",
+        //        "zrxeur_fee": "0.000",
+        //        "zrxusd_fee": "0.000",
         //        ...
         //    }
         //
@@ -1272,18 +1286,18 @@ class bitstamp extends bitstamp$1 {
     parseDepositWithdrawFees(response, codes = undefined, currencyIdKey = undefined) {
         //
         //    {
-        //        yfi_available: '0.00000000',
-        //        yfi_balance: '0.00000000',
-        //        yfi_reserved: '0.00000000',
-        //        yfi_withdrawal_fee: '0.00070000',
-        //        yfieur_fee: '0.000',
-        //        yfiusd_fee: '0.000',
-        //        zrx_available: '0.00000000',
-        //        zrx_balance: '0.00000000',
-        //        zrx_reserved: '0.00000000',
-        //        zrx_withdrawal_fee: '12.00000000',
-        //        zrxeur_fee: '0.000',
-        //        zrxusd_fee: '0.000',
+        //        "yfi_available": "0.00000000",
+        //        "yfi_balance": "0.00000000",
+        //        "yfi_reserved": "0.00000000",
+        //        "yfi_withdrawal_fee": "0.00070000",
+        //        "yfieur_fee": "0.000",
+        //        "yfiusd_fee": "0.000",
+        //        "zrx_available": "0.00000000",
+        //        "zrx_balance": "0.00000000",
+        //        "zrx_reserved": "0.00000000",
+        //        "zrx_withdrawal_fee": "12.00000000",
+        //        "zrxeur_fee": "0.000",
+        //        "zrxusd_fee": "0.000",
         //        ...
         //    }
         //
@@ -1319,8 +1333,8 @@ class bitstamp extends bitstamp$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1347,9 +1361,8 @@ class bitstamp extends bitstamp$1 {
         }
         const response = await this[method](this.extend(request, params));
         const order = this.parseOrder(response, market);
-        return this.extend(order, {
-            'type': type,
-        });
+        order['type'] = type;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1358,7 +1371,7 @@ class bitstamp extends bitstamp$1 {
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1373,7 +1386,7 @@ class bitstamp extends bitstamp$1 {
          * @name bitstamp#cancelAllOrders
          * @description cancel all open orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1416,7 +1429,7 @@ class bitstamp extends bitstamp$1 {
          * @name bitstamp#fetchOrder
          * @description fetches information on an order made by the user
          * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1462,7 +1475,7 @@ class bitstamp extends bitstamp$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
@@ -1489,7 +1502,7 @@ class bitstamp extends bitstamp$1 {
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
@@ -1539,7 +1552,7 @@ class bitstamp extends bitstamp$1 {
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
@@ -1554,24 +1567,24 @@ class bitstamp extends bitstamp$1 {
         //
         //     [
         //         {
-        //             status: 2,
-        //             datetime: '2018-10-17 10:58:13',
-        //             currency: 'BTC',
-        //             amount: '0.29669259',
-        //             address: 'aaaaa',
-        //             type: 1,
-        //             id: 111111,
-        //             transaction_id: 'xxxx',
+        //             "status": 2,
+        //             "datetime": "2018-10-17 10:58:13",
+        //             "currency": "BTC",
+        //             "amount": "0.29669259",
+        //             "address": "aaaaa",
+        //             "type": 1,
+        //             "id": 111111,
+        //             "transaction_id": "xxxx",
         //         },
         //         {
-        //             status: 2,
-        //             datetime: '2018-10-17 10:55:17',
-        //             currency: 'ETH',
-        //             amount: '1.11010664',
-        //             address: 'aaaa',
-        //             type: 16,
-        //             id: 222222,
-        //             transaction_id: 'xxxxx',
+        //             "status": 2,
+        //             "datetime": "2018-10-17 10:55:17",
+        //             "currency": "ETH",
+        //             "amount": "1.11010664",
+        //             "address": "aaaa",
+        //             "type": 16,
+        //             "id": 222222,
+        //             "transaction_id": "xxxxx",
         //         },
         //     ]
         //
@@ -1596,14 +1609,14 @@ class bitstamp extends bitstamp$1 {
         // fetchWithdrawals
         //
         //     {
-        //         status: 2,
-        //         datetime: '2018-10-17 10:58:13',
-        //         currency: 'BTC',
-        //         amount: '0.29669259',
-        //         address: 'aaaaa',
-        //         type: 1,
-        //         id: 111111,
-        //         transaction_id: 'xxxx',
+        //         "status": 2,
+        //         "datetime": "2018-10-17 10:58:13",
+        //         "currency": "BTC",
+        //         "amount": "0.29669259",
+        //         "address": "aaaaa",
+        //         "type": 1,
+        //         "id": 111111,
+        //         "transaction_id": "xxxx",
         //     }
         //
         //     {
@@ -1699,6 +1712,7 @@ class bitstamp extends bitstamp$1 {
             'tagTo': tag,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -1719,17 +1733,17 @@ class bitstamp extends bitstamp$1 {
     parseOrder(order, market = undefined) {
         //
         //   from fetch order:
-        //     { status: 'Finished',
-        //       id: 731693945,
-        //       client_order_id: '',
-        //       transactions:
-        //       [ { fee: '0.000019',
-        //           price: '0.00015803',
-        //           datetime: '2018-01-07 10:45:34.132551',
-        //           btc: '0.0079015000000000',
-        //           tid: 42777395,
-        //           type: 2,
-        //           xrp: '50.00000000' } ] }
+        //     { status: "Finished",
+        //       "id": 731693945,
+        //       "client_order_id": '',
+        //       "transactions":
+        //       [ { fee: "0.000019",
+        //           "price": "0.00015803",
+        //           "datetime": "2018-01-07 10:45:34.132551",
+        //           "btc": "0.0079015000000000",
+        //           "tid": 42777395,
+        //           "type": 2,
+        //           "xrp": "50.00000000" } ] }
         //
         //   partially filled order:
         //     { "id": 468646390,
@@ -1747,13 +1761,13 @@ class bitstamp extends bitstamp$1 {
         //
         //   from create order response:
         //       {
-        //           price: '0.00008012',
-        //           client_order_id: '',
-        //           currency_pair: 'XRP/BTC',
-        //           datetime: '2019-01-31 21:23:36',
-        //           amount: '15.00000000',
-        //           type: '0',
-        //           id: '2814205012'
+        //           "price": "0.00008012",
+        //           "client_order_id": '',
+        //           "currency_pair": "XRP/BTC",
+        //           "datetime": "2019-01-31 21:23:36",
+        //           "amount": "15.00000000",
+        //           "type": "0",
+        //           "id": "2814205012"
         //       }
         //
         const id = this.safeString(order, 'id');
@@ -1906,7 +1920,7 @@ class bitstamp extends bitstamp$1 {
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -1929,7 +1943,7 @@ class bitstamp extends bitstamp$1 {
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let market = undefined;
@@ -1941,13 +1955,13 @@ class bitstamp extends bitstamp$1 {
         //
         //     [
         //         {
-        //             price: '0.00008012',
-        //             currency_pair: 'XRP/BTC',
-        //             client_order_id: '',
-        //             datetime: '2019-01-31 21:23:36',
-        //             amount: '15.00000000',
-        //             type: '0',
-        //             id: '2814205012',
+        //             "price": "0.00008012",
+        //             "currency_pair": "XRP/BTC",
+        //             "client_order_id": '',
+        //             "datetime": "2019-01-31 21:23:36",
+        //             "amount": "15.00000000",
+        //             "type": "0",
+        //             "id": "2814205012",
         //         }
         //     ]
         //
@@ -1974,7 +1988,7 @@ class bitstamp extends bitstamp$1 {
          * @name bitstamp#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         if (this.isFiat(code)) {
@@ -2003,7 +2017,7 @@ class bitstamp extends bitstamp$1 {
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
-         * @param {object} [params] extra parameters specific to the bitstamp api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // For fiat withdrawals please provide all required additional parameters in the 'params'
