@@ -101,7 +101,6 @@ var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
 var poloniexfutures = require('./src/poloniexfutures.js');
 var probit = require('./src/probit.js');
-var tidex = require('./src/tidex.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var upbit = require('./src/upbit.js');
@@ -265,7 +264,6 @@ const exchanges = {
     'poloniex': poloniex,
     'poloniexfutures': poloniexfutures,
     'probit': probit,
-    'tidex': tidex,
     'timex': timex,
     'tokocrypto': tokocrypto,
     'upbit': upbit,
@@ -467,7 +465,6 @@ exports.phemex = phemex;
 exports.poloniex = poloniex;
 exports.poloniexfutures = poloniexfutures;
 exports.probit = probit;
-exports.tidex = tidex;
 exports.timex = timex;
 exports.tokocrypto = tokocrypto;
 exports.upbit = upbit;
