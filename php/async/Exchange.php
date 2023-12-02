@@ -85,7 +85,7 @@ class Exchange extends \ccxt\Exchange {
 
     private $proxyDictionaries = [];
 
-    public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
+    public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy = null) {
         $connection_options_for_proxy = null;
         if ($httpProxy) {
             if (!array_key_exists($httpProxy, $this->proxyDictionaries)) {
