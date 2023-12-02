@@ -208,8 +208,11 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
     return $initedClass;
 }
 
-function init_exchange ($exchangeId, $args) {
+function init_exchange ($exchangeId, $args, $is_ws = false) {
     $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
+    if ($is_ws) {
+        $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
+    }
     $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
     return $newClass;
 }
@@ -217,7 +220,8 @@ function init_exchange ($exchangeId, $args) {
 function set_test_files ($holderClass, $properties) {
     return Async\async (function() use ($holderClass, $properties){
         $skiped = ['test_throttle'];
-        foreach (glob(__DIR__ . '/' . (is_synchronous ? 'sync' : 'async') . '/test_*.php') as $filename) {
+        $pathRestOrWs = isWsTests ? __DIR__ . '/../pro/test/' : __DIR__ . '/' . (is_synchronous ? 'sync' : 'async');
+        foreach (glob($pathRestOrWs . '/test_*.php') as $filename) {
             $basename = basename($filename);
             if (!in_array($basename, $skiped)) {
                 include_once $filename;
@@ -227,7 +231,7 @@ function set_test_files ($holderClass, $properties) {
         foreach ($allfuncs as $fName) {
             if (stripos($fName, 'ccxt\\test_')!==false) {
                 $nameWithoutNs = str_replace('ccxt\\', '', $fName);
-                $holderClass->testFiles[$nameWithoutNs] = $fName;
+                $holderClass->test_files[$nameWithoutNs] = $fName;
             }
         }
     })();
