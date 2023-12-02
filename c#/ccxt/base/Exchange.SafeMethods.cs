@@ -141,6 +141,10 @@ public partial class Exchange
     {
         multiplier ??= 1;
         var result = safeValueN(obj, new List<object> { key }, defaultValue);
+        if (result == null)
+        {
+            return defaultValue;
+        }
         object parsedValue = null;
         try
         {
