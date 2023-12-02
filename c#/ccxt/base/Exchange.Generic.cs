@@ -314,7 +314,12 @@ public partial class Exchange
         }
         if (value is string)
         {
-            if ((string)value == "0")
+            // if ((string)value == "0")
+            // {
+            //     return null;
+            // }
+            var parsed = Convert.ToDouble(value);
+            if (parsed == 0)
             {
                 return null;
             }
