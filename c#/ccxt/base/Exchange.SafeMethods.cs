@@ -139,7 +139,6 @@ public partial class Exchange
 
     public object safeIntegerProduct(object obj, object key, object multiplier = null, object defaultValue = null)
     {
-        defaultValue ??= 0;
         multiplier ??= 1;
         var result = safeValueN(obj, new List<object> { key }, defaultValue);
         object parsedValue = null;
