@@ -18,6 +18,7 @@ root = os.path.dirname(os.path.dirname(DIR_NAME))
 sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: E402
+import ccxt.pro as ccxtpro  # noqa: E402
 
 # ------------------------------------------------------------------------------
 import asyncio
@@ -40,6 +41,7 @@ class Argv(object):
     sandbox = False
     privateOnly = False
     private = False
+    ws = False
     verbose = False
     nonce = None
     exchange = None
@@ -55,6 +57,7 @@ parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode'
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
+parser.add_argument('--ws', action='store_true', help='websockets version')
 parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
