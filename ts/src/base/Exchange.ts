@@ -3972,7 +3972,7 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (this.options['createMarketBuyOrderRequiresPrice'] || this.options['createMarketSellOrderRequiresPrice'] || this.options['createMarketOrderWithCost']) {
+        if (this.options['createMarketOrderWithCost'] || (this.options['createMarketBuyOrderWithCost'] && this.options['createMarketSellOrderWithCost'])) {
             return await this.createOrder (symbol, 'market', side, cost, 1, params);
         }
         throw new NotSupported (this.id + ' createMarketOrderWithCost() is not supported yet');
