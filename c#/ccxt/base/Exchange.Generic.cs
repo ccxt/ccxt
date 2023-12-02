@@ -1,4 +1,7 @@
 namespace ccxt;
+
+using System.Globalization;
+
 using System.Security.Cryptography;
 using System.Text;
 
@@ -318,7 +321,7 @@ public partial class Exchange
             // {
             //     return null;
             // }
-            var parsed = Convert.ToDouble(value);
+            var parsed = Convert.ToDouble(value, CultureInfo.InvariantCulture);
             if (parsed == 0)
             {
                 return null;
