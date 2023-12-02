@@ -155,6 +155,47 @@
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"limit\",\"size\":1,\"mode\":4,\"price\":\"55\",\"side\":1,\"open_type\":\"cross\",\"client_order_id\":\"myClientOrderId\",\"leverage\":\"1\"}"
+            },
+            {
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    5,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot create market buy order with the quote amount as the cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "input": [
+                    "BTC/USDT",
+                    5
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
+            }
+        ],
+        "createMarketOrderWithCost": [
+            {
+                "description": "Spot create market order with cost and set the side to buy",
+                "method": "createMarketOrderWithCost",
+                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "input": [
+                    "BTC/USDT",
+                    "buy",
+                    5
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
             }
         ],
         "fetchMyTrades": [
