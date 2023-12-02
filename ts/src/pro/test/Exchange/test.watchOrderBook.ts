@@ -10,7 +10,7 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
     while (now < ends) {
         try {
             let response = await exchange[method] (symbol);
-            response = exchange.parseJson (exchange.json (response)); // temp fix for php 'Pro\OrderBook' object
+            response = fixPhpObjectArray (exchange, response);
             assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
             now = exchange.milliseconds ();
             testOrderBook (exchange, skippedProperties, method, response, symbol);
@@ -22,5 +22,16 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
         }
     }
 }
+
+function fixPhpObjectArray (exchange, response) {
+    const existingJqMode = exchange.quoteJsonNumbers;
+    exchange.quoteJsonNumbers = false;
+    // temp fix for php 'Pro\OrderBook' object, to turn it into array
+    const result = exchange.parseJson (exchange.json (response));
+    exchange.quoteJsonNumbers = existingJqMode;
+    return result;
+}
+
+
 
 export default testWatchOrderBook;
