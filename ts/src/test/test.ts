@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import assert from 'assert';
 import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
-
+import { unCamelCase } from '../base/functions/string.js';
 
 // js specific codes //
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
@@ -125,6 +125,7 @@ function getExchangeProp (exchange, prop, defaultValue = undefined) {
 
 function setExchangeProp (exchange, prop, value) {
     exchange[prop] = value;
+    exchange[unCamelCase (prop)] = value;
 }
 
 function initExchange (exchangeId, args, isWs = false): Exchange {
