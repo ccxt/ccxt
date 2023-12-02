@@ -217,6 +217,7 @@ export default class testMainClass extends baseMainTestClass {
         };
         const exchange = initExchange (exchangeId, exchangeArgs, this.isWsTests);
         await this.importFiles (exchange);
+        assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
         const symbolOrUndefined = this.checkIfSpecificTestIsChosen (symbolArgv);
         await this.startTest (exchange, symbolOrUndefined);
