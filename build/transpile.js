@@ -2485,7 +2485,7 @@ class Transpiler {
                 const snake_case = unCamelCase(subTestName);
                 const isSharedMethodsImport = subTestName.includes ('SharedMethods');
                 const isSameDirImport = tests.find(t => t.name === subTestName);
-                let phpPrefix = isSameDirImport ? "__DIR__ . '/" : "PATH_TO_CCXT . 'test/base/'";
+                let phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/base/';
                 let pySuffix = isSameDirImport ? '' : '.base';
 
                 if (isSharedMethodsImport) {
@@ -2494,9 +2494,9 @@ class Transpiler {
 
                     // php
                     if (!test.base) {
-                        phpHeaderAsync.push (`include_once __DIR__ . '/../base/test_shared_methods.php';`)
+                        phpHeaderAsync.push (`include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';`)
                     } else {
-                        phpHeaderSync.push (`include_once __DIR__ . '/test_shared_methods.php';`)
+                        phpHeaderSync.push (`include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';`)
                     }
                 }
 
@@ -2505,8 +2505,8 @@ class Transpiler {
                         phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
                         pythonHeaderSync.push (`from ccxt.test.base.${snake_case} import ${snake_case}  # noqa E402`)
                     } else {
-                        phpHeaderSync.push (`include_once '${phpPrefix}${snake_case}.php';`)
-                        phpHeaderAsync.push (`include_once '${phpPrefix}${snake_case}.php';`)
+                        phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)
+                        phpHeaderAsync.push (`include_once ${phpPrefix}${snake_case}.php';`)
                         pySuffix = (pySuffix === '') ? snake_case : pySuffix;
                         pythonHeaderSync.push (`from ccxt.test${pySuffix} import ${snake_case}  # noqa E402`)
                         pythonHeaderAsync.push (`from ccxt.test${pySuffix} import ${snake_case}  # noqa E402`)
