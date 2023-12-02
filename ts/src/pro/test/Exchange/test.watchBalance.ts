@@ -5,7 +5,7 @@ import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js
 async function testWatchBalance (exchange, skippedProperties, code) {
     const method = 'watchBalance';
     let now = exchange.milliseconds ();
-    const ends = now + exchange.wsMethodsTestTimeoutMS;
+    const ends = now + exchange.wsMethodsTestTimeoutMs;
     while (now < ends) {
         try {
             const response = await exchange[method] ();

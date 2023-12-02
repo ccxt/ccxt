@@ -6,7 +6,7 @@ import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js
 async function testWatchOHLCV (exchange, skippedProperties, symbol) {
     const method = 'watchOHLCV';
     let now = exchange.milliseconds ();
-    const ends = now + exchange.wsMethodsTestTimeoutMS;
+    const ends = now + exchange.wsMethodsTestTimeoutMs;
     const timeframeKeys = Object.keys (exchange.timeframes);
     assert (timeframeKeys.length, exchange.id + ' ' + method + ' - no timeframes found');
     // prefer 1m timeframe if available, otherwise return the first one

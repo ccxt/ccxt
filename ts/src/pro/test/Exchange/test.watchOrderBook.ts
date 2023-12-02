@@ -6,7 +6,7 @@ import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js
 async function testWatchOrderBook (exchange, skippedProperties, symbol) {
     const method = 'watchOrderBook';
     let now = exchange.milliseconds ();
-    const ends = now + exchange.wsMethodsTestTimeoutMS;
+    const ends = now + exchange.wsMethodsTestTimeoutMs;
     while (now < ends) {
         try {
             const response = await exchange[method] (symbol);
