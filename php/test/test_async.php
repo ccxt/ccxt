@@ -89,9 +89,12 @@ function json_stringify($s) {
     return json_encode($s);
 }
 
+function convert_to_snake_case($input) {
+    return strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $input));
+}
+
 function get_test_name($methodName) {
-    $snake_cased = strtolower(preg_replace('/(?<!^)(?=[A-Z])/', '_', $methodName)); // snake_case
-    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', $snake_cased);
+    $snake_cased = str_replace('o_h_l_c_v', 'ohlcv', convert_to_snake_case($methodName));
     return 'test_' . $snake_cased;
 }
 
@@ -166,8 +169,9 @@ function get_exchange_prop ($exchange, $prop, $defaultValue = null) {
 
 function set_exchange_prop ($exchange, $prop, $value) {
     $exchange->{$prop} = $value;
+    // set snake case too
+    $exchange->{convert_to_snake_case($prop)} = $value;
 }
-
 function create_dynamic_class ($exchangeId, $originalClass, $args) {
     $async_suffix = is_synchronous ? '_async' : '_sync';
     $filePath = sys_get_temp_dir() . '/temp_dynamic_class_' . $exchangeId . $async_suffix . '.php';
