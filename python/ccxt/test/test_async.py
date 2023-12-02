@@ -206,6 +206,8 @@ def get_exchange_prop(exchange, prop, defaultValue=None):
 
 def set_exchange_prop(exchange, prop, value):
     setattr(exchange, prop, value)
+    # set snake case too
+    setattr(exchange, convert_to_snake_case(prop), value)
 
 
 def init_exchange(exchangeId, args):
