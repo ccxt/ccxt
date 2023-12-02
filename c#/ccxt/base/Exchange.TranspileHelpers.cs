@@ -875,6 +875,10 @@ public partial class Exchange
             {
                 end = str.Length + end;
             }
+            if (end > str.Length)
+            {
+                end = str.Length;
+            }
             return str[start..end];
         }
     }
