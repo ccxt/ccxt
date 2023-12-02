@@ -40,6 +40,8 @@ export default class binance extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,  // contract only
+                'closeAllPositions': false,
+                'closePosition': false,  // closePosition param on createOrder only valid for STOP_MARKET or TAKE_PROFIT_MARKET
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createOrders': true,
