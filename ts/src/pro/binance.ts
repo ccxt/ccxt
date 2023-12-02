@@ -2142,14 +2142,14 @@ export default class binance extends binanceRest {
             throw new NotSupported (this.id + ' watchOrdersForSymbols does not support isolated margin markets, use watchOrders instead');
         }
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
-        let messageHash = 'orders';
+        let type = undefined;
         const market = this.getMarketFromSymbols (symbols);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrdersForSymbols', market, params);
+        symbols = this.marketSymbols (symbols, type, true, true, true);
+        let messageHash = 'orders';
         if (symbols !== undefined) {
             messageHash = messageHash + '::' + symbols.join (',');
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrdersForSymbols', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchOrdersForSymbols', market, params);
         if (this.isLinear (type, subType)) {
