@@ -24,7 +24,7 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
 }
 
 function fixPhpObjectArray (exchange, response) {
-    const existingJqMode = exchange.quoteJsonNumbers;
+    const existingJqMode = exchange.getProperty ('quoteJsonNumbers');
     exchange.setExchangeProperty ('quoteJsonNumbers', false);
     exchange.quoteJsonNumbers = false;
     // temp fix for php 'Pro\OrderBook' object, to turn it into array
