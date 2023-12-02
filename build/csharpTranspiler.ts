@@ -511,13 +511,19 @@ class NewTranspiler {
         if (!child) {
             createFolderRecursively (csharpFolder)
         }
-
+        const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
+        if (transpilingSingleExchange) {
+            force = true; // when transpiling single exchange, we always force
+        }
         const options = { csharpFolder, exchanges }
 
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
 
+        if (transpilingSingleExchange) {
+            return;
+        }
         if (child) {
-            return
+            return;
         }
 
         this.transpileBaseMethods (exchangeBase)

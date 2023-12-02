@@ -1525,7 +1525,8 @@
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
             },
-            "fetchTickers": "all tickers request exceedes max url length"
+            "fetchTickers": "all tickers request exceedes max url length",
+            "fetchOHLCV": "does not exist"
         }
     },
     "zaif": {

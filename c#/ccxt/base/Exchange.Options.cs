@@ -234,7 +234,7 @@ public partial class Exchange
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", null },
                 { "fetchMyTrades", null },
-                { "fetchOHLCV", "emulated" },
+                { "fetchOHLCV", null },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", null },
                 { "fetchOrder", null },
@@ -397,7 +397,7 @@ public partial class Exchange
         this.urls = SafeValue(extendedProperties, "urls") as dict;
         this.options = SafeValue(extendedProperties, "options") as dict ?? new dict();
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
-        this.timeframes = SafeValue(extendedProperties, "timeframes") as dict;
+        this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;
         this.fees = SafeValue(extendedProperties, "fees") as dict;
         this.has = SafeValue(extendedProperties, "has") as dict;
         this.httpExceptions = SafeValue(extendedProperties, "httpExceptions") as dict;
