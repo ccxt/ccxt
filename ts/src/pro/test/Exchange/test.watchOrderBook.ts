@@ -9,8 +9,9 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
     const ends = now + exchange.wsMethodsTestTimeoutMs;
     while (now < ends) {
         try {
-            const response = await exchange[method] (symbol);
-            // assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response)); // temp removal because of PHP has different kind of object
+            let response = await exchange[method] (symbol);
+            response = exchange.deep_extend (response); // temp fix for php 'Pro\OrderBook' object
+            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
             now = exchange.milliseconds ();
             testOrderBook (exchange, skippedProperties, method, response, symbol);
         } catch (e) {
