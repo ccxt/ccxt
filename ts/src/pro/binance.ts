@@ -2804,7 +2804,6 @@ export default class binance extends binanceRest {
     }
 
     handleOrder (client: Client, message) {
-        const messageHash = 'orders';
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
