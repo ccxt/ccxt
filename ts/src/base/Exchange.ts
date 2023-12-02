@@ -5119,6 +5119,9 @@ export default class Exchange {
                 if (cursorValue === undefined) {
                     break;
                 }
+                if (last['timestamp'] !== undefined && last['timestamp'] < since) {
+                    break;
+                }
             } catch (e) {
                 errors += 1;
                 if (errors > maxRetries) {
