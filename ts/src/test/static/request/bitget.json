@@ -178,19 +178,6 @@
               "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"side\":\"buy\",\"size\":\"8\"}"
             }
         ],
-        "createMarketOrderWithCost": [
-          {
-            "description": "Spot create market order with cost, and set the side to buy",
-            "method": "createMarketOrderWithCost",
-            "url": "https://api.bitget.com/api/v2/spot/trade/place-order",
-            "input": [
-              "BTC/USDT",
-              "buy",
-              8
-            ],
-            "output": "{\"symbol\":\"BTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"side\":\"buy\",\"size\":\"8\"}"
-          }
-        ],
         "createMarketBuyOrderWithCost": [
           {
             "description": "Spot create market buy order with cost",

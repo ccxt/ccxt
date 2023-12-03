@@ -38,7 +38,7 @@ export default class bitget extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': true,
+                'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': true,
@@ -3910,33 +3910,6 @@ export default class bitget extends Exchange {
             'fee': fee,
             'trades': undefined,
         }, market);
-    }
-
-    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost, params = {}) {
-        /**
-         * @method
-         * @name bitget#createMarketOrderWithCost
-         * @description create a market order by providing the symbol, side and cost
-         * @see https://www.bitget.com/api-doc/spot/trade/Place-Order
-         * @see https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order
-         * @see https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' createMarketOrderWithCost() supports spot orders only');
-        }
-        if (side === 'buy') {
-            params['createMarketBuyOrderRequiresPrice'] = false;
-        } else {
-            throw new NotSupported (this.id + ' createMarketOrderWithCost() supports buy orders only');
-        }
-        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
 
     async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
