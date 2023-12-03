@@ -327,7 +327,7 @@ export default class kraken extends Exchange {
                     'ZEC': 'Zcash (Transparent)',
                     'ZRX': '0x (ZRX)',
                 },
-                'withdrawMethods': { // keeping it here because deposit and withdraw return different networks codes
+                'withdrawMethods': {  // keeping it here because deposit and withdraw return different networks codes
                     'Lightning': 'Lightning',
                     'Bitcoin': 'BTC',
                     'Ripple': 'XRP',
