@@ -2171,8 +2171,8 @@ class Transpiler {
             phpBase: './php/test/base/',
         };
         const baseWsFolders = {
-            ts: './ts/src/pro/test/Exchange/',
-            tsBase: './ts/src/pro/test/Exchange/base/',
+            ts: './ts/src/pro/test/',
+            tsBase: './ts/src/pro/test/base/',
             py: './python/ccxt/pro/test/',
             pyBase: './python/ccxt/pro/test/base/',
             php: './php/pro/test/',
@@ -2180,6 +2180,7 @@ class Transpiler {
         };
 
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        let baseWsTests = fs.readdirSync (baseWsFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
         const exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
         // ignore throttle test for now
@@ -2217,6 +2218,17 @@ class Transpiler {
         const wsTestsName = fs.readdirSync (baseWsFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
         
         const wsCollectedTests = [];
+        for (const testName of baseWsTests) {
+            const testNameUncamelecased = this.uncamelcaseName(testName);
+            const test = {
+                base: true,
+                name: testName,
+                tsFile: baseWsFolders.tsBase + testName + '.ts',
+                pyFile: baseWsFolders.pyBase + testNameUncamelecased + '.py',
+                phpFile: baseWsFolders.phpBase + testNameUncamelecased + '.php',
+            };
+            wsCollectedTests.push(test);
+        }
         for (const testName of wsTestsName) {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const test = {
@@ -2519,12 +2531,13 @@ class Transpiler {
                 pythonHeaderSync = ['', ...pythonHeaderSync, '', '']
             }
 
-            let levelTillPythonBase = 4;
-            if(test.pyFileAsync && test.pyFileAsync.includes('/python/')) {
-                levelTillPythonBase = (test.pyFileAsync.split('/python/')[1]?.match(/\//g)?.length || 3) + 1;
+            let directoriesTillPythonBase = 4;
+            const pyFile = test.pyFileAsync || test.pyFile;
+            if(pyFile && pyFile.includes('/python/')) {
+                directoriesTillPythonBase = (pyFile.split('/python/')[1]?.match(/\//g)?.length || 3) + 1;
             }
-            const pythonPreambleLevel = this.getPythonPreamble(levelTillPythonBase);
-            const pythonPreambleSync = pythonPreambleLevel + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
+            const pythonPreamble = this.getPythonPreamble(directoriesTillPythonBase);
+            const pythonPreambleSync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
             const phpPreamble = this.getPHPPreamble (false)
             let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
@@ -2532,7 +2545,7 @@ class Transpiler {
             if (!test.base) {
                 let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
                 phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
-                const pythonPreambleAsync = pythonPreambleLevel + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n';
+                const pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n';
                 const finalPhpContentAsync = phpPreambleAsync + phpAsync;
                 const finalPyContentAsync = pythonPreambleAsync + pythonAsync;
                 log.magenta ('→', test.pyFileAsync.yellow)
