@@ -83,18 +83,16 @@ export default class bingx extends Exchange {
                 'doc': 'https://bingx-api.github.io/docs/',
                 'referral': 'https://bingx.com/invite/OHETOM',
                 'fees': {
-                    'trading': {
-                        'tierBased': true,
-                        'spot': {
-                            'feeSide': 'get',
-                            'maker': this.parseNumber ('0.001'),
-                            'taker': this.parseNumber ('0.001'),
-                        },
-                        'swap': {
-                            'feeSide': 'quote',
-                            'maker': this.parseNumber ('0.0002'),
-                            'taker': this.parseNumber ('0.0005'),
-                        },
+                    'tierBased': true,
+                    'spot': {
+                        'feeSide': 'get',
+                        'maker': this.parseNumber ('0.001'),
+                        'taker': this.parseNumber ('0.001'),
+                    },
+                    'swap': {
+                        'feeSide': 'quote',
+                        'maker': this.parseNumber ('0.0002'),
+                        'taker': this.parseNumber ('0.0005'),
                     },
                 },
             },
