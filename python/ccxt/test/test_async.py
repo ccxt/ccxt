@@ -100,7 +100,7 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 is_synchronous = 'async' not in os.path.basename(__file__)
 
-rootDir = current_dir + "/../../../"
+rootDir = DIR_NAME + "/../../../"
 # rootDirForSkips = current_dir + "/../../../"
 envVars = os.environ
 LOG_CHARS_LENGTH = 10000
@@ -360,7 +360,7 @@ class testMainClass(baseMainTestClass):
         # others
         timeout = exchange.safe_value(skipped_settings_for_exchange, 'timeout')
         if timeout is not None:
-            exchange.timeout = timeout
+            exchange.timeout = exchange.parse_to_int(timeout)
         exchange.http_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpProxy')
         exchange.https_proxy = exchange.safe_string(skipped_settings_for_exchange, 'httpsProxy')
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
@@ -875,7 +875,8 @@ class testMainClass(baseMainTestClass):
                             exchange.parse_to_numeric(sanitized_new_output)
                             is_number = True
                         except Exception as e:
-
+                            # if we can't parse it to number, then it's not a number
+                            is_number = False
                         if is_number:
                             self.assert_static_error(exchange.parse_to_numeric(sanitized_new_output) == exchange.parse_to_numeric(sanitized_stored_output), message_error, stored_output, new_output)
                             return True

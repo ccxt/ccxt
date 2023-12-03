@@ -52,6 +52,7 @@ class baseMainTestClass {
         this.publicTests = {};
         this.rootDir = DIR_NAME + '/../../../';
         this.rootDirForSkips = DIR_NAME + '/../../../';
+        this.onlySpecificTests = [];
         this.envVars = process.env;
         this.proxyTestFileName = proxyTestFileName;
         this.ext = import.meta.url.split('.')[1];
@@ -166,21 +167,21 @@ export default class testMainClass extends baseMainTestClass {
         this.sandbox = getCliArgValue('--sandbox');
         this.loadKeys = getCliArgValue('--loadKeys');
     }
-    async init(exchangeId, symbol) {
+    async init(exchangeId, symbolArgv) {
         this.parseCliArgs();
         if (this.responseTests) {
-            await this.runStaticResponseTests(exchangeId, symbol);
+            await this.runStaticResponseTests(exchangeId, symbolArgv);
             return;
         }
         if (this.requestTests) {
-            await this.runStaticRequestTests(exchangeId, symbol); // symbol here is the testname
+            await this.runStaticRequestTests(exchangeId, symbolArgv); // symbol here is the testname
             return;
         }
         if (this.idTests) {
             await this.runBrokerIdTests();
             return;
         }
-        const symbolStr = symbol !== undefined ? symbol : 'all';
+        const symbolStr = symbolArgv !== undefined ? symbolArgv : 'all';
         dump('\nTESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
         const exchangeArgs = {
             'verbose': this.verbose,
@@ -190,8 +191,31 @@ export default class testMainClass extends baseMainTestClass {
         };
         const exchange = initExchange(exchangeId, exchangeArgs);
         await this.importFiles(exchange);
-        this.expandSettings(exchange, symbol);
-        await this.startTest(exchange, symbol);
+        this.expandSettings(exchange);
+        const symbolOrUndefined = this.checkIfSpecificTestIsChosen(symbolArgv);
+        await this.startTest(exchange, symbolOrUndefined);
+    }
+    checkIfSpecificTestIsChosen(symbolArgv) {
+        if (symbolArgv !== undefined) {
+            const testFileNames = Object.keys(this.testFiles);
+            const possibleMethodNames = symbolArgv.split(','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            if (possibleMethodNames.length >= 1) {
+                for (let i = 0; i < testFileNames.length; i++) {
+                    const testFileName = testFileNames[i];
+                    for (let j = 0; j < possibleMethodNames.length; j++) {
+                        const methodName = possibleMethodNames[j];
+                        if (testFileName === methodName) {
+                            this.onlySpecificTests.push(testFileName);
+                        }
+                    }
+                }
+            }
+            // if method names were found, then remove them from symbolArgv
+            if (this.onlySpecificTests.length > 0) {
+                return undefined;
+            }
+        }
+        return symbolArgv;
     }
     async importFiles(exchange) {
         // exchange tests
@@ -200,7 +224,7 @@ export default class testMainClass extends baseMainTestClass {
         properties.push('loadMarkets');
         await setTestFiles(this, properties);
     }
-    expandSettings(exchange, symbol) {
+    expandSettings(exchange) {
         const exchangeId = exchange.id;
         const keysGlobal = this.rootDir + 'keys.json';
         const keysLocal = this.rootDir + 'keys.local.json';
@@ -294,7 +318,10 @@ export default class testMainClass extends baseMainTestClass {
         let skipMessage = undefined;
         const isProxyTest = methodName === this.proxyTestFileName;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
-        if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
+        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray(methodNameInTest, this.onlySpecificTests))) {
+            skipMessage = '[INFO:IGNORED_TEST]';
+        }
+        else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
             skipMessage = '[INFO:UNSUPPORTED_TEST]'; // keep it aligned with the longest message
         }
         else if ((methodName in this.skippedMethods) && (typeof this.skippedMethods[methodName] === 'string')) {
@@ -436,7 +463,7 @@ export default class testMainClass extends baseMainTestClass {
             }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
             let errorsInMessage = '';
-            if (errors) {
+            if (errors.length) {
                 const failedMsg = errors.join(', ');
                 errorsInMessage = ' | Failed methods : ' + failedMsg;
             }
@@ -663,14 +690,14 @@ export default class testMainClass extends baseMainTestClass {
         if (!this.privateTestOnly) {
             if (exchange.has['spot'] && spotSymbol !== undefined) {
                 if (this.info) {
-                    dump('[INFO:SPOT TESTS]');
+                    dump('[INFO: ### SPOT TESTS ###]');
                 }
                 exchange.options['type'] = 'spot';
                 await this.runPublicTests(exchange, spotSymbol);
             }
             if (exchange.has['swap'] && swapSymbol !== undefined) {
                 if (this.info) {
-                    dump('[INFO:SWAP TESTS]');
+                    dump('[INFO: ### SWAP TESTS ###]');
                 }
                 exchange.options['type'] = 'swap';
                 await this.runPublicTests(exchange, swapSymbol);

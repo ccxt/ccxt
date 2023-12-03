@@ -351,6 +351,7 @@ interface binance {
     sapiDeleteAlgoFuturesOrder(params?: {}): Promise<implicitReturnType>;
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesAccount(params?: {}): Promise<implicitReturnType>;
+    sapiV2GetSubAccountFuturesAccountSummary(params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesPositionRisk(params?: {}): Promise<implicitReturnType>;
     sapiV2PostSubAccountSubAccountApiIpRestriction(params?: {}): Promise<implicitReturnType>;
     sapiV3GetSubAccountAssets(params?: {}): Promise<implicitReturnType>;

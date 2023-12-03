@@ -12,6 +12,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
 
 
@@ -28,6 +29,7 @@ class binance(ccxt.async_support.binance):
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
+                'watchOrdersForSymbols': True,
                 'watchPositions': True,
                 'watchTicker': True,
                 'watchTickers': True,
@@ -55,8 +57,8 @@ class binance(ccxt.async_support.binance):
                 },
                 'api': {
                     'ws': {
-                        'spot': 'wss://stream.binance.com:9443/ws',
-                        'margin': 'wss://stream.binance.com:9443/ws',
+                        'spot': 'wss://stream.binance.com/ws',
+                        'margin': 'wss://stream.binance.com/ws',
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
                         'ws': 'wss://ws-api.binance.com:443/ws-api/v3',
@@ -1193,17 +1195,19 @@ class binance(ccxt.async_support.binance):
             # A network error happened: we can't renew a listen key that does not exist.
             return
         method = 'publicPutUserDataStream'
+        request = {}
+        symbol = self.safe_string(params, 'symbol')
+        sendParams = self.omit(params, ['type', 'symbol'])
         if type == 'future':
             method = 'fapiPrivatePutListenKey'
         elif type == 'delivery':
             method = 'dapiPrivatePutListenKey'
-        elif type == 'margin':
-            method = 'sapiPutUserDataStream'
-        request = {
-            'listenKey': listenKey,
-        }
+        else:
+            request['listenKey'] = listenKey
+            if type == 'margin':
+                request['symbol'] = symbol
+                method = 'sapiPutUserDataStream'
         time = self.milliseconds()
-        sendParams = self.omit(params, 'type')
         try:
             await getattr(self, method)(self.extend(request, sendParams))
         except Exception as error:
@@ -1890,6 +1894,7 @@ class binance(ccxt.async_support.binance):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+        :see: https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1903,9 +1908,7 @@ class binance(ccxt.async_support.binance):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-            messageHash += ':' + symbol
-            params = self.extend(params, {'type': market['type'], 'symbol': symbol})  # needed inside authenticate for isolated margin
-        await self.authenticate(params)
+            messageHash += '::' + symbol
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         subType = None
@@ -1914,6 +1917,8 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
+        params = self.extend(params, {'type': type, 'symbol': symbol})  # needed inside authenticate for isolated margin
+        await self.authenticate(params)
         urlType = type
         if type == 'margin':
             urlType = 'spot'  # spot-margin shares the same stream spot
@@ -1922,10 +1927,54 @@ class binance(ccxt.async_support.binance):
         self.set_balance_cache(client, type)
         self.set_positions_cache(client, type)
         message = None
-        orders = await self.watch(url, messageHash, message, type)
+        newOrder = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            return newOrder
+        return self.filter_by_symbol_since_limit(self.orders, symbol, since, limit, True)
+
+    async def watch_orders_for_symbols(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
+        """
+        :see: https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+        watches information on multiple orders made by the user
+        :param str[] symbols: unified symbol of the market to fetch orders for
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('authenticate', params)
+        isIsolatedMargin = (marginMode == 'isolated')
+        if isIsolatedMargin:
+            raise NotSupported(self.id + ' watchOrdersForSymbols does not support isolated margin markets, use watchOrders instead')
+        await self.load_markets()
+        type = None
+        market = self.get_market_from_symbols(symbols)
+        type, params = self.handle_market_type_and_params('watchOrdersForSymbols', market, params)
+        symbols = self.market_symbols(symbols, type, True, True, True)
+        messageHash = 'orders'
+        if symbols is not None:
+            messageHash = messageHash + '::' + ','.join(symbols)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('watchOrdersForSymbols', market, params)
+        if self.isLinear(type, subType):
+            type = 'future'
+        elif self.isInverse(type, subType):
+            type = 'delivery'
+        params = self.extend(params, {'type': type})
+        await self.authenticate(params)
+        urlType = type
+        if type == 'margin':
+            urlType = 'spot'  # spot-margin shares the same stream spot
+        url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
+        client = self.client(url)
+        self.set_balance_cache(client, type)
+        self.set_positions_cache(client, type)
+        message = None
+        newOrders = await self.watch(url, messageHash, message, type)
+        if self.newUpdates:
+            return newOrders
+        return self.filter_by_symbols_since_limit(self.orders, symbols, since, limit, True)
 
     def parse_ws_order(self, order, market=None):
         #
@@ -2201,6 +2250,8 @@ class binance(ccxt.async_support.binance):
         return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
 
     def set_positions_cache(self, client: Client, type, symbols: Strings = None):
+        if type == 'spot':
+            return
         if self.positions is None:
             self.positions = {}
         if type in self.positions:
@@ -2498,7 +2549,6 @@ class binance(ccxt.async_support.binance):
             client.resolve(self.myTrades, messageHashSymbol)
 
     def handle_order(self, client: Client, message):
-        messageHash = 'orders'
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -2522,9 +2572,8 @@ class binance(ccxt.async_support.binance):
                     parsed['timestamp'] = self.safe_integer(order, 'timestamp')
                     parsed['datetime'] = self.safe_string(order, 'datetime')
             cachedOrders.append(parsed)
-            client.resolve(self.orders, messageHash)
-            messageHashSymbol = messageHash + ':' + symbol
-            client.resolve(self.orders, messageHashSymbol)
+            self.resolve_promise_if_messagehash_matches(client, 'orders::', symbol, parsed)
+            client.resolve(parsed, 'orders')
 
     def handle_acount_update(self, client, message):
         self.handle_balance(client, message)

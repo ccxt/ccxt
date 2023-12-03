@@ -354,15 +354,15 @@ public partial class Exchange
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
 
-        if (a.GetType() == typeof(Int64))
+        if (a is (Int64))
         {
             return (Int64)a + (Int64)b;
         }
-        else if (a.GetType() == typeof(double))
+        else if (a is (double))
         {
-            return (double)a + (double)b;
+            return (double)a + Convert.ToDouble(b);
         }
-        else if (a.GetType() == typeof(string))
+        else if (a is (string))
         {
             return (string)a + (string)b;
         }
@@ -782,7 +782,6 @@ public partial class Exchange
     public void throwDynamicException(object exception, object message)
     {
         var Exception = NewException((Type)exception, (string)message);
-        throw Exception;
     }
 
     // This function is the salient bit here
@@ -884,6 +883,10 @@ public partial class Exchange
             if (end < 0)
             {
                 end = str.Length + end;
+            }
+            if (end > str.Length)
+            {
+                end = str.Length;
             }
             return str[start..end];
         }

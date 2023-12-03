@@ -168,9 +168,12 @@ public partial class Exchange
 
     public object safeIntegerProduct(object obj, object key, object multiplier = null, object defaultValue = null)
     {
-        defaultValue ??= 0;
         multiplier ??= 1;
         var result = safeValueN(obj, new List<object> { key }, defaultValue);
+        if (result == null)
+        {
+            return defaultValue;
+        }
         object parsedValue = null;
         try
         {
@@ -198,9 +201,11 @@ public partial class Exchange
         return parsedValue == null ? defaultValue : parsedValue;
     }
 
-    public object safeIntegerProductN(object obj, List<object> keys, object defaultValue = null, object multiplier = null)
+    public object safeIntegerProductN(object obj, List<object> keys, object multiplier = null, object defaultValue = null)
     {
         var result = safeValueN(obj, keys, defaultValue);
+        if (result == null)
+            return defaultValue;
         object parsedValue = null;
         try
         {

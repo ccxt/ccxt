@@ -23,6 +23,8 @@ public partial class Exchange
         // }
         // return Activator.CreateInstance(type) as Exchange;
     }
+    //     return Activator.CreateInstance(type) as Exchange;
+    // }
 
     public static object DynamicallyCallMethod(Exchange instance, string methodName, object[] parameters)
     {

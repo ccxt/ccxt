@@ -598,7 +598,13 @@ public partial class Exchange
 
     public object stringToCharsArray(object str)
     {
-        return str.ToString().ToCharArray();
+        var step = str.ToString().ToCharArray();
+        var res = new List<string>();
+        foreach (var item in step)
+        {
+            res.Add(item.ToString());
+        }
+        return res;
     }
 
     public Task sleep(object ms)

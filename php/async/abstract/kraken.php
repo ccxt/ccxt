@@ -130,6 +130,12 @@ abstract class kraken extends \ccxt\async\Exchange {
     public function private_post_withdrawinfo($params = array()) {
         return $this->request('WithdrawInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function private_post_withdrawmethods($params = array()) {
+        return $this->request('WithdrawMethods', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_withdrawaddresses($params = array()) {
+        return $this->request('WithdrawAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function private_post_withdrawstatus($params = array()) {
         return $this->request('WithdrawStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
@@ -282,6 +288,12 @@ abstract class kraken extends \ccxt\async\Exchange {
     }
     public function privatePostWithdrawInfo($params = array()) {
         return $this->request('WithdrawInfo', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostWithdrawMethods($params = array()) {
+        return $this->request('WithdrawMethods', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostWithdrawAddresses($params = array()) {
+        return $this->request('WithdrawAddresses', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostWithdrawStatus($params = array()) {
         return $this->request('WithdrawStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
