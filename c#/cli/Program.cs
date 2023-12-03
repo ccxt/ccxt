@@ -117,7 +117,8 @@ public static class Program
             .ToList();
 
         var isWsMethod = methodName.StartsWith("watch") || methodName.StartsWith("Watch");
-        var exchangeNameAdapted = (isWsMethod) ? exchangeName + "Ws" : exchangeName;
+        var isWsCrudeMethod = methodName.EndsWith("Ws");
+        var exchangeNameAdapted = (isWsMethod || isWsCrudeMethod) ? exchangeName + "Ws" : exchangeName;
         var instance = Exchange.MagicallyCreateInstance(exchangeNameAdapted);
 
         InitOptions(instance, flags);

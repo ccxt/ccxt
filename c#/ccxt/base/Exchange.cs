@@ -631,8 +631,23 @@ public partial class Exchange
         // var task = Task.Run(() => DynamicInvoker.InvokeMethod(action, args));
         // task.Wait();
         // return task.Result;
-        var res = DynamicInvoker.InvokeMethod(action, args);
-        return res;
+        // var res = DynamicInvoker.InvokeMethod(action, args);
+        // return res;
+        var future = new Future();
+        Task.Run(() =>
+        {
+            try
+            {
+                var res = (Task<object>)DynamicInvoker.InvokeMethod(action, args);
+                res.Wait();
+                future.resolve(res.Result);
+            }
+            catch (Exception e)
+            {
+                future.reject(e);
+            }
+        });
+        return future;
     }
 
     public void delay(object timeout2, object methodName, object[] args = null)
