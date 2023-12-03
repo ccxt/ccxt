@@ -5119,7 +5119,8 @@ export default class Exchange {
                 if (cursorValue === undefined) {
                     break;
                 }
-                if (last['timestamp'] !== undefined && last['timestamp'] < since) {
+                const lastTimestamp = this.safeInteger (last, 'timestamp');
+                if (lastTimestamp !== undefined && lastTimestamp < since) {
                     break;
                 }
             } catch (e) {
