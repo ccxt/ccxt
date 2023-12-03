@@ -2518,7 +2518,13 @@ class Transpiler {
                 pythonHeaderAsync = ['', ...pythonHeaderAsync, '', '']
                 pythonHeaderSync = ['', ...pythonHeaderSync, '', '']
             }
-            const pythonPreambleSync = this.getPythonPreamble(4) + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
+
+            let levelTillPythonBase = 4;
+            if(test.pyFileAsync && test.pyFileAsync.includes('/python/')) {
+                levelTillPythonBase = (test.pyFileAsync.split('/python/')[1]?.match(/\//g)?.length || 3) + 1;
+            }
+            const pythonPreambleLevel = this.getPythonPreamble(levelTillPythonBase);
+            const pythonPreambleSync = pythonPreambleLevel + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
             const phpPreamble = this.getPHPPreamble (false)
             let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
@@ -2526,7 +2532,7 @@ class Transpiler {
             if (!test.base) {
                 let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
                 phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
-                const pythonPreambleAsync = this.getPythonPreamble(4) + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n';
+                const pythonPreambleAsync = pythonPreambleLevel + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n';
                 const finalPhpContentAsync = phpPreambleAsync + phpAsync;
                 const finalPyContentAsync = pythonPreambleAsync + pythonAsync;
                 log.magenta ('→', test.pyFileAsync.yellow)
