@@ -2534,7 +2534,7 @@ class Transpiler {
             const findDirsAmountForPath = (langFolder, filePath, defaultDirs) => {
                 let directoriesToPythonFile = undefined;
                 if(filePath && filePath.includes('/' + langFolder + '/')) {
-                    directoriesToPythonFile = (pyFile.split('/' + langFolder + '/')[1]?.match(/\//g)?.length || defaultDirs) + 1;
+                    directoriesToPythonFile = (filePath.split('/' + langFolder + '/')[1]?.match(/\//g)?.length || defaultDirs) + 1;
                 }
             };
 
