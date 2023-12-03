@@ -1379,6 +1379,49 @@ A future market symbol consists of the underlying currency, the quoting currency
 'ETH/USDT:USDT-210625-5000-C'  // ETH/USDT call option contract strike price 5000 USDT settled in USDT (linear, vanilla) on 2021-06-25
 ```
 
+### Unified Networks
+
+| Network | CCXT Code  |
+|---------------------------------------|--------------|
+| Bitcoin                               | BTC          |
+| Ethereum                              | ETH (For Ethereum) / ERC20 (For Tokens)          |
+| Ripple                                | XRP          |
+| Litecoin                              | LTC          |
+| Dogecoin                              | DOGE         |
+| Stellar                               | XLM          |
+| Tron                                  | TRX          |
+| Ethereum Classic                      | ETC          |
+| Zcash                                 | ZEC          |
+| Monero                                | XMR          |
+| Cardano                               | ADA          |
+| Tezos                                 | XTZ          |
+| Cosmos                                | ATOM         |
+| Solana                                | SOL          |
+| Polkadot                              | DOT          |
+| Algorand                              | ALGO         |
+| Avalanche                             | AVAX         |
+| Chainlink                             | LINK         |
+| Bitcoin Cash                          | BCH          |
+| Filecoin                              | FIL          |
+| Kusama                                | KSM          |
+| Elrond                                | EGLD         |
+| THORChain                             | RUNE         |
+| Internet Computer                     | ICP          |
+| Near Protocol                         | NEAR         |
+| Celo                                  | CELO         |
+| Hedera Hashgraph                      | HBAR         |
+| IOTA                                  | MIOTA        |
+| Klaytn                                | KLAY         |
+| VeChain                               | VET          |
+| Theta Network                         | THETA        |
+| Stacks                                | STX          |
+| Bitcoin Lightning Network             | LIGHTNING    |
+| Optimism                              | OPTIMISM     |
+| Arbitrum                              | ARBITRUM     |
+| zkSync                                | zkSync       |
+| Polygon                               | MATIC        |
+| Fantom                                | FTM          |
+
 ## Market Cache Force Reload
 
 The `loadMarkets () / load_markets ()` is also a dirty method with a side effect of saving the array of markets on the exchange instance. You only need to call it once per exchange. All subsequent calls to the same method will return the locally saved (cached) array of markets.
