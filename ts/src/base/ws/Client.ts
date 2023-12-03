@@ -292,21 +292,18 @@ export default class Client {
 
         let message : Buffer | string = messageEvent.data
         let arrayBuffer : Uint8Array
-        if (this.gunzip || this.inflate) {
-            if (typeof message === 'string') {
-                arrayBuffer = utf8.decode (message)
-            } else {
-                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
-            }
-            if (this.gunzip) {
-                arrayBuffer = gunzipSync (arrayBuffer)
-            } else if (this.inflate) {
-                arrayBuffer = inflateSync (arrayBuffer)
-            }
-            message = utf8.encode (arrayBuffer)
-        }
         if (typeof message !== 'string') {
-            message = message.toString ()
+            if (this.gunzip || this.inflate) {
+                arrayBuffer = new Uint8Array (message.buffer.slice (message.byteOffset, message.byteOffset + message.byteLength))
+                if (this.gunzip) {
+                    arrayBuffer = gunzipSync (arrayBuffer)
+                } else if (this.inflate) {
+                    arrayBuffer = inflateSync (arrayBuffer)
+                }
+                message = utf8.encode (arrayBuffer)
+            } else {
+                message = message.toString ()
+            }
         }
         try {
             if (isJsonEncodedObject (message)) {

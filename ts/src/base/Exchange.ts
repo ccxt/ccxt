@@ -540,6 +540,7 @@ export default class Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createMarketBuyOrderWithCost': undefined,
+                'createMarketOrderWithCost': undefined,
                 'createMarketSellOrderWithCost': undefined,
                 'createOrders': undefined,
                 'createOrderWs': undefined,
@@ -4018,16 +4019,36 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost, params = {}) {
+        /**
+         * @method
+         * @name createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (this.options['createMarketOrderWithCost'] || (this.options['createMarketBuyOrderWithCost'] && this.options['createMarketSellOrderWithCost'])) {
+            return await this.createOrder (symbol, 'market', side, cost, 1, params);
+        }
+        throw new NotSupported (this.id + ' createMarketOrderWithCost() is not supported yet');
+    }
+
     async createMarketBuyOrderWithCost (symbol: string, cost, params = {}): Promise<Order> {
         /**
          * @method
-         * @name createMarketBuyWithCost
+         * @name createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (this.options['createMarketBuyOrderRequiresPrice'] || this.options['createMarketBuyOrderWithCost']) {
+            return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
+        }
         throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is not supported yet');
     }
 
@@ -4035,12 +4056,15 @@ export default class Exchange {
         /**
          * @method
          * @name createMarketSellOrderWithCost
-         * @description create a market buy order by providing the symbol and cost
+         * @description create a market sell order by providing the symbol and cost
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        if (this.options['createMarketSellOrderRequiresPrice'] || this.options['createMarketSellOrderWithCost']) {
+            return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
+        }
         throw new NotSupported (this.id + ' createMarketSellOrderWithCost() is not supported yet');
     }
 
@@ -4142,11 +4166,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    async fetchDeposits (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchDeposits() is not supported yet');
     }
 
-    async fetchWithdrawals (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchWithdrawals() is not supported yet');
     }
 
@@ -5205,6 +5229,10 @@ export default class Exchange {
                 if (cursorValue === undefined) {
                     break;
                 }
+                const lastTimestamp = this.safeInteger (last, 'timestamp');
+                if (lastTimestamp !== undefined && lastTimestamp < since) {
+                    break;
+                }
             } catch (e) {
                 errors += 1;
                 if (errors > maxRetries) {
@@ -5257,10 +5285,10 @@ export default class Exchange {
         const first = this.safeValue (result, 0);
         if (first !== undefined) {
             if ('timestamp' in first) {
-                return this.sortBy (result, 'timestamp');
+                return this.sortBy (result, 'timestamp', true);
             }
             if ('id' in first) {
-                return this.sortBy (result, 'id');
+                return this.sortBy (result, 'id', true);
             }
         }
         return result;
