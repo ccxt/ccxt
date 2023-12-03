@@ -65,7 +65,7 @@ class NewTranspiler {
     getWsRegexes() {
         // hoplefully we won't need this in the future by having everything typed properly in the typescript side
         return [
-            // [/typeof\(stored\)/gm, 'stored'],
+            [/return await (\w+);/gm, 'return await ($1 as Exchange.Future);'],
             // [/typeof\(client\)/gm, 'client'],
             // [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
             [/new\sgetValue\((\w+),\s(\w+)\)\((\w+)\)/gm, 'this.newException(getValue($1, $2), $3)'],

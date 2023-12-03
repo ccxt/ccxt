@@ -64,14 +64,16 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue (this.options, 'urls', {});
         if (connectId in urls) {
-            return urls[connectId];
+            const storedFuture = urls[connectId];
+            return await storedFuture;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
-        urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params);
+        urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params); // we have to wait here otherwsie in c# will not work
         this.options['urls'] = urls;
-        return urls[connectId];
+        const future = urls[connectId];
+        return await future;
     }
 
     async negotiateHelper (privateChannel, params = {}) {
