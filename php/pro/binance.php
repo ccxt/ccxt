@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -25,6 +26,7 @@ class binance extends \ccxt\async\binance {
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
+                'watchOrdersForSymbols' => true,
                 'watchPositions' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
@@ -2084,9 +2086,10 @@ class binance extends \ccxt\async\binance {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * watches information on multiple $orders made by the user
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+             * watches information on multiple orders made by the user
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -2097,7 +2100,7 @@ class binance extends \ccxt\async\binance {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
-                $messageHash .= ':' . $symbol;
+                $messageHash .= '::' . $symbol;
             }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
@@ -2119,11 +2122,63 @@ class binance extends \ccxt\async\binance {
             $this->set_balance_cache($client, $type);
             $this->set_positions_cache($client, $type);
             $message = null;
-            $orders = Async\await($this->watch($url, $messageHash, $message, $type));
+            $newOrder = Async\await($this->watch($url, $messageHash, $message, $type));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                return $newOrder;
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+            return $this->filter_by_symbol_since_limit($this->orders, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function watch_orders_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+             * watches information on multiple orders made by the user
+             * @param {string[]} $symbols unified symbol of the $market to fetch orders for
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('authenticate', $params);
+            $isIsolatedMargin = ($marginMode === 'isolated');
+            if ($isIsolatedMargin) {
+                throw new NotSupported($this->id . ' watchOrdersForSymbols does not support isolated margin markets, use watchOrders instead');
+            }
+            Async\await($this->load_markets());
+            $type = null;
+            $market = $this->get_market_from_symbols($symbols);
+            list($type, $params) = $this->handle_market_type_and_params('watchOrdersForSymbols', $market, $params);
+            $symbols = $this->market_symbols($symbols, $type, true, true, true);
+            $messageHash = 'orders';
+            if ($symbols !== null) {
+                $messageHash = $messageHash . '::' . implode(',', $symbols);
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('watchOrdersForSymbols', $market, $params);
+            if ($this->isLinear ($type, $subType)) {
+                $type = 'future';
+            } elseif ($this->isInverse ($type, $subType)) {
+                $type = 'delivery';
+            }
+            $params = array_merge($params, array( 'type' => $type ));
+            Async\await($this->authenticate($params));
+            $urlType = $type;
+            if ($type === 'margin') {
+                $urlType = 'spot'; // spot-margin shares the same stream spot
+            }
+            $url = $this->urls['api']['ws'][$urlType] . '/' . $this->options[$type]['listenKey'];
+            $client = $this->client($url);
+            $this->set_balance_cache($client, $type);
+            $this->set_positions_cache($client, $type);
+            $message = null;
+            $newOrders = Async\await($this->watch($url, $messageHash, $message, $type));
+            if ($this->newUpdates) {
+                return $newOrders;
+            }
+            return $this->filter_by_symbols_since_limit($this->orders, $symbols, $since, $limit, true);
         }) ();
     }
 
@@ -2417,6 +2472,9 @@ class binance extends \ccxt\async\binance {
     }
 
     public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+        if ($type === 'spot') {
+            return;
+        }
         if ($this->positions === null) {
             $this->positions = array();
         }
@@ -2758,7 +2816,6 @@ class binance extends \ccxt\async\binance {
     }
 
     public function handle_order(Client $client, $message) {
-        $messageHash = 'orders';
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -2787,9 +2844,8 @@ class binance extends \ccxt\async\binance {
                 }
             }
             $cachedOrders->append ($parsed);
-            $client->resolve ($this->orders, $messageHash);
-            $messageHashSymbol = $messageHash . ':' . $symbol;
-            $client->resolve ($this->orders, $messageHashSymbol);
+            $this->resolve_promise_if_messagehash_matches($client, 'orders::', $symbol, $parsed);
+            $client->resolve ($parsed, 'orders');
         }
     }
 

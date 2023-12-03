@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.70';
+$version = '4.1.75';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.70';
+    const VERSION = '4.1.75';
 
     public $browser;
     public $marketsLoading = null;
@@ -2856,6 +2856,55 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a market order by providing the $symbol, $side and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if ($this->options['createMarketOrderWithCost'] || ($this->options['createMarketBuyOrderWithCost'] && $this->options['createMarketSellOrderWithCost'])) {
+                return Async\await($this->create_order($symbol, 'market', $side, $cost, 1, $params));
+            }
+            throw new NotSupported($this->id . ' createMarketOrderWithCost() is not supported yet');
+        }) ();
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market buy order by providing the $symbol and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if ($this->options['createMarketBuyOrderRequiresPrice'] || $this->options['createMarketBuyOrderWithCost']) {
+                return Async\await($this->create_order($symbol, 'market', 'buy', $cost, 1, $params));
+            }
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() is not supported yet');
+        }) ();
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a market sell order by providing the $symbol and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            if ($this->options['createMarketSellOrderRequiresPrice'] || $this->options['createMarketSellOrderWithCost']) {
+                return Async\await($this->create_order($symbol, 'market', 'sell', $cost, 1, $params));
+            }
+            throw new NotSupported($this->id . ' createMarketSellOrderWithCost() is not supported yet');
+        }) ();
+    }
+
     public function create_orders(array $orders, $params = array ()) {
         throw new NotSupported($this->id . ' createOrders() is not supported yet');
     }
@@ -2952,11 +3001,11 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    public function fetch_deposits(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDeposits() is not supported yet');
     }
 
-    public function fetch_withdrawals(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
     }
 
@@ -4042,6 +4091,10 @@ class Exchange extends \ccxt\Exchange {
                     if ($cursorValue === null) {
                         break;
                     }
+                    $lastTimestamp = $this->safe_integer($last, 'timestamp');
+                    if ($lastTimestamp !== null && $lastTimestamp < $since) {
+                        break;
+                    }
                 } catch (Exception $e) {
                     $errors += 1;
                     if ($errors > $maxRetries) {
@@ -4097,10 +4150,10 @@ class Exchange extends \ccxt\Exchange {
         $first = $this->safe_value($result, 0);
         if ($first !== null) {
             if (is_array($first) && array_key_exists('timestamp', $first)) {
-                return $this->sort_by($result, 'timestamp');
+                return $this->sort_by($result, 'timestamp', true);
             }
             if (is_array($first) && array_key_exists('id', $first)) {
-                return $this->sort_by($result, 'id');
+                return $this->sort_by($result, 'id', true);
             }
         }
         return $result;

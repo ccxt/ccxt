@@ -38,6 +38,9 @@ export default class bitmart extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createStopLimitOrder': false,
@@ -2174,12 +2177,32 @@ export default class bitmart extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {
+        /**
+         * @method
+         * @name bitmart#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
+        }
+        params['createMarketBuyOrderRequiresPrice'] = false;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
          * @name bitmart#createOrder
          * @description create a trade order
-         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+         * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
@@ -2350,17 +2373,17 @@ export default class bitmart extends Exchange {
         } else if (isMarketOrder) {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
-                let notional = this.safeNumber (params, 'notional');
-                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                let notional = this.safeNumber2 (params, 'cost', 'notional');
+                params = this.omit (params, 'cost');
+                let createMarketBuyOrderRequiresPrice = true;
+                [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 if (createMarketBuyOrderRequiresPrice) {
-                    if (price !== undefined) {
-                        if (notional === undefined) {
-                            const amountString = this.numberToString (amount);
-                            const priceString = this.numberToString (price);
-                            notional = this.parseNumber (Precise.stringMul (amountString, priceString));
-                        }
-                    } else if (notional === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                    if ((price === undefined) && (notional === undefined)) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument or in the "notional" extra parameter (the exchange-specific behaviour)');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        notional = this.parseNumber (Precise.stringMul (amountString, priceString));
                     }
                 } else {
                     notional = (notional === undefined) ? amount : notional;

@@ -2086,7 +2086,7 @@ export default class mexc extends Exchange {
     }
     createSpotOrderRequest(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
-        const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
+        const orderSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
             'side': orderSide,
@@ -2105,10 +2105,10 @@ export default class mexc extends Exchange {
                     const amountString = this.numberToString(amount);
                     const priceString = this.numberToString(price);
                     const quoteAmount = Precise.stringMul(amountString, priceString);
-                    amount = this.parseNumber(quoteAmount);
+                    amount = quoteAmount;
                 }
             }
-            request['quoteOrderQty'] = amount;
+            request['quoteOrderQty'] = this.costToPrecision(symbol, amount);
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
@@ -2308,7 +2308,7 @@ export default class mexc extends Exchange {
             ordersRequests.push(orderRequest);
         }
         const request = {
-            'batchOrders': ordersRequests,
+            'batchOrders': this.json(ordersRequests),
         };
         const response = await this.spotPrivatePostBatchOrders(request);
         //

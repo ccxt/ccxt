@@ -45,6 +45,7 @@ class gate extends Exchange {
                         'subAccounts' => 'https://api.gateio.ws/api/v4',
                         'rebate' => 'https://api.gateio.ws/api/v4',
                         'earn' => 'https://api.gateio.ws/api/v4',
+                        'account' => 'https://api.gateio.ws/api/v4',
                     ),
                 ),
                 'test' => array(
@@ -3568,7 +3569,14 @@ class gate extends Exchange {
             'PEND' => 'pending',
             'REQUEST' => 'pending',
             'DMOVE' => 'pending',
-            'CANCEL' => 'failed',
+            'MANUAL' => 'pending',
+            'VERIFY' => 'pending',
+            'PROCES' => 'pending',
+            'EXTPEND' => 'pending',
+            'SPLITPEND' => 'pending',
+            'CANCEL' => 'canceled',
+            'FAIL' => 'failed',
+            'INVALID' => 'failed',
             'DONE' => 'ok',
             'BCODE' => 'ok', // GateCode withdrawal
         );

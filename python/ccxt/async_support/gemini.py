@@ -351,26 +351,27 @@ class gemini(Exchange, ImplicitAPI):
             networks = {}
             networkId = self.safe_string(currency, 9)
             networkCode = self.network_id_to_code(networkId)
-            networks[networkCode] = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': currency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            }
+                }
             result[code] = {
                 'info': currency,
                 'id': id,

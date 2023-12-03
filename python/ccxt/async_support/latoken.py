@@ -16,6 +16,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -802,12 +803,16 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
         """
-        method = self.safe_string(params, 'method')
+        options = self.safe_value(self.options, 'fetchTradingFee', {})
+        defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTradingFee')
+        method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        if method is None:
-            options = self.safe_value(self.options, 'fetchTradingFee', {})
-            method = self.safe_string(options, 'method', 'fetchPrivateTradingFee')
-        return await getattr(self, method)(symbol, params)
+        if method == 'fetchPrivateTradingFee':
+            return await self.fetch_private_trading_fee(symbol, params)
+        elif method == 'fetchPublicTradingFee':
+            return await self.fetch_public_trading_fee(symbol, params)
+        else:
+            raise NotSupported(self.id + ' not support self method')
 
     async def fetch_public_trading_fee(self, symbol: str, params={}):
         await self.load_markets()
@@ -871,16 +876,17 @@ class latoken(Exchange, ImplicitAPI):
             # 'from': self.milliseconds(),
             # 'limit': limit,  # default '100'
         }
-        method = 'privateGetAuthTrade'
         market = None
+        if limit is not None:
+            request['limit'] = limit  # default 100
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
             request['quote'] = market['quoteId']
-            method = 'privateGetAuthTradePairCurrencyQuote'
-        if limit is not None:
-            request['limit'] = limit  # default 100
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetAuthTradePairCurrencyQuote(self.extend(request, params))
+        else:
+            response = await self.privateGetAuthTrade(self.extend(request, params))
         #
         #     [
         #         {
@@ -1497,19 +1503,18 @@ class latoken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        method = None
-        if toAccount.find('@') >= 0:
-            method = 'privatePostAuthTransferEmail'
-        elif len(toAccount) == 36:
-            method = 'privatePostAuthTransferId'
-        else:
-            method = 'privatePostAuthTransferPhone'
         request = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': self.currency_to_precision(code, amount),
         }
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if toAccount.find('@') >= 0:
+            response = await self.privatePostAuthTransferEmail(self.extend(request, params))
+        elif len(toAccount) == 36:
+            response = await self.privatePostAuthTransferId(self.extend(request, params))
+        else:
+            response = await self.privatePostAuthTransferPhone(self.extend(request, params))
         #
         #     {
         #         "id": "e6fc4ace-7750-44e4-b7e9-6af038ac7107",

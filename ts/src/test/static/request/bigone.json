@@ -3,6 +3,75 @@
     "skipKeys": ["guid"],
     "outputType": "json",
     "methods": {
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0005,
+                    25000
+                ],
+                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"BID\",\"amount\":\"0.0005\",\"price\":\"25000\",\"type\":\"LIMIT\"}"
+            },
+            {
+                "description": "Spot limit sell",
+                "method": "createOrder",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "sell",
+                    0.000262,
+                    39000
+                ],
+                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"ASK\",\"amount\":\"0.000262\",\"price\":\"39000\",\"type\":\"LIMIT\"}"
+            },
+            {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.000262,
+                    null
+                ],
+                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"ASK\",\"amount\":\"0.000262\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
+                "method": "createOrder",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    10,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false
+                    }
+                ],
+                "output": "{\"asset_pair_name\":\"BTC-USDT\",\"side\":\"BID\",\"amount\":\"10\",\"type\":\"MARKET\"}"
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "Spot market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://big.one/api/v3/viewer/orders",
+                "input": [
+                  "LTC/USDT",
+                  11
+                ],
+                "output": "{\"asset_pair_name\":\"LTC-USDT\",\"side\":\"BID\",\"amount\":\"11\",\"type\":\"MARKET\"}"
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Spot orders",

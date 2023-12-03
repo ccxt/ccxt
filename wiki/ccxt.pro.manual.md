@@ -370,27 +370,26 @@ The result from the newUpdates mode will be one or more updates that have occurr
 ```
 
 *Deprecation Warning*: in the future `newUpdates: true` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 const ccxtpro = require ('ccxt').pro
 console.log ('CCXT version', ccxtpro.version)
 console.log ('Supported exchanges:', ccxtpro.exchanges)
 ```
-
+#### **Python**
 ```python
-# Python
 import ccxt.pro as ccxtpro
 print('CCXT version', ccxtpro.__version__)
 print('Supported exchanges:', ccxtpro.exchanges)
 ```
-
+#### **PHP**
 ```php
-// PHP
 use \ccxt\pro; // optional, since you can use fully qualified names
 echo 'CCXT version ', \ccxt\pro\Exchange::VERSION, "\n";
 echo 'Supported exchanges: ', json_encode(\ccxt\pro\Exchange::$exchanges), "\n";
 ```
+<!-- tabs:end -->
 
 The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods as well as the additional functionality.
 
@@ -400,16 +399,16 @@ CCXT Pro is designed for async/await style syntax and relies heavily on async pr
 
 Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance.
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 const ccxt = require ('ccxt').pro
 const exchange = new ccxtpro.binance ({ newUpdates: false })
 ```
 
 The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
-
+#### **Python**
 ```python
-# Python
 import ccxt.pro as ccxtpro
 from asyncio import run
 
@@ -423,6 +422,7 @@ async def main():
 
 run(main())
 ```
+#### **PHP**
 
 In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org). The PHP implementation of CCXT Pro relies on [Promise](https://github.com/reactphp/promise) and [EventLoop](https://github.com/reactphp/event-loop) in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
 
@@ -434,6 +434,7 @@ require_once 'vendor/autoload.php';
 
 $exchange = new \ccxt\pro\kucoin(array( 'newUpdates' => false ));
 ```
+<!-- tabs:end -->
 
 ## Exchange Properties
 
@@ -559,9 +560,9 @@ If the exchange accepts a limiting argument, the `limit` argument is sent toward
 If the underlying exchange does not accept a limiting argument, the limiting is done on the client side.
 
 The `limit` argument does not guarantee that the number of bids or asks will always be equal to `limit`. It designates the upper boundary or the maximum, so at some moment in time there may be less than `limit` bids or asks, but never more than `limit` bids or asks. This is the case when the exchange does not have enough orders on the orderbook, or when one of the top orders in the orderbook gets matched and removed from the orderbook, leaving less than `limit` entries on either bids side or asks side. The free space in the orderbook usually gets quickly filled with new data.
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['watchOrderBook']) {
     while (true) {
         try {
@@ -575,9 +576,8 @@ if (exchange.has['watchOrderBook']) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if exchange.has['watchOrderBook']:
     while True:
         try:
@@ -588,9 +588,8 @@ if exchange.has['watchOrderBook']:
             # stop the loop on exception or leave it commented to retry
             # raise e
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['watchOrderBook']) {
     $exchange::execute_and_run(function() use ($exchange, $symbol, $limit, $params) {
         while (true) {
@@ -604,13 +603,15 @@ if ($exchange->has['watchOrderBook']) {
     });
 }
 ```
+<!-- tabs:end -->
 
 ##### watchOrderBookForSymbols
 
 Similar to `watchOrderBook` but accepts an array of symbols so you can subscribe to multiple orderbooks in a single message.
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['watchOrderBookForSymbols']) {
     while (true) {
         try {
@@ -624,9 +625,8 @@ if (exchange.has['watchOrderBookForSymbols']) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if exchange.has['watchOrderBookForSymbols']:
     while True:
         try:
@@ -669,9 +669,8 @@ if exchange.has['watchTicker']:
             # stop the loop on exception or leave it commented to retry
             # raise e
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['watchTicker']) {
     $exchange::execute_and_run(function() use ($exchange, $symbol, $params) {
         while (true) {
@@ -685,11 +684,13 @@ if ($exchange->has['watchTicker']) {
     });
 }
 ```
+<!-- tabs:end -->
 
 ### watchTickers
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['watchTickers']) {
     while (true) {
         try {
@@ -703,9 +704,8 @@ if (exchange.has['watchTickers']) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if exchange.has['watchTickers']:
     while True:
         try:
@@ -716,9 +716,8 @@ if exchange.has['watchTickers']:
             # stop the loop on exception or leave it commented to retry
             # raise e
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['watchTickers']) {
     $exchange::execute_and_run(function() use ($exchange, $symbols, $params) {
         while (true) {
@@ -732,6 +731,7 @@ if ($exchange->has['watchTickers']) {
     });
 }
 ```
+<!-- tabs:end -->
 
 ### watchOHLCV
 
@@ -774,8 +774,9 @@ That explains why some exchanges reasonably think that OHLCVs are not necessary 
 
 If your application is not very time-critical, you can still subscribe to OHLCV streams, for charting purposes. If the underlying `exchange.has['watchOHLCV']`, you can `watchOHLCV()/watch_ohlcv()` as shown below:
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['watchOHLCV']) {
     while (true) {
         try {
@@ -789,9 +790,8 @@ if (exchange.has['watchOHLCV']) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if exchange.has['watchOHLCV']:
     while True:
         try:
@@ -802,9 +802,8 @@ if exchange.has['watchOHLCV']:
             # stop the loop on exception or leave it commented to retry
             # raise e
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['watchOHLCV']) {
     $exchange::execute_and_run(function() use ($exchange, $symbol, $timeframe, $since, $limit, $params) {
         while (true) {
@@ -818,14 +817,15 @@ if ($exchange->has['watchOHLCV']) {
     });
 }
 ```
+<!-- tabs:end -->
 
 
 ### watchOHLCVForSymbols
 
 Similar to `watchOHLCV` but allows multiple subscriptions of symbols and timeframes
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['watchOHLCVForSymbols']) {
     while (true) {
         try {
@@ -844,9 +844,8 @@ if (exchange.has['watchOHLCVForSymbols']) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if exchange.has['watchOHLCVForSymbols']:
     while True:
         try:
@@ -862,9 +861,12 @@ if exchange.has['watchOHLCVForSymbols']:
             # stop the loop on exception or leave it commented to retry
             # raise e
 ```
+<!-- tabs:end -->
+
 
 ### watchTrades
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
 // JavaScript
 if (exchange.has['watchTrades']) {
@@ -880,9 +882,8 @@ if (exchange.has['watchTrades']) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if exchange.has['watchTrades']:
     while True:
         try:
@@ -893,9 +894,8 @@ if exchange.has['watchTrades']:
             # stop the loop on exception or leave it commented to retry
             # raise e
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['watchTrades']) {
     $exchange::execute_and_run(function() use ($exchange, $symbol, $since, $limit, $params) {
         while (true) {
@@ -909,12 +909,14 @@ if ($exchange->has['watchTrades']) {
     });
 }
 ```
+<!-- tabs:end -->
 ### watchTradesForSymbols
 
 Similar to `watchTrades` but allows subscribing to multiple symbols in a single call.
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 if (exchange.has['watchTradesForSymbols']) {
     while (true) {
         try {
@@ -928,9 +930,8 @@ if (exchange.has['watchTradesForSymbols']) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if exchange.has['watchTradesForSymbols']:
     while True:
         try:
@@ -941,14 +942,15 @@ if exchange.has['watchTradesForSymbols']:
             # stop the loop on exception or leave it commented to retry
             # raise e
 ```
-
+<!-- tabs:end -->
 
 ## Private Methods
 
 In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup) for more details.
 
 ### watchBalance
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
 // JavaScript
 if (exchange.has['watchBalance']) {
@@ -964,9 +966,8 @@ if (exchange.has['watchBalance']) {
     }
 }
 ```
-
+#### **Python**
 ```python
-# Python
 if exchange.has['watchBalance']:
     while True:
         try:
@@ -977,9 +978,8 @@ if exchange.has['watchBalance']:
             # stop the loop on exception or leave it commented to retry
             # raise e
 ```
-
+#### **PHP**
 ```php
-// PHP
 if ($exchange->has['watchBalance']) {
     $exchange::execute_and_run(function() use ($exchange, $params) {
         while (true) {
@@ -993,141 +993,141 @@ if ($exchange->has['watchBalance']) {
     });
 }
 ```
+<!-- tabs:end -->
 
 ### watchOrders
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
-
+#### **Python**
 ```python
-# Python
 watch_orders(symbol=None, since=None, limit=None, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```
+<!-- tabs:end -->
 
 ### watchMyTrades
-
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
-
+#### **Python**
 ```python
-# Python
 watch_my_trades(symbol=None, since=None, limit=None, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ```
+<!-- tabs:end -->
 
 ### watchPositions
 watch all open positions and returns a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
-// JavaScript
 watchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) 
 ```
-
+#### **Python**
 ```python
-# Python
 watch_positions(symbols=None, since=None, limit=None, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 watch_positions($symbols = null, $since = null, $lmit = null, $params = array());
 ```
+<!-- tabs:end -->
 
 ### createOrderWs
-
-```typescript
+<!-- tabs:start -->
+#### **Typescript**
+```javascript
 // JavaScript
 createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
 ```
-
+#### **Python**
 ```python
-# Python
 create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
 ```
-
+<!-- tabs:end -->
 ### editOrderWs
-
-```typescript
+<!-- tabs:start -->
+#### **Typescript**
+```javascript
 // JavaScript
 editOrderWs (id, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
 ```
-
+#### **Python**
 ```python
-# Python
 edit_order_ws(self, id, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 edit_order_ws(string id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
 ```
-### cancelOrderWs
+<!-- tabs:end -->
 
-```typescript
-// JavaScript
+### cancelOrderWs
+<!-- tabs:start -->
+#### **Typescript**
+```javascript
 cancelOrderWs(id: string, symbol: string = undefined, params = {})
 ```
-
+#### **Python**
 ```python
-# Python
 cancel_order_ws(self, id, symbol: str, params={})
 ```
+#### **PHP**
 
 ```php
-// PHP
 cancel_order_ws(string $id, string $symbol, $params = array ())
 ```
+<!-- tabs:end -->
 
 ### cancelOrdersWs
-
-```typescript
-// JavaScript
+<!-- tabs:start -->
+#### **Typescript**
+```javascript
 cancelOrdersWs(ids: string[], symbol: string = undefined, params = {})
 ```
+#### **Python**
 
 ```python
-# Python
 cancel_orders_ws(self, ids, symbol: str, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
 ```
-### cancelAllOrdersWs
+<!-- tabs:end -->
 
-```typescript
-// JavaScript
+### cancelAllOrdersWs
+<!-- tabs:start -->
+#### **Typescript**
+```javascript
 cancelAllOrdersWs(symbol: string = undefined, params = {})
 ```
-
+#### **Python**
 ```python
-# Python
 cancel_all_orders_ws(self, symbol: str, params={})
 ```
-
+#### **PHP**
 ```php
-// PHP
 cancel_all_orders_ws(string $symbol, $params = array ())
 ```
+<!-- tabs:end -->
 
 ### watchTransactions
 

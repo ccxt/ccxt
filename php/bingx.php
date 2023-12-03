@@ -30,6 +30,9 @@ class bingx extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'fetchBalance' => true,
@@ -78,10 +81,18 @@ class bingx extends Exchange {
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
                 'referral' => 'https://bingx.com/invite/OHETOM',
-                'fees' => array(
-                    'trading' => array(
-                        'tierBased' => true,
-                    ),
+            ),
+            'fees' => array(
+                'tierBased' => true,
+                'spot' => array(
+                    'feeSide' => 'get',
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
+                ),
+                'swap' => array(
+                    'feeSide' => 'quote',
+                    'maker' => $this->parse_number('0.0002'),
+                    'taker' => $this->parse_number('0.0005'),
                 ),
             ),
             'requiredCredentials' => array(
@@ -299,10 +310,6 @@ class bingx extends Exchange {
                 '3d' => '3d',
                 '1w' => '1w',
                 '1M' => '1M',
-            ),
-            'fees' => array(
-                'trading' => array(
-                ),
             ),
             'precisionMode' => DECIMAL_PLACES,
             'exceptions' => array(
@@ -557,11 +564,12 @@ class bingx extends Exchange {
         if ($settle !== null) {
             $symbol .= ':' . $settle;
         }
+        $fees = $this->safe_value($this->fees, $type, array());
         $contractSize = $this->safe_number($market, 'size');
         $isActive = $this->safe_string($market, 'status') === '1';
         $isInverse = ($spot) ? null : false;
         $isLinear = ($spot) ? null : $swap;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -580,8 +588,9 @@ class bingx extends Exchange {
             'contract' => $swap,
             'linear' => $isLinear,
             'inverse' => $isInverse,
-            'taker' => null,
-            'maker' => null,
+            'taker' => $this->safe_number($fees, 'taker'),
+            'maker' => $this->safe_number($fees, 'maker'),
+            'feeSide' => $this->safe_string($fees, 'feeSide'),
             'contractSize' => $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -611,7 +620,7 @@ class bingx extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_markets($params = array ()) {
@@ -1613,6 +1622,43 @@ class bingx extends Exchange {
         ));
     }
 
+    public function create_market_order_with_cost(string $symbol, string $side, $cost, $params = array ()) {
+        /**
+         * create a market order by providing the $symbol, $side and $cost
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $params['quoteOrderQty'] = $cost;
+        return $this->create_order($symbol, 'market', $side, $cost, null, $params);
+    }
+
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a market buy order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $params['quoteOrderQty'] = $cost;
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * create a market sell order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $params['quoteOrderQty'] = $cost;
+        return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
+    }
+
     public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @ignore
@@ -1646,22 +1692,18 @@ class bingx extends Exchange {
             if ($postOnly || ($timeInForce === 'POC')) {
                 $request['timeInForce'] = 'POC';
             }
-            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-            if ($isMarketOrder && ($side === 'buy')) {
-                if ($createMarketBuyOrderRequiresPrice) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        $request['quoteOrderQty'] = $this->parse_to_numeric($this->price_to_precision($symbol, $cost));
-                    }
-                } else {
-                    $request['quoteOrderQty'] = $this->parse_to_numeric($this->price_to_precision($symbol, $amount));
-                }
+            $cost = $this->safe_number_2($params, 'cost', 'quoteOrderQty');
+            $params = $this->omit($params, 'cost');
+            if ($cost !== null) {
+                $request['quoteOrderQty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
             } else {
-                $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+                if ($market['spot'] && $isMarketOrder && ($price !== null)) {
+                    // keep the legacy behavior, to avoid  breaking the old spot-$market-buying code
+                    $calculatedCost = Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price));
+                    $request['quoteOrderQty'] = $this->parse_to_numeric($calculatedCost);
+                } else {
+                    $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+                }
             }
             if (!$isMarketOrder) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
@@ -1727,8 +1769,8 @@ class bingx extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Create%20an%20Order
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1741,6 +1783,7 @@ class bingx extends Exchange {
          * @param {float} [$params->triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss $order will be triggered
          * @param {float} [$params->stopLossPrice] *swap only* stop loss trigger $price
          * @param {float} [$params->takeProfitPrice] *swap only* take profit trigger $price
+         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -1938,15 +1981,17 @@ class bingx extends Exchange {
         //       "symbol" => "XRP-USDT",
         //       "orderId" => 1514073325788200960,
         //       "price" => "0.5",
+        //       "StopPrice" => "0",
         //       "origQty" => "20",
-        //       "executedQty" => "0",
-        //       "cummulativeQuoteQty" => "0",
+        //       "executedQty" => "10",
+        //       "cummulativeQuoteQty" => "5",
         //       "status" => "PENDING",
         //       "type" => "LIMIT",
         //       "side" => "BUY",
         //       "time" => 1649818185647,
         //       "updateTime" => 1649818185647,
         //       "origQuoteOrderQty" => "0"
+        //       "fee" => "-0.01"
         //   }
         //
         //
@@ -2006,9 +2051,22 @@ class bingx extends Exchange {
         $amount = $this->safe_string_2($order, 'origQty', 'q');
         $filled = $this->safe_string_2($order, 'executedQty', 'z');
         $statusId = $this->safe_string_2($order, 'status', 'X');
+        $feeCurrencyCode = $this->safe_string_2($order, 'feeAsset', 'N');
+        $feeCost = $this->safe_string_n($order, array( 'fee', 'commission', 'n' ));
+        if (($feeCurrencyCode === null)) {
+            if ($market['spot']) {
+                if ($side === 'buy') {
+                    $feeCurrencyCode = $market['base'];
+                } else {
+                    $feeCurrencyCode = $market['quote'];
+                }
+            } else {
+                $feeCurrencyCode = $market['quote'];
+            }
+        }
         $fee = array(
-            'currency' => $this->safe_string_2($order, 'feeAsset', 'N'),
-            'rate' => $this->safe_string_n($order, array( 'fee', 'commission', 'n' )),
+            'currency' => $feeCurrencyCode,
+            'cost' => Precise::string_abs($feeCost),
         );
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'c');
         return $this->safe_order(array(
