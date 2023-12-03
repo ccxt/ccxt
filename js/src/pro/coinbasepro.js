@@ -251,8 +251,8 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        symbols = this.marketSymbols(symbols, undefined, false);
         await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
         const name = 'user';
         const messageHash = 'multipleOrders::';
         const authentication = this.authenticate();

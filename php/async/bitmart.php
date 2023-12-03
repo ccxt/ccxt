@@ -42,6 +42,9 @@ class bitmart extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => false,
@@ -2175,11 +2178,31 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
-             * @see https://developer-pro.bitmart.com/en/spot/#place-spot-$order
+             * @see https://developer-pro.bitmart.com/en/spot/#new-$order-v2-signed
              * @see https://developer-pro.bitmart.com/en/spot/#place-margin-$order
              * @see https://developer-pro.bitmart.com/en/futures/#submit-$order-signed
              * @param {string} $symbol unified $symbol of the $market to create an $order in
@@ -2347,17 +2370,17 @@ class bitmart extends Exchange {
         } elseif ($isMarketOrder) {
             // for $market buy it requires the $amount of quote currency to spend
             if ($side === 'buy') {
-                $notional = $this->safe_number($params, 'notional');
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                $notional = $this->safe_number_2($params, 'cost', 'notional');
+                $params = $this->omit($params, 'cost');
+                $createMarketBuyOrderRequiresPrice = true;
+                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 if ($createMarketBuyOrderRequiresPrice) {
-                    if ($price !== null) {
-                        if ($notional === null) {
-                            $amountString = $this->number_to_string($amount);
-                            $priceString = $this->number_to_string($price);
-                            $notional = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                        }
-                    } elseif ($notional === null) {
-                        throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                    if (($price === null) && ($notional === null)) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the $amount argument or in the "notional" extra parameter (the exchange-specific behaviour)');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $notional = $this->parse_number(Precise::string_mul($amountString, $priceString));
                     }
                 } else {
                     $notional = ($notional === null) ? $amount : $notional;

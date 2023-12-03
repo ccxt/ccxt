@@ -232,8 +232,8 @@ class coinbasepro(ccxt.async_support.coinbasepro):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        symbols = self.market_symbols(symbols, None, False)
         await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
         name = 'user'
         messageHash = 'multipleOrders::'
         authentication = self.authenticate()
