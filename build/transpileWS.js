@@ -149,79 +149,6 @@ class CCXTProTranspiler extends Transpiler {
 
     // ------------------------------------------------------------------------
 
-    transpileOrderBookTest () {
-        const jsFile = './ts/src/pro/test/base/test.OrderBook.ts'
-        const pyFile = './python/ccxt/pro/test/base/test_order_book.py'
-        const phpFile = './php/pro/test/base/OrderBook.php'
-        const pyImports = [
-            '',
-            'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
-            '',
-        ].join ('\n')
-        this.transpileTest (jsFile, pyFile, phpFile, pyImports)
-    }
-
-    // ------------------------------------------------------------------------
-
-    transpileCacheTest () {
-        const jsFile = './ts/src/pro/test/base/test.Cache.ts'
-        const pyFile = './python/ccxt/pro/test/base/test_cache.py'
-        const phpFile = './php/pro/test/base/Cache.php'
-        const pyImports = [
-            '',
-            'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402',
-            '',
-        ].join ('\n')
-        this.transpileTest (jsFile, pyFile, phpFile, pyImports)
-    }
-
-    // ------------------------------------------------------------------------
-
-    transpileTest (jsFile, pyFile, phpFile, pyImports) {
-
-        log.magenta ('Transpiling WS from', jsFile.yellow)
-
-        let js = fs.readFileSync (jsFile).toString ()
-
-        js = this.regexAll (js, [
-            [ /\'use strict\';?\s+/g, '' ],
-            //[ /[^\n]+require[^\n]+\n/g, '' ],
-            [ /[^\n]+from[^\n]+\n/g, '' ],
-            [ /\/\* eslint-disable \*\/\n*/g, '' ],
-            [ /export default\s+[^\n]+;*\n*/g, '' ],
-            [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
-        ])
-
-        const options = { js, removeEmptyLines: false }
-        const transpiled = this.transpileJavaScriptToPythonAndPHP (options)
-        const { python3Body, python2Body, phpBody } = transpiled
-        const pythonHeader = [
-            '',
-            '',
-            'def equals(a, b):',
-            '    return a == b',
-            '',
-        ].join ('\n')
-
-        const phpHeader = [
-            '',
-            'function equals($a, $b) {',
-            '    return json_encode($a) === json_encode($b);',
-            '}',
-        ].join ('\n')
-
-        const python = this.getPythonPreamble () + pyImports + pythonHeader + python2Body
-        const php = this.getPHPPreamble () + phpHeader + phpBody
-
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
-
-        overwriteFile (pyFile, python)
-        overwriteFile (phpFile, php)
-    }
-
-    // ------------------------------------------------------------------------
-
     exportTypeScriptClassNames (file, classes) {
 
         log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
@@ -270,10 +197,6 @@ class CCXTProTranspiler extends Transpiler {
         if (child) {
             return
         }
-
-        this.transpileCacheTest ()
-        this.transpileOrderBookTest ()
-
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')

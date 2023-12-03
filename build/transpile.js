@@ -2531,14 +2531,18 @@ class Transpiler {
                 pythonHeaderSync = ['', ...pythonHeaderSync, '', '']
             }
 
-            let directoriesTillPythonBase = 4;
-            const pyFile = test.pyFileAsync || test.pyFile;
-            if(pyFile && pyFile.includes('/python/')) {
-                directoriesTillPythonBase = (pyFile.split('/python/')[1]?.match(/\//g)?.length || 3) + 1;
-            }
-            const pythonPreamble = this.getPythonPreamble(directoriesTillPythonBase);
+            const findDirsAmountForPath = (langFolder, filePath, defaultDirs) => {
+                let directoriesToPythonFile = undefined;
+                if(filePath && filePath.includes('/' + langFolder + '/')) {
+                    directoriesToPythonFile = (pyFile.split('/' + langFolder + '/')[1]?.match(/\//g)?.length || defaultDirs) + 1;
+                }
+            };
+
+            const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFile, 3);
+            const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFile, 2);
+            const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
             const pythonPreambleSync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
-            const phpPreamble = this.getPHPPreamble (false)
+            const phpPreamble = this.getPHPPreamble (false, phpDirsAmount)
             let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
 
