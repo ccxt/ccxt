@@ -221,14 +221,19 @@ def init_exchange(exchangeId, args, is_ws=False):
 
 async def set_test_files(holderClass, properties):
     finalPropList = properties + [proxyTestFileName]
-    syncAsync = 'async' if not is_synchronous else 'sync'
-    dir_to_test = DIR_NAME + '/../pro/' if isWsTests else DIR_NAME + '/' + syncAsync
     for i in range(0, len(finalPropList)):
         name = finalPropList[i]
         name_snake_case = convert_to_snake_case(name)
-        filePathWithExt = dir_to_test + '/test_' + name_snake_case + '.py'
+        prefix = 'async' if not is_synchronous else 'sync'
+        dir_to_test =  DIR_NAME + '/' + prefix
+        module_string = 'ccxt.test.' + prefix + '.test_' + name_snake_case
+        if (isWsTests):
+            prefix = 'pro'
+            dir_to_test = DIR_NAME + '/../' + prefix + '/test/' 
+            module_string = 'ccxt.pro.test.test_' + name_snake_case
+        filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
-            imp = importlib.import_module('ccxt.test.' + syncAsync + '.test_' + name_snake_case)
+            imp = importlib.import_module(module_string)
             holderClass.test_files[name] = imp  # getattr(imp, finalName)
 
 
