@@ -268,8 +268,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
-            $symbols = $this->market_symbols($symbols, null, false);
             Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
             $name = 'user';
             $messageHash = 'multipleOrders::';
             $authentication = $this->authenticate();
