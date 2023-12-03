@@ -1477,38 +1477,45 @@ export default class bitmart extends Exchange {
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         // spot
-        //
-        //     [
-        //         "1699512060", // timestamp
-        //         "36746.49", // open
-        //         "36758.71", // high
-        //         "36736.13", // low
-        //         "36755.99", // close
-        //         "2.83965", // base volume
-        //         "104353.57" // quote volume
-        //     ]
+        //    [
+        //        "1699512060", // timestamp
+        //        "36746.49", // open
+        //        "36758.71", // high
+        //        "36736.13", // low
+        //        "36755.99", // close
+        //        "2.83965", // base volume
+        //        "104353.57" // quote volume
+        //    ]
         //
         // swap
-        //
-        //     {
-        //         "low_price": "20090.3",
-        //         "high_price": "20095.5",
-        //         "open_price": "20092.6",
-        //         "close_price": "20091.4",
-        //         "volume": "8748",
-        //         "timestamp": 1665002281
-        //     }
+        //    {
+        //        "low_price": "20090.3",
+        //        "high_price": "20095.5",
+        //        "open_price": "20092.6",
+        //        "close_price": "20091.4",
+        //        "volume": "8748",
+        //        "timestamp": 1665002281
+        //    }
         //
         // ws
+        //    [
+        //        1631056350, // timestamp
+        //        "46532.83", // open
+        //        "46555.71", // high
+        //        "46511.41", // low
+        //        "46555.71", // close
+        //        "0.25", // volume
+        //    ]
         //
-        //     [
-        //         1631056350, // timestamp
-        //         "46532.83", // open
-        //         "46555.71", // high
-        //         "46511.41", // low
-        //         "46555.71", // close
-        //         "0.25", // volume
-        //     ]
+        // ws swap
+        //    {
+        //        "symbol":"BTCUSDT",
+        //        "o":"146.24",
+        //        "h":"146.24",
+        //        "l":"146.24",
+        //        "c":"146.24",
+        //        "v":"146"
+        //    }
         //
         if (Array.isArray (ohlcv)) {
             return [
@@ -1521,12 +1528,12 @@ export default class bitmart extends Exchange {
             ];
         } else {
             return [
-                this.safeTimestamp (ohlcv, 'timestamp'),
-                this.safeNumber (ohlcv, 'open_price'),
-                this.safeNumber (ohlcv, 'high_price'),
-                this.safeNumber (ohlcv, 'low_price'),
-                this.safeNumber (ohlcv, 'close_price'),
-                this.safeNumber (ohlcv, 'volume'),
+                this.safeTimestamp2 (ohlcv, 'timestamp', 'ts'),
+                this.safeNumber2 (ohlcv, 'open_price', 'o'),
+                this.safeNumber2 (ohlcv, 'high_price', 'h'),
+                this.safeNumber2 (ohlcv, 'low_price', 'l'),
+                this.safeNumber2 (ohlcv, 'close_price', 'c'),
+                this.safeNumber2 (ohlcv, 'volume', 'v'),
             ];
         }
     }
