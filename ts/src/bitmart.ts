@@ -39,7 +39,7 @@ export default class bitmart extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createMarketBuyOrderWithCost': true,
-                'createMarketOrderWithCost': true,
+                'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -2168,31 +2168,6 @@ export default class bitmart extends Exchange {
         };
         const statuses = this.safeValue (statusesByType, type, {});
         return this.safeString (statuses, status, status);
-    }
-
-    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost, params = {}) {
-        /**
-         * @method
-         * @name bitmart#createMarketOrderWithCost
-         * @description create a market order by providing the symbol, side and cost
-         * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new NotSupported (this.id + ' createMarketOrderWithCost() supports spot orders only');
-        }
-        if (side === 'buy') {
-            params['createMarketBuyOrderRequiresPrice'] = false;
-        } else {
-            throw new NotSupported (this.id + ' createMarketOrderWithCost() supports buy orders only');
-        }
-        return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
 
     async createMarketBuyOrderWithCost (symbol: string, cost, params = {}) {

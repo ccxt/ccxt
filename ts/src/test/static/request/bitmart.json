@@ -185,19 +185,6 @@
                 "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
             }
         ],
-        "createMarketOrderWithCost": [
-            {
-                "description": "Spot create market order with cost and set the side to buy",
-                "method": "createMarketOrderWithCost",
-                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
-                "input": [
-                    "BTC/USDT",
-                    "buy",
-                    5
-                ],
-                "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
-            }
-        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
