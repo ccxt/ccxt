@@ -213,7 +213,7 @@ def set_exchange_prop(exchange, prop, value):
     setattr(exchange, convert_to_snake_case(prop), value)
 
 
-def init_exchange(exchangeId, args, is_ws = False):
+def init_exchange(exchangeId, args, is_ws=False):
     if (is_ws):
         return getattr(ccxtpro, exchangeId)(args)
     return getattr(ccxt, exchangeId)(args)

@@ -1679,7 +1679,7 @@ class Exchange(object):
     def set_exchange_property (self, propertyName, value):
         # support both: camelCase & snake_case
         setattr(self, propertyName, value)
-        snakeCasedPropertyName = self.un_camel_case (propertyName)
+        snakeCasedPropertyName = self.un_camel_case(propertyName)
         if (snakeCasedPropertyName != propertyName):
             setattr(self, snakeCasedPropertyName, value)
 
