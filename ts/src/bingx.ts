@@ -312,10 +312,6 @@ export default class bingx extends Exchange {
                 '1w': '1w',
                 '1M': '1M',
             },
-            'fees': {
-                'trading': {
-                },
-            },
             'precisionMode': DECIMAL_PLACES,
             'exceptions': {
                 'exact': {
