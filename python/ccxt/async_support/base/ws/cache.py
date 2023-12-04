@@ -47,6 +47,10 @@ class BaseCache(list):
         else:
             return deque[item]
 
+    def __getattr__(self, attr_name):
+        # support snake_case
+        if (attr_name == 'get_limit'):
+            return self.getLimit
 
 class ArrayCache(BaseCache):
     def __init__(self, max_size=None):
