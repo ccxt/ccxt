@@ -40,6 +40,8 @@ class coinbase extends Exchange {
                 'addMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,

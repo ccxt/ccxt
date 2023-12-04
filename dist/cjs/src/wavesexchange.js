@@ -29,6 +29,8 @@ class wavesexchange extends wavesexchange$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

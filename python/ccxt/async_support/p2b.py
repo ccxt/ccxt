@@ -36,6 +36,8 @@ class p2b(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': False,
                 'createMarketOrder': False,
                 'createOrder': True,

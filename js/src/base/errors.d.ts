@@ -76,7 +76,10 @@ declare class DuplicateOrderId extends InvalidOrder {
 declare class NotSupported extends ExchangeError {
     constructor(message: any);
 }
-declare class NetworkError extends BaseError {
+declare class OperationFailed extends BaseError {
+    constructor(message: any);
+}
+declare class NetworkError extends OperationFailed {
     constructor(message: any);
 }
 declare class DDoSProtection extends NetworkError {
@@ -95,9 +98,6 @@ declare class InvalidNonce extends NetworkError {
     constructor(message: any);
 }
 declare class RequestTimeout extends NetworkError {
-    constructor(message: any);
-}
-declare class OperationFailed extends BaseError {
     constructor(message: any);
 }
 declare const errors: {

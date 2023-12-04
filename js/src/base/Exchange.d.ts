@@ -291,6 +291,8 @@ export default class Exchange {
             cancelAllOrders: any;
             cancelOrder: boolean;
             cancelOrders: any;
+            closeAllPositions: any;
+            closePosition: any;
             createDepositAddress: any;
             createLimitOrder: boolean;
             createMarketOrder: boolean;
@@ -790,6 +792,8 @@ export default class Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    closePosition(symbol: string, side?: OrderSide, marginMode?: string, params?: {}): Promise<Position>;
+    closeAllPositions(params?: {}): Promise<Position[]>;
     parseLastPrice(price: any, market?: Market): any;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     account(): Account;

@@ -50,6 +50,8 @@ class bybit(Exchange, ImplicitAPI):
                 'borrowCrossMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,

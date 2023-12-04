@@ -37,6 +37,8 @@ class ndax(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,

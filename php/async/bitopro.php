@@ -34,6 +34,8 @@ class bitopro extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'editOrder' => false,
                 'fetchBalance' => true,

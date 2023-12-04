@@ -32,30 +32,6 @@ export default class cryptocom extends Exchange {
     safeNetwork(networkId: any): string;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: any;
-        datetime: string;
-        currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-    }>;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTransferStatus(status: any): string;
-    parseTransfer(transfer: any, currency?: Currency): {
-        info: any;
-        id: string;
-        timestamp: any;
-        datetime: string;
-        currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
-        status: any;
-    };
     parseTicker(ticker: any, market?: Market): Ticker;
     parseTrade(trade: any, market?: Market): Trade;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;

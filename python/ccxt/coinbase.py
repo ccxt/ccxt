@@ -45,6 +45,8 @@ class coinbase(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,

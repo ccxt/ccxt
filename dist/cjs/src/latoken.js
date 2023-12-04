@@ -28,6 +28,8 @@ class latoken extends latoken$1 {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createPostOnlyOrder': false,
                 'createStopLimitOrder': true,

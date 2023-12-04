@@ -32,6 +32,8 @@ export default class coinspot extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
