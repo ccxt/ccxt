@@ -2,9 +2,10 @@
 
 import ccxt from '../../js/ccxt.js'
 
-// instantiate the exchange
 let exchange = new ccxt.okx  ({});
 exchange.throttler.config.maxCapacity = 1000; 
+
+// uncomment below to fix the exception
 // exchange.throttler.costMultiplier = 1.1;
 
 async function checkOrders(){
