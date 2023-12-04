@@ -2472,6 +2472,18 @@ class Transpiler {
 
             let importedErrors = imports.filter(x => Object.keys(errors).includes(x.name)).map(x => x.name); // returns 'OnMaintenance,ExchangeNotAvailable', etc...
             
+            const findDirsAmountForPath = (langFolder, filePath, defaultDirs) => {
+                let directoriesToPythonFile = undefined;
+                if(filePath && filePath.includes('/' + langFolder + '/')) {
+                    directoriesToPythonFile = (filePath.split('/' + langFolder + '/')[1]?.match(/\//g)?.length || defaultDirs) + 1;
+                }
+                return directoriesToPythonFile;
+            };
+
+            const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFile, 3);
+            const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFile, 2);
+            const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
+            const phpPreamble = this.getPHPPreamble (false, phpDirsAmount);
 
             let pythonHeaderSync = []
             let pythonHeaderAsync = []
@@ -2489,16 +2501,6 @@ class Transpiler {
             if (usesPrecise) {
                 pythonHeaderAsync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
-            }
-            if (test.tsFile.includes('pro/test/base/test.Cache.ts')){
-                pythonHeaderSync.push ('');
-                pythonHeaderSync.push ('from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402');
-                pythonHeaderSync.push ('');
-            }
-            if (test.tsFile.includes('pro/test/base/test.OrderBook.ts')){
-                pythonHeaderSync.push ('');
-                pythonHeaderSync.push ('from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402');
-                pythonHeaderSync.push ('');
             }
 
             for (const importedError of importedErrors) {
@@ -2539,25 +2541,31 @@ class Transpiler {
                     }
                 }
             }
-                
+
+            const isWsCache = test.tsFile.includes('pro/test/base/test.Cache.ts');
+            const isWsOrderBook = test.tsFile.includes('pro/test/base/test.OrderBook.ts');
+            if (isWsCache || isWsOrderBook) {
+                // they are custom files called directly from run-tests
+                phpPreamble = phpPreamble.replace('namespace ccxt;', 
+                "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';",)
+                if (isWsCache){
+                    pythonHeaderSync.push ('');
+                    pythonHeaderSync.push ('from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402');
+                    pythonHeaderSync.push ('');
+                }
+                if (isWsOrderBook){
+                    pythonHeaderSync.push ('');
+                    pythonHeaderSync.push ('from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402');
+                    pythonHeaderSync.push ('');
+                }
+            }
+
             if (pythonHeaderAsync.length > 0) {
                 pythonHeaderAsync = ['', ...pythonHeaderAsync, '', '']
                 pythonHeaderSync = ['', ...pythonHeaderSync, '', '']
             }
 
-            const findDirsAmountForPath = (langFolder, filePath, defaultDirs) => {
-                let directoriesToPythonFile = undefined;
-                if(filePath && filePath.includes('/' + langFolder + '/')) {
-                    directoriesToPythonFile = (filePath.split('/' + langFolder + '/')[1]?.match(/\//g)?.length || defaultDirs) + 1;
-                }
-                return directoriesToPythonFile;
-            };
-
-            const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFile, 3);
-            const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFile, 2);
-            const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
             const pythonPreambleSync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
-            const phpPreamble = this.getPHPPreamble (false, phpDirsAmount)
             let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
 
