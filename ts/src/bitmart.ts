@@ -1341,48 +1341,58 @@ export default class bitmart extends Exchange {
         //
         // public fetchTrades spot ( amount = count * price )
         //
-        //     {
-        //          "amount": "818.94",
-        //          "order_time": "1637601839035",    // ETH/USDT
-        //          "price": "4221.99",
-        //          "count": "0.19397",
-        //          "type": "buy"
-        //      }
+        //    {
+        //        "amount": "818.94",
+        //        "order_time": "1637601839035",    // ETH/USDT
+        //        "price": "4221.99",
+        //        "count": "0.19397",
+        //        "type": "buy"
+        //    }
         //
         // spot: fetchMyTrades
         //
-        //     {
-        //         "tradeId":"182342999769370687",
-        //         "orderId":"183270218784142990",
-        //         "clientOrderId":"183270218784142990",
-        //         "symbol":"ADA_USDT",
-        //         "side":"buy",
-        //         "orderMode":"spot",
-        //         "type":"market",
-        //         "price":"0.245948",
-        //         "size":"20.71",
-        //         "notional":"5.09358308",
-        //         "fee":"0.00509358",
-        //         "feeCoinName":"USDT",
-        //         "tradeRole":"taker",
-        //         "createTime":1695658457836,
-        //     }
+        //    {
+        //        "tradeId":"182342999769370687",
+        //        "orderId":"183270218784142990",
+        //        "clientOrderId":"183270218784142990",
+        //        "symbol":"ADA_USDT",
+        //        "side":"buy",
+        //        "orderMode":"spot",
+        //        "type":"market",
+        //        "price":"0.245948",
+        //        "size":"20.71",
+        //        "notional":"5.09358308",
+        //        "fee":"0.00509358",
+        //        "feeCoinName":"USDT",
+        //        "tradeRole":"taker",
+        //        "createTime":1695658457836,
+        //    }
         //
         // swap: fetchMyTrades
         //
-        //     {
-        //         "order_id": "230930336848609",
-        //         "trade_id": "6212604014",
-        //         "symbol": "BTCUSDT",
-        //         "side": 3,
-        //         "price": "26910.4",
-        //         "vol": "1",
-        //         "exec_type": "Taker",
-        //         "profit": false,
-        //         "create_time": 1695961596692,
-        //         "realised_profit": "-0.0003",
-        //         "paid_fees": "0.01614624"
-        //     }
+        //    {
+        //        "order_id": "230930336848609",
+        //        "trade_id": "6212604014",
+        //        "symbol": "BTCUSDT",
+        //        "side": 3,
+        //        "price": "26910.4",
+        //        "vol": "1",
+        //        "exec_type": "Taker",
+        //        "profit": false,
+        //        "create_time": 1695961596692,
+        //        "realised_profit": "-0.0003",
+        //        "paid_fees": "0.01614624"
+        //    }
+        //
+        // ws swap
+        //
+        //    {
+        //        'fee': '-0.000044502',
+        //        'feeCcy': 'USDT',
+        //        'fillPrice': '74.17',
+        //        'fillQty': '1',
+        //        'lastTradeID': 6802340762
+        //    }
         //
         const timestamp = this.safeIntegerN (trade, [ 'order_time', 'createTime', 'create_time' ]);
         const isPublicTrade = ('order_time' in trade);
@@ -1395,7 +1405,7 @@ export default class bitmart extends Exchange {
             cost = this.safeString (trade, 'amount');
             side = this.safeString (trade, 'type');
         } else {
-            amount = this.safeString2 (trade, 'size', 'vol');
+            amount = this.safeStringN (trade, [ 'size', 'vol', 'fillQty' ]);
             cost = this.safeString (trade, 'notional');
             type = this.safeString (trade, 'type');
             side = this.parseOrderSide (this.safeString (trade, 'side'));
@@ -1417,14 +1427,14 @@ export default class bitmart extends Exchange {
         }
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString2 (trade, 'tradeId', 'trade_id'),
+            'id': this.safeStringN (trade, [ 'tradeId', 'trade_id', 'lastTradeID' ]),
             'order': this.safeString2 (trade, 'orderId', 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': type,
             'side': side,
-            'price': this.safeString (trade, 'price'),
+            'price': this.safeString2 (trade, 'price', 'fillPrice'),
             'amount': amount,
             'cost': cost,
             'takerOrMaker': this.safeStringLower2 (trade, 'tradeRole', 'exec_type'),
