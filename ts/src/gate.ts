@@ -284,21 +284,6 @@ export default class gate extends Exchange {
                             'sub_accounts/{user_id}/keys/{key}': 2.5,
                         },
                     },
-                    'portfolio': {
-                        'get': {
-                            'accounts': 20 / 15,
-                            'account_mode': 20 / 15,
-                            'borrowable': 20 / 15,
-                            'transferable': 20 / 15,
-                            'loans': 20 / 15,
-                            'loan_records': 20 / 15,
-                            'interest_records': 20 / 15,
-                        },
-                        'post': {
-                            'account_mode': 20 / 15,
-                            'loans': 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
-                        },
-                    },
                     'spot': {
                         // default is 200r/10s
                         'get': {
@@ -482,10 +467,13 @@ export default class gate extends Exchange {
                     },
                     'earn': {
                         'get': {
+                            'uni/currencies': 20 / 15,
+                            'uni/currencies/{currency}': 20 / 15,
                             'uni/lends': 20 / 15,
                             'uni/lend_records': 20 / 15,
                             'uni/interests/{currency}': 20 / 15,
                             'uni/interest_records': 20 / 15,
+                            'uni/interest_status/{currency}': 20 / 15,
                         },
                         'post': {
                             'uni/lends': 20 / 15,
