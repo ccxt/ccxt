@@ -2420,6 +2420,10 @@ class Transpiler {
         // apply regex to every file
         allFiles = allFiles.map( file => this.regexAll (file, [
             [ /\'use strict\';?\s+/g, '' ],
+            [ /\/\* eslint-disable \*\/\n*/g, '' ],
+            // [ /[^\n]+from[^\n]+\n/g, '' ],
+            // [ /export default\s+[^\n]+;*\n*/g, '' ],
+            // [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
         ]));
 
         const flatResult = await this.webworkerTranspile (allFiles, fileConfig, parserConfig);
@@ -2486,6 +2490,16 @@ class Transpiler {
                 pythonHeaderAsync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
             }
+            if (test.tsFile.includes('pro/test/base/test.Cache.ts')){
+                pythonHeaderSync.push ('');
+                pythonHeaderSync.push ('from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402');
+                pythonHeaderSync.push ('');
+            }
+            if (test.tsFile.includes('pro/test/base/test.OrderBook.ts')){
+                pythonHeaderSync.push ('');
+                pythonHeaderSync.push ('from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402');
+                pythonHeaderSync.push ('');
+            }
 
             for (const importedError of importedErrors) {
                 const py = `from ccxt.base.errors import ${importedError}  # noqa E402`;
@@ -2525,7 +2539,7 @@ class Transpiler {
                     }
                 }
             }
-
+                
             if (pythonHeaderAsync.length > 0) {
                 pythonHeaderAsync = ['', ...pythonHeaderAsync, '', '']
                 pythonHeaderSync = ['', ...pythonHeaderSync, '', '']

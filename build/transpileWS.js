@@ -147,8 +147,6 @@ class CCXTProTranspiler extends Transpiler {
         return false
     }
 
-    // ------------------------------------------------------------------------
-
     exportTypeScriptClassNames (file, classes) {
 
         log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
@@ -206,10 +204,6 @@ class CCXTProTranspiler extends Transpiler {
         //*/
 
         // this.transpileErrorHierarchy ({ tsFilename })
-
-        // transpilePrecisionTests ()
-        // transpileDateTimeTests ()
-        // transpileCryptoTests ()
 
         log.bright.green ('Transpiled successfully.')
     }
