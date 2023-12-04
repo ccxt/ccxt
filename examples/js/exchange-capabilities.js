@@ -32,26 +32,20 @@ async function main () {
     let implemented = 0
     let emulated = 0
 
-    const certified = [
-        'binance',
-        'binancecoinm',
-        'binanceusdm',
-        'bitget',
-        'bitmart',
-        'bitmex',
-        'bybit',
-        'cryptocom',
-        'gateio',
-        'htx',
-        'kucoin',
-        'kucoinfutures',
-        'mexc',
-        'okx',
-        'woo',
-    ]
-    const exchangeNames = ccxt.unique (sortCertified ? certified.concat (ccxt.exchanges) : ccxt.exchanges);
+    const exchangeNames = ccxt.exchanges
     let exchanges = exchangeNames.map (id => new ccxt[id] ())
     exchanges = exchanges.map (exchange => exchange.pro ? new ccxt.pro[exchange.id] () : exchange)
+    if (sortCertified) {
+        exchanges.sort((a, b) => {
+            if (a.certified && !b.certified) {
+                return -1;
+            } else if (!a.certified && b.certified) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+    }
     const metainfo = ccxt.flatten (exchanges.map (exchange => Object.keys (exchange.has)))
     const reduced = metainfo.reduce ((previous, current) => {
         previous[current] = (previous[current] || 0) + 1
