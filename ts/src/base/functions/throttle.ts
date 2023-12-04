@@ -7,6 +7,7 @@ import { now, sleep } from './time.js';
 
 class Throttler {
     constructor (config) {
+        this.costMultiplier = 1.0;
         this.config = {
             'refillRate': 1.0,
             'delay': 0.001,
@@ -53,6 +54,7 @@ class Throttler {
             throw new Error ('throttle queue is over maxCapacity (' + this.config['maxCapacity'].toString () + '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526');
         }
         cost = (cost === undefined) ? this.config['cost'] : cost;
+        cost = cost * this.costMultiplier;
         this.queue.push ({ resolver, cost });
         if (!this.running) {
             this.running = true;
