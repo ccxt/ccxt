@@ -152,7 +152,7 @@ class Precise:
 
     @staticmethod
     def string_div(string1, string2, precision=18):
-        if string1 is None or string2 is None or string2 == '0':
+        if string1 is None or not string2 or string2 == '0':
             return None
         return str(Precise(string1).div(Precise(string2), precision))
 

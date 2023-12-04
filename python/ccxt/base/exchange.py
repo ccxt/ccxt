@@ -1542,8 +1542,17 @@ class Exchange(object):
         for trading_permission, required_permissions in permission_mapping.items():
             has_permissions = True
             for required_permission in required_permissions:
-                if response and not self.safe_value(response, required_permission):
-                    has_permissions = False
+                if response:
+                    value = self.safe_value(response, required_permission)
+                    if value:
+                        if isinstance(required_permissions, dict):
+                            expected_value = required_permissions[required_permission]
+                            if expected_value and isinstance(expected_value, list):
+                                has_permissions &= set(value) == set(expected_value)
+                            elif expected_value:
+                                has_permissions &= value == expected_value
+                    else:
+                        has_permissions = False
                 if permissions_list and required_permission not in permissions_list:
                     has_permissions = False
             if has_permissions:
