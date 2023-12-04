@@ -6,7 +6,7 @@ let exchange = new ccxt.okx  ({});
 exchange.throttler.config.maxCapacity = 1000; 
 
 // uncomment below to fix the exception
-// exchange.throttler.costMultiplier = 1.1;
+// exchange.throttler.costMultiplier = 1.05;
 
 async function checkOrders(){
     const promises = [];
