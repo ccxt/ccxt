@@ -4130,7 +4130,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingHistory() is not supported yet');
     }
 
-    async closePosition (symbol: string, side: OrderSide = undefined, marginMode: MarginMode = undefined, params = {}): Promise<Order> {
+    async closePosition (symbol: string, side: OrderSide = undefined, marginMode: string = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' closePositions() is not supported yet');
     }
 
