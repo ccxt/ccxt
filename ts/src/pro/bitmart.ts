@@ -722,6 +722,7 @@ export default class bitmart extends bitmartRest {
         const openTimestamp = this.safeInteger (position, 'create_time');
         const timestamp = this.safeInteger (position, 'update_time');
         const side = this.safeNumber (position, 'position_type');
+        const marginModeId = this.safeNumber (position, 'open_type');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -746,7 +747,7 @@ export default class bitmart extends bitmartRest {
             'unrealizedPnl': undefined,
             'realizedPnl': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidate_price'),
-            'marginMode': (this.safeNumber (position, 'open_type') === 1) ? 'isolated' : 'cross',
+            'marginMode': (marginModeId === 1) ? 'isolated' : 'cross',
             'percentage': undefined,
             'marginRatio': undefined,
             'stopLossPrice': undefined,
