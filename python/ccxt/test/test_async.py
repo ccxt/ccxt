@@ -229,7 +229,7 @@ async def set_test_files(holderClass, properties):
         module_string = 'ccxt.test.' + prefix + '.test_' + name_snake_case
         if (isWsTests and 'watch' in name):
             prefix = 'pro'
-            dir_to_test = DIR_NAME + '/../' + prefix + '/test/' 
+            dir_to_test = DIR_NAME + '/../' + prefix + '/test/'
             module_string = 'ccxt.pro.test.test_' + name_snake_case
         filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
