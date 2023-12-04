@@ -81,10 +81,18 @@ class bingx extends Exchange {
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
                 'referral' => 'https://bingx.com/invite/OHETOM',
-                'fees' => array(
-                    'trading' => array(
-                        'tierBased' => true,
-                    ),
+            ),
+            'fees' => array(
+                'tierBased' => true,
+                'spot' => array(
+                    'feeSide' => 'get',
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
+                ),
+                'swap' => array(
+                    'feeSide' => 'quote',
+                    'maker' => $this->parse_number('0.0002'),
+                    'taker' => $this->parse_number('0.0005'),
                 ),
             ),
             'requiredCredentials' => array(
@@ -302,10 +310,6 @@ class bingx extends Exchange {
                 '3d' => '3d',
                 '1w' => '1w',
                 '1M' => '1M',
-            ),
-            'fees' => array(
-                'trading' => array(
-                ),
             ),
             'precisionMode' => DECIMAL_PLACES,
             'exceptions' => array(
@@ -560,11 +564,12 @@ class bingx extends Exchange {
         if ($settle !== null) {
             $symbol .= ':' . $settle;
         }
+        $fees = $this->safe_value($this->fees, $type, array());
         $contractSize = $this->safe_number($market, 'size');
         $isActive = $this->safe_string($market, 'status') === '1';
         $isInverse = ($spot) ? null : false;
         $isLinear = ($spot) ? null : $swap;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -583,8 +588,9 @@ class bingx extends Exchange {
             'contract' => $swap,
             'linear' => $isLinear,
             'inverse' => $isInverse,
-            'taker' => null,
-            'maker' => null,
+            'taker' => $this->safe_number($fees, 'taker'),
+            'maker' => $this->safe_number($fees, 'maker'),
+            'feeSide' => $this->safe_string($fees, 'feeSide'),
             'contractSize' => $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -614,7 +620,7 @@ class bingx extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_markets($params = array ()) {
