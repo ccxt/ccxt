@@ -24,6 +24,11 @@ class ArrayCacheByTimestamp extends BaseCache {
         return min($this->new_updates, $limit);
     }
 
+    // tmp support for type bcz of transpiler snake_case
+    public function get_limit($symbol, $limit) {
+        return $this->getLimit($symbol, $limit);
+    }
+
     public function append($item) {
         if (array_key_exists($item[0], $this->hashmap)) {
             $prev_ref = &$this->hashmap[$item[0]];
