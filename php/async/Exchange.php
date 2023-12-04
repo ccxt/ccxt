@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.74';
+$version = '4.1.75';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.74';
+    const VERSION = '4.1.75';
 
     public $browser;
     public $marketsLoading = null;
@@ -4089,6 +4089,10 @@ class Exchange extends \ccxt\Exchange {
                     $last = $this->safe_value($response, $responseLength - 1);
                     $cursorValue = $this->safe_value($last['info'], $cursorReceived);
                     if ($cursorValue === null) {
+                        break;
+                    }
+                    $lastTimestamp = $this->safe_integer($last, 'timestamp');
+                    if ($lastTimestamp !== null && $lastTimestamp < $since) {
                         break;
                     }
                 } catch (Exception $e) {

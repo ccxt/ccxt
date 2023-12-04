@@ -79,11 +79,13 @@ export default class kraken extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseTransactionStatus(status: any): string;
+    parseNetwork(network: any): string;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
     parseTransactionsByType(type: any, transactions: any, code?: Str, since?: Int, limit?: Int): any;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchTime(params?: {}): Promise<number>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    addPaginationCursorToResult(result: any): any;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
