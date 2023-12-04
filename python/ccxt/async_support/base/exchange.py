@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.74'
+__version__ = '4.1.75'
 
 # -----------------------------------------------------------------------------
 
@@ -1318,6 +1318,9 @@ class Exchange(BaseExchange):
                 last = self.safe_value(response, responseLength - 1)
                 cursorValue = self.safe_value(last['info'], cursorReceived)
                 if cursorValue is None:
+                    break
+                lastTimestamp = self.safe_integer(last, 'timestamp')
+                if lastTimestamp is not None and lastTimestamp < since:
                     break
             except Exception as e:
                 errors += 1

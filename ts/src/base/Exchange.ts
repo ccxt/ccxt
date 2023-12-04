@@ -4130,7 +4130,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchFundingHistory() is not supported yet');
     }
 
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+    async closePosition (symbol: string, side: OrderSide = undefined, marginMode: string = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' closePositions() is not supported yet');
     }
 
@@ -5179,6 +5179,10 @@ export default class Exchange {
                 const last = this.safeValue (response, responseLength - 1);
                 cursorValue = this.safeValue (last['info'], cursorReceived);
                 if (cursorValue === undefined) {
+                    break;
+                }
+                const lastTimestamp = this.safeInteger (last, 'timestamp');
+                if (lastTimestamp !== undefined && lastTimestamp < since) {
                     break;
                 }
             } catch (e) {

@@ -23,6 +23,7 @@ class binance extends binance$1 {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
+                'watchOrdersForSymbols': true,
                 'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
@@ -2062,6 +2063,7 @@ class binance extends binance$1 {
         /**
          * @method
          * @name binance#watchOrders
+         * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2075,7 +2077,7 @@ class binance extends binance$1 {
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            messageHash += '::' + symbol;
         }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
@@ -2098,11 +2100,63 @@ class binance extends binance$1 {
         this.setBalanceCache(client, type);
         this.setPositionsCache(client, type);
         const message = undefined;
-        const orders = await this.watch(url, messageHash, message, type);
+        const newOrder = await this.watch(url, messageHash, message, type);
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            return newOrder;
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(this.orders, symbol, since, limit, true);
+    }
+    async watchOrdersForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchOrdersForSymbols
+         * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
+         * @description watches information on multiple orders made by the user
+         * @param {string[]} symbols unified symbol of the market to fetch orders for
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('authenticate', params);
+        const isIsolatedMargin = (marginMode === 'isolated');
+        if (isIsolatedMargin) {
+            throw new errors.NotSupported(this.id + ' watchOrdersForSymbols does not support isolated margin markets, use watchOrders instead');
+        }
+        await this.loadMarkets();
+        let type = undefined;
+        const market = this.getMarketFromSymbols(symbols);
+        [type, params] = this.handleMarketTypeAndParams('watchOrdersForSymbols', market, params);
+        symbols = this.marketSymbols(symbols, type, true, true, true);
+        let messageHash = 'orders';
+        if (symbols !== undefined) {
+            messageHash = messageHash + '::' + symbols.join(',');
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('watchOrdersForSymbols', market, params);
+        if (this.isLinear(type, subType)) {
+            type = 'future';
+        }
+        else if (this.isInverse(type, subType)) {
+            type = 'delivery';
+        }
+        params = this.extend(params, { 'type': type });
+        await this.authenticate(params);
+        let urlType = type;
+        if (type === 'margin') {
+            urlType = 'spot'; // spot-margin shares the same stream as regular spot
+        }
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        const client = this.client(url);
+        this.setBalanceCache(client, type);
+        this.setPositionsCache(client, type);
+        const message = undefined;
+        const newOrders = await this.watch(url, messageHash, message, type);
+        if (this.newUpdates) {
+            return newOrders;
+        }
+        return this.filterBySymbolsSinceLimit(this.orders, symbols, since, limit, true);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -2733,7 +2787,6 @@ class binance extends binance$1 {
         }
     }
     handleOrder(client, message) {
-        const messageHash = 'orders';
         const parsed = this.parseWsOrder(message);
         const symbol = this.safeString(parsed, 'symbol');
         const orderId = this.safeString(parsed, 'id');
@@ -2762,9 +2815,8 @@ class binance extends binance$1 {
                 }
             }
             cachedOrders.append(parsed);
-            client.resolve(this.orders, messageHash);
-            const messageHashSymbol = messageHash + ':' + symbol;
-            client.resolve(this.orders, messageHashSymbol);
+            this.resolvePromiseIfMessagehashMatches(client, 'orders::', symbol, parsed);
+            client.resolve(parsed, 'orders');
         }
     }
     handleAcountUpdate(client, message) {
