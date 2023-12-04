@@ -2483,7 +2483,7 @@ class Transpiler {
             const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFile, 3);
             const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFile, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
-            const phpPreamble = this.getPHPPreamble (false, phpDirsAmount);
+            let phpPreamble = this.getPHPPreamble (false, phpDirsAmount);
 
             let pythonHeaderSync = []
             let pythonHeaderAsync = []
