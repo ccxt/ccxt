@@ -225,7 +225,7 @@ async def set_test_files(holderClass, properties):
         name = finalPropList[i]
         name_snake_case = convert_to_snake_case(name)
         prefix = 'async' if not is_synchronous else 'sync'
-        dir_to_test =  DIR_NAME + '/' + prefix + '/'
+        dir_to_test = DIR_NAME + '/' + prefix + '/'
         module_string = 'ccxt.test.' + prefix + '.test_' + name_snake_case
         if (isWsTests and 'watch' in name):
             prefix = 'pro'
