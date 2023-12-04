@@ -2550,6 +2550,7 @@ class Transpiler {
                 if(filePath && filePath.includes('/' + langFolder + '/')) {
                     directoriesToPythonFile = (filePath.split('/' + langFolder + '/')[1]?.match(/\//g)?.length || defaultDirs) + 1;
                 }
+                return directoriesToPythonFile;
             };
 
             const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFile, 3);
