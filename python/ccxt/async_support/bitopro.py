@@ -39,6 +39,8 @@ class bitopro(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,

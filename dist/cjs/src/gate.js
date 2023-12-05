@@ -47,6 +47,7 @@ class gate extends gate$1 {
                         'subAccounts': 'https://api.gateio.ws/api/v4',
                         'rebate': 'https://api.gateio.ws/api/v4',
                         'earn': 'https://api.gateio.ws/api/v4',
+                        'account': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -541,6 +542,7 @@ class gate extends gate$1 {
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
                 '8h': '8h',
                 '1d': '1d',
@@ -3620,7 +3622,14 @@ class gate extends gate$1 {
             'PEND': 'pending',
             'REQUEST': 'pending',
             'DMOVE': 'pending',
-            'CANCEL': 'failed',
+            'MANUAL': 'pending',
+            'VERIFY': 'pending',
+            'PROCES': 'pending',
+            'EXTPEND': 'pending',
+            'SPLITPEND': 'pending',
+            'CANCEL': 'canceled',
+            'FAIL': 'failed',
+            'INVALID': 'failed',
             'DONE': 'ok',
             'BCODE': 'ok', // GateCode withdrawal
         };

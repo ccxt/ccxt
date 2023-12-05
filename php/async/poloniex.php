@@ -766,32 +766,34 @@ class poloniex extends Exchange {
                 $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
                 $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
                 $networks = $this->safe_value($result[$code], 'networks', array());
-                $networks[$networkCode] = array(
-                    'info' => $currency,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'currencyId' => $id,
-                    'numericId' => $numericId,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'active' => $active,
-                    'fee' => $this->parse_number($feeString),
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
+                if ($networkCode !== null) {
+                    $networks[$networkCode] = array(
+                        'info' => $currency,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'currencyId' => $id,
+                        'numericId' => $numericId,
+                        'deposit' => $depositEnabled,
+                        'withdraw' => $withdrawEnabled,
+                        'active' => $active,
+                        'fee' => $this->parse_number($feeString),
+                        'precision' => null,
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                         ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
+                    );
+                }
                 $result[$code]['networks'] = $networks;
                 $info = $this->safe_value($result[$code], 'info', array());
                 $rawInfo = array();

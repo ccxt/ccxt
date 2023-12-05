@@ -1,5 +1,5 @@
 import cexRest from '../cex.js';
-import { Int, Str, Strings } from '../base/types.js';
+import { Int, OrderSide, OrderType, Strings, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
     describe(): any;
@@ -12,9 +12,11 @@ export default class cex extends cexRest {
     handleTrade(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: Strings, params?: {}): any;
+    fetchTickerWs(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBalanceWs(params?: {}): Promise<any>;
+    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTransaction(client: Client, message: any): void;
     handleMyTrades(client: Client, message: any): void;
@@ -35,6 +37,13 @@ export default class cex extends cexRest {
     handleOHLCV24(client: Client, message: any): any;
     handleOHLCV1m(client: Client, message: any): void;
     handleOHLCV(client: Client, message: any): void;
+    fetchOrderWs(id: string, symbol?: string, params?: {}): Promise<import("../base/types.js").Order>;
+    fetchOpenOrdersWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Order[]>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<import("../base/types.js").Order>;
+    editOrderWs(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("../base/types.js").Order>;
+    cancelOrderWs(id: string, symbol?: string, params?: {}): Promise<import("../base/types.js").Order>;
+    cancelOrdersWs(ids: any, symbol?: string, params?: {}): Promise<import("../base/types.js").Order[]>;
+    resolveData(client: Client, message: any): void;
     handleConnected(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;
