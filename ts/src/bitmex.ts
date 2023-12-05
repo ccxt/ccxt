@@ -393,7 +393,9 @@ export default class bitmex extends Exchange {
     }
 
     convertToRealAmount (code: Str, amount: Str) {
-        if (code === undefined || amount === undefined) {
+        if (code === undefined) {
+            return amount;
+        } else if (amount === undefined) {
             return undefined;
         }
         const currency = this.currency (code);
