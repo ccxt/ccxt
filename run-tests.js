@@ -212,7 +212,7 @@ const testExchange = async (exchange) => {
     // no need to test alias classes
     if (exchange.alias) {
         numExchangesTested++;
-        log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, '[Skipped]'.yellow)
+        log.bright (('[' + percentsDone() + ']').dim, exchangeSpecificFlags['--ws'] ? '(WS)' : '', 'Tested', exchange.cyan, '[Skipped]'.yellow)
         return [];
     }
 
