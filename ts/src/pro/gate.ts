@@ -289,7 +289,7 @@ export default class gate extends gateRest {
         const marketId = market['id'];
         const url = this.getUrlByMarket (market);
         const messageType = this.getTypeByMarket (market);
-        const [ topic, query ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'tickers');
+        const [ topic, query ] = this.handleOptionAndParams (params, 'watchTicker', 'name', 'tickers');
         const channel = messageType + '.' + topic;
         const messageHash = 'ticker:' + symbol;
         const payload = [ marketId ];
