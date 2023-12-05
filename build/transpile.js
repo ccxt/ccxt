@@ -2448,7 +2448,7 @@ class Transpiler {
 
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
-            let test = tests[i];
+            const test = tests[i];
             let phpAsync = phpFixes(result[0].content);
             let phpSync = phpFixes(result[1].content);
             let pythonSync = pyFixes (result[2].content);
@@ -2559,7 +2559,7 @@ class Transpiler {
             test.phpFileAsyncContent = phpPreambleAsync + phpAsync;
             test.pyFileAsyncContent = pythonPreambleAsync + pythonAsync;
 
-            test = this.modifyWsBaseCacheAndOrderBookTests (test);
+            this.modifyWsBaseCacheAndOrderBookTests (test);
 
             if (!test.base) {
                 fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
