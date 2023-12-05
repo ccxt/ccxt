@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.75';
+$version = '4.1.77';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.75';
+    const VERSION = '4.1.77';
 
     public $browser;
     public $marketsLoading = null;
@@ -3019,6 +3019,14 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
+    }
+
+    public function close_position(string $symbol, ?string $side = null, ?string $marginMode = null, $params = array ()) {
+        throw new NotSupported($this->id . ' closePositions() is not supported yet');
+    }
+
+    public function close_all_positions($params = array ()) {
+        throw new NotSupported($this->id . ' closeAllPositions() is not supported yet');
     }
 
     public function parse_last_price($price, ?array $market = null) {

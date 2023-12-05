@@ -388,6 +388,12 @@ class bitmex extends bitmex$1 {
         return this.parseNumber(finalAmount);
     }
     convertToRealAmount(code, amount) {
+        if (code === undefined) {
+            return amount;
+        }
+        else if (amount === undefined) {
+            return undefined;
+        }
         const currency = this.currency(code);
         const precision = this.safeString(currency, 'precision');
         return Precise["default"].stringMul(amount, precision);

@@ -28,6 +28,8 @@ class kuna extends Exchange {
                 'borrowMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => false,

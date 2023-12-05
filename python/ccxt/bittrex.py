@@ -48,6 +48,8 @@ class bittrex(Exchange, ImplicitAPI):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createMarketOrder': True,
                 'createOrder': True,

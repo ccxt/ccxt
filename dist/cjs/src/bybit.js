@@ -35,6 +35,8 @@ class bybit extends bybit$1 {
                 'borrowCrossMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,

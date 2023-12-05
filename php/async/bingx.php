@@ -38,6 +38,8 @@ class bingx extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPosition' => true,
+                'closePosition' => false,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => true,
                 'createMarketSellOrderWithCost' => true,
@@ -1611,23 +1613,28 @@ class bingx extends Exchange {
         //         "avgPrice" => "2.2",
         //         "leverage" => 10,
         //     }
+        //
         // standard $position
+        //
         //     {
-        //         "currentPrice":"82.91",
-        //         "symbol":"LTC/USDT",
-        //         "initialMargin":"5.00000000000000000000",
-        //         "unrealizedProfit":"-0.26464500",
-        //         "leverage":"20.000000000",
-        //         "isolated":true,
-        //         "entryPrice":"83.13",
-        //         "positionSide":"LONG",
-        //         "positionAmt":"1.20365912",
+        //         "currentPrice" => "82.91",
+        //         "symbol" => "LTC/USDT",
+        //         "initialMargin" => "5.00000000000000000000",
+        //         "unrealizedProfit" => "-0.26464500",
+        //         "leverage" => "20.000000000",
+        //         "isolated" => true,
+        //         "entryPrice" => "83.13",
+        //         "positionSide" => "LONG",
+        //         "positionAmt" => "1.20365912",
         //     }
         //
-        $marketId = $this->safe_string($position, 'symbol');
+        $marketId = $this->safe_string($position, 'symbol', '');
         $marketId = str_replace('/', '-', $marketId); // standard return different format
         $isolated = $this->safe_value($position, 'isolated');
-        $marginMode = $isolated ? 'isolated' : 'cross';
+        $marginMode = null;
+        if ($isolated !== null) {
+            $marginMode = $isolated ? 'isolated' : 'cross';
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'positionId'),
@@ -1814,7 +1821,6 @@ class bingx extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
-             * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
              * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
@@ -3456,6 +3462,51 @@ class bingx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function close_all_positions($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * closes open $positions for a market
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#close-all-$position
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->recvWindow] $request valid time window value
+             * @return {[array]} ~@link https://docs.ccxt.com/#/?id=$position-structure A list of $position structures~
+             */
+            Async\await($this->load_markets());
+            $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
+            $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('closeAllPositions', null, $params);
+            if ($marketType === 'margin') {
+                throw new BadRequest($this->id . ' closePositions () cannot be used for ' . $marketType . ' markets');
+            }
+            $request = array(
+                'recvWindow' => $recvWindow,
+            );
+            $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions (array_merge($request, $params)));
+            //
+            //    {
+            //        "code" => 0,
+            //        "msg" => "",
+            //        "data" => {
+            //            "success" => array(
+            //                1727686766700486656,
+            //                1727686767048613888
+            //            ),
+            //            "failed" => null
+            //        }
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $success = $this->safe_value($data, 'success', array());
+            $positions = array();
+            for ($i = 0; $i < count($success); $i++) {
+                $position = $this->parse_position(array( 'positionId' => $success[$i] ));
+                $positions[] = $position;
+            }
+            return $positions;
+        }) ();
     }
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

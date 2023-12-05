@@ -38,6 +38,8 @@ export default class woo extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelWithdraw': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createMarketOrder': false,
                 'createOrder': true,

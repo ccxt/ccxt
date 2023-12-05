@@ -32,6 +32,8 @@ class bittrex extends bittrex$1 {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,

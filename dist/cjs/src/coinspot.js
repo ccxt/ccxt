@@ -29,6 +29,8 @@ class coinspot extends coinspot$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

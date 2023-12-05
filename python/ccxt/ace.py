@@ -36,6 +36,8 @@ class ace(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'editOrder': False,
                 'fetchBalance': True,

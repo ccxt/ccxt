@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -44,6 +44,8 @@ class bingx(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPosition': True,
+                'closePosition': False,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': True,
                 'createMarketSellOrderWithCost': True,
@@ -1530,23 +1532,27 @@ class bingx(Exchange, ImplicitAPI):
         #         "avgPrice": "2.2",
         #         "leverage": 10,
         #     }
+        #
         # standard position
+        #
         #     {
-        #         "currentPrice":"82.91",
-        #         "symbol":"LTC/USDT",
-        #         "initialMargin":"5.00000000000000000000",
-        #         "unrealizedProfit":"-0.26464500",
-        #         "leverage":"20.000000000",
-        #         "isolated":true,
-        #         "entryPrice":"83.13",
-        #         "positionSide":"LONG",
-        #         "positionAmt":"1.20365912",
+        #         "currentPrice": "82.91",
+        #         "symbol": "LTC/USDT",
+        #         "initialMargin": "5.00000000000000000000",
+        #         "unrealizedProfit": "-0.26464500",
+        #         "leverage": "20.000000000",
+        #         "isolated": True,
+        #         "entryPrice": "83.13",
+        #         "positionSide": "LONG",
+        #         "positionAmt": "1.20365912",
         #     }
         #
-        marketId = self.safe_string(position, 'symbol')
+        marketId = self.safe_string(position, 'symbol', '')
         marketId = marketId.replace('/', '-')  # standard return different format
         isolated = self.safe_value(position, 'isolated')
-        marginMode = 'isolated' if isolated else 'cross'
+        marginMode = None
+        if isolated is not None:
+            marginMode = 'isolated' if isolated else 'cross'
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'positionId'),
@@ -1707,7 +1713,6 @@ class bingx(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -3221,6 +3226,46 @@ class bingx(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    def close_all_positions(self, params={}) -> List[Position]:
+        """
+        closes open positions for a market
+        :see: https://bitgetlimited.github.io/apidoc/en/mix/#close-all-position
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param str [params.recvWindow]: request valid time window value
+        :returns [dict]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        self.load_markets()
+        defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
+        recvWindow = self.safe_integer(self.parse_params, 'recvWindow', defaultRecvWindow)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('closeAllPositions', None, params)
+        if marketType == 'margin':
+            raise BadRequest(self.id + ' closePositions() cannot be used for ' + marketType + ' markets')
+        request = {
+            'recvWindow': recvWindow,
+        }
+        response = self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
+        #
+        #    {
+        #        "code": 0,
+        #        "msg": "",
+        #        "data": {
+        #            "success": [
+        #                1727686766700486656,
+        #                1727686767048613888
+        #            ],
+        #            "failed": null
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        success = self.safe_value(data, 'success', [])
+        positions = []
+        for i in range(0, len(success)):
+            position = self.parse_position({'positionId': success[i]})
+            positions.append(position)
+        return positions
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]
