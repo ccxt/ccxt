@@ -325,6 +325,25 @@ export default class testMainClass extends baseMainTestClass {
         return message + res;
     }
 
+    exchangeHint (exchange, market = undefined) {
+        let marketType = exchange.safeString2 (exchange.options, 'defaultType', 'type', '');
+        let marketSubType = exchange.safeString2 (exchange.options, 'defaultSubType', 'subType', '');
+        if (market !== undefined) {
+            marketType = market['type'];
+            if (market['linear']) {
+                marketSubType = 'linear';
+            } else if (market['inverse']) {
+                marketSubType = 'inverse';
+            } else if (exchange.safeValue (market, 'quanto') === true) {
+                marketSubType = 'quanto';
+            }
+        }
+        const isWs = ('ws' in exchange.has);
+        const wsFlag = isWs ? ' (WS)' : '';
+        const result = exchange.id + wsFlag + ' ' + marketType + ' [subType: ' + marketSubType + '] ';
+        return result;
+    }
+
     async testMethod (methodName, exchange, args, isPublic) {
         const isLoadMarkets = (methodName === 'loadMarkets');
         const methodNameInTest = getTestName (methodName);
@@ -350,13 +369,13 @@ export default class testMainClass extends baseMainTestClass {
         }
         if (skipMessage) {
             if (this.info) {
-                dump (this.addPadding (skipMessage, 25), exchange.id, methodNameInTest);
+                dump (this.addPadding (skipMessage, 25), this.exchangeHint (exchange), methodNameInTest);
             }
             return;
         }
         if (this.info) {
             const argsStringified = '(' + args.join (',') + ')';
-            dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, methodNameInTest, argsStringified);
+            dump (this.addPadding ('[INFO:TESTING]', 25), this.exchangeHint (exchange), methodNameInTest, argsStringified);
         }
         const skippedProperties = exchange.safeValue (this.skippedMethods, methodName, {});
         await callMethod (this.testFiles, methodNameInTest, exchange, skippedProperties, args);
@@ -392,7 +411,7 @@ export default class testMainClass extends baseMainTestClass {
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
-                        dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, methodName, argsStringified);
+                        dump ('[TEST_WARNING]', 'Method could not be tested due to a repeated Network/Availability issues', ' | ', this.exchangeHint (exchange), methodName, argsStringified);
                     } else {
                         // wait and retry again
                         await exchange.sleep (i * 1000); // increase wait seconds on every retry
@@ -400,24 +419,24 @@ export default class testMainClass extends baseMainTestClass {
                     }
                 } else if (e instanceof OnMaintenance) {
                     // in case of maintenance, skip exchange (don't fail the test)
-                    dump ('[TEST_WARNING] Exchange is on maintenance', exchange.id);
+                    dump ('[TEST_WARNING] Exchange is on maintenance', this.exchangeHint (exchange));
                 }
                 // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                 else if (isPublic && isAuthError) {
                     // in case of loadMarkets, it means that "tester" (developer or travis) does not have correct authentication, so it does not have a point to proceed at all
                     if (methodName === 'loadMarkets') {
-                        dump ('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                        dump ('[TEST_WARNING]', 'Exchange can not be tested, because of authentication problems during loadMarkets', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                     }
                     if (this.info) {
-                        dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                        dump ('[TEST_WARNING]', 'Authentication problem for public method', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                     }
                 } else {
                     // if not a temporary connectivity issue, then mark test as failed (no need to re-try)
                     if (isNotSupported) {
-                        dump ('[NOT_SUPPORTED]', exchange.id, methodName, argsStringified);
+                        dump ('[NOT_SUPPORTED]', this.exchangeHint (exchange), methodName, argsStringified);
                         return true; // why consider not supported as a failed test?
                     } else {
-                        dump ('[TEST_FAILURE]', exceptionMessage (e), exchange.id, methodName, argsStringified);
+                        dump ('[TEST_FAILURE]', exceptionMessage (e), this.exchangeHint (exchange), methodName, argsStringified);
                     }
                 }
                 return false;
@@ -489,7 +508,7 @@ export default class testMainClass extends baseMainTestClass {
             }
             const messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage;
             const messageWithPadding = this.addPadding (messageContent, 25);
-            dump (messageWithPadding, exchange.id);
+            dump (messageWithPadding, this.exchangeHint (exchange));
         }
     }
 
@@ -843,7 +862,7 @@ export default class testMainClass extends baseMainTestClass {
             dump ('[TEST_FAILURE]', 'Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
         } else {
             if (this.info) {
-                dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id);
+                dump (this.addPadding ('[INFO:PRIVATE_TESTS_DONE]', 25), this.exchangeHint (exchange));
             }
         }
     }
@@ -852,7 +871,7 @@ export default class testMainClass extends baseMainTestClass {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         const proxyTestName = this.proxyTestFileName;
         if (this.info) {
-            dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, proxyTestName);
+            dump (this.addPadding ('[INFO:TESTING]', 25), this.exchangeHint (exchange), proxyTestName);
         }
         // try proxy several times
         const maxRetries = 3;
@@ -1137,7 +1156,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         catch (e) {
             this.requestTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + this.exchangeHint (exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
             dump (errorMessage);
         }
     }
@@ -1151,7 +1170,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         catch (e) {
             this.requestTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + this.exchangeHint (exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
             dump (errorMessage);
         }
         setFetchResponse (exchange, undefined); // reset state
