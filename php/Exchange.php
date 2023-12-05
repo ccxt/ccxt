@@ -1373,17 +1373,17 @@ class Exchange {
         }
         // proxy agents
         [ $httpProxy, $httpsProxy, $socksProxy ] = $this->check_proxy_settings($url, $method, $headers, $body);
-        $this->checkConflictingProxies ($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
+        $this->check_conflicting_proxies($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
         $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
         // user-agent
         $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
         if ($userAgent) {
             if (gettype($userAgent) == 'string') {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent);
-                $headers = $this->extend(['User-Agent' => $userAgent], $headers);
+                $headers = array_merge(['User-Agent' => $userAgent], $headers);
             } elseif ((gettype($userAgent) == 'array') && array_key_exists('User-Agent', $userAgent)) {
                 curl_setopt($this->curl, CURLOPT_USERAGENT, $userAgent['User-Agent']);
-                $headers = $this->extend($userAgent, $headers);
+                $headers = array_merge($userAgent, $headers);
             }
         }
         // set final headers
