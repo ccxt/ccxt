@@ -2548,6 +2548,9 @@ class Transpiler {
         }
     }
 
+    // placeholder for override (ws transpiler)
+    modifyCustomFiles (test) { }
+
     // ============================================================================
 
     transpileTests () {
