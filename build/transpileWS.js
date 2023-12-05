@@ -225,13 +225,16 @@ class CCXTProTranspiler extends Transpiler {
             const fileNames = this.readTsFileNames(baseWsFolders.ts + subDirectory);
             for (const testName of fileNames) {
                 const testNameUncameled = this.uncamelcaseName(testName);
+                const isBaseTestFile = subDirectory.includes('test/base/');
                 const test = {
-                    base: subDirectory.includes('test/base/'),
+                    base: isBaseTestFile,
                     name: testName,
                     tsFile: baseWsFolders.ts + subDirectory + testName + '.ts',
-                    pyFileAsync: baseWsFolders.py + subDirectory + testNameUncameled + '.py',
-                    phpFileAsync: baseWsFolders.php + subDirectory + testNameUncameled + '.php',
                 };
+                const pyKey = isBaseTestFile ? 'pyFileSync': 'pyFileAsync';
+                const phpKey = isBaseTestFile ? 'phpFileSync': 'phpFileAsync';
+                test[pyKey] = baseWsFolders.py + subDirectory + testNameUncameled + '.py';
+                test[phpKey] = baseWsFolders.php + subDirectory + testNameUncameled + '.php';
                 wsCollectedTests.push(test);
             }
         }

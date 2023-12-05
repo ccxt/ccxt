@@ -2201,9 +2201,9 @@ class Transpiler {
                 base: false,
                 name: testName,
                 tsFile: baseFolders.ts + testName + '.ts',
-                pyFile: baseFolders.py + 'sync/' + unCamelCasedFileName + '.py',
+                pyFileSync: baseFolders.py + 'sync/' + unCamelCasedFileName + '.py',
                 pyFileAsync: baseFolders.py + 'async/' + unCamelCasedFileName + '.py',
-                phpFile: baseFolders.php + 'sync/' + unCamelCasedFileName + '.php',
+                phpFileSync: baseFolders.php + 'sync/' + unCamelCasedFileName + '.php',
                 phpFileAsync: baseFolders.php + 'async/' + unCamelCasedFileName + '.php',
             };
             tests.push(test);
@@ -2449,8 +2449,8 @@ class Transpiler {
                 return directoriesToPythonFile;
             };
 
-            const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFile, 3);
-            const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFile, 2);
+            const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFileSync, 3);
+            const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFileSync, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
             let phpPreamble = this.getPHPPreamble (false, phpDirsAmount);
 
@@ -2539,10 +2539,10 @@ class Transpiler {
                 fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
                 fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
             }
-            if (test.phpFile) {
+            if (test.phpFileSync) {
                 fileSaveFunc (test.phpFile, test.phpFileSyncContent);
             }
-            if (test.pyFile) {
+            if (test.pyFileSync) {
                 fileSaveFunc (test.pyFile, test.pyFileSyncContent);
             }
         }
