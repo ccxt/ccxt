@@ -2226,7 +2226,7 @@ class Transpiler {
             for (const testName of fileNames) {
                 const testNameUncameled = this.uncamelcaseName(testName);
                 const test = {
-                    base: folderName.includes('base'),
+                    base: subDirectory.includes('test/base/'),
                     name: testName,
                     tsFile: baseWsFolders.ts + subDirectory + testName + '.ts',
                     pyFileAsync: baseWsFolders.py + subDirectory + testNameUncameled + '.py',
