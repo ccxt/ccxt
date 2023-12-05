@@ -40,6 +40,8 @@ export default class bitget extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': false,
+                'closeAllPositions': true,
+                'closePosition': false,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
