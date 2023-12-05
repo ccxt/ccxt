@@ -34,6 +34,8 @@ export default class ace extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,

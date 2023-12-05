@@ -32,6 +32,8 @@ class gemini extends gemini$1 {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': true,
                 'createMarketOrder': false,
                 'createOrder': true,

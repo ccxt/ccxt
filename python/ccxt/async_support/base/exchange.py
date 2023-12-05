@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.75'
+__version__ = '4.1.76'
 
 # -----------------------------------------------------------------------------
 
@@ -1009,6 +1009,12 @@ class Exchange(BaseExchange):
 
     async def fetch_funding_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
+
+    async def close_position(self, symbol: str, side: OrderSide = None, marginMode: str = None, params={}):
+        raise NotSupported(self.id + ' closePositions() is not supported yet')
+
+    async def close_all_positions(self, params={}):
+        raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
 
     async def fetch_deposit_address(self, code: str, params={}):
         if self.has['fetchDepositAddresses']:

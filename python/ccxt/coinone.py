@@ -38,6 +38,8 @@ class coinone(Exchange, ImplicitAPI):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
