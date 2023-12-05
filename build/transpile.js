@@ -957,6 +957,7 @@ class Transpiler {
             'OrderRequest': /: (?:List\[)?OrderRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
+            'Position': /-> (?:List\[)?Position/,
             'IndexType': /: IndexType/,
             'FundingHistory': /\[FundingHistory/,
             'Num': /: Num =/,

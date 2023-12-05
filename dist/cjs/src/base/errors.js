@@ -190,8 +190,14 @@ class NotSupported extends ExchangeError {
         this.name = 'NotSupported';
     }
 }
+class OperationFailed extends BaseError {
+    constructor(message) {
+        super(message);
+        this.name = 'OperationFailed';
+    }
+}
 // Network error
-class NetworkError extends BaseError {
+class NetworkError extends OperationFailed {
     constructor(message) {
         super(message);
         this.name = 'NetworkError';
@@ -231,12 +237,6 @@ class RequestTimeout extends NetworkError {
     constructor(message) {
         super(message);
         this.name = 'RequestTimeout';
-    }
-}
-class OperationFailed extends BaseError {
-    constructor(message) {
-        super(message);
-        this.name = 'OperationFailed';
     }
 }
 /*  ------------------------------------------------------------------------ */

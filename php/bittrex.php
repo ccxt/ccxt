@@ -30,6 +30,8 @@ class bittrex extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,

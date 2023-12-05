@@ -12,7 +12,7 @@ use React\Promise;
 // -----------------------------------------------------------------------------
 include_once __DIR__ . '/../base/test_shared_methods.php';
 
-function test_all_proxies($exchange, $skipped_properties) {
+function test_proxies($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
         Async\await(test_proxy_url($exchange, $skipped_properties));
         Async\await(test_http_proxy($exchange, $skipped_properties));

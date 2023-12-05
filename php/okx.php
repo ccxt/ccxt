@@ -16,7 +16,7 @@ class okx extends Exchange {
             'name' => 'OKX',
             'countries' => array( 'CN', 'US' ),
             'version' => 'v5',
-            'rateLimit' => 100,
+            'rateLimit' => 100 * 1.03, // 3% tolerance because of #20229
             'pro' => true,
             'certified' => true,
             'has' => array(
@@ -32,6 +32,8 @@ class okx extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => false,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
                 'createPostOnlyOrder' => true,
@@ -230,6 +232,13 @@ class okx extends Exchange {
                         'finance/savings/lending-rate-history' => 5 / 3,
                         // public broker
                         'finance/sfp/dcd/products' => 2 / 3,
+                        // copytrading
+                        'copytrading/public-lead-traders' => 4,
+                        'copytrading/public-weekly-pnl' => 4,
+                        'copytrading/public-stats' => 4,
+                        'copytrading/public-preference-currency' => 4,
+                        'copytrading/public-current-subpositions' => 4,
+                        'copytrading/public-subpositions-history' => 4,
                     ),
                 ),
                 'private' => array(
@@ -339,12 +348,16 @@ class okx extends Exchange {
                         'finance/staking-defi/eth/balance' => 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history' => 5 / 3,
                         // copytrading
-                        'copytrading/current-subpositions' => 4,
-                        'copytrading/subpositions-history' => 10,
-                        'copytrading/instruments' => 10,
-                        'copytrading/profit-sharing-details' => 10,
-                        'copytrading/total-profit-sharing' => 10,
-                        'copytrading/unrealized-profit-sharing-details' => 10,
+                        'copytrading/current-subpositions' => 1,
+                        'copytrading/subpositions-history' => 1,
+                        'copytrading/instruments' => 4,
+                        'copytrading/profit-sharing-details' => 4,
+                        'copytrading/total-profit-sharing' => 4,
+                        'copytrading/unrealized-profit-sharing-details' => 4,
+                        'copytrading/copy-settings' => 4,
+                        'copytrading/batch-leverage-info' => 4,
+                        'copytrading/current-lead-traders' => 4,
+                        'copytrading/lead-traders-history' => 4,
                         // broker
                         'broker/nd/info' => 10,
                         'broker/nd/subaccount-info' => 10,
@@ -449,9 +462,13 @@ class okx extends Exchange {
                         'finance/staking-defi/eth/purchase' => 5,
                         'finance/staking-defi/eth/redeem' => 5,
                         // copytrading
-                        'copytrading/algo-order' => 20,
-                        'copytrading/close-subposition' => 4,
-                        'copytrading/set-instruments' => 10,
+                        'copytrading/algo-order' => 1,
+                        'copytrading/close-subposition' => 1,
+                        'copytrading/set-instruments' => 4,
+                        'copytrading/first-copy-settings' => 4,
+                        'copytrading/amend-copy-settings' => 4,
+                        'copytrading/stop-copy-trading' => 4,
+                        'copytrading/batch-set-leverage' => 4,
                         // broker
                         'broker/nd/create-subaccount' => 0.25,
                         'broker/nd/delete-subaccount' => 1,
@@ -2472,6 +2489,44 @@ class okx extends Exchange {
         return $this->parse_balance_by_type($marketType, $response);
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+         * create a $market buy order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot markets only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        $params['tgtCcy'] = 'quote_ccy';
+        return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
+    }
+
+    public function create_market_sell_order_with_cost(string $symbol, $cost, $params = array ()) {
+        /**
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+         * create a $market buy order by providing the $symbol and $cost
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {float} $cost how much you want to trade in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot markets only');
+        }
+        $params['createMarketBuyOrderRequiresPrice'] = false;
+        $params['tgtCcy'] = 'quote_ccy';
+        return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
+    }
+
     public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $request = array(
@@ -2563,8 +2618,10 @@ class okx extends Exchange {
                 // see documentation => https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if ($tgtCcy === 'quote_ccy') {
                     // quote_ccy => sz refers to units of quote $currency
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                     $notional = $this->safe_number_2($params, 'cost', 'sz');
-                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                    $params = $this->omit($params, array( 'cost', 'sz' ));
                     if ($createMarketBuyOrderRequiresPrice) {
                         if ($price !== null) {
                             if ($notional === null) {
@@ -2580,7 +2637,6 @@ class okx extends Exchange {
                         $notional = ($notional === null) ? $amount : $notional;
                     }
                     $request['sz'] = $this->cost_to_precision($symbol, $notional);
-                    $params = $this->omit($params, array( 'cost', 'sz' ));
                 }
             }
             if ($marketIOC && $contract) {

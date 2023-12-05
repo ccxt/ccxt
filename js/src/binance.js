@@ -41,6 +41,8 @@ export default class binance extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createOrders': true,
@@ -594,6 +596,7 @@ export default class binance extends Exchange {
                 'sapiV2': {
                     'get': {
                         'sub-account/futures/account': 0.1,
+                        'sub-account/futures/accountSummary': 1,
                         'sub-account/futures/positionRisk': 0.1,
                     },
                     'post': {
@@ -876,6 +879,7 @@ export default class binance extends Exchange {
                         'uiKlines': 0.4,
                         'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 },
                         'ticker': { 'cost': 0.4, 'noSymbol': 16 },
+                        'ticker/tradingDay': 0.8,
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'exchangeInfo': 4,
@@ -904,6 +908,7 @@ export default class binance extends Exchange {
                         'rateLimit/order': 8,
                         'myPreventedMatches': 4,
                         'myAllocations': 4,
+                        'account/commission': 4,
                     },
                     'post': {
                         'order/oco': 0.2,

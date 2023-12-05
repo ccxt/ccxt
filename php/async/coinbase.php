@@ -40,11 +40,16 @@ class coinbase extends Exchange {
                 'addMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,
                 'createMarketBuyOrder' => true,
+                'createMarketBuyOrderWithCost' => true,
+                'createMarketOrderWithCost' => false,
                 'createMarketSellOrder' => true,
+                'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -200,12 +205,15 @@ class coinbase extends Exchange {
                             'brokerage/transaction_summary',
                             'brokerage/product_book',
                             'brokerage/best_bid_ask',
+                            'brokerage/convert/trade/{trade_id}',
                         ),
                         'post' => array(
                             'brokerage/orders',
                             'brokerage/orders/batch_cancel',
                             'brokerage/orders/edit',
                             'brokerage/orders/edit_preview',
+                            'brokerage/convert/quote',
+                            'brokerage/convert/trade/{trade_id}',
                         ),
                     ),
                 ),
@@ -2132,6 +2140,26 @@ class coinbase extends Exchange {
         }) ();
     }
 
+    public function create_market_buy_order_with_cost(string $symbol, $cost, $params = array ()) {
+        return Async\async(function () use ($symbol, $cost, $params) {
+            /**
+             * create a $market buy order by providing the $symbol and $cost
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
+            }
+            $params['createMarketBuyOrderRequiresPrice'] = false;
+            return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
+        }) ();
+    }
+
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -2151,6 +2179,7 @@ class coinbase extends Exchange {
              * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
              * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
              * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
+             * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2247,19 +2276,24 @@ class coinbase extends Exchange {
                     throw new NotSupported($this->id . ' createOrder() only stop limit orders are supported');
                 }
                 if ($side === 'buy') {
-                    $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
                     $total = null;
-                    if ($createMarketBuyOrderRequiresPrice) {
+                    $createMarketBuyOrderRequiresPrice = true;
+                    list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                    $cost = $this->safe_number($params, 'cost');
+                    $params = $this->omit($params, 'cost');
+                    if ($cost !== null) {
+                        $total = $this->cost_to_precision($symbol, $cost);
+                    } elseif ($createMarketBuyOrderRequiresPrice) {
                         if ($price === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the $total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                            throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the $total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
                         } else {
                             $amountString = $this->number_to_string($amount);
                             $priceString = $this->number_to_string($price);
-                            $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                            $total = $this->price_to_precision($symbol, $cost);
+                            $costRequest = Precise::string_mul($amountString, $priceString);
+                            $total = $this->cost_to_precision($symbol, $costRequest);
                         }
                     } else {
-                        $total = $this->price_to_precision($symbol, $amount);
+                        $total = $this->cost_to_precision($symbol, $amount);
                     }
                     $request['order_configuration'] = array(
                         'market_market_ioc' => array(

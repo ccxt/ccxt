@@ -1,2 +1,2 @@
-declare function testAllProxies(exchange: any, skippedProperties: any): Promise<void>;
-export default testAllProxies;
+declare function testProxies(exchange: any, skippedProperties: any): Promise<void>;
+export default testProxies;

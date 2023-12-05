@@ -20,15 +20,17 @@ declare class baseMainTestClass {
     publicTests: {};
     rootDir: string;
     rootDirForSkips: string;
+    onlySpecificTests: any[];
     envVars: NodeJS.ProcessEnv;
     proxyTestFileName: string;
     ext: string;
 }
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs(): void;
-    init(exchangeId: any, symbol: any): Promise<void>;
+    init(exchangeId: any, symbolArgv: any): Promise<void>;
+    checkIfSpecificTestIsChosen(symbolArgv: any): any;
     importFiles(exchange: any): Promise<void>;
-    expandSettings(exchange: any, symbol: any): void;
+    expandSettings(exchange: any): void;
     addPadding(message: string, size: any): string;
     testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<void>;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;

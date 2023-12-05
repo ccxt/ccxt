@@ -2,7 +2,7 @@
 import assert from 'assert';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testAllProxies (exchange, skippedProperties) {
+async function testProxies (exchange, skippedProperties) {
     await testProxyUrl (exchange, skippedProperties);
     await testHttpProxy (exchange, skippedProperties);
     // 'httpsProxy', 'socksProxy'
@@ -84,4 +84,4 @@ async function testProxyForExceptions (exchange, skippedProperties) {
     testSharedMethods.setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
 }
 
-export default testAllProxies;
+export default testProxies;

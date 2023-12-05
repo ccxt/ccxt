@@ -250,7 +250,7 @@ class Client {
     }
 
     public function on_message(Message $message) {
-        if (!ctype_print((string)$message)) { // only decompress if the message is a binary
+        if (preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0) { // only decompress if the message is a binary
             if ($this->gunzip) {
                 $message = \ccxt\pro\gunzip($message);
             } else if ($this->inflate) {

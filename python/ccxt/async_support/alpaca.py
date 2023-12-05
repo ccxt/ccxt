@@ -56,6 +56,8 @@ class alpaca(Exchange, ImplicitAPI):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,

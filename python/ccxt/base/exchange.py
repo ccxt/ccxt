@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.68'
+__version__ = '4.1.77'
 
 # -----------------------------------------------------------------------------
 
@@ -3728,6 +3728,43 @@ class Exchange(object):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost, params={}):
+        """
+        create a market order by providing the symbol, side and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if self.options['createMarketOrderWithCost'] or (self.options['createMarketBuyOrderWithCost'] and self.options['createMarketSellOrderWithCost']):
+            return self.create_order(symbol, 'market', side, cost, 1, params)
+        raise NotSupported(self.id + ' createMarketOrderWithCost() is not supported yet')
+
+    def create_market_buy_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market buy order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if self.options['createMarketBuyOrderRequiresPrice'] or self.options['createMarketBuyOrderWithCost']:
+            return self.create_order(symbol, 'market', 'buy', cost, 1, params)
+        raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is not supported yet')
+
+    def create_market_sell_order_with_cost(self, symbol: str, cost, params={}):
+        """
+        create a market sell order by providing the symbol and cost
+        :param str symbol: unified symbol of the market to create an order in
+        :param float cost: how much you want to trade in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        if self.options['createMarketSellOrderRequiresPrice'] or self.options['createMarketSellOrderWithCost']:
+            return self.create_order(symbol, 'market', 'sell', cost, 1, params)
+        raise NotSupported(self.id + ' createMarketSellOrderWithCost() is not supported yet')
+
     def create_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createOrders() is not supported yet')
 
@@ -3802,10 +3839,10 @@ class Exchange(object):
         """
         raise NotSupported(self.id + ' fetchDepositsWithdrawals() is not supported yet')
 
-    def fetch_deposits(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_deposits(self, code: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchDeposits() is not supported yet')
 
-    def fetch_withdrawals(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_withdrawals(self, code: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchWithdrawals() is not supported yet')
 
     def fetch_open_interest(self, symbol: str, params={}):
@@ -3816,6 +3853,12 @@ class Exchange(object):
 
     def fetch_funding_history(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
+
+    def close_position(self, symbol: str, side: OrderSide = None, marginMode: str = None, params={}):
+        raise NotSupported(self.id + ' closePositions() is not supported yet')
+
+    def close_all_positions(self, params={}):
+        raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
 
     def parse_last_price(self, price, market: Market = None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
@@ -4655,6 +4698,9 @@ class Exchange(object):
                 cursorValue = self.safe_value(last['info'], cursorReceived)
                 if cursorValue is None:
                     break
+                lastTimestamp = self.safe_integer(last, 'timestamp')
+                if lastTimestamp is not None and lastTimestamp < since:
+                    break
             except Exception as e:
                 errors += 1
                 if errors > maxRetries:
@@ -4697,9 +4743,9 @@ class Exchange(object):
         first = self.safe_value(result, 0)
         if first is not None:
             if 'timestamp' in first:
-                return self.sort_by(result, 'timestamp')
+                return self.sort_by(result, 'timestamp', True)
             if 'id' in first:
-                return self.sort_by(result, 'id')
+                return self.sort_by(result, 'id', True)
         return result
 
     def remove_repeated_elements_from_array(self, input):
