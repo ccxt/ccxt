@@ -2208,8 +2208,7 @@ class Transpiler {
             };
             tests.push(test);
         }
-        const results = this.genericTestsTranspile (tests);
-        this.saveTranspiledTests (results);
+        this.transpileAndSaveExchangeTests (tests);
     }
 
     transpileWsTests (){
@@ -2220,6 +2219,7 @@ class Transpiler {
         };
         const subDir = 'pro/test/';
 
+        const wsCollectedTests = [];
         for (const folderName of ['', 'base/']) {
             const fullDir = baseWsFolders.ts + subDir + folderName;
             const fileNames = this.readTsFileNames(fullDir);
@@ -2235,31 +2235,7 @@ class Transpiler {
                 wsCollectedTests.push(test);
             }
         }
-        const results = this.genericTestsTranspile (wsCollectedTests);
-        results = this.modifyWsBaseCacheAndOrderBookTests(results);
-        this.saveTranspiledTests (results);
-    }
-
-    modifyWsBaseCacheAndOrderBookTests (results) {
-        for (const result of results) {
-            const isWsCache = test.tsFile.includes('pro/test/base/test.Cache.ts');
-            const isWsOrderBook = test.tsFile.includes('pro/test/base/test.OrderBook.ts');
-            if (isWsCache || isWsOrderBook) {
-                // they are custom files called directly from run-tests
-                phpPreamble = phpPreamble.replace('namespace ccxt;', 
-                "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';",)
-                if (isWsCache){
-                    pythonHeaderSync.push ('');
-                    pythonHeaderSync.push ('from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402');
-                    pythonHeaderSync.push ('');
-                }
-                if (isWsOrderBook){
-                    pythonHeaderSync.push ('');
-                    pythonHeaderSync.push ('from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402');
-                    pythonHeaderSync.push ('');
-                }
-            }
-        }
+        this.transpileAndSaveExchangeTests (wsCollectedTests);
     }
 
     createBaseInitFile (pyPath, tests) {
@@ -2397,7 +2373,7 @@ class Transpiler {
     }
     // ============================================================================
 
-    async genericTestsTranspile (tests) {
+    async transpileAndSaveExchangeTests (tests) {
         const parser = {
             'LINES_BETWEEN_FILE_MEMBERS': 2
         }
@@ -2567,54 +2543,57 @@ class Transpiler {
                 pythonHeaderSync = ['', ...pythonHeaderSync, '', '']
             }
 
-            const transpilationResult = { 'test': test };
+            const fileSaveFunc = (path, content) => {
+                log.magenta ('→', path);
+                overwriteFile (path, content);
+            };
+
             const pythonPreambleSync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderSync.join ('\n') + '\n';
             let phpPreambleSync = phpPreamble + phpHeaderSync.join ('\n') + "\n\n";
             phpPreambleSync = phpPreambleSync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;');
+            test.phpFileSyncContent = phpPreambleSync + phpSync;
+            test.pyFileSyncContent = pythonPreambleSync + pythonSync;
+
+            let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
+            phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
+            const pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n';
+            test.phpFileAsyncContent = phpPreambleAsync + phpAsync;
+            test.pyFileAsyncContent = pythonPreambleAsync + pythonAsync;
+
+            test = this.modifyWsBaseCacheAndOrderBookTests (test);
+
             if (!test.base) {
-                let phpPreambleAsync = phpPreamble + phpHeaderAsync.join ('\n') + "\n\n";
-                phpPreambleAsync = phpPreambleAsync.replace (/namespace ccxt;/, 'namespace ccxt;\nuse \\ccxt\\Precise;\nuse React\\\Async;\nuse React\\\Promise;');
-                const pythonPreambleAsync = pythonPreamble + pythonCodingUtf8 + '\n\n' + pythonHeaderAsync.join ('\n') + '\n';
-                const finalPhpContentAsync = phpPreambleAsync + phpAsync;
-                const finalPyContentAsync = pythonPreambleAsync + pythonAsync;
-                transpilationResult ['phpFileAsync'] = finalPhpContentAsync;
-                transpilationResult ['pyFileAsync'] = finalPyContentAsync;
+                fileSaveFunc (test.phpFileAsync, test.phpFileAsyncContent);
+                fileSaveFunc (test.pyFileAsync, test.pyFileAsyncContent);
             }
-            // if sync tests included
             if (test.phpFile) {
-                const finalPhpContentSync = phpPreambleSync + phpSync;
-                transpilationResult ['phpFileSync'] = finalPhpContentSync;
+                fileSaveFunc (test.phpFile, test.phpFileSyncContent);
             }
             if (test.pyFile) {
-                const finalPyContentSync = pythonPreambleSync + pythonSync;
-                transpilationResult ['pyFileSync'] = finalPyContentSync;
+                fileSaveFunc (test.pyFile, test.pyFileSyncContent);
             }
-            transpilationResults.push(transpilationResult);
         }
-        return transpilationResults;
     }
 
-    saveTranspiledTests (transpilationResults){
-        for (const result of transpilationResults){
-            if (result.pyFileSync) {
-                log.magenta ('→', result.test.pyFileSync.yellow)
-                overwriteFile (result.test.pyFileSync, result.pyFileSync)
+    modifyWsBaseCacheAndOrderBookTests (test) {
+        const isWsCache = test.tsFile.includes('pro/test/base/test.Cache.ts');
+        const isWsOrderBook = test.tsFile.includes('pro/test/base/test.OrderBook.ts');
+        if (isWsCache || isWsOrderBook) {
+            // they are custom files called directly from run-tests
+            phpPreamble = phpPreamble.replace('namespace ccxt;', 
+            "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';",)
+            if (isWsCache){
+                pythonHeaderSync.push ('');
+                pythonHeaderSync.push ('from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402');
+                pythonHeaderSync.push ('');
             }
-            if (result.pyFileAsync) {
-                log.magenta ('→', result.test.pyFileAsync.yellow)
-                overwriteFile (result.test.pyFileAsync, result.pyFileAsync)
-            }
-            if (result.phpFileSync) {
-                log.magenta ('→', result.test.phpFileSync.yellow)
-                overwriteFile (result.test.phpFileSync, result.phpFileSync)
-            }
-            if (result.phpFileAsync) {
-                log.magenta ('→', result.test.phpFileAsync.yellow)
-                overwriteFile (result.test.phpFileAsync, result.phpFileAsync)
+            if (isWsOrderBook){
+                pythonHeaderSync.push ('');
+                pythonHeaderSync.push ('from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402');
+                pythonHeaderSync.push ('');
             }
         }
     }
- 
     // ============================================================================
 
     transpileTests () {
