@@ -192,6 +192,8 @@ class CCXTProTranspiler extends Transpiler {
 
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
 
+        this.transpileWsTests ()
+
         if (child) {
             return
         }
@@ -206,6 +208,54 @@ class CCXTProTranspiler extends Transpiler {
         // this.transpileErrorHierarchy ({ tsFilename })
 
         log.bright.green ('Transpiled successfully.')
+    }
+
+    
+    transpileWsTests (){
+        const baseWsFolders = {
+            ts: './ts/src/',
+            py: './python/ccxt/',
+            php: './php/',
+        };
+        const wsFolder = 'pro/test/';
+
+        const wsCollectedTests = [];
+        for (const currentFolder of ['', 'base/']) {
+            const subDirectory = wsFolder + currentFolder;
+            const fileNames = this.readTsFileNames(baseWsFolders.ts + subDirectory);
+            for (const testName of fileNames) {
+                const testNameUncameled = this.uncamelcaseName(testName);
+                const test = {
+                    base: subDirectory.includes('test/base/'),
+                    name: testName,
+                    tsFile: baseWsFolders.ts + subDirectory + testName + '.ts',
+                    pyFileAsync: baseWsFolders.py + subDirectory + testNameUncameled + '.py',
+                    phpFileAsync: baseWsFolders.php + subDirectory + testNameUncameled + '.php',
+                };
+                wsCollectedTests.push(test);
+            }
+        }
+        this.transpileAndSaveExchangeTests (wsCollectedTests);
+    }
+
+
+    modifyCustomFiles (test) {
+        const isWsCache = test.tsFile.includes('pro/test/base/test.Cache.ts');
+        const isWsOrderBook = test.tsFile.includes('pro/test/base/test.OrderBook.ts');
+        if (isWsCache){
+            // php head
+            test.phpFileSyncContent = test.phpFileSyncContent.replace('namespace ccxt;', 
+            "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';");
+            // py head
+            test.pyFileSyncContent = test.pyFileSyncContent.replace('root = os', 'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402' + '\n' + '\n' + 'root = os');
+        }
+        if (isWsOrderBook){
+            // php head
+            test.phpFileSyncContent = test.phpFileSyncContent.replace('namespace ccxt;', 
+            "namespace ccxt\\pro;\ninclude_once __DIR__ . '/../../../../vendor/autoload.php';");
+            // py head
+            test.pyFileSyncContent = test.pyFileSyncContent.replace('root =', 'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402' + '\n' + '\n' + 'root =');
+        }
     }
 }
 
