@@ -2217,20 +2217,20 @@ class Transpiler {
             py: './python/ccxt/',
             php: './php/',
         };
-        const subDir = 'pro/test/';
+        const wsFolder = 'pro/test/';
 
         const wsCollectedTests = [];
-        for (const folderName of ['', 'base/']) {
-            const fullDir = baseWsFolders.ts + subDir + folderName;
-            const fileNames = this.readTsFileNames(fullDir);
+        for (const currentFolder of ['', 'base/']) {
+            const subDirectory = wsFolder + currentFolder;
+            const fileNames = this.readTsFileNames(baseWsFolders.ts + subDirectory);
             for (const testName of fileNames) {
-                const unCamelCasedFileName = this.uncamelcaseName(testName);
+                const testNameUncameled = this.uncamelcaseName(testName);
                 const test = {
                     base: folderName.includes('base'),
                     name: testName,
-                    tsFile: baseWsFolders.ts + testName + '.ts',
-                    pyFileAsync: baseWsFolders.py + unCamelCasedFileName + '.py',
-                    phpFileAsync: baseWsFolders.php + unCamelCasedFileName + '.php',
+                    tsFile: baseWsFolders.ts + subDirectory + testName + '.ts',
+                    pyFileAsync: baseWsFolders.py + subDirectory + testNameUncameled + '.py',
+                    phpFileAsync: baseWsFolders.php + subDirectory + testNameUncameled + '.php',
                 };
                 wsCollectedTests.push(test);
             }
