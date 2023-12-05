@@ -1,6 +1,6 @@
 import ccxt from '../js/ccxt.js';
 import { promisify } from 'util';
-import fs from 'fs';
+import { promises as fs } from 'node:fs';
 import log from 'ololog'
 
 const JS_PATH = './js/src/abstract/';
@@ -137,13 +137,13 @@ ${IDEN}}`
 async function editFiles (path, methods, extension) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
-    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
+    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n', 'utf-8')))
     await unlinkFiles (path, extension)
 }
 
 async function unlinkFiles (path, extension) {
     const exchanges = Object.keys (storedCamelCaseMethods);
-    const abstract = fs.readdirSync (path)
+    const abstract = await fs.readdir (path)
     const ext = new RegExp (extension + '$')
     await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => promisedUnlinkFile (path + basename)))
 }
