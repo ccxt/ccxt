@@ -27,7 +27,7 @@ class okx extends Exchange {
             'name' => 'OKX',
             'countries' => array( 'CN', 'US' ),
             'version' => 'v5',
-            'rateLimit' => 100,
+            'rateLimit' => 100 * 1.03, // 3% tolerance because of #20229
             'pro' => true,
             'certified' => true,
             'has' => array(

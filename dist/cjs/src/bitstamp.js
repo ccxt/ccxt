@@ -1039,6 +1039,7 @@ class bitstamp extends bitstamp$1 {
          * @method
          * @name bitstamp#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1061,7 +1062,7 @@ class bitstamp extends bitstamp$1 {
                 limit = 1000;
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, limit * duration);
+                request['end'] = this.sum(start, duration * (limit - 1));
                 request['limit'] = limit;
             }
         }
@@ -1069,7 +1070,7 @@ class bitstamp extends bitstamp$1 {
             if (since !== undefined) {
                 const start = this.parseToInt(since / 1000);
                 request['start'] = start;
-                request['end'] = this.sum(start, limit * duration);
+                request['end'] = this.sum(start, duration * (limit - 1));
             }
             request['limit'] = Math.min(limit, 1000); // min 1, max 1000
         }
