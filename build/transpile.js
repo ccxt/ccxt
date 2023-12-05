@@ -800,10 +800,10 @@ class Transpiler {
         ].join ("\n")
     }
 
-    getPHPPreamble (include = true, level = 2) {
+    getPHPPreamble (include = true, level = 2, isWs = false) {
         return [
             "<?php",
-            "namespace ccxt;",
+            (isWs ? "namespace ccxt\\pro;" : "namespace ccxt;"),
             include ? `include_once (__DIR__.'/${'../'.repeat(level)}ccxt.php');` : "",
             "// ----------------------------------------------------------------------------",
             "",
@@ -2428,6 +2428,7 @@ class Transpiler {
         for (let i = 0; i < flatResult.length; i++) {
             const result = flatResult[i];
             const test = tests[i];
+            const isWs = test.tsFile.includes('ts/src/pro/');
             let phpAsync = phpFixes(result[0].content);
             let phpSync = phpFixes(result[1].content);
             let pythonSync = pyFixes (result[2].content);
@@ -2457,7 +2458,7 @@ class Transpiler {
             const pyDirsAmount = findDirsAmountForPath('python', test.pyFileAsync || test.pyFileSync, 3);
             const phpDirsAmount = findDirsAmountForPath('php', test.phpFileAsync || test.phpFileSync, 2);
             const pythonPreamble = this.getPythonPreamble(pyDirsAmount);
-            let phpPreamble = this.getPHPPreamble (false, phpDirsAmount);
+            let phpPreamble = this.getPHPPreamble (false, phpDirsAmount, isWs);
 
             let pythonHeaderSync = []
             let pythonHeaderAsync = []
