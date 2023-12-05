@@ -327,7 +327,7 @@ export default class testMainClass extends baseMainTestClass {
 
     exchangeHint (exchange, market = undefined) {
         let marketType = exchange.safeString2 (exchange.options, 'defaultType', 'type', '');
-        let marketSubType = exchange.safeString2 (exchange.options, 'defaultSubType', 'subType', '');
+        let marketSubType = exchange.safeString2 (exchange.options, 'defaultSubType', 'subType');
         if (market !== undefined) {
             marketType = market['type'];
             if (market['linear']) {
@@ -340,7 +340,10 @@ export default class testMainClass extends baseMainTestClass {
         }
         const isWs = ('ws' in exchange.has);
         const wsFlag = isWs ? ' (WS)' : '';
-        const result = exchange.id + wsFlag + ' ' + marketType + ' [subType: ' + marketSubType + '] ';
+        let result = exchange.id + wsFlag + ' ' + marketType;
+        if (marketSubType !== undefined) {
+            result = result + ' [subType: ' + marketSubType + '] ';
+        }
         return result;
     }
 
