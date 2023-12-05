@@ -7000,15 +7000,12 @@ export default class bitget extends Exchange {
         let subType = undefined;
         let settle = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('closeAllPositions', undefined, params);
-        settle = this.safeString (params, 'settle');
+        settle = this.safeString (params, 'settle', 'USDT');
         params = this.omit (params, [ 'settle' ]);
         const productType = this.safeString (params, 'productType');
         const request = {};
         if (productType === undefined) {
             const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-            if ((settle === undefined) || (subType === undefined)) {
-                throw new ArgumentsRequired (this.id + ' closeAllPositions requires extra arguments params["subType"] and params["settle"]');
-            }
             let localProductType = undefined;
             if (subType === 'inverse') {
                 localProductType = 'dmcbl';
