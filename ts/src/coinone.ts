@@ -319,8 +319,8 @@ export default class coinone extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue (tickers, i);
             const id = this.safeString (entry, 'id');
-            const baseId = this.safeString (entry, 'target_currency');
-            const quoteId = this.safeString (entry, 'quote_currency');
+            const baseId = this.safeStringUpper (entry, 'target_currency');
+            const quoteId = this.safeStringUpper (entry, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             result.push ({
