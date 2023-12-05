@@ -1531,7 +1531,8 @@ export default class bitmex extends Exchange {
         //         "trdMatchID": "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
         //         "grossValue": 28958000,
         //         "homeNotional": 0.28958,
-        //         "foreignNotional": 2000
+        //         "foreignNotional": 2000,
+        //         "trdType": "Regular"
         //     }
         //
         // fetchMyTrades (private)
@@ -1591,13 +1592,22 @@ export default class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
         const amountString = this.convertFromRawQuantity (symbol, this.safeString2 (trade, 'size', 'lastQty'));
-        const execCost = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execCost')));
+        const execCost = this.safeString (trade, 'execCost');
+        let cost = undefined;
+        if (execCost !== undefined) {
+            const execCostReal = this.numberToString (this.convertFromRawCost (symbol, execCost));
+            cost = Precise.stringAbs (execCostReal);
+        }
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         let fee = undefined;
-        const feeCostString = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execComm')));
+        const execComm = this.safeString (trade, 'execComm');
+        let feeCostString = undefined;
+        if (execComm !== undefined) {
+            feeCostString = this.numberToString (this.convertFromRawCost (symbol, execComm));
+        }
         if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (currencyId);
@@ -1626,7 +1636,7 @@ export default class bitmex extends Exchange {
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,
-            'cost': Precise.stringAbs (execCost),
+            'cost': cost,
             'amount': amountString,
             'fee': fee,
         }, market);
