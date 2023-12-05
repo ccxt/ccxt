@@ -167,6 +167,19 @@
                     1699457638000,
                     5
                 ]
+            },
+            {
+                "description": "Swap private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.hitbtc.com/api/3/margin/history/trade?symbol=LTCUSDT_PERP&limit=5&from=1699457638000",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1699457638000,
+                    5,
+                    {
+                        "margin": true
+                    }
+                ]
             }
         ],
         "fetchOpenOrders": [
