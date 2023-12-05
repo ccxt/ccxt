@@ -20,13 +20,8 @@ export default class binance extends Exchange {
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseMarket(market: any): Market;
-<<<<<<< HEAD
-    parseBalanceHelper(entry: any): import("./base/types.js").Balance;
-    parseBalanceCustom(response: any, type?: any, marginMode?: any): Balances;
-=======
     parseBalanceHelper(entry: any): import("./base/types.js").Account;
     parseBalance(response: any, type?: any, marginMode?: any): Balances;
->>>>>>> 70395cb0413e73ff1da77986f9ac28605f10aa91
     fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: Market): Ticker;
@@ -311,7 +306,7 @@ export default class binance extends Exchange {
     };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
-    request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
+    request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}, context?: {}): Promise<any>;
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: Market): {
         info: any;

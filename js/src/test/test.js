@@ -44,7 +44,6 @@ class baseMainTestClass {
         this.debug = false;
         this.privateTest = false;
         this.privateTestOnly = false;
-        this.loadKeys = false;
         this.sandbox = false;
         this.skippedMethods = {};
         this.checkedPublicTests = {};
@@ -165,7 +164,6 @@ export default class testMainClass extends baseMainTestClass {
         this.privateTest = getCliArgValue('--private');
         this.privateTestOnly = getCliArgValue('--privateOnly');
         this.sandbox = getCliArgValue('--sandbox');
-        this.loadKeys = getCliArgValue('--loadKeys');
     }
     async init(exchangeId, symbolArgv) {
         this.parseCliArgs();
@@ -252,21 +250,6 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         // credentials
-<<<<<<< HEAD
-        if (this.loadKeys) {
-            const reqCreds = getExchangeProp(exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-            const objkeys = Object.keys(reqCreds);
-            for (let i = 0; i < objkeys.length; i++) {
-                const credential = objkeys[i];
-                const isRequired = reqCreds[credential];
-                if (isRequired && getExchangeProp(exchange, credential) === undefined) {
-                    const fullKey = exchangeId + '_' + credential;
-                    const credentialEnvName = fullKey.toUpperCase(); // example: KRAKEN_APIKEY
-                    const credentialValue = (credentialEnvName in envVars) ? envVars[credentialEnvName] : undefined;
-                    if (credentialValue) {
-                        setExchangeProp(exchange, credential, credentialValue);
-                    }
-=======
         const reqCreds = getExchangeProp(exchange, 're' + 'quiredCredentials'); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         const objkeys = Object.keys(reqCreds);
         for (let i = 0; i < objkeys.length; i++) {
@@ -278,7 +261,6 @@ export default class testMainClass extends baseMainTestClass {
                 const credentialValue = (credentialEnvName in this.envVars) ? this.envVars[credentialEnvName] : undefined;
                 if (credentialValue) {
                     setExchangeProp(exchange, credential, credentialValue);
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
                 }
             }
         }
@@ -289,7 +271,7 @@ export default class testMainClass extends baseMainTestClass {
         // others
         const timeout = exchange.safeValue(skippedSettingsForExchange, 'timeout');
         if (timeout !== undefined) {
-            exchange.timeout = exchange.parseToInt(timeout);
+            exchange.timeout = timeout;
         }
         exchange.httpProxy = exchange.safeString(skippedSettingsForExchange, 'httpProxy');
         exchange.httpsProxy = exchange.safeString(skippedSettingsForExchange, 'httpsProxy');
@@ -313,7 +295,7 @@ export default class testMainClass extends baseMainTestClass {
         const methodNameInTest = getTestName(methodName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodNameInTest in this.checkedPublicTests) && (methodName !== 'fetchCurrencies')) {
-            return undefined;
+            return;
         }
         let skipMessage = undefined;
         const isProxyTest = methodName === this.proxyTestFileName;

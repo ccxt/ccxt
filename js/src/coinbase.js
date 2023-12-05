@@ -1536,13 +1536,8 @@ export default class coinbase extends Exchange {
             'info': ticker,
         }, market);
     }
-<<<<<<< HEAD
-    parseBalanceCustom(response, params = {}) {
-        const balances = this.safeValue(response, 'data', []);
-=======
     parseBalance(response, params = {}) {
         const balances = this.safeValue2(response, 'data', 'accounts', []);
->>>>>>> 02244c32cba68ccdb2369fd4238cb0201cfd67e7
         const accounts = this.safeValue(params, 'type', this.options['accounts']);
         const v3Accounts = this.safeValue(params, 'type', this.options['v3Accounts']);
         const result = { 'info': response };
@@ -1662,9 +1657,6 @@ export default class coinbase extends Exchange {
         //         ]
         //     }
         //
-<<<<<<< HEAD
-        return this.parseBalanceCustom(response, params);
-=======
         // v3PrivateGetBrokerageAccounts
         //     {
         //         "accounts": [
@@ -1696,7 +1688,6 @@ export default class coinbase extends Exchange {
         //     }
         //
         return this.parseBalance(response, params);
->>>>>>> 02244c32cba68ccdb2369fd4238cb0201cfd67e7
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

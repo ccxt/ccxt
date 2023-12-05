@@ -115,30 +115,15 @@ export default class digifinex extends Exchange {
         datetime: string;
         info: any;
     }>;
-<<<<<<< HEAD
-<<<<<<< HEAD
-    fetchBorrowRates(params?: {}): Promise<any>;
-    parseBorrowRate(info: any, currency?: any): {
-        currency: any;
-=======
-    fetchBorrowRates(params?: {}): Promise<{}>;
-=======
     fetchCrossBorrowRates(params?: {}): Promise<{}>;
->>>>>>> 70395cb0413e73ff1da77986f9ac28605f10aa91
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
         rate: number;
         period: number;
         timestamp: number;
         datetime: string;
         info: any;
     };
-<<<<<<< HEAD
-    parseBorrowRates(info: any, codeKey: any): any;
-    fetchFundingRate(symbol: string, params?: {}): Promise<any>;
-    parseFundingRate(contract: any, market?: any): {
-=======
     parseBorrowRates(info: any, codeKey: any): {};
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
@@ -160,7 +145,6 @@ export default class digifinex extends Exchange {
         previousFundingDatetime: any;
     }>;
     parseFundingRate(contract: any, market?: Market): {
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
         info: any;
         symbol: string;
         markPrice: any;

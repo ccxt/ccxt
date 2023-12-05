@@ -13,7 +13,6 @@ declare class baseMainTestClass {
     debug: boolean;
     privateTest: boolean;
     privateTestOnly: boolean;
-    loadKeys: boolean;
     sandbox: boolean;
     skippedMethods: {};
     checkedPublicTests: {};

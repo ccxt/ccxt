@@ -19,13 +19,8 @@ export default class tokocrypto extends Exchange {
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-<<<<<<< HEAD
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    parseBalanceCustom(response: any, type?: any, marginMode?: any): import("./base/types.js").Balances;
-=======
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any, type?: any, marginMode?: any): Balances;
->>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: Market): Order;
     parseOrderType(status: any): string;

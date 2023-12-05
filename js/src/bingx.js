@@ -3298,7 +3298,7 @@ export default class bingx extends Exchange {
         //           "id":"1197073063359000577"
         //        }
         //    }
-        return this.parseTransaction(data);
+        this.parseTransaction(data);
     }
     parseParams(params) {
         const sortedParams = this.keysort(params);

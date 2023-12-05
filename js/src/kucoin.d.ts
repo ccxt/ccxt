@@ -23,10 +23,6 @@ export default class kucoin extends Exchange {
         withdraw: {};
         deposit: {};
     }>;
-<<<<<<< HEAD
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
-    parseDepositWithdrawFee(fee: any, currency?: any): {
-=======
     fetchDepositWithdrawFee(code: string, params?: {}): Promise<{
         info: any;
         withdraw: {
@@ -40,7 +36,6 @@ export default class kucoin extends Exchange {
         networks: {};
     }>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): {
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
         info: any;
         withdraw: {
             fee: any;

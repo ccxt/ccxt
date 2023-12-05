@@ -25,31 +25,12 @@ export default class krakenfutures extends Exchange {
     parseOrderType(orderType: any): string;
     verifyOrderActionSuccess(status: any, method: any, omit?: any[]): void;
     parseOrderStatus(status: any): string;
-<<<<<<< HEAD
-    parseOrder(order: any, market?: any): Order;
-<<<<<<< HEAD
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-<<<<<<< HEAD
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
-=======
-=======
-=======
     parseOrder(order: any, market?: Market): Order;
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
->>>>>>> 5a483c50bd8a5c4ae57e5d31a9de8caed1148cc1
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
-<<<<<<< HEAD
-    fetchFundingRates(symbols?: string[], params?: {}): Promise<{}>;
->>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
-    parseFundingRate(ticker: any, market?: any): {
-=======
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
     parseFundingRate(ticker: any, market?: Market): {
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
         info: any;
         symbol: string;
         markPrice: number;

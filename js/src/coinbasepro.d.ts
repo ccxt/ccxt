@@ -62,60 +62,12 @@ export default class coinbasepro extends Exchange {
         type: string;
         info: any;
     };
-<<<<<<< HEAD
-    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-<<<<<<< HEAD
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTransactionStatus(transaction: any): "canceled" | "pending" | "ok" | "failed";
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: string;
-        addressFrom: any;
-        addressTo: string;
-        tag: string;
-        tagFrom: any;
-        tagTo: any;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    };
-=======
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-=======
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 5a483c50bd8a5c4ae57e5d31a9de8caed1148cc1
     parseTransactionStatus(transaction: any): "ok" | "canceled" | "failed" | "pending";
-    parseTransaction(transaction: any, currency?: any): Transaction;
->>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
-=======
-    parseTransactionStatus(transaction: any): "canceled" | "pending" | "ok" | "failed";
-=======
-    parseTransactionStatus(transaction: any): "ok" | "canceled" | "failed" | "pending";
->>>>>>> 70395cb0413e73ff1da77986f9ac28605f10aa91
     parseTransaction(transaction: any, currency?: Currency): Transaction;
->>>>>>> 055794d8789e08535c7d6feb0b1c77db77c1f0ea
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: any;

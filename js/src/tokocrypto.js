@@ -1357,9 +1357,9 @@ export default class tokocrypto extends Exchange {
         //         "timestamp":1659666786943
         //     }
         //
-        return this.parseBalanceCustom(response, type, marginMode);
+        return this.parseBalance(response, type, marginMode);
     }
-    parseBalanceCustom(response, type = undefined, marginMode = undefined) {
+    parseBalance(response, type = undefined, marginMode = undefined) {
         const timestamp = this.safeInteger(response, 'updateTime');
         const result = {
             'info': response,

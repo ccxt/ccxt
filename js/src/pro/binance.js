@@ -1465,7 +1465,7 @@ export default class binance extends binanceRest {
         //
         const messageHash = this.safeString(message, 'id');
         const result = this.safeValue(message, 'result', {});
-        const parsedBalances = this.parseBalance(result);
+        const parsedBalances = this.parseBalance(result, 'spot');
         client.resolve(parsedBalances, messageHash);
     }
     async watchBalance(params = {}) {
